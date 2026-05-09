@@ -12,7 +12,7 @@
 //! driver; the session itself (`UxReplaySession`) carries a
 //! `UxTreeSnapshot` that stays shell-side, but the event vocabulary
 //! is portable and moves here so `FrameHostInput.events: Vec<HostEvent>`
-//! can live in graphshell-core.
+//! can live in mere-kernel.
 //!
 //! The shell crate re-exports these types from `ux_replay.rs` so
 //! existing import paths resolve unchanged.

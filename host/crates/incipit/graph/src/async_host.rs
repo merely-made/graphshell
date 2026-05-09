@@ -4,7 +4,7 @@
 
 //! Portable async-host boundary traits.
 //!
-//! `graphshell-core` names the runtime/host seam in terms of a small,
+//! `mere-kernel` names the runtime/host seam in terms of a small,
 //! object-safe task-spawning interface so native and wasm hosts can choose
 //! different executor models without changing runtime code.
 

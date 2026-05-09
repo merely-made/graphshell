@@ -56,14 +56,14 @@ pub mod node;
 // Identity types and rkyv archive helpers extracted to `identity.rs`
 // per the 2026-04-30 renderer plan §6.4 decomposition target. Public
 // types are re-exported at this module path so external callers
-// (`graphshell_core::graph::NodeKey`, etc.) continue to resolve;
+// (`mere_kernel::graph::NodeKey`, etc.) continue to resolve;
 // the rkyv `with = ...` archive helpers are crate-internal and used
 // only by struct field annotations in this file.
 pub(crate) use identity::UuidAsBytes;
 pub use identity::{EdgeKey, GraphDirection, GraphIndex, GraphViewId, NodeKey};
 
 // Node + NodeLifecycle extracted to `node.rs` per the same
-// decomposition target. Re-exported so `graphshell_core::graph::Node`
+// decomposition target. Re-exported so `mere_kernel::graph::Node`
 // continues to resolve.
 pub use node::{Node, NodeLifecycle};
 
@@ -450,7 +450,7 @@ impl NodeNavigationMemory {
 
 // Node, NodeLifecycle, and impl Node moved to `node.rs` per the
 // 2026-04-30 renderer plan §6.4 decomposition target. Re-exported
-// here so external paths (`graphshell_core::graph::Node`, etc.)
+// here so external paths (`mere_kernel::graph::Node`, etc.)
 // resolve unchanged.
 
 /// Type of edge connection
@@ -2172,7 +2172,7 @@ impl Graph {
     }
 
     /// Internal setter for `Node::history`. Tightened to `pub(crate)` so the
-    /// only reachable write surface from outside `graphshell-core` is
+    /// only reachable write surface from outside `mere-kernel` is
     /// `GraphDelta::UpdateNodeHistory`, dispatched via the
     /// `app::history::GraphBrowserApp::apply_node_history_change` helper.
     pub(crate) fn set_node_history_state(
@@ -4815,7 +4815,7 @@ mod tests {
         assert!(node.mime_hint.is_none());
     }
 
-    // Address type and function tests have moved to `graphshell_core::address::tests`.
+    // Address type and function tests have moved to `mere_kernel::address::tests`.
 
     #[test]
     fn node_address_field_is_consistent_with_url_and_address_kind_at_creation() {

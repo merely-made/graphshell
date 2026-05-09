@@ -132,7 +132,7 @@ pub enum GraphDelta {
     /// `entries` is empty, otherwise it is clamped to `entries.len() - 1`.
     /// Sole sanctioned write surface for `Node::history`; the underlying
     /// `Graph` setter is `pub(crate)` so this delta is the only way to
-    /// mutate the field from outside `graphshell-core`.
+    /// mutate the field from outside `mere-kernel`.
     UpdateNodeHistory {
         key: NodeKey,
         entries: Vec<String>,
