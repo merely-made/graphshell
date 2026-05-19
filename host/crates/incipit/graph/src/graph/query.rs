@@ -19,15 +19,11 @@ use petgraph::algo::{astar, dijkstra, has_path_connecting, kosaraju_scc};
 use petgraph::visit::{EdgeRef, IntoEdgeReferences, UndirectedAdaptor};
 use uuid::Uuid;
 
-use super::edge_taxonomy::{
-    ContainmentSubKind, EdgeAssertion, RelationSelector,
-};
+use super::edge_taxonomy::{ContainmentSubKind, EdgeAssertion, RelationSelector};
 use super::identity::{EdgeKey, NodeKey};
 use super::node::Node;
 use super::snapshot::containment_parent_url;
-use super::{
-    ArrangementEdgeView, ContainmentEdgeView, Graph, RelationView, SemanticEdgeView,
-};
+use super::{ArrangementEdgeView, ContainmentEdgeView, Graph, RelationView, SemanticEdgeView};
 
 impl Graph {
     /// Get a node by key
@@ -49,7 +45,10 @@ impl Graph {
     /// brief](https://github.com/mark-ik/mere/blob/main/design_docs/mere_docs/research/2026-05-18_node_identity_and_duplicates_brief.md);
     /// supersedes the URL-string-keyed `get_node_by_url` (which is
     /// retained as a transitional shim — see below).
-    pub fn find_node_by_address(&self, address: &crate::address::Address) -> Option<(NodeKey, &Node)> {
+    pub fn find_node_by_address(
+        &self,
+        address: &crate::address::Address,
+    ) -> Option<(NodeKey, &Node)> {
         let url = address.as_url_str();
         let key = self.url_to_nodes.get(url)?.last().copied()?;
         Some((key, self.inner.node_weight(key)?))
@@ -119,8 +118,7 @@ impl Graph {
             // row. Family-aware view callers reach for the
             // typed payload for actual events.
             if let Some(traversal) = payload.traversal_data()
-                && (!traversal.traversals.is_empty()
-                    || traversal.metrics.total_navigations > 0)
+                && (!traversal.traversals.is_empty() || traversal.metrics.total_navigations > 0)
             {
                 out.push(RelationView {
                     from,
@@ -236,12 +234,10 @@ impl Graph {
         for edge_id in edge_ids {
             if let Some(payload) = self.inner.edge_weight_mut(edge_id) {
                 let mut removed_any = false;
-                removed_any |= payload.retract_relation(RelationSelector::Containment(
-                    ContainmentSubKind::UrlPath,
-                ));
-                removed_any |= payload.retract_relation(RelationSelector::Containment(
-                    ContainmentSubKind::Domain,
-                ));
+                removed_any |= payload
+                    .retract_relation(RelationSelector::Containment(ContainmentSubKind::UrlPath));
+                removed_any |= payload
+                    .retract_relation(RelationSelector::Containment(ContainmentSubKind::Domain));
                 if removed_any && payload.is_empty() {
                     empty_edges.push(edge_id);
                 }

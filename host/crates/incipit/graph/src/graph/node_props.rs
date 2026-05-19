@@ -24,9 +24,9 @@ use std::time::SystemTime;
 
 use euclid::default::Point2D;
 
+use super::Graph;
 use super::identity::NodeKey;
 use super::node::{Node, NodeLifecycle};
-use super::Graph;
 use crate::types::{
     ClassificationProvenance, ClassificationScheme, ClassificationStatus, FrameLayoutHint,
     NodeClassification, NodeImportProvenance, NodeTagPresentationState,
@@ -331,7 +331,6 @@ impl Graph {
         }
         found
     }
-
 
     pub fn set_node_tag_icon_override(
         &mut self,

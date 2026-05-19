@@ -19,8 +19,8 @@
 
 use rkyv::{Archive, Archived, Deserialize, Place, Resolver, Serialize, rancor::Fallible};
 
-use super::identity::NodeKey;
 use super::Graph;
+use super::identity::NodeKey;
 use crate::persistence::GraphSnapshot;
 
 pub mod from;

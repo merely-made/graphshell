@@ -21,8 +21,8 @@ use std::collections::{BTreeMap, HashMap};
 
 use uuid::Uuid;
 
-use super::{Graph, current_unix_timestamp_secs, normalize_import_records};
 use super::identity::NodeKey;
+use super::{Graph, current_unix_timestamp_secs, normalize_import_records};
 use crate::types::{
     ImportRecord, ImportRecordMembership, NodeImportProvenance, NodeImportRecordSummary,
     format_imported_at_secs,

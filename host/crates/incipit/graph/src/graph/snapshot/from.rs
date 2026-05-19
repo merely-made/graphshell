@@ -150,9 +150,11 @@ impl Graph {
                 if let Some(arrangement) = &pedge.arrangement {
                     for sub_kind in &arrangement.sub_kinds {
                         let assertion = match sub_kind {
-                            PersistedArrangementSubKind::FrameMember => EdgeAssertion::Arrangement {
-                                sub_kind: ArrangementSubKind::FrameMember,
-                            },
+                            PersistedArrangementSubKind::FrameMember => {
+                                EdgeAssertion::Arrangement {
+                                    sub_kind: ArrangementSubKind::FrameMember,
+                                }
+                            }
                             PersistedArrangementSubKind::TileGroup => EdgeAssertion::Arrangement {
                                 sub_kind: ArrangementSubKind::TileGroup,
                             },
@@ -263,9 +265,7 @@ impl Graph {
                         .find_edge_key(from, to)
                         .unwrap_or_else(|| graph.inner.add_edge(from, to, EdgePayload::new()));
                     if let Some(payload) = graph.inner.edge_weight_mut(edge_key) {
-                        let data = payload
-                            .traversal
-                            .get_or_insert_with(TraversalData::default);
+                        let data = payload.traversal.get_or_insert_with(TraversalData::default);
                         data.traversals = traversal
                             .traversals
                             .iter()
@@ -332,5 +332,4 @@ impl Graph {
 
         graph
     }
-
 }

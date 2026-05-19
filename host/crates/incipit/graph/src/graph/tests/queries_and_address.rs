@@ -105,7 +105,11 @@ fn snapshot_roundtrip_preserves_mime_hint_and_address_kind() {
         Some("application/pdf")
     );
     assert_eq!(
-        graph.get_node(key).unwrap().primary_address().address_kind(),
+        graph
+            .get_node(key)
+            .unwrap()
+            .primary_address()
+            .address_kind(),
         AddressKind::File
     );
 

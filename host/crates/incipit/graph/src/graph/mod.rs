@@ -171,7 +171,6 @@ pub(crate) fn current_unix_timestamp_secs() -> u64 {
         .as_secs()
 }
 
-
 // Node, NodeLifecycle, and impl Node moved to `node.rs` per the
 // 2026-04-30 renderer plan §6.4 decomposition target. Re-exported
 // here so external paths (`mere_kernel::graph::Node`, etc.)
@@ -348,8 +347,6 @@ impl Graph {
             node.cached_host = cached_host_from_url(node.primary_address().as_url_str());
         }
     }
-
-
 }
 
 // Edge mutators (add_edge, assert_relation, replay_*, dissolve_*,
