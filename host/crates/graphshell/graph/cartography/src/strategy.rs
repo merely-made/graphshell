@@ -97,12 +97,8 @@ pub trait StreamingLayoutStrategy {
     /// previous frame (or `Self::State::default()` on the first
     /// call). Mutate it in place; return the strategy's best
     /// projection given that state.
-    fn step(
-        &self,
-        request: &ProjectionRequest<'_>,
-        state: &mut Self::State,
-        dt: f32,
-    ) -> Projection;
+    fn step(&self, request: &ProjectionRequest<'_>, state: &mut Self::State, dt: f32)
+    -> Projection;
 
     /// True when the strategy considers `state` settled — no further
     /// useful change expected from additional `step()` calls. Default:
@@ -242,7 +238,10 @@ mod tests {
         let strategy = CountdownStrategy { target_frames: 5 };
         let (projection, state) = strategy.project_initial(&request);
 
-        assert_eq!(state.frame, 1, "project_initial should run exactly one step");
+        assert_eq!(
+            state.frame, 1,
+            "project_initial should run exactly one step"
+        );
         assert_eq!(
             projection.metadata.strategy_id.as_deref(),
             Some("countdown.test")

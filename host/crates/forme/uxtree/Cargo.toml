@@ -15,5 +15,5 @@ path = "src/lib.rs"
 
 [dependencies]
 accesskit.workspace = true
-inker = { path = "../inker" }
+inker.workspace = true
 tracing.workspace = true

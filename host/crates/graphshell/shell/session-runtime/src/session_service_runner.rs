@@ -245,7 +245,9 @@ mod tests {
     #[test]
     fn start_then_stop_releases_handle() {
         let mut runner = InMemoryRunner::new().with_supported(WorkerKind::Embedder);
-        let h = runner.start_worker(session(1), WorkerKind::Embedder).unwrap();
+        let h = runner
+            .start_worker(session(1), WorkerKind::Embedder)
+            .unwrap();
         assert!(runner.knows(h));
         runner.stop_worker(h).unwrap();
         assert!(!runner.knows(h));
@@ -266,14 +268,26 @@ mod tests {
         let mut runner = InMemoryRunner::new()
             .with_supported(WorkerKind::FetcherPool)
             .with_supported(WorkerKind::Indexer);
-        let h1 = runner.start_worker(session(1), WorkerKind::FetcherPool).unwrap();
-        let h2 = runner.start_worker(session(2), WorkerKind::Indexer).unwrap();
-        let h3 = runner.start_worker(session(1), WorkerKind::Indexer).unwrap();
+        let h1 = runner
+            .start_worker(session(1), WorkerKind::FetcherPool)
+            .unwrap();
+        let h2 = runner
+            .start_worker(session(2), WorkerKind::Indexer)
+            .unwrap();
+        let h3 = runner
+            .start_worker(session(1), WorkerKind::Indexer)
+            .unwrap();
 
         let s1 = runner.workers_for(session(1));
         assert_eq!(s1.len(), 2);
-        assert!(s1.iter().any(|w| w.handle == h1 && w.kind == WorkerKind::FetcherPool));
-        assert!(s1.iter().any(|w| w.handle == h3 && w.kind == WorkerKind::Indexer));
+        assert!(
+            s1.iter()
+                .any(|w| w.handle == h1 && w.kind == WorkerKind::FetcherPool)
+        );
+        assert!(
+            s1.iter()
+                .any(|w| w.handle == h3 && w.kind == WorkerKind::Indexer)
+        );
 
         let s2 = runner.workers_for(session(2));
         assert_eq!(s2.len(), 1);
@@ -283,8 +297,12 @@ mod tests {
     #[test]
     fn two_sessions_can_run_the_same_kind() {
         let mut runner = InMemoryRunner::new().with_supported(WorkerKind::FetcherPool);
-        let h1 = runner.start_worker(session(1), WorkerKind::FetcherPool).unwrap();
-        let h2 = runner.start_worker(session(2), WorkerKind::FetcherPool).unwrap();
+        let h1 = runner
+            .start_worker(session(1), WorkerKind::FetcherPool)
+            .unwrap();
+        let h2 = runner
+            .start_worker(session(2), WorkerKind::FetcherPool)
+            .unwrap();
         assert_ne!(h1, h2);
         assert_eq!(runner.workers_for(session(1)).len(), 1);
         assert_eq!(runner.workers_for(session(2)).len(), 1);
@@ -293,7 +311,9 @@ mod tests {
     #[test]
     fn worker_status_carries_state_running_after_start() {
         let mut runner = InMemoryRunner::new().with_supported(WorkerKind::Embedder);
-        let h = runner.start_worker(session(1), WorkerKind::Embedder).unwrap();
+        let h = runner
+            .start_worker(session(1), WorkerKind::Embedder)
+            .unwrap();
         let status = runner.workers_for(session(1))[0].clone();
         assert_eq!(status.handle, h);
         assert_eq!(status.state, WorkerState::Running);

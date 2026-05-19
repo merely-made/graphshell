@@ -14,13 +14,13 @@ categories = ["gui"]
 path = "src/lib.rs"
 
 [dependencies]
-cartography = { path = "../cartography" }
-graph-canvas = { path = "../graph/graph-canvas" }
-graph-layout = { path = "../graph/graph-layout" }
-document-canvas = { path = "../document/document-canvas" }
-inker = { path = "../inker" }
-mere-kernel = { path = "../mere-kernel" }
+cartography.workspace = true
+graph-canvas.workspace = true
+graph-layout.workspace = true
+document-canvas.workspace = true
+inker.workspace = true
+mere-kernel.workspace = true
 serde = { version = "1.0", features = ["derive"] }
 tracing = "0.1"
 uuid = { version = "1", features = ["serde"] }
-verso-tile = { path = "../verso-tile" }
+verso-tile.workspace = true

@@ -189,9 +189,7 @@ impl TargetSize {
     pub fn logical_size(self) -> PortableSize {
         match self {
             TargetSize::Default => PortableSize::new(480.0, 360.0),
-            TargetSize::Pixels { width, height } => {
-                PortableSize::new(width as f32, height as f32)
-            }
+            TargetSize::Pixels { width, height } => PortableSize::new(width as f32, height as f32),
             TargetSize::Logical { width, height } => PortableSize::new(width, height),
         }
     }
@@ -207,14 +205,26 @@ mod tests {
         assert_eq!(intent.form_factor, FormFactor::Canvas);
         assert_eq!(intent.dimension, ProjectionDimension::TwoD);
         assert!(intent.focus.is_none());
-        assert_eq!(intent.target_size, TargetSize::Pixels { width: 800, height: 600 });
+        assert_eq!(
+            intent.target_size,
+            TargetSize::Pixels {
+                width: 800,
+                height: 600
+            }
+        );
     }
 
     #[test]
     fn view_intent_minimap_builder_sets_minimap_form_factor() {
         let intent = ViewIntent::minimap(120.0, 90.0);
         assert_eq!(intent.form_factor, FormFactor::Minimap);
-        assert_eq!(intent.target_size, TargetSize::Logical { width: 120.0, height: 90.0 });
+        assert_eq!(
+            intent.target_size,
+            TargetSize::Logical {
+                width: 120.0,
+                height: 90.0
+            }
+        );
     }
 
     #[test]
