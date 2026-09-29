@@ -26,7 +26,16 @@
 //! file reading is supplied by the host. Both formats use the same frame pump,
 //! deferred clicks, capture collection and product acceptance hooks. Text mode
 //! preserves its 120-frame capture grace and accepts uniform nonblank frames;
-//! the JSON constructor retains its eight-frame grace and detail checks.
+//! the JSON constructor defaults to eight frames and detail checks.
+//! `Lane::with_capture_backend` lets a browser supply nonblocking readback
+//! and its own bounded grace period. The product receives pixels through
+//! `Product::inspect` and publishes its receipt through `Product::complete`.
+//!
+//! `MESQUITE_CAPTURE_PAINT=1` or [`Lane::set_paint_capture`] adds a postcard
+//! `.paintlist` beside each saved PNG, with full font/image payloads and a
+//! `paint_path` in JSON receipts. Both come from the same presented frame.
+//! Existing sidecars and export errors fail the receipt. External GPU images
+//! remain references; this mode is for resource capture, not frame timing.
 //!
 //! ```ignore
 //! let mut lane = Lane::new(MyProduct, scenario, receipt, capture, exit_code)
@@ -42,7 +51,9 @@ use std::path::PathBuf;
 use cambium_rootstock::{AppCtx, NodeId, meristem_bounds::RootView};
 use taproot::ProbeSnapshot;
 
+mod capture;
 mod scenario;
+pub use capture::{CaptureBackend, Readback};
 pub use scenario::{CaptureRecord, LaneConfig};
 mod checkpoints;
 mod clicks;
