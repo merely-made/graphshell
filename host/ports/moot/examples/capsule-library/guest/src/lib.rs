@@ -7,7 +7,7 @@
 //! A portable catalogue projection over host-disclosed metadata. The guest
 //! never fetches a capsule or owns the community's selection or storage.
 wit_bindgen::generate!({
-    path: "../../../../../script/wit",
+    path: "../../../../../crates/script/wit",
     world: "app-core",
 });
 

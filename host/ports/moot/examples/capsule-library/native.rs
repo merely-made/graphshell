@@ -12,8 +12,8 @@ use super::{
     now_ms,
 };
 use app_host::{ActionSink, AppScript, Refusal, Watchdog, guarded_engine};
-use identity::delegation::Issue;
-use identity::{IdentityProvider, InMemoryProvider};
+use personae::delegation::Issue;
+use personae::{IdentityProvider, InMemoryProvider};
 use insigne::SignedDelegationCertificate;
 use serde::{Deserialize, Serialize};
 use servitor::delegation::root_certificate;

@@ -5,7 +5,7 @@
 // SPDX-License-Identifier: MPL-2.0
 
 //! Bounded Moot composition proof. Build the guest with wasm32-wasip2, then:
-//! `cargo run -p gemot --example capsule-library -- run <component.wasm> <empty-root>`.
+//! `cargo run -p mere-moot --example capsule-library -- run <component.wasm> <empty-root>`.
 //! Run the browser build script against `<root>/site` afterward. The native
 //! host is headless; the browser host is an example, not Graphshell integration.
 #[path = "capsule-library/model.rs"]
@@ -23,7 +23,7 @@ use gemot::moot::{
     MootError, MootFile, MootId, MootMember, MootMembershipAction, MootRetentionSettings,
     PolicyRevision,
 };
-use identity::{IdentityProvider, InMemoryProvider};
+use personae::{IdentityProvider, InMemoryProvider};
 use mien::{ChainRoot, CommitmentId, GateDecision, Scope, StandingEvent};
 use model::{Catalogue, Entry, SignedPack, part};
 use proofs::BlobRef;

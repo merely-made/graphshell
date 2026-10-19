@@ -13,7 +13,7 @@ import { execFile } from 'node:child_process';
 import { blake3 } from '@noble/hashes/blake3.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const runtime = resolve(here, '../../../../../ports/graphshell/web/applets');
+const runtime = resolve(here, '../../../../ports/graphshell/web/applets');
 if (!process.argv[2]) throw new Error('Pass the proof run’s site directory');
 const site = resolve(process.argv[2]);
 const fixture = JSON.parse(await readFile(join(site, 'fixture.json'), 'utf8'));

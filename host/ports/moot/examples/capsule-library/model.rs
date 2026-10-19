@@ -9,7 +9,7 @@
 use super::{AnyError, ensure, hex};
 use eidetic::pack::{PackManifest, PackPart, PackPartRole, PackVerdict, sign_pack, verify_pack};
 use eidetic::schema::{ManifestId, TrustEnvelope};
-use identity::{IdentityProvider, InMemoryProvider};
+use personae::{IdentityProvider, InMemoryProvider};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
