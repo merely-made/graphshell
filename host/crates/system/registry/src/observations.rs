@@ -8,12 +8,10 @@
 //! redaction, fresh run/queue identities and export policy. No raw event or
 //! correlation string is copied unless the product explicitly projects it.
 
-use crate::{
+use crate::diagnostics::{DiagnosticPacket, DiagnosticReceiver, IngressAccessError, IngressStats};
+use apparatus_core::{
     Admission, Batch, Cursor, ObservationMetadata, ObservationStore, RetentionLimits, RunId,
     SourceBootId, SourceId, StoreError,
-};
-use registry::diagnostics::{
-    DiagnosticPacket, DiagnosticReceiver, IngressAccessError, IngressStats,
 };
 use std::time::Duration;
 

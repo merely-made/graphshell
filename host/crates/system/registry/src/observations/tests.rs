@@ -5,7 +5,7 @@
 // SPDX-License-Identifier: MPL-2.0
 
 use super::*;
-use registry::diagnostics::{
+use crate::diagnostics::{
     DiagnosticCorrelation, DiagnosticEvent, EmissionRejection, EmitOutcome, IngressLimits,
     diagnostic_channel, emit_span_duration, scoped_thread_sender, try_emit_correlated,
 };
@@ -29,7 +29,7 @@ fn setup(
     ingress_count: usize,
     retained_count: usize,
 ) -> (
-    registry::diagnostics::DiagnosticSender,
+    crate::diagnostics::DiagnosticSender,
     RegistryCollector<&'static str>,
 ) {
     let (tx, rx) = diagnostic_channel(IngressLimits {
@@ -108,7 +108,7 @@ fn ingress_and_retained_overload_remain_distinct() {
     assert!(matches!(
         tx.try_send(DiagnosticEvent::Span {
             name: "b",
-            phase: registry::diagnostics::SpanPhase::Exit,
+            phase: crate::diagnostics::SpanPhase::Exit,
             duration_us: None
         }),
         EmitOutcome::Rejected {
@@ -223,7 +223,7 @@ fn producer_metadata_is_preserved_without_becoming_queue_identity() {
     tx.try_send_correlated(
         DiagnosticEvent::Span {
             name: "owner-phase",
-            phase: registry::diagnostics::SpanPhase::Exit,
+            phase: crate::diagnostics::SpanPhase::Exit,
             duration_us: None,
         },
         DiagnosticCorrelation {
@@ -242,7 +242,7 @@ fn producer_metadata_is_preserved_without_becoming_queue_identity() {
                     source_boot: Some("producer-boot".into()),
                     source_time: Some(Duration::from_secs(90)),
                     operation: Some(correlation.operation.clone().into()),
-                    cause: Some(crate::RecordRef {
+                    cause: Some(apparatus_core::RecordRef {
                         run: correlation.run.clone().into(),
                         source: correlation.source.clone().into(),
                         sequence: 77,
@@ -283,14 +283,14 @@ fn producer_metadata_is_preserved_without_becoming_queue_identity() {
 
 #[test]
 fn process_no_sink_loss_is_observed_separately_from_collector_gaps() {
-    use registry::diagnostics::{try_emit_event, uninstalled_loss};
+    use crate::diagnostics::{try_emit_event, uninstalled_loss};
     let (_tx, mut collector) = setup(4, 4);
     let mut cursor = collector.cursor();
     let before = uninstalled_loss().no_sink;
     assert_eq!(
         try_emit_event(DiagnosticEvent::Span {
             name: "uninstalled",
-            phase: registry::diagnostics::SpanPhase::Exit,
+            phase: crate::diagnostics::SpanPhase::Exit,
             duration_us: None
         }),
         EmitOutcome::Rejected {
