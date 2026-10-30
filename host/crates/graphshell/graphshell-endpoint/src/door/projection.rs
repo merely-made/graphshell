@@ -1,153 +1,51 @@
 // Copyright 2026 Mark Alan Boykin
-// This Source Code Form is subject to the terms of the Mozilla Public
-// License, v. 2.0. If a copy of the MPL was not distributed with this
-// file, You can obtain one at https://mozilla.org/MPL/2.0/.
 // SPDX-License-Identifier: MPL-2.0
-
-//! Client side of the first-party door.
-//!
-//! What an application holds while talking to the resident host: the
-//! handshake, a request counter, and typed calls for the three things a
-//! reader of receipt cards does — open, snapshot, read a resource. The
-//! server half is Graphshell's `native::app_broker`; the two share the types
-//! in [`super::wire`] and the frames in [`super::frame`] so they cannot drift.
-//!
-//! The wire is strictly request/response, so the client is deliberately
-//! sequential: one call at a time against `&mut self`, no demultiplexer. A
-//! first-party app reading cards is human-paced; the day something needs
-//! pipelining, that pressure should reshape the wire, not hide in a client.
-
+//! Projection client and carrier over the application connection.
 use chirograph::{
     CapabilityProfile, Carrier, CarrierError, CarrierNotice, CarrierRequest, CarrierRequestBody,
     CarrierResponseBody, ContentHash, PortableCardV1, PresentationCodec, ProjectionRequest,
     ProjectionSnapshot, ProtocolVersion, ResourceAssembly, ResourceChunkRequest,
     ResourceChunkResponse, SessionOpen, SessionOpened,
 };
-use rand_core::{OsRng, RngCore};
+use djinn::door::app_admission::{AppId, AppRouteId, configured_app_endpoint};
+use djinn::door::app_client::{AppClientError, AppConnection};
 
-use crate::door::app_admission::{AppHello, AppId, AppRouteId, configured_app_endpoint};
-use crate::door::custody::{CustodyAnswer, CustodyCall, CustodyRefusal};
-use crate::door::frame::{FrameError, read_native_message_async, write_native_message_async};
-use crate::door::local_endpoint::{LocalStream, connect_local};
-use crate::door::wire::{APP_CONNECT_SCHEMA, AppHostMessage, AppMessage};
-
-#[derive(Debug, thiserror::Error)]
-pub enum AppClientError {
-    #[error(transparent)]
-    Frame(#[from] FrameError),
-    #[error("the resident host closed the stream mid-conversation")]
-    Closed,
-    #[error("the resident host refused: {0}")]
-    Refused(String),
-    #[error("expected {expected}, the host answered with {got}")]
-    UnexpectedAnswer {
-        expected: &'static str,
-        got: &'static str,
-    },
-    #[error("resident response {got} does not answer request {expected}")]
-    MismatchedResponse { expected: u64, got: u64 },
-    #[error("a card resource was not valid PortableCardV1 JSON: {0}")]
-    MalformedCard(#[from] serde_json::Error),
-    #[error("the resident resource has another scope or content address")]
-    InvalidResourceAddress,
-    #[error("the resident resource chunk is invalid: {0}")]
-    InvalidResourceChunk(String),
-    #[error("transport failed: {0}")]
-    Io(#[from] std::io::Error),
-}
-
-/// An open session against the resident host, as `app`.
 pub struct AppBrokerClient {
-    stream: Box<dyn LocalStream>,
-    session: String,
-    next_id: u64,
+    inner: AppConnection,
 }
-
-/// One card the resident host is showing, decoded and labeled.
 #[derive(Clone, Debug, PartialEq)]
 pub struct DeviceCard {
     pub label: String,
     pub card: PortableCardV1,
 }
-
 impl AppBrokerClient {
-    /// Connect to the configured endpoint and complete the whole handshake:
-    /// hello, challenge, connect, connected.
     pub async fn open(app: AppId) -> Result<Self, AppClientError> {
-        Self::open_at(&configured_app_endpoint(), app).await
+        Ok(Self {
+            inner: AppConnection::open(app).await?,
+        })
     }
-
-    /// Connect to the configured endpoint and request one granted resident
-    /// route through the version-two hello.
-    pub async fn open_route(app: AppId, route: AppRouteId) -> Result<Self, AppClientError> {
-        Self::open_route_at(&configured_app_endpoint(), app, route).await
-    }
-
-    /// The same, at an explicit endpoint. Tests and receipts use this.
     pub async fn open_at(endpoint: &str, app: AppId) -> Result<Self, AppClientError> {
-        Self::open_with_hello(endpoint, AppHello::new(app.clone()), app).await
+        Ok(Self {
+            inner: AppConnection::open_at(endpoint, app).await?,
+        })
     }
-
-    /// Route-aware connection at an explicit endpoint.
+    pub async fn open_route(app: AppId, route: AppRouteId) -> Result<Self, AppClientError> {
+        Ok(Self {
+            inner: AppConnection::open_route(app, route).await?,
+        })
+    }
     pub async fn open_route_at(
         endpoint: &str,
         app: AppId,
         route: AppRouteId,
     ) -> Result<Self, AppClientError> {
-        Self::open_with_hello(endpoint, AppHello::for_route(app.clone(), route), app).await
-    }
-
-    async fn open_with_hello(
-        endpoint: &str,
-        hello: AppHello,
-        app: AppId,
-    ) -> Result<Self, AppClientError> {
-        let mut stream = connect_local(endpoint).await?;
-        write_native_message_async(&mut stream, &hello).await?;
-        let challenge = match read_host(&mut stream).await? {
-            AppHostMessage::Challenge { challenge } => challenge,
-            other => return Err(unexpected("a challenge", &other)),
-        };
-        let mut client_nonce = [0u8; 32];
-        OsRng.fill_bytes(&mut client_nonce);
-        write_native_message_async(
-            &mut stream,
-            &AppMessage::Connect {
-                schema: APP_CONNECT_SCHEMA.to_string(),
-                host_nonce: challenge.host_nonce,
-                client_nonce: base64::Engine::encode(
-                    &base64::engine::general_purpose::URL_SAFE_NO_PAD,
-                    client_nonce,
-                ),
-            },
-        )
-        .await?;
-        let session = match read_host(&mut stream).await? {
-            AppHostMessage::Connected {
-                app: connected_app,
-                session,
-            } => {
-                if connected_app != app {
-                    return Err(AppClientError::Refused(format!(
-                        "resident host connected {connected_app}, expected {app}"
-                    )));
-                }
-                session
-            },
-            other => return Err(unexpected("connected", &other)),
-        };
         Ok(Self {
-            stream,
-            session,
-            next_id: 1,
+            inner: AppConnection::open_route_at(endpoint, app, route).await?,
         })
     }
-
-    /// The session id the host admitted.
     pub fn session(&self) -> &str {
-        &self.session
+        self.inner.session()
     }
-
     /// Open the endpoint session and learn what it projects.
     pub async fn open_session(&mut self) -> Result<SessionOpened, AppClientError> {
         let body = self
@@ -226,7 +124,11 @@ impl AppBrokerClient {
                 .await?;
             cards.push(DeviceCard {
                 label: offer.semantics.label.clone(),
-                card: serde_json::from_slice(&bytes)?,
+                card: serde_json::from_slice(&bytes).map_err(|_| {
+                    AppClientError::InvalidResponse(
+                        "a card resource was not valid PortableCardV1 JSON".into(),
+                    )
+                })?,
             });
         }
         Ok(cards)
@@ -242,72 +144,30 @@ impl AppBrokerClient {
         &mut self,
         body: CarrierRequestBody,
     ) -> Result<CarrierResponseBody, AppClientError> {
-        let id = self.next_id;
-        self.next_id += 1;
-        write_native_message_async(
-            &mut self.stream,
-            &AppMessage::Request {
-                request: CarrierRequest { id, body },
-            },
-        )
-        .await?;
-        match read_host(&mut self.stream).await? {
-            AppHostMessage::Response { response } if response.id == id => response
+        let id = self.inner.next_id();
+        match self
+            .inner
+            .request::<_, chirograph::CarrierResponse, CarrierNotice>(CarrierRequest { id, body })
+            .await?
+        {
+            response if response.id == id => response
                 .body
                 .map_err(|error| AppClientError::Refused(error.message)),
-            AppHostMessage::Response { response } => Err(AppClientError::MismatchedResponse {
+            response => Err(AppClientError::MismatchedResponse {
                 expected: id,
                 got: response.id,
             }),
-            other => Err(unexpected("a carrier response", &other)),
-        }
-    }
-
-    /// One call on the custody route. Only a client opened on
-    /// [`crate::door::custody::CUSTODY_ROUTE`] is answered; see
-    /// [`crate::door::custody_client`] for the typed calls.
-    pub async fn custody_call(
-        &mut self,
-        call: CustodyCall,
-    ) -> Result<Result<CustodyAnswer, CustodyRefusal>, AppClientError> {
-        let id = self.next_id;
-        self.next_id += 1;
-        write_native_message_async(&mut self.stream, &AppMessage::Call { id, call }).await?;
-        match read_host(&mut self.stream).await? {
-            AppHostMessage::Answer {
-                id: answered,
-                answer,
-            } if answered == id => Ok(answer),
-            AppHostMessage::Answer { id: answered, .. } => {
-                Err(AppClientError::MismatchedResponse {
-                    expected: id,
-                    got: answered,
-                })
-            },
-            AppHostMessage::Failure { message } => Err(AppClientError::Refused(message)),
-            other => Err(unexpected("a custody answer", &other)),
         }
     }
 
     /// Take one already-received resident notice.
     pub async fn take_notice(&mut self) -> Result<Option<CarrierNotice>, AppClientError> {
-        write_native_message_async(&mut self.stream, &AppMessage::TakeNotice).await?;
-        match read_host(&mut self.stream).await? {
-            AppHostMessage::Notice { notice } => Ok(notice),
-            other => Err(unexpected("a carrier notice", &other)),
-        }
+        self.inner.take_notice().await
     }
 
     /// Wait until the resident endpoint reports a new revision.
     pub async fn wait_for_notice(&mut self) -> Result<CarrierNotice, AppClientError> {
-        write_native_message_async(&mut self.stream, &AppMessage::WaitNotice).await?;
-        match read_host(&mut self.stream).await? {
-            AppHostMessage::Notice {
-                notice: Some(notice),
-            } => Ok(notice),
-            AppHostMessage::Notice { notice: None } => Err(AppClientError::Closed),
-            other => Err(unexpected("a carrier notice", &other)),
-        }
+        self.inner.wait_for_notice().await
     }
 }
 
@@ -387,24 +247,6 @@ fn carrier_error(error: AppClientError) -> CarrierError {
     }
 }
 
-async fn read_host(stream: &mut Box<dyn LocalStream>) -> Result<AppHostMessage, AppClientError> {
-    read_native_message_async::<_, AppHostMessage>(stream)
-        .await?
-        .ok_or(AppClientError::Closed)
-}
-
-fn unexpected(expected: &'static str, got: &AppHostMessage) -> AppClientError {
-    let got = match got {
-        AppHostMessage::Challenge { .. } => "a challenge",
-        AppHostMessage::Connected { .. } => "connected",
-        AppHostMessage::Response { .. } => "a carrier response",
-        AppHostMessage::Notice { .. } => "a carrier notice",
-        AppHostMessage::Answer { .. } => "a custody answer",
-        AppHostMessage::Failure { .. } => "a failure",
-    };
-    AppClientError::UnexpectedAnswer { expected, got }
-}
-
 fn unexpected_body(expected: &'static str, got: &CarrierResponseBody) -> AppClientError {
     let got = match got {
         CarrierResponseBody::Descriptor(_) => "a descriptor",
@@ -431,34 +273,36 @@ fn accept_resource_chunk(
     total: &mut Option<u64>,
 ) -> Result<Option<Vec<u8>>, AppClientError> {
     if &response.session != session || response.resource != resource {
-        return Err(AppClientError::InvalidResourceAddress);
+        return Err(AppClientError::InvalidResponse(
+            "resource scope or content address mismatch".into(),
+        ));
     }
     if response.total_len > MAX_APP_RESOURCE_BYTES
         || total.is_some_and(|size| size != response.total_len)
     {
-        return Err(AppClientError::InvalidResourceChunk(
+        return Err(AppClientError::InvalidResponse(
             "inconsistent or excessive total length".into(),
         ));
     }
     let bytes = response
         .decode()
-        .ok_or_else(|| AppClientError::InvalidResourceChunk("chunk address or encoding".into()))?;
+        .ok_or_else(|| AppClientError::InvalidResponse("chunk address or encoding".into()))?;
     let end = response
         .offset
         .checked_add(bytes.len() as u64)
-        .ok_or_else(|| AppClientError::InvalidResourceChunk("chunk length overflow".into()))?;
+        .ok_or_else(|| AppClientError::InvalidResponse("chunk length overflow".into()))?;
     if bytes.len() > chirograph::MAX_RESOURCE_CHUNK_BYTES as usize
         || end > response.total_len
         || (bytes.is_empty() && response.offset < response.total_len)
     {
-        return Err(AppClientError::InvalidResourceChunk(
+        return Err(AppClientError::InvalidResponse(
             "chunk exceeds its bounds or makes no progress".into(),
         ));
     }
     *total = Some(response.total_len);
     assembly
         .accept(response)
-        .map_err(|e| AppClientError::InvalidResourceChunk(e.to_string()))
+        .map_err(|e| AppClientError::InvalidResponse(e.to_string()))
 }
 #[cfg(test)]
 mod resource_boundary_tests {
@@ -481,9 +325,9 @@ mod resource_boundary_tests {
                 id: 1,
                 body: Ok(CarrierResponseBody::ResourceChunk(Box::new(chunk.clone()))),
             };
-            let framed = AppHostMessage::Response { response };
+            let framed = djinn::door::wire::AppHostMessage::<_, (), ()>::Response { response };
             let mut wire = Vec::new();
-            crate::door::frame::write_native_message(&mut wire, &framed).unwrap();
+            djinn::door::frame::write_native_message(&mut wire, &framed).unwrap();
             assert!(wire.len() < 1024 * 1024);
             frames += 1;
             if let Some(actual) =
