@@ -4,12 +4,12 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 // SPDX-License-Identifier: MPL-2.0
 use sceno::{Footprint, Vec2};
-use scenomise::backdrops::*;
+use sceno_backdrops::*;
 use scenotime::{Revision, SceneEpoch, SceneSnapshot};
 
-const METRE: &str = include_str!("../../../../../support/design-studies/backdrops/metre.json");
-const FRET: &str = include_str!("../../../../../support/design-studies/backdrops/fretboard.json");
-const TERRAIN: &str = include_str!("../../../../../support/design-studies/backdrops/terrain.json");
+const METRE: &str = include_str!("fixtures/metre.json");
+const FRET: &str = include_str!("fixtures/fretboard.json");
+const TERRAIN: &str = include_str!("fixtures/terrain.json");
 
 #[test]
 fn each_recipe_exports_a_valid_scene_without_product_authorities() {

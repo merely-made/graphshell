@@ -5,10 +5,7 @@
 // SPDX-License-Identifier: MPL-2.0
 
 use sceno::SourceRef;
-use scenomise::{
-    backdrops::{SceneFacts, SceneInput},
-    template::*,
-};
+use sceno_backdrops::{SceneFacts, SceneInput, template::*};
 fn input() -> SceneInput {
     SceneInput {
         version: 1,

@@ -6,6 +6,7 @@ members = [
     "crates/graphshell-endpoint",
     "crates/hest",
     "crates/sceno",
+    "crates/sceno-backdrops",
     "crates/scenotime",
     "crates/script-wire",
     "crates/script-witgen",
@@ -26,6 +27,7 @@ graphshell-client = { version = "0.0.2", path = "crates/graphshell-client" }
 graphshell-endpoint = { version = "0.0.3", path = "crates/graphshell-endpoint" }
 hest = { version = "0.2.1", path = "crates/hest" }
 sceno = { version = "0.0.7", path = "crates/sceno" }
+sceno-backdrops = { version = "0.0.1", path = "crates/sceno-backdrops" }
 scenotime = { version = "0.0.5", path = "crates/scenotime" }
 script-wire = { version = "0.0.1", path = "crates/script-wire" }
 script-witgen = { version = "0.0.1", path = "crates/script-witgen" }

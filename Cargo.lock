@@ -778,6 +778,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "sceno-backdrops"
+version = "0.0.1"
+dependencies = [
+ "sceno",
+ "scenotime",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "scenotime"
 version = "0.0.5"
 dependencies = [

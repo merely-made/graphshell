@@ -5,8 +5,10 @@
 // SPDX-License-Identifier: MPL-2.0
 
 //! Portable, disclosed-data scenes. Sources supply scansion, instrument
-//! positions and coverage contours; this module supplies geometry, never
+//! positions and coverage contours; this crate supplies geometry, never
 //! analysis, radio prediction, persistence or application authority.
+
+pub mod template;
 
 use crate::template::{SequenceTemplate, Span, TemplateGroup, TemplatedSequence};
 use sceno::{
@@ -451,27 +453,22 @@ fn relation(
     out.relations.push(RelationReading { index, label, why });
 }
 
-#[path = "backdrops/metre.rs"]
 mod metre;
 
 use metre::compile_metre;
 
-#[path = "backdrops/sequence.rs"]
 mod sequence;
 
 use sequence::draw_template;
 
 use sequence::compile_sequence;
 
-#[path = "backdrops/fretboard.rs"]
 mod fretboard;
 
 use fretboard::compile_fretboard;
 
-#[path = "backdrops/terrain.rs"]
 mod terrain;
 
 use terrain::compile_terrain;
 
-#[path = "backdrops/validation.rs"]
 mod validation;
