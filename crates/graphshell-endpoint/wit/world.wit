@@ -318,6 +318,13 @@ interface block-adapter {
         pattern: string,
     }
 
+    /// One selectable row of a block: a bar of a progression, a line of a verse. `index` is
+    /// what `block.selected` and `change.index` refer to; it need not be dense.
+    record row {
+        index: u32,
+        label: string,
+    }
+
     /// The value shape of a host's proposed change; the host keeps its own type.
     record change {
         index: u32,
@@ -355,6 +362,8 @@ interface block-adapter {
     }
 
     describe: func() -> claim;
+    /// The block's selectable rows, in order, for the host to list.
+    rows: func(b: block) -> result<list<row>, string>;
     /// Proposed edits for the selection (`command` is a `choice` command).
     choices: func(b: block, command: string) -> result<list<change>, string>;
     /// The complete desired attribute map after the user's decisions.

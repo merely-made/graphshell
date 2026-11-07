@@ -52,7 +52,7 @@ fn block_guest_exports_block_adapter_and_imports_only_log_and_caps() {
 }
 
 #[test]
-fn block_adapter_has_the_five_calls() {
+fn block_adapter_has_the_six_calls() {
     let resolve = resolve();
     let (_, iface) = resolve
         .interfaces
@@ -61,7 +61,7 @@ fn block_adapter_has_the_five_calls() {
         .expect("block-adapter interface");
     let mut calls: Vec<&str> = iface.functions.keys().map(String::as_str).collect();
     calls.sort_unstable();
-    assert_eq!(calls, ["apply", "choices", "describe", "run", "view"]);
+    assert_eq!(calls, ["apply", "choices", "describe", "rows", "run", "view"]);
     for record in ["claim", "block", "change", "view-ask", "view-result"] {
         assert!(iface.types.contains_key(record), "record {record}");
     }
