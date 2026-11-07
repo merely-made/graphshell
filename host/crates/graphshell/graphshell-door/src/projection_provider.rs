@@ -7,7 +7,7 @@
 use super::projection_offer::{
     ProviderAnswer, ProviderCall, ViewerContext, Work, WorkOperation, WorkOutcome, WorkResult,
 };
-use crate::{
+use graphshell_endpoint::{
     CompleteEndpoint, IntentSink, PresentationSource, ProjectionNoticeSource, ProjectionSource,
     ResumableProjectionSource, dispatch_common,
 };
@@ -167,12 +167,12 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ProjectionCatalog;
     use chirograph::{
         CarrierNotice, CarrierRequest, CarrierRequestBody, CarrierResponseBody, EndpointDescriptor,
         IntentInvocation, IntentResult, ProjectionRequest, ProjectionSnapshot, ResourceRequest,
         ResourceResponse, ResumeReply, ResumeRequest,
     };
+    use graphshell_endpoint::ProjectionCatalog;
     struct Endpoint(String);
     impl ProjectionCatalog for Endpoint {
         fn describe(&self) -> EndpointDescriptor {

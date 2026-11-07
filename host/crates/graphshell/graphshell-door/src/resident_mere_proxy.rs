@@ -9,20 +9,20 @@
 //! application, persona, route, store or alternate authority through it.
 //!
 //! An endpoint whose verbs forward over the application door
-//! ([`crate::door::projection::AppBrokerClient`]), so it is the door's client
+//! ([`crate::projection::AppBrokerClient`]), so it is the door's client
 //! side: a host composes it into its own catalog. It was Graphshell's
 //! `native::resident_mere_proxy`, then briefly Djinn's, until Mark's ruling
 //! after the stack lift plan's P5 put it here.
 
-use crate::door::projection::AppBrokerClient;
-use crate::{
-    IntentSink, PresentationSource, ProjectionCatalog, ProjectionNoticeSource, ProjectionSource,
-    ResumableProjectionSource,
-};
+use crate::projection::AppBrokerClient;
 use chirograph::{
     CarrierNotice, CarrierRequestBody, CarrierResponseBody, EndpointDescriptor, IntentInvocation,
     IntentResult, ProjectionRequest, ProjectionSnapshot, ResourceChunkRequest,
     ResourceChunkResponse, ResourceRequest, ResourceResponse, ResumeReply, ResumeRequest,
+};
+use graphshell_endpoint::{
+    IntentSink, PresentationSource, ProjectionCatalog, ProjectionNoticeSource, ProjectionSource,
+    ResumableProjectionSource,
 };
 use ostiary::app_admission::{AppId, AppRouteId};
 use ostiary::declaration::AppDeclaration;

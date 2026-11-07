@@ -5,7 +5,7 @@
 // SPDX-License-Identifier: MPL-2.0
 
 #![cfg(feature = "projection-offer")]
-use graphshell_endpoint::door::projection_offer::{
+use graphshell_door::projection_offer::{
     ProviderAnswer, ProviderCall, Work, WorkOperation, WorkOutcome, WorkResult,
 };
 
@@ -61,7 +61,7 @@ fn offer_and_registration_wire_fixtures_are_stable() {
 
 #[test]
 fn remaining_control_and_work_shapes_are_stable() {
-    use graphshell_endpoint::door::projection_offer::ViewerContext;
+    use graphshell_door::projection_offer::ViewerContext;
     let cases = [
         (
             serde_json::to_string(&ProviderCall::Withdraw).unwrap(),
