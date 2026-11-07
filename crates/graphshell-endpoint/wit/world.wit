@@ -250,6 +250,127 @@ world document-core {
     export deactivate: func();
 }
 
+/// A guest block adapter: a pure component that edits and shows one kind of Djot block
+/// (a div with a class, such as `progression`) for a host's block pane. The host sends a
+/// copy of the block; the guest returns proposals, the whole desired attribute map, or a
+/// view. It never edits the document and has no I/O: the world imports only `log` and
+/// `caps`, so unimported means unreachable.
+///
+/// A view is two payloads, each a version byte then CBOR, at most 1 MiB: a `sceno` scene
+/// that names the regions (one item per authored event, its footprint the hit rectangle,
+/// a region with the accessible label) and a `vector-sheet` the host paints with its own
+/// theme and fonts. The scene carries no rendered content.
+interface block-adapter {
+    record attr {
+        key: string,
+        value: string,
+    }
+
+    enum command-kind {
+        /// Proposes changes the user reviews, then applies (`choices`, `apply`).
+        choice,
+        /// Writes new attributes at once (`run`).
+        write,
+        /// Produces text to export (`run`). Not named `export`: that is a WIT keyword.
+        text,
+    }
+
+    record command {
+        id: string,
+        label: string,
+        kind: command-kind,
+    }
+
+    record view-mode {
+        id: string,
+        label: string,
+    }
+
+    record example {
+        title: string,
+        body: string,
+        attrs: list<attr>,
+    }
+
+    /// What the guest claims. Called once at mount.
+    record claim {
+        /// The Djot div class it edits.
+        class: string,
+        /// The attribute that carries its structured source.
+        source-key: string,
+        /// Versions of that source it understands.
+        source-versions: list<u32>,
+        commands: list<command>,
+        views: list<view-mode>,
+        example: option<example>,
+    }
+
+    /// A copied snapshot of one block; never a handle.
+    record block {
+        class: string,
+        body: string,
+        attrs: list<attr>,
+        /// Content hash of the whole document source.
+        revision: string,
+        /// Selected rows or bars.
+        selected: list<u32>,
+        /// The pane's pattern field for this adapter.
+        pattern: string,
+    }
+
+    /// The value shape of a host's proposed change; the host keeps its own type.
+    record change {
+        index: u32,
+        label: string,
+        before: option<string>,
+        after: string,
+        conflict: bool,
+        use-update: bool,
+    }
+
+    variant run-result {
+        /// The complete attribute map after an explicit write.
+        attrs(list<attr>),
+        /// Text for an export.
+        text(string),
+    }
+
+    record view-ask {
+        /// One of the claim's `views`.
+        mode: string,
+        width: f32,
+        /// The selected event, as (bar, event), when there is one.
+        selected: option<tuple<u32, u32>>,
+    }
+
+    record view-result {
+        /// `sceno::Scene`, versioned CBOR.
+        scene: list<u8>,
+        /// `vector_sheet::VectorSheet`, versioned CBOR.
+        sheet: list<u8>,
+        width: f32,
+        height: f32,
+        /// One line for the view's accessible label.
+        description: string,
+    }
+
+    describe: func() -> claim;
+    /// Proposed edits for the selection (`command` is a `choice` command).
+    choices: func(b: block, command: string) -> result<list<change>, string>;
+    /// The complete desired attribute map after the user's decisions.
+    apply: func(b: block, command: string, changes: list<change>) -> result<list<attr>, string>;
+    /// An explicit write or export (`command` is a `write` or `text` command).
+    run: func(b: block, command: string, arg: string) -> result<run-result, string>;
+    view: func(b: block, ask: view-ask) -> result<view-result, string>;
+}
+
+/// A guest block adapter component (see `block-adapter`).
+world block-guest {
+    import log;
+    import caps;
+    export block-adapter;
+}
+
 /// A projection provider (capability door C0): a component that serves
 /// projection sessions, through app-host, to any consumer.
 world projection-provider {

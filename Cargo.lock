@@ -447,6 +447,8 @@ dependencies = [
  "serde",
  "serde_json",
  "tokio",
+ "vector-sheet",
+ "wit-parser 0.263.0",
 ]
 
 [[package]]
@@ -1101,6 +1103,15 @@ dependencies = [
  "getrandom",
  "js-sys",
  "wasm-bindgen",
+]
+
+[[package]]
+name = "vector-sheet"
+version = "0.0.1"
+dependencies = [
+ "ciborium",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
