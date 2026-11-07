@@ -957,6 +957,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "tinct"
+version = "0.2.0"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "tokio"
 version = "1.54.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"

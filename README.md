@@ -24,6 +24,7 @@ with the research behind them in
 | `graphshell-client` | Transport-independent client state: snapshots, diffs, resume, resource cache, the frozen realization |
 | `script-wire` | wRPC value encoding and blocking transports (OS pipes, `ipc-channel`) for the WIT bindings |
 | `script-witgen` | Generates Rust bindings for a WIT interface over `script-wire`; a build dependency |
+| `tinct` | Perceptual (OKLCH) seed-to-palette derivation and a contrast-gated syntax-highlight palette, for every host and the reading stack |
 
 The WIT world is `crates/graphshell-endpoint/wit/world.wit` (package
 `mere:script@0.1.0`, the name is a wire name and is kept). It is the only copy.
@@ -69,6 +70,14 @@ in git history and on the repository's other branches.
 | `crates/graphshell-client` | `crates/graphshell/graphshell-client` |
 | `crates/script-wire` | `crates/script/wire` |
 | `crates/script-witgen` | `crates/script/witgen` |
+| `crates/tinct` | `crates/cambium/tinct` (copied, without history; see below) |
+
+2026-11-07: `tinct` joined this root under Mere's
+`design_docs/mere_docs/implementation_strategy/2026-11-07_engine_split_plan.md`,
+D19 ("tinct joins the bottom root, Inker may name it"). Its files were copied
+byte for byte from Mere at `9e790a152b369c1c0bf3a69c0185dd6c7bf8074c`; only the
+manifest changed (workspace `serde`, the repository comment). Its history before
+that is in Mere, under `crates/cambium/tinct`.
 
 ## Licence
 

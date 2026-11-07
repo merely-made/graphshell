@@ -10,6 +10,7 @@ members = [
     "crates/scenotime",
     "crates/script-wire",
     "crates/script-witgen",
+    "crates/tinct",
     "crates/vector-sheet",
 ]
 
@@ -32,6 +33,7 @@ sceno-backdrops = { version = "0.0.1", path = "crates/sceno-backdrops" }
 scenotime = { version = "0.0.5", path = "crates/scenotime" }
 script-wire = { version = "0.0.1", path = "crates/script-wire" }
 script-witgen = { version = "0.0.1", path = "crates/script-witgen" }
+tinct = { version = "0.2.0", path = "crates/tinct" }
 vector-sheet = { version = "0.0.1", path = "crates/vector-sheet" }
 
 base64 = "0.22"
