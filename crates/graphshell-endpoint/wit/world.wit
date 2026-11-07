@@ -275,10 +275,19 @@ interface block-adapter {
         text,
     }
 
+    /// A text field the host shows for the guest: a label and its default text.
+    record field {
+        label: string,
+        default: string,
+    }
+
     record command {
         id: string,
         label: string,
         kind: command-kind,
+        /// A field whose text is sent as `run`'s `arg` (a `write` or `text` command), such
+        /// as a tempo.
+        arg: option<field>,
     }
 
     record view-mode {
@@ -300,6 +309,9 @@ interface block-adapter {
         source-key: string,
         /// Versions of that source it understands.
         source-versions: list<u32>,
+        /// The pane's pattern field for this class, sent as `block.pattern` (a bar grouping,
+        /// a rhyme scheme), if the class has one.
+        pattern: option<field>,
         commands: list<command>,
         views: list<view-mode>,
         example: option<example>,
