@@ -7,7 +7,7 @@ license.workspace = true
 repository.workspace = true
 authors.workspace = true
 description = "Core contracts for the scenograph projection engine: source references, coordinate spaces, footprints, persisted scores, and scene instances carrying representation slots and emphasis channels."
-readme = "../README.md"
+readme = "README.md"
 keywords = ["projection", "scene", "graph", "visualization"]
 categories = ["visualization", "data-structures"]
 

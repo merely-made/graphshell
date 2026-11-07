@@ -10,16 +10,10 @@
 //! the `stdio`, `local`, `network` and `wit` carriers imply it. `network` is
 //! native-only.
 //!
-//! Projection and identity adapters use the independent Djinn door; native
-//! adapters are unavailable on Wasm.
+//! Nothing here depends on Mere. The application door client, the identity
+//! profile and the projection provider routes need Mere's custody and identity
+//! stack and live in Mere's `graphshell-door`, which depends on this crate.
 
-#[cfg(any(
-    feature = "projection-door",
-    feature = "projection-offer",
-    feature = "projection-provider",
-    feature = "profile"
-))]
-pub mod door;
 #[cfg(feature = "local")]
 pub mod local;
 #[cfg(all(feature = "network", any(unix, windows), not(target_arch = "wasm32")))]

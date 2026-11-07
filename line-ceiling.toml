@@ -1,0 +1,31 @@
+# mere/design_docs/mere_docs/implementation_strategy/2026-10-30_house_style_plan.md (H2); all physical source lines count.
+# Carried over from Mere's line-ceiling.toml for the paths that moved here.
+ceiling = 600
+
+[[exclude]]
+path = "crates/script-wire/tests/generated/"
+reason = "Generated source subtree; edits belong in the generator or its inputs."
+
+[[exception]]
+path = "crates/graphshell-client/src/core.rs"
+reason = "The Graphshell session protocol with the I/O taken out. Existing source-size debt; a responsibility split must preserve Progress, Outcome, Pending and existing module visibility."
+
+[[exception]]
+path = "crates/graphshell-client/src/frozen.rs"
+reason = "The frozen realization: a scene as navigable semantics. Existing source-size debt; a responsibility split must preserve FrozenRole, FrozenInstance, FrozenRelation and existing module visibility."
+
+[[exception]]
+path = "crates/graphshell-client/src/lib.rs"
+reason = "Transport-independent, endpoint-scoped projection state. Existing source-size debt; a responsibility split must preserve MountedScene, ResolvedPresentation, ResolvedContent and existing module visibility."
+
+[[exception]]
+path = "crates/graphshell-client/src/remote.rs"
+reason = "A remote session's operation sequencing, with the transport left out. Existing source-size debt; a responsibility split must preserve RemoteOp, ActionForm, RemoteSession and existing module visibility."
+
+[[exception]]
+path = "crates/graphshell-client/src/remote/tests.rs"
+reason = "The remote session against a scripted board endpoint speaking NDJSON lines. Existing source-size debt; a responsibility split must preserve Board and existing module visibility."
+
+[[exception]]
+path = "crates/graphshell-endpoint/src/stdio.rs"
+reason = "Native local-process carrier for Graphshell endpoints. Existing source-size debt; a responsibility split must preserve existing entry points, fixture identity and module visibility."

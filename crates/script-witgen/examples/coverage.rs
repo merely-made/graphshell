@@ -155,7 +155,7 @@ fn check(emitted: &[String]) -> anyhow::Result<()> {
     let dir = std::env::temp_dir().join("script-witgen-corpus");
     std::fs::create_dir_all(dir.join("src"))?;
     let wire = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../wire")
+        .join("../script-wire")
         .canonicalize()?;
     let wire = wire.to_string_lossy().replace('\\', "/");
     let wire = wire.strip_prefix("//?/").unwrap_or(&wire);

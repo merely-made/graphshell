@@ -36,14 +36,14 @@ use scenotime::{FoldId, SceneOp, SceneSnapshot, SceneTrace, TraceStep};
 
 const FIXTURES: &str = concat!(
     env!("CARGO_MANIFEST_DIR"),
-    "/../../cambium/scenes/scenotime/tests/fixtures"
+    "/../scenotime/tests/fixtures"
 );
 const ROOT: &str = "mere";
 const FAMILY: &str = "depends_on";
 
 fn site_trace() -> SceneTrace {
     serde_json::from_str(include_str!(
-        "../../../cambium/scenes/scenotime/tests/fixtures/mer3ly_projection_trace.json"
+        "../../scenotime/tests/fixtures/mer3ly_projection_trace.json"
     ))
     .expect("the site's trace parses and its chain holds")
 }
@@ -188,7 +188,7 @@ fn fact_badges(snapshot: &SceneSnapshot) -> Vec<usize> {
 #[test]
 fn a_fold_free_trace_writes_back_byte_identical() {
     let bytes = include_str!(
-        "../../../cambium/scenes/scenotime/tests/fixtures/mer3ly_projection_trace.json"
+        "../../scenotime/tests/fixtures/mer3ly_projection_trace.json"
     );
     assert_eq!(serde_json::to_string(&site_trace()).unwrap(), bytes);
 }

@@ -12,7 +12,7 @@ use std::path::Path;
 
 #[test]
 fn conformance_bindings_are_current() {
-    let wire = Path::new(env!("CARGO_MANIFEST_DIR")).join("../wire/tests");
+    let wire = Path::new(env!("CARGO_MANIFEST_DIR")).join("../script-wire/tests");
     let generated = script_witgen::generate(&wire.join("wit/conformance.wit"), "values")
         .expect("the conformance interface binds");
     let golden = wire.join("generated/conformance.rs");
