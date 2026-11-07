@@ -10,6 +10,9 @@
 
 pub mod template;
 
+mod span;
+pub use span::SpanTarget;
+
 use crate::template::{SequenceTemplate, Span, TemplateGroup, TemplatedSequence};
 use sceno::{
     Backdrop, Footprint, InstanceId, ProjectedItem, Rect, Region, Representation, RoutedRelation,
@@ -337,7 +340,7 @@ fn unique<'a>(keys: impl Iterator<Item = &'a str>, path: &str) -> Result<(), Sce
 
 // Core Sceno records keep their existing permissive stored-format serde.
 // This disclosed-input boundary is strict, including those nested records.
-pub(crate) fn strict_core_records(
+pub fn strict_core_records(
     value: &serde_json::Value,
     path: &str,
 ) -> Result<(), SceneInputError> {
