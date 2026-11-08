@@ -392,6 +392,46 @@ world block-guest {
     export block-adapter;
 }
 
+/// A domain's authority: the gate every candidate graph of one Mere domain passes before
+/// the resident applies, saves or loads it (cycle breaks D15 (h), P3). Unlike a view guest,
+/// whose result the host re-applies, this guest is the gate: a lying validator admits
+/// anything, so the host binds the author's key to the domain at review and pins the
+/// component hash (a revoked or absent guest refuses the domain as pending). The guest is
+/// pure: its world imports only `log`, so it cannot reach keys, a vault, a clock or a store.
+///
+/// The protocol layer names no Mere type. The candidate travels as bytes in the format the
+/// guest declares in its claim, copied in each call; the guest links Mere's graph crates
+/// itself. A guest that traps (a fuel cut-off or a panic) is dropped and instantiated afresh.
+interface domain-authority {
+    record claim {
+        /// The Mere domain this guest is the authority for (`divination`).
+        domain: string,
+        /// The grammar version the guest validates.
+        version: string,
+        /// The candidate format `validate` and `admit` read. Today
+        /// `mere.graph-snapshot-and-facets/json`: one JSON object `{snapshot, facets}`, the
+        /// kernel's graph snapshot of the complete candidate plus its facet store (a
+        /// snapshot alone does not carry the facets).
+        graph-format: string,
+    }
+
+    /// Who this guest is an authority for, and the format it reads. Called once at mount.
+    describe: func() -> claim;
+
+    /// Whether the complete candidate is admissible. `err` is the refusal text.
+    validate: func(candidate: list<u8>) -> result<_, string>;
+
+    /// The optional before/after check on a transition, both in the declared format.
+    /// A guest with no such check returns `ok`.
+    admit: func(before: list<u8>, after: list<u8>) -> result<_, string>;
+}
+
+/// A domain authority guest component (see `domain-authority`).
+world authority-guest {
+    import log;
+    export domain-authority;
+}
+
 /// A projection provider (capability door C0): a component that serves
 /// projection sessions, through app-host, to any consumer.
 world projection-provider {
