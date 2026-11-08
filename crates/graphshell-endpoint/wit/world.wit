@@ -413,6 +413,9 @@ interface domain-authority {
         /// kernel's graph snapshot of the complete candidate plus its facet store (a
         /// snapshot alone does not carry the facets).
         graph-format: string,
+        /// Whether `admit` is a real check. When false the host never calls it (and never
+        /// pays to encode the before and after candidates).
+        admission: bool,
     }
 
     /// Who this guest is an authority for, and the format it reads. Called once at mount.
@@ -421,8 +424,8 @@ interface domain-authority {
     /// Whether the complete candidate is admissible. `err` is the refusal text.
     validate: func(candidate: list<u8>) -> result<_, string>;
 
-    /// The optional before/after check on a transition, both in the declared format.
-    /// A guest with no such check returns `ok`.
+    /// The optional before/after check on a transition, both in the declared format; called
+    /// only when the claim says `admission`.
     admit: func(before: list<u8>, after: list<u8>) -> result<_, string>;
 }
 
