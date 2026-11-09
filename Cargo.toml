@@ -13,6 +13,9 @@ members = [
     "crates/tinct",
     "crates/vector-sheet",
 ]
+# The hosting workspace sits above this contract root with its own lock (engine
+# split D37). Nothing in this workspace names it.
+exclude = ["host"]
 
 [workspace.package]
 rust-version = "1.97.1"

@@ -2,3 +2,7 @@
 target/
 
 # Cargo.lock is tracked: the protocol workspace is tested with --locked.
+
+# The mere:script WIT world that document-host's build script materialises from
+# graphshell-endpoint's build metadata (a build product, not a second copy).
+/host/crates/script/wit/
