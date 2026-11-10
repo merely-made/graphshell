@@ -67,7 +67,6 @@ base64 = "0.22"
 blake3 = "1"
 ipc-channel = "0.23.1"
 wit-parser = "=0.263.0"
-mere = { git = "https://github.com/merely-made/mere.git", branch = "main" }
 
 fetch = { package = "mere-fetch", version = "0.0.1", git = "https://github.com/merely-made/mere.git", branch = "main" }
 page-load = { package = "mere-pageload", version = "0.0.1", git = "https://github.com/merely-made/inker.git", branch = "main" }
