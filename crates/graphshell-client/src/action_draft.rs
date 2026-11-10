@@ -237,6 +237,7 @@ mod tests {
                 ),
             )),
             effect: IntentEffect::Curation,
+            icon: None,
         }
     }
 

@@ -17,6 +17,7 @@ fn form_action(form: ActionFormV1) -> AdvertisedAction {
         payload_schema: "fixture.intent.save-pair/v1".into(),
         input_form: Some(form),
         effect: IntentEffect::DomainTruth,
+        icon: None,
     }
 }
 
@@ -286,6 +287,7 @@ fn an_action_without_input_form_keeps_the_existing_empty_payload_path() {
         payload_schema: "fixture.open/v1".into(),
         input_form: None,
         effect: IntentEffect::ExternalEffect,
+        icon: None,
     };
     assert_eq!(action.compose_payload(&BTreeMap::new()), Ok(Vec::new()));
     assert_eq!(
@@ -305,6 +307,23 @@ fn an_action_without_input_form_keeps_the_existing_empty_payload_path() {
             .input_form
             .is_none()
     );
+}
+
+#[test]
+fn named_action_icons_extend_the_legacy_json_shape() {
+    let legacy = r#"{"intent":"fixture.open","label":"Open","explanation":"","payload_schema":"fixture.open/v1","effect":"ExternalEffect"}"#;
+    let mut action: AdvertisedAction = serde_json::from_str(legacy).unwrap();
+    assert_eq!(action.icon, None);
+    assert_eq!(serde_json::to_string(&action).unwrap(), legacy);
+
+    action.icon = Some(ActionIcon::Named("read".into()));
+    let wire = serde_json::to_string(&action).unwrap();
+    assert_eq!(
+        serde_json::from_str::<serde_json::Value>(&wire).unwrap()["icon"],
+        serde_json::json!({"Named": "read"})
+    );
+    assert_eq!(serde_json::from_str::<AdvertisedAction>(&wire).unwrap(), action);
+    assert_eq!(action.compose_payload(&BTreeMap::new()), Ok(Vec::new()));
 }
 
 #[test]

@@ -50,6 +50,7 @@ fn action(intent: &str, label: &str, bounded: bool) -> AdvertisedAction {
             ))
         }),
         effect: IntentEffect::Curation,
+        icon: None,
     }
 }
 

@@ -1362,6 +1362,7 @@ mod tests {
             payload_schema: EDITABLE_TEXT_SAVE_SCHEMA.into(),
             input_form: None,
             effect: IntentEffect::DomainTruth,
+            icon: None,
         });
         let mut snapshot = snapshot_with_offer(
             &session,

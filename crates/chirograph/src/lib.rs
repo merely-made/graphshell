@@ -130,6 +130,12 @@ pub enum IntentEffect {
     ExternalEffect,
 }
 
+/// A decorative action icon. Hosts resolve names against their own allowlist.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub enum ActionIcon {
+    Named(String),
+}
+
 /// An action carried into accessibility and permission surfaces.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct AdvertisedAction {
@@ -143,6 +149,9 @@ pub struct AdvertisedAction {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub input_form: Option<ActionFormV1>,
     pub effect: IntentEffect,
+    /// A presentation hint. The action and its label remain usable without it.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub icon: Option<ActionIcon>,
 }
 
 impl AdvertisedAction {

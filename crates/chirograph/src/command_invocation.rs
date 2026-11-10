@@ -110,6 +110,7 @@ mod tests {
             payload_schema: "host.edit/v1".into(),
             input_form: None,
             effect: IntentEffect::DomainTruth,
+            icon: None,
         }
     }
 
