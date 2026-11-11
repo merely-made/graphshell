@@ -47,7 +47,18 @@ for (const name of ['index.html', 'browser.mjs', 'worker.mjs', 'verify.mjs', 'wa
   await cp(join(source, name), join(site, name));
   host_sources[name] = digest(await readFile(join(source, name)));
 }
-const bindings = JSON.stringify({ jco: jco.version, component_hash: digest(component), files, host_sources }, null, 2);
+// The toolkit sources the app's web host is built from live in this repository;
+// their digests go into the site, so the app's half of the proof (in Turnstone)
+// reads them from here rather than by a path into this repository.
+const repo = resolve(here, '../../../../..');
+const toolkit_sources = {};
+for (const path of [
+  'host/crates/cambium/cambium-genet-web-host/src/input.rs',
+  'host/crates/cambium/cambium-genet-web-host/src/lib.rs',
+  'host/crates/cambium/cambium-rootstock/src/lib.rs',
+  'host/crates/cambium/cambium-rootstock/src/owned_layout.rs',
+]) toolkit_sources[path] = digest(await readFile(join(repo, path)));
+const bindings = JSON.stringify({ jco: jco.version, component_hash: digest(component), files, host_sources, toolkit_sources }, null, 2);
 await writeFile(join(site, 'bindings.json'), bindings);
 fixture.browser_bindings_hash = digest(new TextEncoder().encode(bindings));
 await writeFile(join(site, 'fixture.json'), JSON.stringify(fixture, null, 2));
