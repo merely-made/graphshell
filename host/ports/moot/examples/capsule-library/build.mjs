@@ -13,9 +13,13 @@ import { execFile } from 'node:child_process';
 import { blake3 } from '@noble/hashes/blake3.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const runtime = resolve(here, '../../../../ports/graphshell/web/applets');
-if (!process.argv[2]) throw new Error('Pass the proof run’s site directory');
+// The applet runtime (worker, verify, wasi, runtime) is the app's, in its own
+// repository; it is passed in, so this script reads only Graphshell's files.
+if (!process.argv[2] || !process.argv[3]) {
+  throw new Error('Pass the proof run’s site directory and the app’s applet runtime directory (web/applets)');
+}
 const site = resolve(process.argv[2]);
+const runtime = resolve(process.argv[3]);
 const fixture = JSON.parse(await readFile(join(site, 'fixture.json'), 'utf8'));
 const component = await readFile(join(site, 'library.wasm'));
 const digest = bytes => Buffer.from(blake3(bytes)).toString('hex');
