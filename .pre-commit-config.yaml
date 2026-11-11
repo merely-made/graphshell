@@ -1,3 +1,7 @@
+# mere/design_docs/mere_docs/implementation_strategy/2026-10-30_house_style_plan.md
+# Mere's hooks, carried over with the toolkit at the cutover (engine split P3 slice 4).
+# Two workspace roots: the contract root here and host/ (D37); each cargo hook runs on both
+# where it applies.
 fail_fast: true
 repos:
   - repo: local
@@ -16,3 +20,29 @@ repos:
         pass_filenames: false
         always_run: true
         additional_dependencies: ["cli:https://github.com/merely-made/eidetic:responsa-v0.0.3:responsa"]
+      - id: clippy
+        name: clippy (contract root)
+        entry: cargo clippy --locked --all-targets
+        language: system
+        files: '(^|/)(Cargo\.(toml|lock)|[^/]+\.rs)$'
+        pass_filenames: false
+      - id: clippy-host
+        name: clippy (host)
+        entry: cargo clippy --locked --all-targets --manifest-path host/Cargo.toml
+        language: system
+        files: '(^|/)(Cargo\.(toml|lock)|[^/]+\.rs)$'
+        pass_filenames: false
+      # mere-view's query feature is off in the workspace build (Mere's clippy-query
+      # hook, 2026-11-10); mere-rdf stays in Mere and keeps its half of that hook there.
+      - id: clippy-query
+        name: clippy (query feature)
+        entry: cargo clippy --locked --all-targets --manifest-path host/Cargo.toml -p mere-view --features mere-view/query
+        language: system
+        files: '(^|/)(Cargo\.(toml|lock)|[^/]+\.rs)$'
+        pass_filenames: false
+      - id: dependency-bans
+        name: dependency bans
+        entry: cargo deny --locked --manifest-path host/Cargo.toml check bans
+        language: system
+        pass_filenames: false
+        always_run: true

@@ -1,0 +1,30 @@
+# cargo-deny configuration for mere.
+#
+# Today it holds one rule, the custody boundary (dramatis repo plan, rulings
+# D4 and D16; castellan has lived in dramatis since 2026-11-03, D11, and arrives
+# here as a git dependency, so the rule is unchanged): castellan keeps every
+# secret at rest and in hand (the vault,
+# its storages and unlock ladder, the SSH agent, the wallet's seeds and
+# private epochs). Its independently launched custodian links it; apps and
+# workers call an authenticated custody route, and Djinn reaches the
+# custodian through custody-wire, which links no castellan. Since H2 a
+# default Djinn build links none either: only its `in-process-custody`
+# feature (test suites and receipt hosts) does, which is why Djinn stays a
+# wrapper here, where every feature is on. Dramatis resident has the same
+# explicit in-process test feature after D15; its normal production graph must
+# exclude castellan and is checked separately because this rule sees all features.
+#
+#   cargo deny check bans
+#
+# Passes since DR-C: graphshell's keeper adapters moved into djinn (D15) and
+# signalman's station grants go through djinn's custody route (D17).
+
+[graph]
+all-features = true
+
+[bans]
+multiple-versions = "allow"
+wildcards = "allow"
+deny = [
+  { crate = "castellan", wrappers = ["mere-resident", "dramatis-resident", "djinn-custodian"], reason = "castellan is secret custody; the custodian and explicit in-process test hosts may link it; production resident/service graphs, applications and workers may not" },
+]
