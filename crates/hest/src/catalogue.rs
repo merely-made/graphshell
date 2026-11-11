@@ -7,7 +7,7 @@
 //! A verb gets an id here when a second host offers it or ux-events reasons
 //! about it; every other command keeps a host-owned id in the open set. Ids
 //! are `namespace:name`, the namespace naming what the verb acts on. Hosts
-//! register these ids for these verbs, graph-kernel's `ActionId` is their
+//! register these ids for these verbs, [`ActionId`](crate::actions::ActionId) is their
 //! typed form, and registry's default key bindings name them.
 
 use crate::{EffectClass, menu::Command};

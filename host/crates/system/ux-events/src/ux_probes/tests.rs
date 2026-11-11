@@ -9,7 +9,7 @@
 
 use std::sync::Arc;
 
-use kernel::actions::ActionId;
+use hest::actions::ActionId;
 
 use super::*;
 use crate::ux_observability::{DismissReason, SurfaceId, UxEvent, UxObservers};

@@ -4,6 +4,8 @@
 
 //! Hest is the command vocabulary of the Mere stack.
 //!
+//! [`actions`] is the typed form of the shared ids.
+//!
 //! [`menu`] declares and offers commands: the command set, the person's
 //! choices, and a palette's session. [`catalogue`] holds shared ids, labels,
 //! effect classes and destructive flags. These are declarations; hosts still
@@ -15,6 +17,7 @@
 //! `design_docs/archive_docs/2026-10-28/2026-10-20_hest_command_architecture_plan.md`
 //! in the Mere repository. Workspace consumers use this Hest 0.2 API.
 
+pub mod actions;
 pub mod catalogue;
 mod invocation;
 pub mod menu;
