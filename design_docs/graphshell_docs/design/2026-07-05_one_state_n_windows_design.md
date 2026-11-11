@@ -4,10 +4,10 @@
 **Status**: Design statement from a Mark session, verified against the live runner,
 keyed-view, and incremental-layout code. Not a build plan yet; the sequencing at the
 end names done conditions, not slices.
-**Related**: [multi_window_plan](../../archive_docs/2026-10-06_completed_plans/2026-06-10_multi_window_plan.md)
+**Related**: multi_window_plan (`mere/design_docs/archive_docs/2026-10-06_completed_plans/2026-06-10_multi_window_plan.md`)
 (built the current N-runner shape this supersedes the framing of; MW1-MW3 machinery
-stays), [tearout_composability_plan](../../archive_docs/2026-07-04_completed_plans/2026-06-19_tearout_composability_plan.md)
-and [tearout_gestures_plan](../../archive_docs/2026-10-06_completed_plans/2026-06-24_tearout_gestures_plan.md)
+stays), tearout_composability_plan (`mere/design_docs/archive_docs/2026-07-04_completed_plans/2026-06-19_tearout_composability_plan.md`)
+and tearout_gestures_plan (`mere/design_docs/archive_docs/2026-10-06_completed_plans/2026-06-24_tearout_gestures_plan.md`)
 (the trichotomy this makes state-level), [swatch_primitive_design](2026-06-27_swatch_primitive_design.md)
 (swatches as view-instances over shared truth: the same shape one level down).
 Code receipts: `genet/components/xilem-serval/src/runner.rs` *(historical citation)* <!-- doc-audit: historical-path --> (the runner),
@@ -183,7 +183,7 @@ between `shared` and `view`.
 3. **Forest dom.** One ScriptedDom, N window roots, per-window sessions rooted
    per window element, mutation routing by root containment. Done when two
    windows at different sizes and DPIs lay out and rasterize from one dom.
-   **Plan (2026-07-08): [forest_dom_plan](../../archive_docs/2026-08-06_completed_plans/2026-07-08_forest_dom_plan.md)**
+   **Plan (2026-07-08): forest_dom_plan (`mere/design_docs/archive_docs/2026-08-06_completed_plans/2026-07-08_forest_dom_plan.md`)**
    (gate → F0 spike → F1 genet → F2 genet-layout → F3 meerkat → F4 multi-DPI).
 4. **Portable keyed adoption over moveBefore.** Engine slices first (the genet
    plan's S1/S2: the `Moved` mutation vocabulary, `move_before` semantics, the
@@ -201,7 +201,7 @@ between `shared` and `view`.
    in particular the forest dom, since cross-window is only same-document
    there, and the source-first rebuild order the multi-projection runner
    makes host-controllable.
-   **Plan (2026-07-08): [portable_tiles_plan](../../archive_docs/2026-10-28/2026-07-08_portable_tiles_plan.md)**
+   **Plan (2026-07-08): portable_tiles_plan (`mere/design_docs/archive_docs/2026-10-28/2026-07-08_portable_tiles_plan.md`)**
    — the meerkat consumer half. Key finding: meerkat's tiles split into a **DOM lane**
    (folded panes / document-lane cards → `move_before`, needs the forest dom) and a
    **surface lane** (pelt/external-texture workbench tiles → member→window reassignment,

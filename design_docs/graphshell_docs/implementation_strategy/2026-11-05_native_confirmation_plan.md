@@ -8,10 +8,10 @@ Mere owns the platform dialog. Dramatis owns the custody rollout and remote
 consent checks.
 
 This implements the native answer boundary required by D25 of the
-[capability door plan](2026-10-30_capability_door_plan.md). That plan owns
+capability door plan (`mere/design_docs/mere_docs/implementation_strategy/2026-10-30_capability_door_plan.md`). That plan owns
 application admission, declarations and remembered owner decisions. This plan
 owns how a native confirmation produces an answer or a failure. Its
-[receipts](../../archive_docs/receipts/2026-11-05_native_confirmation_plan_receipts.md)
+receipts (`mere/design_docs/archive_docs/receipts/2026-11-05_native_confirmation_plan_receipts.md`)
 separate source tests, installed backend facts, candidate builds and real desktop
 acceptance. Fleet continuation: `repos/dramatis/design_docs/2026-11-05_fleet_custody_rollout_plan.md`.
 

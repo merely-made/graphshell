@@ -2,10 +2,10 @@
 
 **Date:** 2026-07-18
 **Status:** ruled (Mark, 2026-07-18, in design conversation). Amends the
-[unifying-graph north star](2026-07-08_mere_as_the_unifying_graph.md): resolves
+unifying-graph north star (`mere/design_docs/mere_docs/technical_architecture/2026-07-08_mere_as_the_unifying_graph.md`): resolves
 its open question 5.4, retargets 5.1, and answers "is mere still too
 browser-shaped?" with a concrete dissolution program. Companion to the
-[participant gate + packs plan](../../archive_docs/2026-10-06_completed_plans/2026-07-17_participant_gate_packs_plan.md)
+participant gate + packs plan (`mere/design_docs/archive_docs/2026-10-06_completed_plans/2026-07-17_participant_gate_packs_plan.md`)
 (whose facet/pack/gate machinery this doc leans on) and the
 [boundary pass plan](../implementation_strategy/2026-07-09_mere_turnstone_boundary_pass_plan.md) *(historical citation)* <!-- doc-audit: historical-link -->
 (whose slice C invented the sidecar pattern this doc generalizes).
@@ -13,7 +13,7 @@ browser-shaped?" with a concrete dissolution program. Companion to the
 **2026-07-22 boundary amendment:** Conatus has since landed as the family repo
 for numen, quint, and seiche. The former plan to promote Mere's entire canvas
 family as one unit is superseded by the
-[Graphshell remote projection host plan](../../archive_docs/2026-10-06_completed_plans/2026-07-22_graphshell_remote_projection_host_plan.md):
+Graphshell remote projection host plan (`mere/design_docs/archive_docs/2026-10-06_completed_plans/2026-07-22_graphshell_remote_projection_host_plan.md`):
 generic arrangements move to `scenomise`, kernel-neutral scene contracts move
 to `sceno`, the shared interactive view grows through Cambium/Sprigging under a
 real Woodshed consumer, and the kernel-aware `mere-canvas` remains in Mere.
@@ -143,7 +143,7 @@ the end-state side of every line drawn here.
    scope question (the structural cap's path vocabulary may want a facet
    dimension); connects to the participant plan's ability-axis note.
    **Shaped 2026-08-16** by the
-   [facet signaling round](2026-08-16_facet_signaling_and_control_loops.md):
+   facet signaling round (`mere/design_docs/mere_docs/technical_architecture/2026-08-16_facet_signaling_and_control_loops.md`):
    the missing dimension is a facet-namespace `Cap` kind with prefix coverage,
    sitting beside Power (equality) and Scope (segment prefix). The gate already
    scope-checks `SetFacet` and `RemoveFacet` by node id, so it governs which
@@ -159,7 +159,7 @@ the end-state side of every line drawn here.
   requires that facet grant independently of node scope.
 - **2026-08-16 (facets as a medium):** a design round extended the facet system
   from metadata to signaling, recorded in
-  [facet signaling and control loops](2026-08-16_facet_signaling_and_control_loops.md).
+  facet signaling and control loops (`mere/design_docs/mere_docs/technical_architecture/2026-08-16_facet_signaling_and_control_loops.md`).
   Facets are participant-to-participant communication through nodes rather than
   node-to-node awareness; interior signaling inside a nested graph is separated from
   exterior marks across graphs by the single-serialization-point argument; a
@@ -176,7 +176,7 @@ the end-state side of every line drawn here.
   snapshot columns and v1 graph engrams migrate on read. The north-star
   extraction boundary is now settled in code, so its 5.1 question is closed.
 - **2026-07-18 (later):** Implementation plan founded:
-  [node dissolution + facets plan](../../archive_docs/2026-08-06_completed_plans/2026-07-18_node_dissolution_facets_plan.md)
+  node dissolution + facets plan (`mere/design_docs/archive_docs/2026-08-06_completed_plans/2026-07-18_node_dissolution_facets_plan.md`)
   (lanes F/S/D, the D-gate rkyv measurement, the full `Node` field-by-field
   destination table; D0 identified as the image externalization plan's
   already-designed phase 2).

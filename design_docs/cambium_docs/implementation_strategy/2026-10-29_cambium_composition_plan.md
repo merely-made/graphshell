@@ -22,7 +22,7 @@ defaults.
 
 The [presentation plan](2026-10-28_cambium_presentation_plan.md) owns browser
 tenants, UA widgets, whole-pane/portable-tile movement and host qualification.
-The [diagnostics plan](../../mere_docs/implementation_strategy/2026-10-28_diagnostics_and_accessibility_plan.md#m13-reactive-ui-decisions-and-causal-references)
+The [diagnostics plan](../../graphshell_docs/implementation_strategy/2026-10-28_diagnostics_and_accessibility_plan.md#m13-reactive-ui-decisions-and-causal-references)
 owns admission, collection and presentation of producer evidence. This plan
 defines what composition must emit and how its behavior is tested.
 
@@ -398,7 +398,7 @@ vector. The retained table's normal visibility/input admission remains in force.
 ### Diagnostics are part of the contract
 
 The collection/presentation owner is the existing
-[diagnostics plan](../../mere_docs/implementation_strategy/2026-10-28_diagnostics_and_accessibility_plan.md),
+[diagnostics plan](../../graphshell_docs/implementation_strategy/2026-10-28_diagnostics_and_accessibility_plan.md),
 especially M7, M8, M11 and the UI-producer slice M13. A component inspector is
 one consumer of those observations, not a new event store or the prerequisite
 for emitting them. Record causes where decisions happen.

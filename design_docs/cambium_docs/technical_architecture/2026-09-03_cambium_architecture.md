@@ -4,7 +4,7 @@ Cambium is an application toolkit over Genet. Meristem produces and reconciles
 view structure. Cambium translates that structure into Genet's neutral DOM,
 custom-leaf, presentation, and document-engine seams.
 
-**2026-10-09 product direction:** the [cross-app design language record](../../2026-08-23_projection_scenes_and_graph_native_platform.md#9-configurable-visual-and-interaction-language-2026-10-09)
+**2026-10-09 product direction:** the cross-app design language record (`mere/design_docs/2026-08-23_projection_scenes_and_graph_native_platform.md#9-configurable-visual-and-interaction-language-2026-10-09`)
 describes the forme as a field representing recursive workbench regions,
 explicit layout editing with drop previews, and configurable HUD placement.
 It records consumer intent; the ownership boundaries below stand.
@@ -494,7 +494,7 @@ edge is added. This supersedes the earlier integration-pending status.
 This is DOM semantic parity. Sprigging custom-leaf contributions and complete
 HTML/CSS visibility/role conformance remain outside it. The document projection
 still uses revision zero; it is not an immutable presentation-qualified snapshot.
-The [current diagnostics design](../../archive_docs/2026-10-28/2026-06-08_system_diagnostics_and_accessibility_plan.md)
+The current diagnostics design (`mere/design_docs/archive_docs/2026-10-28/2026-06-08_system_diagnostics_and_accessibility_plan.md`)
 requires producer-supplied identity/revision references rather than inventing
 correlation from this limitation. No shared diagnostics store is implemented by
 the selector work.

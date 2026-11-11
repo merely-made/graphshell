@@ -61,7 +61,7 @@ the workbench's window model. PT1 and composition P6 share the headed move,
 scroll, focus/IME and accessibility qualification; each receipt states which
 boundary it proves. Component retention alone does not prove physical
 presentation. Diagnostic collection and exact-frame qualification remain in
-the [diagnostics plan](../../mere_docs/implementation_strategy/2026-10-28_diagnostics_and_accessibility_plan.md).
+the [diagnostics plan](../../graphshell_docs/implementation_strategy/2026-10-28_diagnostics_and_accessibility_plan.md).
 
 ## Phases
 

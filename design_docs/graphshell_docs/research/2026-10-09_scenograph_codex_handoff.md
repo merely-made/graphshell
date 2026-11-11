@@ -57,12 +57,12 @@ Three pieces of ruled work, each with done-conditions in its plan. Read the
 plan sections first; they hold Mark's rulings verbatim, and those govern.
 
 **Context refresh (2026-10-09):** Mere `6708bfcd0` includes the incoming
-[design language §9](../../2026-08-23_projection_scenes_and_graph_native_platform.md#9-configurable-visual-and-interaction-language-2026-10-09).
-The work order below stands. The [ambiance proposal](../design/2026-09-23_ambiance_design.md#10-proposal-focus-driven-relation-lenses-2026-10-07)
+design language §9 (`mere/design_docs/2026-08-23_projection_scenes_and_graph_native_platform.md#9-configurable-visual-and-interaction-language-2026-10-09`).
+The work order below stands. The ambiance proposal (`mere/design_docs/mere_docs/design/2026-09-23_ambiance_design.md#10-proposal-focus-driven-relation-lenses-2026-10-07`)
 and [app composition reconciliation](../../cambium_docs/research/2026-10-06_app_composition_brief.md#11-current-consumers-and-design-direction-2026-10-09)
 carry the wider site and cross-app context; neither is a receipt for these tracks.
 
-**Voice continuation (2026-10-09):** [design language §9.8](../../2026-08-23_projection_scenes_and_graph_native_platform.md#98-voice-clarifications-and-research-boundaries-2026-10-09)
+**Voice continuation (2026-10-09):** design language §9.8 (`mere/design_docs/2026-08-23_projection_scenes_and_graph_native_platform.md#98-voice-clarifications-and-research-boundaries-2026-10-09`)
 clarifies that deselection preserves edits, welcomes hover previews, expands
 fields toward scoped projections and entry-triggered behavior, calls for
 granular configurable font roles and meaningful visible dynamics, and records
@@ -76,7 +76,7 @@ to dynamics. Graphshell is the reference host; the proposed terminology needs
 reconciliation before a new proof is opened.
 
 **Planning continuation (2026-10-09):** the editor plan's
-[primitive and dynamics map](../../archive_docs/2026-10-28/2026-10-07_scenograph_editor_plan.md#primitive-and-dynamics-map-2026-10-09-source-backed-planning)
+primitive and dynamics map (`mere/design_docs/archive_docs/2026-10-28/2026-10-07_scenograph_editor_plan.md#primitive-and-dynamics-map-2026-10-09-source-backed-planning`)
 maps existing surface/Resource, relation and field/coupling identities to
 authoring controls and dynamics. It records source gaps and proposed
 done-conditions without taking over the active dynamics implementation or
@@ -183,7 +183,7 @@ boundaries. Membership, clocks, event execution and conflicting writers remain
 open. The point probe invokes no applet and changes no graph assertion.
 
 **Exact binding and execution continuation (2026-10-12):** the authorized
-[next dynamics draft](../../archive_docs/2026-10-28/2026-10-02_dynamics_grammar_plan.md#exact-coupling-bindings-and-applied-effect-tracing-2026-10-12)
+next dynamics draft (`mere/design_docs/archive_docs/2026-10-28/2026-10-02_dynamics_grammar_plan.md#exact-coupling-bindings-and-applied-effect-tracing-2026-10-12`)
 now retains compiled inputs and graph-supplied field/coupling/member IDs, and
 observes actual writes with immediate body state. It keeps configured row caps,
 truncation counts, binding generations and distinct runtime owners; the actor
@@ -198,7 +198,7 @@ visible UI explanation, external consumer adoption and coordinator review.
 
 **Field-runtime continuation (2026-10-12):** Mark authorized F203 to F205's
 runtime adapter. The
-[owning dynamics plan](../../archive_docs/2026-10-28/2026-10-02_dynamics_grammar_plan.md#field-clock-and-membership-runtime-2026-10-12)
+owning dynamics plan (`mere/design_docs/archive_docs/2026-10-28/2026-10-02_dynamics_grammar_plan.md#field-clock-and-membership-runtime-2026-10-12`)
 now records accepted simulation time, Pause freezing, Reset rewinding on a
 separate epoch, and inclusive per-body reference-point eligibility. Extent and
 selector join the exact compiled provenance. Initial matches run no entry
@@ -526,7 +526,7 @@ the browser package remain available for the open qualification gates.
 
 - Swatch types: `crates/cambium/scenes/scenograph/src/swatch.rs`. Composition: `crates/cambium/scenes/scenomise/src/facet.rs` (`compose_facet`), tests in `facet_tests.rs`. Subgraph specs: `crates/forme/curation` (published as `mere-curation`).
 - The editor's grid: `ports/graphshell/src/projection_compare.rs` and `web_projection.rs` (`compare_targets`, `toggle_projection_compare`, `pick_projection_compare`); headed scenario `ports/graphshell/web/scenarios/projection_compare.scn`.
-- The catalog's addition records: `mere_docs/research/2026-08-15_projection_grammar_catalog.md`, "Addition records". Each promoted primitive needs one.
+- The catalog's addition records: `graphshell_docs/research/2026-08-15_projection_grammar_catalog.md`, "Addition records". Each promoted primitive needs one.
 
 ## How this lane works (Mark's standing rules)
 

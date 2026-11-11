@@ -172,7 +172,7 @@ chirograph frame on the wire, a muniment record at rest.
 
 ## Composition receipt (2026-08-23)
 
-The later [projection-scenes direction note](../../2026-08-23_projection_scenes_and_graph_native_platform.md)
+The later projection-scenes direction note (`mere/design_docs/2026-08-23_projection_scenes_and_graph_native_platform.md`)
 defines Matrix over two independently produced readings and makes repeated
 projected instances a platform rule. The Wave 1 receipt answered the singular
 sketch's two open questions:

@@ -21,7 +21,7 @@ over a chosen edge projection → which of the nine shapes, ranked by fit) plus 
 canvas reveal/derive/crystallize choreography. Everything downstream of "here is a
 shape" already exists.
 
-> **Amended 2026-10-04 (Mark, [graph semantics plan](../../archive_docs/2026-10-28/2026-10-04_graph_semantics_plan.md)
+> **Amended 2026-10-04 (Mark, graph semantics plan (`mere/design_docs/archive_docs/2026-10-28/2026-10-04_graph_semantics_plan.md`)
 > ruling 3):** a `Linked` spec may also be a SPARQL query, beside the nine shapes.
 > A saved subgraph is shared by its spec, which each receiver evaluates over their
 > own graph, and "freeze" materializes the current members into a nested graph
@@ -108,7 +108,7 @@ already built.
 - **Strength for ranking.** The classifier ranks by fit and edge strength, but
   there is no unified strength number yet (traversal has counts, semantic has
   decay, arrangement has durability). See the edge-spine "strength projection"
-  thread in the [edge system audit](../research/2026-06-13_edge_system_audit.md);
+  thread in the edge system audit (`mere/design_docs/mere_docs/research/2026-06-13_edge_system_audit.md`);
   per the configurability rule it likely wants to be a setting, not a constant.
 - **Containment vs Arrangement on crystallize.** Session → Arrangement
   (tile-group), Linked → Containment (CollectionMember). The same "group these"

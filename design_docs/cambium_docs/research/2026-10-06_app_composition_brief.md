@@ -369,10 +369,10 @@ adds at least one frame between the guest's submit and the host's composition:
 
 ## 4. What the archived tear-out plans still hold
 
-The [tear-out composability plan](../../archive_docs/2026-07-04_completed_plans/2026-06-19_tearout_composability_plan.md)
-and the [tear-out gestures plan](../../archive_docs/2026-10-06_completed_plans/2026-06-24_tearout_gestures_plan.md)
+The tear-out composability plan (`mere/design_docs/archive_docs/2026-07-04_completed_plans/2026-06-19_tearout_composability_plan.md`)
+and the tear-out gestures plan (`mere/design_docs/archive_docs/2026-10-06_completed_plans/2026-06-24_tearout_gestures_plan.md`)
 were written for meerkat, which was deleted on 2026-07-18. The
-[tear-out operations brief](../../mere_docs/research/2026-05-11_tearout_operations_brief.md)
+tear-out operations brief (`mere/design_docs/mere_docs/research/2026-05-11_tearout_operations_brief.md`)
 predates the host pivot too. Their code pointers are history. These ideas
 still hold:
 
@@ -381,7 +381,7 @@ still hold:
   paint transform (Cambium architecture, "External viewport producers"). Its
   only intended consumer, "a live genet-rendered textured body", never
   shipped. The
-  [native-surface compositing plan](../../archive_docs/2026-07-03_completed_plans/2026-06-19_native_surface_compositing_plan.md)
+  native-surface compositing plan (`mere/design_docs/archive_docs/2026-07-03_completed_plans/2026-06-19_native_surface_compositing_plan.md`)
   ruled why, in its split of host surfaces by nature: genet-rendered content
   becomes "a **real DOM subtree** in the shell document (rides a11y,
   find-in-page, selection, true scroll)", and only genuinely external content
@@ -788,26 +788,26 @@ controller in `pelt-core`) and S8 (page accessibility).
 
 ## 10. Cross-references
 
-- [Stack seams plan](../../archive_docs/2026-10-28/2026-10-04_stack_seams_plan.md):
+- Stack seams plan (`mere/design_docs/archive_docs/2026-10-28/2026-10-04_stack_seams_plan.md`):
   P2 and rulings S23 to S31; F16 to F20.
-- [One state, N windows design](../../mere_docs/design/2026-07-05_one_state_n_windows_design.md).
+- [One state, N windows design](../../graphshell_docs/design/2026-07-05_one_state_n_windows_design.md).
 - [Cambium architecture](../technical_architecture/2026-09-03_cambium_architecture.md):
   external viewport producers; Mesquite paint sidecars.
-- [Dynamics grammar plan](../../archive_docs/2026-10-28/2026-10-02_dynamics_grammar_plan.md):
+- Dynamics grammar plan (`mere/design_docs/archive_docs/2026-10-28/2026-10-02_dynamics_grammar_plan.md`):
   G9, F65 (child buttons for actions).
-- [Tear-out composability plan](../../archive_docs/2026-07-04_completed_plans/2026-06-19_tearout_composability_plan.md),
-  [tear-out gestures plan](../../archive_docs/2026-10-06_completed_plans/2026-06-24_tearout_gestures_plan.md),
-  [tear-out operations brief](../../mere_docs/research/2026-05-11_tearout_operations_brief.md).
-- [Native-surface compositing plan](../../archive_docs/2026-07-03_completed_plans/2026-06-19_native_surface_compositing_plan.md):
+- Tear-out composability plan (`mere/design_docs/archive_docs/2026-07-04_completed_plans/2026-06-19_tearout_composability_plan.md`),
+  tear-out gestures plan (`mere/design_docs/archive_docs/2026-10-06_completed_plans/2026-06-24_tearout_gestures_plan.md`),
+  tear-out operations brief (`mere/design_docs/mere_docs/research/2026-05-11_tearout_operations_brief.md`).
+- Native-surface compositing plan (`mere/design_docs/archive_docs/2026-07-03_completed_plans/2026-06-19_native_surface_compositing_plan.md`):
   the split of host surfaces by nature; finding 5 on input by API.
-- [Port GUI composition brief](../../mere_docs/research/2026-09-02_port_gui_composition_and_comparable_stacks_brief.md)
-  and [family composition thesis](../../2026-08-12_family_composition_thesis_brief.md)
+- [Port GUI composition brief](../../graphshell_docs/research/2026-09-02_port_gui_composition_and_comparable_stacks_brief.md)
+  and family composition thesis (`mere/design_docs/2026-08-12_family_composition_thesis_brief.md`)
   §3: Scenograph is "present in every application with its own graph",
   holding a lens and never truth. It is the standing example of a component
   every host compiles in, which makes it a B1 or B2 citizen under this brief.
-- [Knot shared surface and port contribution plan (archived)](../../archive_docs/2026-10-06_completed_plans/2026-08-24_knot_shared_surface_and_port_contribution_plan.md):
+- Knot shared surface and port contribution plan (archived) (`mere/design_docs/archive_docs/2026-10-06_completed_plans/2026-08-24_knot_shared_surface_and_port_contribution_plan.md`):
   the contribution contract frozen at v1.
-- [Postcard framing plan](../../mere_docs/implementation_strategy/2026-10-06_postcard_framing_plan.md):
+- Postcard framing plan (`mere/design_docs/mere_docs/implementation_strategy/2026-10-06_postcard_framing_plan.md`):
   the framing a cross-process wire would use.
 - Turnstone: `turnstone/design_docs/archive_docs/2026-11-02/2026-10-06_unusual_protocols_browser_plan.md`
   (§4, S11, U2, U8); `turnstone/design_docs/archive_docs/receipts/2026-08-20_screen_reader_pass_receipts.md`;
@@ -820,7 +820,7 @@ controller in `pelt-core`) and S8 (page accessibility).
 qualifications were read; no runtime or physical assistive-technology gate was
 rerun. Historical findings above describe the earlier assessed sources.
 
-The [design language](../../2026-08-23_projection_scenes_and_graph_native_platform.md#9-configurable-visual-and-interaction-language-2026-10-09)
+The design language (`mere/design_docs/2026-08-23_projection_scenes_and_graph_native_platform.md#9-configurable-visual-and-interaction-language-2026-10-09`)
 joins the workbench and dataspace as presentations of the same domain. Opening
 may focus a retained tile, unfold an applet or use an overlay. Selection,
 activity and presentation remain independent. Its forme field represents the
@@ -857,7 +857,7 @@ placement contract remain separate. Read the consumer's plan and handoff before
 resuming its work, rather than reconstructing ownership from this brief's
 historical findings.
 
-For the site, [ambient relation lenses](../../mere_docs/design/2026-09-23_ambiance_design.md#10-proposal-focus-driven-relation-lenses-2026-10-07)
+For the site, ambient relation lenses (`mere/design_docs/mere_docs/design/2026-09-23_ambiance_design.md#10-proposal-focus-driven-relation-lenses-2026-10-07`)
 need disclosed identities, reasons and coverage across all these presentations;
 they do not need arbitrary app execution to show dependencies. Portable article
 content opened in Knot or Turnstone can be a bounded composition proof before

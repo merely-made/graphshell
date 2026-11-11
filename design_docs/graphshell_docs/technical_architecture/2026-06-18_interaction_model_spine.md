@@ -39,7 +39,7 @@ In scope now (the model is stated over these):
 - **p2p / cooperative**: substrate live (murm Cable + p2panda transport + moothold tessera, in
   `comms_host.rs` / `sync.rs`); the named gaps are a shared-session and a moot-content card path.
 - **local media (net-media)**: the one format that is plan-only today
-  ([net_media_plan](../../archive_docs/2026-10-28/2026-05-26_net_media_plan.md), no crate); in scope
+  (net_media_plan (`mere/design_docs/archive_docs/2026-10-28/2026-05-26_net_media_plan.md`), no crate); in scope
   as a *target*, needs the net-media crate built. AV1 / WebRTC decode internals can lag.
 
 Deferred to the later **Genet / WPT track** (not this spine): full-web HTML via genet (the
@@ -79,7 +79,7 @@ textured-body / shape / scripted) and the **LOD "materialization is state" machi
 default, a DOM subtree on focus / expand, an underlay dot on cull). A node has up to three
 representation code paths today (in-scene gnode, demoted underlay rect, host DOM card) with no
 single contract; unifying them is the represent layer's job.
-**Owner: [node-representation + arrangement plan](../../archive_docs/2026-10-06_superseded_plans/2026-06-18_node_representation_arrangement_plan.md)**,
+**Owner: node-representation + arrangement plan (`mere/design_docs/archive_docs/2026-10-06_superseded_plans/2026-06-18_node_representation_arrangement_plan.md`)**,
 the Representation set and the LOD machine. The DOM-*materialization mechanism* (how a card or tile
 becomes a real genet subtree under the camera) is owned by unified-document-host.
 
@@ -91,7 +91,7 @@ registry (phyllotaxis / radial / l-system / penrose / grid) overlays host-comput
 field-region couplings add localized force wells. The orrery and the tiled workbench are two
 projections of one forme arrangement.
 **Owners:** node-representation (the scene-wide arrangement choice + per-scene persistence);
-[field-regions](../../archive_docs/2026-10-28/2026-06-13_scriptable_field_regions_plan.md) (the
+field-regions (`mere/design_docs/archive_docs/2026-10-28/2026-06-13_scriptable_field_regions_plan.md`) (the
 localized / scripted arrangement scoped to a placed region). The arrangements registry is the
 shared substrate; the [composition spine](2026-05-21_mere_composition_spine.md) keeps the forme /
 platen projection ontology.
@@ -109,7 +109,7 @@ testing the cursor against ~15 per-frame rect caches in `WindowView`, with no fa
 and `default_prevented()` never read. The model's job here is to **lift the orrery's contract up to
 the host**: one input spine (top-down dispatch with fall-through), one focus authority, geometry
 from the laid-out tree rather than re-derived rect caches.
-**Owner: [tearout_composability_plan](../../archive_docs/2026-07-04_completed_plans/2026-06-19_tearout_composability_plan.md)** (continuing the archived window-composition plan),
+**Owner: tearout_composability_plan (`mere/design_docs/archive_docs/2026-07-04_completed_plans/2026-06-19_tearout_composability_plan.md`)** (continuing the archived window-composition plan),
 the one input spine + one focus authority (its P2-companion), over the shell-root document that
 unified-document-host Phase 1 consolidates.
 
@@ -124,7 +124,7 @@ unified-document-host Phase 1 consolidates.
 broadcast (the dormant inverse of the wired ingest harvest). Once nodes are DOM (Phase 2 Path A) it
 can be emitted as inline `<script type="application/ld+json">` per card. One-way: the view
 broadcasts, it is never read back as a source (the
-[two-natured](../research/2026-05-30_two_natured_kernel_brief.md) authority rule).
+two-natured (`mere/design_docs/mere_docs/research/2026-05-30_two_natured_kernel_brief.md`) authority rule).
 
 ## Ownership map (the duplication resolved)
 
@@ -142,7 +142,7 @@ The drift was five seams each claimed by two or three plans. The cut:
 ## Genet asks the model pulls (prioritized)
 
 Revised 2026-06-19 against the
-[unified-document-host](../../archive_docs/2026-10-06_completed_plans/2026-06-17_unified_document_host_plan.md) Phase 2
+unified-document-host (`mere/design_docs/archive_docs/2026-10-06_completed_plans/2026-06-17_unified_document_host_plan.md`) Phase 2
 design pass: reading the engine showed the transform-aware hit-test already exists, so the first two
 asks are not engine work, and Phase 2a then landed the host wiring (orrery cards select + focus
 through the shell hit-test). The live engine asks are now image-decode and the

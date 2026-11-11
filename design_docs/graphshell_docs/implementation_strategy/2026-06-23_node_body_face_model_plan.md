@@ -8,11 +8,11 @@
 B4. Turnstone hosts sprite import with a hull; Graphshell has a face picker; no host has a
 material picker. Several follow-on owners named below are archived (see Collected
 follow-ons). Successor to the representation half of the
-[node_representation_arrangement_plan](../../archive_docs/2026-10-06_superseded_plans/2026-06-18_node_representation_arrangement_plan.md),
+node_representation_arrangement_plan (`mere/design_docs/archive_docs/2026-10-06_superseded_plans/2026-06-18_node_representation_arrangement_plan.md`),
 which is substantially complete (P0 cues, P1 per-node form, P2-static sprite faces + the
 sprite-alpha hull collider, P3/P4 done) and whose representation axis this plan re-bases. The
 arrangement half already spun out to
-[graph_signals_layer_plan](../../archive_docs/2026-08-20_completed_plans/2026-06-22_graph_signals_layer_plan.md) (Decision 7). This plan
+graph_signals_layer_plan (`mere/design_docs/archive_docs/2026-08-20_completed_plans/2026-06-22_graph_signals_layer_plan.md`) (Decision 7). This plan
 collects the still-open representation follow-ons so they are not orphaned.
 **Code**: `crates/orrery/orrery` *(historical citation)* <!-- doc-audit: historical-path --> (the representation + sprite + hull maps, `node_collider`),
 `crates/orrery/gyre` *(historical citation)* <!-- doc-audit: historical-path --> (`NodeCollider`, the body-spawn material params), `crates/meerkat` *(historical citation)* <!-- doc-audit: historical-path -->
@@ -112,7 +112,7 @@ the body.
 Re-base `Representation` onto the Body × Face model: tile = standard body + favicon, shape =
 customized body + any face. The existing `Sprite` nodes migrate cleanly (body = the traced hull,
 face = the sprite image). The user picker (the context-menu Form/Face entries, and the object-card
-widgets owned by [object_card_plan](../../archive_docs/2026-09-02_retired_plans/2026-06-21_object_card_plan.md)) sets Body and Face as two
+widgets owned by object_card_plan (`mere/design_docs/archive_docs/2026-09-02_retired_plans/2026-06-21_object_card_plan.md`)) sets Body and Face as two
 choices, not one.
 
 Done when tile and shape are body presets, Body and Face are set independently in the picker, and
@@ -127,7 +127,7 @@ unconfigured graph is unchanged. Persist via the cartography sidecar, where size
 hulls already ride.
 
 Done when a node can be made heavy / bouncy / slippery, the change is live and persists across
-reload, and it composes with the [physics_scenes_and_tangibility_plan](../../archive_docs/2026-10-06_completed_plans/2026-06-22_physics_scenes_and_tangibility_plan.md)
+reload, and it composes with the physics_scenes_and_tangibility_plan (`mere/design_docs/archive_docs/2026-10-06_completed_plans/2026-06-22_physics_scenes_and_tangibility_plan.md`)
 tangibility lever (a tangible, custom-material node interacts physically with a scene).
 
 ### B3 — The generalized shape editor (the swatch as body designer)
@@ -137,7 +137,7 @@ designer: add / remove / move vertices, snap to primitives (ball / box / rounded
 the material parameters (sliders), with an optional sprite underlay as a tracing aid. This is the
 [gloss_navigator_design](../design/2026-06-07_gloss_navigator_design.md) §2b swatch editing its
 scoped element, where the element is now the node's body. It surfaces in the `node:<id>` facet
-pane ([settings_lane_consolidation_plan](../../archive_docs/2026-07-13_superseded_plans/2026-06-21_settings_lane_consolidation_plan.md)) and
+pane (settings_lane_consolidation_plan (`mere/design_docs/archive_docs/2026-07-13_superseded_plans/2026-06-21_settings_lane_consolidation_plan.md`)) and
 compactly as object-card widgets.
 
 Done when a user can author a node's hull from scratch (not only by tracing a sprite), pick a
@@ -161,14 +161,14 @@ substrate owners are named; this plan owns the Representation variant + dispatch
   wgpu import, composite-under-chrome, and mouse / keyboard / IME forwarding by API, shipping in
   pelt tiles. Putting it on a node body is a Representation variant dispatching to that path with
   the node's rect. The compositing + input substrate is owned by
-  [native_surface_compositing_plan](../../archive_docs/2026-07-03_completed_plans/2026-06-19_native_surface_compositing_plan.md). The
+  native_surface_compositing_plan (`mere/design_docs/archive_docs/2026-07-03_completed_plans/2026-06-19_native_surface_compositing_plan.md`). The
   canvas / arbitrary-producer-behind-an-`<external-texture>` subcase is the one genuine gap (the
-  texture-local input bridge), owned by [tearout_composability_plan](../../archive_docs/2026-07-04_completed_plans/2026-06-19_tearout_composability_plan.md)
+  texture-local input bridge), owned by tearout_composability_plan (`mere/design_docs/archive_docs/2026-07-04_completed_plans/2026-06-19_tearout_composability_plan.md`)
   C2.
 - **The decorative scripted form.** A custom-drawn / data-driven face is substrate-available now
   via DOM (the swatch proves node-scoped interactive chrome-DOM). The *behavioral* scripted form
   (forces / rules) stays field-regions territory; rhai survives narrowly as the field-rule
-  language ([scriptable_field_regions_plan](../../archive_docs/2026-10-28/2026-06-13_scriptable_field_regions_plan.md)), so the
+  language (scriptable_field_regions_plan (`mere/design_docs/archive_docs/2026-10-28/2026-06-13_scriptable_field_regions_plan.md`)), so the
   predecessor plan's "rhai substrate" reference was accurate, not stale.
 
 Done when sprites and custom bodies render on secondary panes; a live-surface form is selectable
@@ -191,7 +191,7 @@ Options: a Turnstone plan; a canvas plan; this plan.
 - **Styling lens (Decision 3).** One styling lens over node shape + **edge style + field style**
   (the NODE_SHEET pattern widened), not three hardcoded paths. The node-shape half exists; the
   edge / field extension is tracked here as the node-appearance styling concern. Relates to but is
-  not owned by the theme system ([seed_palette_theme_system_plan](../../archive_docs/2026-07-04_completed_plans/2026-06-22_seed_palette_theme_system_plan.md),
+  not owned by the theme system (seed_palette_theme_system_plan (`mere/design_docs/archive_docs/2026-07-04_completed_plans/2026-06-22_seed_palette_theme_system_plan.md`),
   which owns color) or the command registry.
 - **Label density (Decision 4).** Off / terse / full as a per-scene setting, ellipsized to the
   face width at the current zoom. A node-appearance setting; surfaces via the settings-lane
@@ -206,37 +206,37 @@ Options: a Turnstone plan; a canvas plan; this plan.
 - **Scene-wide representation defaults (Decision 6).** The scene-wide form-by-content-type mapping,
   default arrangement, and edge / field styling, distinct from the per-node overrides. The "scene
   pane" of Decision 6 is the settings-lane global page; owned by
-  [settings_lane_consolidation_plan](../../archive_docs/2026-07-13_superseded_plans/2026-06-21_settings_lane_consolidation_plan.md) (`pelt` /
+  settings_lane_consolidation_plan (`mere/design_docs/archive_docs/2026-07-13_superseded_plans/2026-06-21_settings_lane_consolidation_plan.md`) (`pelt` /
   `pelt/orrery`), with per-node overrides on the `node:<id>` provider.
 - **Facets-panel structure + scope (probe Q4).** Which per-node facets the deep editor exposes and
   in what order, and which scattered context-menu toggles it consolidates (Form / Face / size /
   material / tags / engine pin / relations). The panel is owned by
-  [settings_lane_consolidation_plan](../../archive_docs/2026-07-13_superseded_plans/2026-06-21_settings_lane_consolidation_plan.md)'s `node:<id>`
-  provider; the compact in-canvas form is [object_card_plan](../../archive_docs/2026-09-02_retired_plans/2026-06-21_object_card_plan.md). This
+  settings_lane_consolidation_plan (`mere/design_docs/archive_docs/2026-07-13_superseded_plans/2026-06-21_settings_lane_consolidation_plan.md`)'s `node:<id>`
+  provider; the compact in-canvas form is object_card_plan (`mere/design_docs/archive_docs/2026-09-02_retired_plans/2026-06-21_object_card_plan.md`). This
   plan supplies the Body / Face / material setters those surfaces bind.
 - **Arrangement surface + persistence (Decision 7, P3).** Per-scene arrangement *persistence* is
   already shipped (the picker writes `ViewIntent.strategy` + `save_session`, restored on boot /
   switch); the remaining per-scene picker UI consolidation rides the settings-lane scene page, and
   the signal derivation behind analytic arrangements rides
-  [graph_signals_layer_plan](../../archive_docs/2026-08-20_completed_plans/2026-06-22_graph_signals_layer_plan.md). Noted so the arrangement-axis
+  graph_signals_layer_plan (`mere/design_docs/archive_docs/2026-08-20_completed_plans/2026-06-22_graph_signals_layer_plan.md`). Noted so the arrangement-axis
   handoff is explicit, not silently dropped.
 - **Edge-trim on routed paths (P0 residual).** Straight edges already trim to the node face
   (shipped 2026-06-21); routed-path edges (explicit geometry) still attach at the collider center.
   Trimming them to the face endpoints is a cosmetic refinement that follows the body's outline, so
   it sits with this axis. Low priority.
 - **Dormant analytic arrangements + signal-driven encodings** (centrality to size, community to a
-  ring/halo) are owned by [graph_signals_layer_plan](../../archive_docs/2026-08-20_completed_plans/2026-06-22_graph_signals_layer_plan.md);
+  ring/halo) are owned by graph_signals_layer_plan (`mere/design_docs/archive_docs/2026-08-20_completed_plans/2026-06-22_graph_signals_layer_plan.md`);
   cross-ref only.
 - **The per-object widget surface** (Body / Face / material widgets in the in-canvas card) is
-  owned by [object_card_plan](../../archive_docs/2026-09-02_retired_plans/2026-06-21_object_card_plan.md); this plan supplies the underlying
+  owned by object_card_plan (`mere/design_docs/archive_docs/2026-09-02_retired_plans/2026-06-21_object_card_plan.md`); this plan supplies the underlying
   setters it binds.
 - **The `node:<id>` facet pane** (the deep editor's home) is owned by
-  [settings_lane_consolidation_plan](../../archive_docs/2026-07-13_superseded_plans/2026-06-21_settings_lane_consolidation_plan.md).
+  settings_lane_consolidation_plan (`mere/design_docs/archive_docs/2026-07-13_superseded_plans/2026-06-21_settings_lane_consolidation_plan.md`).
 
 This plan is the **represent** layer of the
 [interaction_model_spine](../technical_architecture/2026-06-18_interaction_model_spine.md),
 succeeding the predecessor plan's representation half. It resolves the
-[node_editor_customization_probe](../research/2026-06-21_node_editor_customization_probe.md) open
+node_editor_customization_probe (`mere/design_docs/mere_docs/research/2026-06-21_node_editor_customization_probe.md`) open
 questions: Q6 (representation relationship) = **orthogonal**, the Body × Face split; Q3 (collider
 fidelity) = a directly-authored hull, convex now, concave/compound as the B3 fidelity step; Q7
 (scripted / live forms) = unwired, not blocked, attributed to their substrate owners above.
@@ -274,7 +274,7 @@ fidelity) = a directly-authored hull, convex now, concave/compound as the B3 fid
   face, sprite, sprite-hull, material and size overrides key by member Uuid, and
   `reconcile_derived` drops members that left, so a reused graph slot starts clean and the
   sidecar never records one node's override under another's identity. Found and argued in
-  the [data-oriented doctrine brief](../../2026-07-02_data_oriented_doctrine_brief.md) §7.7.
+  the data-oriented doctrine brief (`mere/design_docs/2026-07-02_data_oriented_doctrine_brief.md`) §7.7.
 
   **Received for D1, 2026-10-26:** UUID keys remain the override model. Canvas now
   also receives the kernel membership witness during reconciliation, so a hidden

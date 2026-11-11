@@ -585,7 +585,7 @@ executed owner qualification is recorded separately in the receipt.
 
 ## Receipts
 
-[The qualification receipt](../testing/receipts/2026-11-04_qualified_raster_retention.md)
+The qualification receipt (`mere/design_docs/cambium_docs/testing/receipts/2026-11-04_qualified_raster_retention.md`)
 records exact artifacts, controls, source overlays and limitations. Raw evidence
 is retained under `Code/output/mesocosm-scene-composition/2026-11-04/raster-attribution/` and the sibling `native-frame-receiving/`, `native-a11y-tails/` and
 `native-worker-attribution/` and `producer-preparation/` directories.

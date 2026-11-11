@@ -8,9 +8,9 @@
 
 **Related**:
 
-- [`../implementation_strategy/2026-05-09_post_engine_layer_priorities.md`](../../archive_docs/2026-10-28/2026-05-09_post_engine_layer_priorities.md) — §2.3 resolved the donor `graph-cartography` crate as **drop, don't migrate**. This brief reclaims the name for a substantially different concern.
+- `../implementation_strategy/2026-05-09_post_engine_layer_priorities.md` (`mere/design_docs/archive_docs/2026-10-28/2026-05-09_post_engine_layer_priorities.md`) — §2.3 resolved the donor `graph-cartography` crate as **drop, don't migrate**. This brief reclaims the name for a substantially different concern.
 - [`../../graphshell_docs/implementation_strategy/2026-05-07_graph_canvas_field_algebra_plan.md`](../../graphshell_docs/implementation_strategy/2026-05-07_graph_canvas_field_algebra_plan.md) *(historical citation)* <!-- doc-audit: historical-link --> — field algebra living inside `graph-canvas` (ZSource → FieldProjection, Burn lowering). Cartography sits *above* this: the field algebra is one of the primitives strategies use; cartography is the contract layer that picks and composes strategies.
-- [`2026-05-08_local_intelligence_integration_research.md`](2026-05-08_local_intelligence_integration_research.md) — clusters, affinity, embeddings. The primary upstream signal source for cartography overlays.
+- `2026-05-08_local_intelligence_integration_research.md` (`mere/design_docs/mere_docs/research/2026-05-08_local_intelligence_integration_research.md`) — clusters, affinity, embeddings. The primary upstream signal source for cartography overlays.
 
 ---
 
@@ -176,7 +176,7 @@ The donor `graph-cartography`'s `CartographyCanvasSummary` / `CanvasClusterHalo`
 First strategies worth shipping with the layout crate:
 
 - `ForceDirected` — current default. Already exists inside `graph-canvas`; gets moved.
-- `ForceDirectedByMeaning` — force-directed where the spring rest length is determined by embedding distance. The first concrete intelligence-signal consumer (per the [local-intelligence research](2026-05-08_local_intelligence_integration_research.md)).
+- `ForceDirectedByMeaning` — force-directed where the spring rest length is determined by embedding distance. The first concrete intelligence-signal consumer (per the local-intelligence research (`mere/design_docs/mere_docs/research/2026-05-08_local_intelligence_integration_research.md`)).
 - `Radial` — for `Volvelle` form factor (expanded moot).
 - `ClusterCollapsed` (a.k.a. `Astroid`) — community-detection-driven hub-collapse. Matches the existing UX vocab item.
 - `Tree` (Sugiyama-shaped) — for hierarchical sub-views and DAG-shaped topology.
@@ -224,7 +224,7 @@ Two minor scoping calls worth making before the first line lands:
 ## 8. Relationship to existing work
 
 - **`graph-canvas` field algebra** ([2026-05-07 plan](../../graphshell_docs/implementation_strategy/2026-05-07_graph_canvas_field_algebra_plan.md) *(historical citation)* <!-- doc-audit: historical-link -->) — unaffected. The field algebra is *primitive math* that strategies in `graph-layout` use. Cartography sits above; field algebra is below. The field-algebra plan's "Burn lowering for GPU evaluation" is still load-bearing — strategies that need GPU-accelerated layout (large graphs) lower through it.
-- **`intelligence-embeddings`** ([2026-05-08 research](2026-05-08_local_intelligence_integration_research.md)) — the primary upstream signal source. The narrow `IntelligenceSignals` contract type in cartography is the firewall: cartography depends on the *shape* of the signals, not on intelligence-embeddings' internals.
+- **`intelligence-embeddings`** (2026-05-08 research (`mere/design_docs/mere_docs/research/2026-05-08_local_intelligence_integration_research.md`)) — the primary upstream signal source. The narrow `IntelligenceSignals` contract type in cartography is the firewall: cartography depends on the *shape* of the signals, not on intelligence-embeddings' internals.
 - **`platen`** — the orchestrator. `platen` already pairs reducer state with rendering output; it gains a new responsibility of building `ProjectionRequest`s and passing them to cartography, then handing the result to the appropriate canvas swatch.
 - **`mere-domain/orrery`** — first natural consumer. The orrery is the t1 graph view; making it read as a *map* rather than a network is exactly what cartography is for.
 

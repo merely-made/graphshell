@@ -9,7 +9,7 @@ host/realization rows (§1, §7, §9, §12) are pre-flip; read them through the
 
 > **2026-06-10 post-flip correction.** The genet-as-host flip has executed
 > (see the archived
-> [flip plan](../../archive_docs/2026-06-10_completed_plans/2026-06-01_genet_host_flip_plan.md));
+> flip plan (`mere/design_docs/archive_docs/2026-06-10_completed_plans/2026-06-01_genet_host_flip_plan.md`));
 > the host rows below predate it. Where this doc says "Xilem app" /
 > "Masonry" / "the `GraphCanvas` Masonry widget", the running stack is:
 > **meerkat**, a genet-as-host shell whose chrome is authored as
@@ -32,7 +32,7 @@ host/realization rows (§1, §7, §9, §12) are pre-flip; read them through the
 > §1/§7/§9/§12 refresh is still owed (topology doc, staleness flag).
 
 > **2026-10-11 data-model clarification.** The
-> [family composition brief §8](../../2026-08-12_family_composition_thesis_brief.md#8-primary-data-model-clips-and-live-entities-2026-10-11)
+> family composition brief §8 (`mere/design_docs/2026-08-12_family_composition_thesis_brief.md#8-primary-data-model-clips-and-live-entities-2026-10-11`)
 > records the graph as the primary data model, with portable clips and live
 > entities, while domains retain specialized internal representations. Content
 > ordering, containment and references may be semantic structure; authored
@@ -43,7 +43,7 @@ host/realization rows (§1, §7, §9, §12) are pre-flip; read them through the
 > clarification leaves the historical host/realization rows identified above.
 
 Refines (does not
-replace) [`2026-05-21_app_architecture_rescaffold.md`](../../archive_docs/2026-06-09_pivot_superseded/2026-05-21_app_architecture_rescaffold.md)
+replace) `2026-05-21_app_architecture_rescaffold.md` (`mere/design_docs/archive_docs/2026-06-09_pivot_superseded/2026-05-21_app_architecture_rescaffold.md`)
 — that doc fixed the *framework* question (chrome = idiomatic Xilem, retire
 substrate-as-host, no action bus); this doc fixes the *arrangement ontology* it
 left vague, and **corrects its "collapse forme/platen" claim** (§9).
@@ -200,7 +200,7 @@ stays parked.
 - **Host (Xilem)** renders the plan as a view tree: FrameTree → `split` views;
   a tree-projected workbench → tile content placed at platen-computed rects (the
   between-tiles geometry is platen's, via morphorm — see the
-  [between-tiles layout seam](../../archive_docs/2026-06-09_pivot_superseded/2026-05-26_between_tiles_layout_seam.md); Masonry
+  between-tiles layout seam (`mere/design_docs/archive_docs/2026-06-09_pivot_superseded/2026-05-26_between_tiles_layout_seam.md`); Masonry
   owns only within-tile content); the orrery → the `GraphCanvas` Masonry widget
   (the cartography projection); Verso surfaces → each tile's content compositor
   (in-scene paint or embedded texture).
@@ -220,7 +220,7 @@ model→plan layers (forme, platen) and "chrome = idiomatic Xilem" (now an
 `xilem_core` backend beside Masonry) intact. platen loses Morphorm to genet's
 taffy; the orrery becomes a custom-paint element with physics-positioned DOM
 children. See the
-[genet-as-host evaluation](../../archive_docs/2026-06-09_completed_plans/2026-05-29_genet_as_host_evaluation.md) for the
+genet-as-host evaluation (`mere/design_docs/archive_docs/2026-06-09_completed_plans/2026-05-29_genet_as_host_evaluation.md`) for the
 decision, pros/cons, and the worked orrery + platen consequences.
 
 ## 10. Costs we accept (and the guardrails)

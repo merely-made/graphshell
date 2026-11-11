@@ -25,7 +25,7 @@ A session can be copied in two ways today, and neither can come back.
   fork fields, and is named `Evening reading (picked from Evening reading)`
   (`pandect::picked_session_name`).
 
-Mark's vocabulary (2026-10-15, now in [TERMINOLOGY.md](../../TERMINOLOGY.md))
+Mark's vocabulary (2026-10-15, now in TERMINOLOGY.md (`mere/design_docs/TERMINOLOGY.md`))
 adds a third: a **branch**, which also copies the whole session at a point but
 keeps a lineage link to its parent and is meant to merge back. Branches are
 offered only once merge-in exists. This note is that merge-in, for branches

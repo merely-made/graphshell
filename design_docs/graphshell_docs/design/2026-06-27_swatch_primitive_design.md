@@ -14,15 +14,15 @@ as the Navigator; this realizes it),
 [subgraph derivation from selection](2026-06-13_subgraph_derivation_from_selection.md),
 [node body & face model plan](../implementation_strategy/2026-06-23_node_body_face_model_plan.md)
 (owns the node-body-editor swatch, B3),
-[object card plan](../../archive_docs/2026-09-02_retired_plans/2026-06-21_object_card_plan.md)
+object card plan (`mere/design_docs/archive_docs/2026-09-02_retired_plans/2026-06-21_object_card_plan.md`)
 (owns the focus-card-slot card),
-[graphlet wiring plan](../../archive_docs/2026-07-04_completed_plans/2026-06-25_graphlet_wiring_plan.md)
+graphlet wiring plan (`mere/design_docs/archive_docs/2026-07-04_completed_plans/2026-06-25_graphlet_wiring_plan.md`)
 (owns the per-window instance machinery + subgraphs),
-[graph signals layer plan](../../archive_docs/2026-08-20_completed_plans/2026-06-22_graph_signals_layer_plan.md)
+graph signals layer plan (`mere/design_docs/archive_docs/2026-08-20_completed_plans/2026-06-22_graph_signals_layer_plan.md`)
 (owns the gloss swatch lens),
-[petgraph / RDF plan](../../archive_docs/2026-10-06_completed_plans/2026-06-18_petgraph_rdf_plan.md)
+petgraph / RDF plan (`mere/design_docs/archive_docs/2026-10-06_completed_plans/2026-06-18_petgraph_rdf_plan.md`)
 (owns edge multigraph storage + the collapse-as-LOD ruling),
-[scriptable field regions plan](../../archive_docs/2026-10-28/2026-06-13_scriptable_field_regions_plan.md)
+scriptable field regions plan (`mere/design_docs/archive_docs/2026-10-28/2026-06-13_scriptable_field_regions_plan.md`)
 (owns field-region edge visibility).
 
 ---
@@ -155,7 +155,7 @@ What flattens them is purely the orrery draw, "one undirected line per pair"
 **Decision (Mark, 2026-06-27): the addressable edge is a cell**, identified
 `(source, target, RelationSelector)`. No storage change. The work is:
 
-> **Superseded 2026-10-15** by the [link model](../technical_architecture/2026-10-15_link_model.md)
+> **Superseded 2026-10-15** by the link model (`mere/design_docs/mere_docs/technical_architecture/2026-10-15_link_model.md`)
 > (L1, L4): the addressable unit is the assertion, and the drawable unit is the
 > link, one stroke at rest that opens to show its assertions. Fanning retires.
 > The §11 fan-geometry question dissolves. Code is unchanged until that doc's P4.
@@ -167,7 +167,7 @@ What flattens them is purely the orrery draw, "one undirected line per pair"
 3. **Per-cell hit-test**: selection resolves to the specific relation, which is the
    per-edge selection the subgraph-wiring open item #1 deferred.
 
-This aligns with the [petgraph / RDF plan](../../archive_docs/2026-10-06_completed_plans/2026-06-18_petgraph_rdf_plan.md),
+This aligns with the petgraph / RDF plan (`mere/design_docs/archive_docs/2026-10-06_completed_plans/2026-06-18_petgraph_rdf_plan.md`),
 which rules that the multigraph is logical (one statement per fact, enumerated as
 `SemanticStatement` records inside the pair-local `EdgePayload` bucket, each with its
 own `StatementId` — the statement-bucket revision 2026-07-04) and visual edge-collapse
@@ -202,7 +202,7 @@ derivation follows projection over real edges, so a hide never drops a node out 
 subgraph.
 
 A placed field-region rule
-([scriptable field regions](../../archive_docs/2026-10-28/2026-06-13_scriptable_field_regions_plan.md))
+(scriptable field regions (`mere/design_docs/archive_docs/2026-10-28/2026-06-13_scriptable_field_regions_plan.md`))
 governs edge visibility inside its extent; it resolves into this stack as another
 contributor rather than a parallel mechanism.
 
@@ -241,7 +241,7 @@ Locked swatches expose none of the three. That is what locked means.
 **Templates persist per persona** (Mark, 2026-06-27). A persona's saved swatch
 templates ride the persona settings store (`personas/<id>/settings/`, beside the
 curated context menu in `PersonaSettings`), the same per-persona UI-curation pattern
-the [command registry / configurable menus plan](../../archive_docs/2026-09-02_retired_plans/2026-06-21_command_registry_configurable_menus_plan.md)
+the command registry / configurable menus plan (`mere/design_docs/archive_docs/2026-09-02_retired_plans/2026-06-21_command_registry_configurable_menus_plan.md`)
 uses, so a persona carries its own swatch library across graphs.
 
 The consequence worth stating: the swatch primitive plus the template mechanism is
@@ -264,7 +264,7 @@ Fragments exist, each owned by a sibling plan; the unifying primitive does not.
   (`render/paint.rs`, via `Orrery::gloss_geometry`). It does not use `swatch.rs`.
   gloss §2a already names it "a candidate to migrate onto the DOM swatch"; its lens
   is owned by
-  [graph signals layer plan](../../archive_docs/2026-08-20_completed_plans/2026-06-22_graph_signals_layer_plan.md)
+  graph signals layer plan (`mere/design_docs/archive_docs/2026-08-20_completed_plans/2026-06-22_graph_signals_layer_plan.md`)
   P6.
 - **The object card** is `FocusCardKind::ObjectCard { widgets }`, DOM, in the
   orrery's single focus-card slot (`window_view/mod.rs`). The slot also holds
@@ -275,7 +275,7 @@ Fragments exist, each owned by a sibling plan; the unifying primitive does not.
   (`d4375d0`) and its remaining vestiges (the snapshot↔live toggle, the
   promote-to-live paths, the stale "live card" comments) were stripped 2026-06-27;
   going live is opening a workbench tile now. Owned by
-  [object card plan](../../archive_docs/2026-09-02_retired_plans/2026-06-21_object_card_plan.md).
+  object card plan (`mere/design_docs/archive_docs/2026-09-02_retired_plans/2026-06-21_object_card_plan.md`).
 - **The connections swatch** is unbuilt, marked `TODO(swatch agent)` at
   `render/cards.rs:129`: a multi-node selection (`selected_members().len() > 1`)
   should summon the selected nodes plus their edges as a DOM swatch. That is where
@@ -283,7 +283,7 @@ Fragments exist, each owned by a sibling plan; the unifying primitive does not.
 - **The instance machinery** exists for branches (per-window `WindowView` selection
   / camera / scope isolation, branch-scoped orrery), the substrate the
   swatch-as-instance generalizes. From the
-  [graphlet wiring plan](../../archive_docs/2026-07-04_completed_plans/2026-06-25_graphlet_wiring_plan.md).
+  graphlet wiring plan (`mere/design_docs/archive_docs/2026-07-04_completed_plans/2026-06-25_graphlet_wiring_plan.md`).
 - **The shape classifier** (selection -> ranked subgraph kinds) is still unbuilt,
   the named gap from the 2026-06-13 doc and reconciliation ruling 6.
 
@@ -308,4 +308,4 @@ Fragments exist, each owned by a sibling plan; the unifying primitive does not.
   candidate swatch scope: the nodes inside it become the scoped set, a convenient grab-bag that
   need not be connected (so it reads as a Loose / Session shape, not a structural one). Extends the
   scope axis (node / selection / subgraph / graph, plus **field**); cross-refs the
-  [scriptable field regions plan](../../archive_docs/2026-10-28/2026-06-13_scriptable_field_regions_plan.md).
+  scriptable field regions plan (`mere/design_docs/archive_docs/2026-10-28/2026-06-13_scriptable_field_regions_plan.md`).

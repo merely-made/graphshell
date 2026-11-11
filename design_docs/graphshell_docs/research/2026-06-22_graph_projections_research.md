@@ -12,23 +12,23 @@ up; this doc is the menu and the shared framing, not a build schedule.
 
 **Related**:
 
-- [modular_integration_plan §1](../../archive_docs/2026-10-06_superseded_plans/2026-06-02_modular_integration_plan.md)
+- modular_integration_plan §1 (`mere/design_docs/archive_docs/2026-10-06_superseded_plans/2026-06-02_modular_integration_plan.md`)
   — the graph-rooted projection model. The graph is the sole root; orrery / workbench / gloss /
   apparatus / tiles are contingent projections; no projection becomes the root. Every idea below
   obeys this.
 - [gloss_navigator_design](../design/2026-06-07_gloss_navigator_design.md) — the Navigator is one
   configurable summary surface (scope x form factor), never split. Three of the five are better
   framed as gloss lenses or orrery modes than as new panes, so the no-split rule holds.
-- [graph_signals_layer_plan](../../archive_docs/2026-08-20_completed_plans/2026-06-22_graph_signals_layer_plan.md)
+- graph_signals_layer_plan (`mere/design_docs/archive_docs/2026-08-20_completed_plans/2026-06-22_graph_signals_layer_plan.md`)
   — the producer layer (communities / affinity / bridges / importance / embeddings). #5 below is a
   *consumer* surface of that layer, not a second producer; #4 borrows its importance signal.
-- [node_representation_arrangement_plan](../../archive_docs/2026-10-06_superseded_plans/2026-06-18_node_representation_arrangement_plan.md)
+- node_representation_arrangement_plan (`mere/design_docs/archive_docs/2026-10-06_superseded_plans/2026-06-18_node_representation_arrangement_plan.md`)
   — representation (a node's look) and arrangement (a layout) are orthogonal to which projection is
   reading the truth. A node's chosen form carries across all five.
-- [command_registry_configurable_menus_plan](../../archive_docs/2026-09-02_retired_plans/2026-06-21_command_registry_configurable_menus_plan.md)
+- command_registry_configurable_menus_plan (`mere/design_docs/archive_docs/2026-09-02_retired_plans/2026-06-21_command_registry_configurable_menus_plan.md`)
   — each projection is one registry command (`projection.trail`, `projection.claim-map`, ...),
   applicability-gated, palette- and script-reachable.
-- [edge_system_audit](2026-06-13_edge_system_audit.md) — the kernel relation model is complete and
+- edge_system_audit (`mere/design_docs/mere_docs/research/2026-06-13_edge_system_audit.md`) — the kernel relation model is complete and
   mostly auto-populated; `assert_relation` / `retract_relations` are the write API a curation
   gesture calls; the Provenance family has zero consumers; the relation-kind picker is the one
   open creation gap.
@@ -78,9 +78,9 @@ not accidentally grow a second Navigator.
 
 The orrery is a map of *what* you have; Trail is a record of *when and how* you moved. It is the
 fuller surface behind the already-named "Trail" shellbar button (the Tier-A sidequest in
-[lane0_sidequests_plan](../../archive_docs/2026-09-02_retired_plans/2026-06-16_lane0_sidequests_plan.md)) and the
+lane0_sidequests_plan (`mere/design_docs/archive_docs/2026-09-02_retired_plans/2026-06-16_lane0_sidequests_plan.md`)) and the
 substrate from
-[node_navigation_lineage_wiring_plan](../../archive_docs/2026-10-28/2026-06-05_node_navigation_lineage_wiring_plan.md).
+node_navigation_lineage_wiring_plan (`mere/design_docs/archive_docs/2026-10-28/2026-06-05_node_navigation_lineage_wiring_plan.md`).
 
 **Reads.** `node-lineage` `VisitRecord` (the branching visit tree with `parent` / `children` /
 `created_at_ms` / `inbound` transition), `TransitionKind` (LinkClick / Back / Forward / TabSpawn /
@@ -159,7 +159,7 @@ projection shape `node-lineage` uses, retargeted from visit parentage onto Prove
 
 **New vs. existing.** The family is fully modeled and the tree renderer exists; the projection that
 walks Provenance edges is new. It pairs with the
-[statement_kernel_brief](../technical_architecture/2026-06-19_statement_kernel_brief.md)'s
+statement_kernel_brief (`mere/design_docs/mere_docs/technical_architecture/2026-06-19_statement_kernel_brief.md`)'s
 per-predicate lifecycle: Provenance is a durable-keep, accumulating predicate, exactly the kind of
 recorded fact this surface reads.
 
@@ -186,12 +186,12 @@ days." Click a cell to push that subset into the orrery or open it as a workbenc
 **Lives as.** A gloss lens (a tabular form factor alongside outline and swatch) for browsing, or a
 dedicated pane for heavy analysis. The cell layout reuses the `grid` arrangement; the importance
 signal from
-[graph_signals_layer_plan](../../archive_docs/2026-08-20_completed_plans/2026-06-22_graph_signals_layer_plan.md) can
+graph_signals_layer_plan (`mere/design_docs/archive_docs/2026-08-20_completed_plans/2026-06-22_graph_signals_layer_plan.md`) can
 rank within a cell.
 
 **New vs. existing.** The facet projection is built and tested. The matrix UI (axis pickers, the
 cross-tab, cell-to-subset action) is new. Distinct from the SPARQL query facet in
-[graph_query_layer_plan](../../archive_docs/2026-10-06_completed_plans/2026-06-18_graph_query_layer_plan.md), which is a
+graph_query_layer_plan (`mere/design_docs/archive_docs/2026-10-06_completed_plans/2026-06-18_graph_query_layer_plan.md`), which is a
 text query language; the matrix is direct manipulation over the same truth. This is the cheapest of
 the five: the kernel primitive already exists.
 
@@ -317,7 +317,7 @@ menu all summon them by id. Representation choices ride along untouched.
 - 2026-06-22: **Created from a chat pitch Mark accepted ("I like 'em all").** Code-verified the
   graph primitives each projection reads (node fields, edge taxonomy, lineage visit tree, facet
   projection, signal contract, lens enum). Reconciled the five against the same-day
-  [graph_signals_layer_plan](../../archive_docs/2026-08-20_completed_plans/2026-06-22_graph_signals_layer_plan.md) (so
+  graph_signals_layer_plan (`mere/design_docs/archive_docs/2026-08-20_completed_plans/2026-06-22_graph_signals_layer_plan.md`) (so
   Neighborhoods is a consumer surface, not a duplicate producer, and Facets borrows its importance
   signal) and the [gloss_navigator_design](../design/2026-06-07_gloss_navigator_design.md) (so the
   no-split rule holds: three of the five are orrery modes or gloss lenses, only Trail and Provenance

@@ -1,11 +1,11 @@
 # Guest blocks: Woodshed's progression and notation as a guest of the block pane
 
 **Status:** 2026-11-06: design; Mark ruled the eight first-round decisions the same day
-(recorded as [cycle_breaks D13](../implementation_strategy/2026-11-06_cycle_breaks_plan.md), shown
+(recorded as cycle_breaks D13 (`mere/design_docs/mere_docs/implementation_strategy/2026-11-06_cycle_breaks_plan.md`), shown
 under "Rulings" below), and the view spike was run. **The spike fell short for painting (Spike); Mark answered R1 to R3
 (recorded as D16), and implementation follows the order of work.** Rulings 5 and 6 changed Delivery, What
 moves, Native and the Cycle check; those sections are rewritten. Nothing implemented. Written first,
-as P1 was, because [cycle_breaks D12](../implementation_strategy/2026-11-06_cycle_breaks_plan.md)
+as P1 was, because cycle_breaks D12 (`mere/design_docs/mere_docs/implementation_strategy/2026-11-06_cycle_breaks_plan.md`)
 (Mark: "D: Woodshed as a guest") chose a new mechanism. Cited by the plan's P7.
 
 **For:** letting Mere's block pane host Woodshed's progression editing and notation view without
@@ -517,7 +517,7 @@ Standard done conditions 1 and 3, with D5 and D6, applied to each piece:
 ## Rulings
 
 Mark, 2026-11-06, on the eight decisions of the first draft (recorded as
-[cycle_breaks D13](../implementation_strategy/2026-11-06_cycle_breaks_plan.md)); R1 to R3 are
+cycle_breaks D13 (`mere/design_docs/mere_docs/implementation_strategy/2026-11-06_cycle_breaks_plan.md`)); R1 to R3 are
 new, from the spike and from rulings 5 and 6.
 
 1. **Interface: ruled.** "Put `block-adapter` in the graphshell protocol WIT, as a new

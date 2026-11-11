@@ -8,14 +8,14 @@ against the tree at mere `77a3701f052` and genet `fcb6c8fbd77`; §5 is
 web-sourced and cited. Nothing here schedules code; the Distillery walk it
 recommends has its own plan.
 **Anchors:** the
-[platform boundary and repository topology plan](../../archive_docs/2026-10-06_completed_plans/2026-09-02_platform_boundary_and_repository_topology_plan.md)
+platform boundary and repository topology plan (`mere/design_docs/archive_docs/2026-10-06_completed_plans/2026-09-02_platform_boundary_and_repository_topology_plan.md`)
 (the lines being redrawn), the
-[projection/scenes direction note](../../2026-08-23_projection_scenes_and_graph_native_platform.md)
+projection/scenes direction note (`mere/design_docs/2026-08-23_projection_scenes_and_graph_native_platform.md`)
 (what Cambium owns for GUIs; the nine questions), the
-[suite census](../../2026-08-22_turnstone_suite_composition_and_capability_census.md)
+suite census (`mere/design_docs/2026-08-22_turnstone_suite_composition_and_capability_census.md`)
 (what earns a port; the missing composition seam; the Graphshell charter as
 sharpened 2026-09-02), the
-[family composition thesis](../../2026-08-12_family_composition_thesis_brief.md)
+family composition thesis (`mere/design_docs/2026-08-12_family_composition_thesis_brief.md`)
 (composable views; the anti-shell test; the capability named Scenograph), the
 [scenograph content catalog](2026-08-18_scenograph_content_catalog.md)
 (the ten scene regimes), and turnstone's
@@ -85,7 +85,7 @@ shipped consumers.
 scene to its Cambium surface to its host. The Projection Editor's seven tools —
 Source, Reading, Encoding, Arrangement, Interaction, Appearance, Provenance —
 are the authoring UI for exactly that walk, and it has never been walked. The
-[Distillery projection walk plan](../../archive_docs/2026-10-28/2026-09-02_distillery_projection_walk_plan.md)
+Distillery projection walk plan (`mere/design_docs/archive_docs/2026-10-28/2026-09-02_distillery_projection_walk_plan.md`)
 is the first.
 
 **Rulings the assessment produced, recorded in their homes the same day:**
@@ -209,7 +209,7 @@ below says why that posture is unusual and right.
 **Research qualification (2026-10-11).** The older Solid comparison conflated
 linked-data representation with universal domain-schema agreement. That
 objection is withdrawn. The
-[family composition brief §8](../../2026-08-12_family_composition_thesis_brief.md#research-review-logical-model-and-usable-sharing-2026-10-11)
+family composition brief §8 (`mere/design_docs/2026-08-12_family_composition_thesis_brief.md#research-review-logical-model-and-usable-sharing-2026-10-11`)
 owns the current comparison with dataspaces, iDM/iMeMex and Web Annotation.
 This is a research correction, not refreshed runtime qualification of the
 dated port inventory above.

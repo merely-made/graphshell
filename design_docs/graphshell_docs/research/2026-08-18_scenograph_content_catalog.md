@@ -13,7 +13,7 @@ candidates for that role, not work already ordered.
 scenes proper, reusable total projection regimes; the archetypes survive
 inside the entries as founding and transfer datasets.
 
-**Reviewed 2026-08-23 (Mark):** [Projection Scenes and the Graph-Native Application Platform](../../2026-08-23_projection_scenes_and_graph_native_platform.md)
+**Reviewed 2026-08-23 (Mark):** Projection Scenes and the Graph-Native Application Platform (`mere/design_docs/2026-08-23_projection_scenes_and_graph_native_platform.md`)
 re-evaluates deck 2 after testing fifty candidate scenes against the grammar.
 This catalog remains the implementation and design history, including
 Rosette's landed Knot evidence. The follow-on owns the current categorization,
@@ -32,7 +32,7 @@ hit overrides, `score::Arrangement`),
 (the pipeline these decks parameterize; the cells-as-edges ruling),
 [node_body_face_model_plan](../implementation_strategy/2026-06-23_node_body_face_model_plan.md)
 (Body and Face as orthogonal node axes),
-[sited_device_identity_brief](2026-08-10_sited_device_identity_brief.md)
+sited_device_identity_brief (`mere/design_docs/mere_docs/research/2026-08-10_sited_device_identity_brief.md`)
 (Atlas as the geographic arrangement's consumer).
 
 Method notes:
@@ -124,7 +124,7 @@ exactly why a scene is the reusable unit and a lever is not.
 
 Two consequences. **Naming**: the brand words belong to the scene register,
 not the arrangement register, so the reservations recorded in the
-[projection proofs plan](../../archive_docs/2026-10-06_completed_plans/2026-07-21_projection_proofs_plan.md)
+projection proofs plan (`mere/design_docs/archive_docs/2026-10-06_completed_plans/2026-07-21_projection_proofs_plan.md`)
 are released to it and the placement levers keep plain mechanism names.
 Mark's own reading of the two levers: Mosaic's placement is **Grid** (already
 in the arrangement register, in its packing variant, which needs no new name),

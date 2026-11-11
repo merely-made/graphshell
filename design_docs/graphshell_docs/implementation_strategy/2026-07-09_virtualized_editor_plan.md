@@ -12,7 +12,7 @@ virtualization; Knot's folded source tile puts its fold controls there. Open:
 P1's virtualized line render and the rest of P2 over it, the editable-fold
 slices (the `EditableFoldProjection` coordinate map, Rootstock's projected
 focused text, the folded styled textarea), then P3 and P4. Grew out of the
-[djot editor plan](../../archive_docs/2026-08-06_completed_plans/2026-06-24_djot_editor_knot_nodes_plan.md)
+djot editor plan (`mere/design_docs/archive_docs/2026-08-06_completed_plans/2026-06-24_djot_editor_knot_nodes_plan.md`)
 Phase 3 (folds), which is blocked on this.
 
 ## Why (what the textarea cannot do)
@@ -205,11 +205,11 @@ coordinate path uses the projection.
 
 ## Cross-references
 
-- [djot editor plan](../../archive_docs/2026-08-06_completed_plans/2026-06-24_djot_editor_knot_nodes_plan.md): Phase 3 folds/gutter,
+- djot editor plan (`mere/design_docs/archive_docs/2026-08-06_completed_plans/2026-06-24_djot_editor_knot_nodes_plan.md`): Phase 3 folds/gutter,
   blocked on this; the illume `folds`/`outline`/container-tree the model reads.
 - genet `docs/2026-07-08_chisel_widget_catalog.md`: the editor ladder + the arrangement /
   `VirtualWindow` tier-3 mechanism this consumes.
-- [illume text lexer plan](../../archive_docs/2026-10-28/2026-06-26_illume_text_lexer_plan.md): the per-line highlight +
+- illume text lexer plan (`mere/design_docs/archive_docs/2026-10-28/2026-06-26_illume_text_lexer_plan.md`): the per-line highlight +
   `folds` the render uses.
 
 ## Progress

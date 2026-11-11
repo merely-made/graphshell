@@ -10,7 +10,7 @@ added §2a, the swatch elevated to a portable, embeddable primitive (gloss is
 one consumer), the half of the point beyond minimap / MRU / outline.
 **2026-06-23:** added §2b, the swatch resolved as the Navigator itself
 (scope-zoom, view/edit, a variant library), the node facet editor being variant #1.
-**Related**: [card system + staging plan](../../archive_docs/2026-06-09_completed_plans/2026-06-07_card_system_and_staging_plan.md) (§8 staging surfaces here), [pane UX pass](2026-05-11_pane_ux_design_pass_brief.md) (gloss as a Pane variant), `cartography` (swatch / minimap projections), `forme` (subgraphs).
+**Related**: card system + staging plan (`mere/design_docs/archive_docs/2026-06-09_completed_plans/2026-06-07_card_system_and_staging_plan.md`) (§8 staging surfaces here), [pane UX pass](2026-05-11_pane_ux_design_pass_brief.md) (gloss as a Pane variant), `cartography` (swatch / minimap projections), `forme` (subgraphs).
 
 ---
 
@@ -272,7 +272,7 @@ The cards are the current arc; gloss is the next, and #5 staging feeds it.
 
 - **Where latent subgraphs live** — **RESOLVED (2026-06-25): forme `SubgraphRef`**,
   in a per-session `SessionSubgraphs` index over kernel uuids, per the
-  [graphlet wiring plan](../../archive_docs/2026-07-04_completed_plans/2026-06-25_graphlet_wiring_plan.md)
+  graphlet wiring plan (`mere/design_docs/archive_docs/2026-07-04_completed_plans/2026-06-25_graphlet_wiring_plan.md`)
   (decision B; the gloss-owned store and `GraphTree` paths are closed). The lean
   here was right. See the
   [scope model reconciliation](2026-06-27_scope_model_reconciliation.md) for the
