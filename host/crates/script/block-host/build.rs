@@ -48,13 +48,21 @@ fn materialize_wit() {
 
 fn main() {
     materialize_wit();
+    let root = std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR");
+    // Where the fixture lands, for the `test-support` feature (`test_support`): other
+    // crates' tests take the guest from this crate rather than by a path into it.
+    let fixture =
+        Path::new(&root).join("guest/target/wasm32-wasip2/release/block_fixture_guest.wasm");
+    println!(
+        "cargo::rustc-env=BLOCK_HOST_FIXTURE_GUEST_WASM={}",
+        fixture.display()
+    );
     println!("cargo::rerun-if-env-changed=BLOCK_HOST_SKIP_FIXTURE");
     // Product guests are supplied by the caller. Only the integration tests
     // need the separate fixture workspace.
     if std::env::var_os("BLOCK_HOST_SKIP_FIXTURE").is_some() {
         return;
     }
-    let root = std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR");
     for &(dir, artifact, watch) in GUESTS {
         build(Path::new(&root), dir, artifact, watch);
     }

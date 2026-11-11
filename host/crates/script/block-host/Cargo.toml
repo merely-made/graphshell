@@ -15,6 +15,11 @@ publish = false
 [lib]
 path = "src/lib.rs"
 
+[features]
+# The fixture guest this crate builds for its own tests, exposed to other crates' tests
+# (`block_host::test_support`; engine split D121: the owner crate exposes it).
+test-support = []
+
 [dependencies]
 # The WIT world lives in this package; its build script publishes the directory to this
 # crate's build script as DEP_GRAPHSHELL_ENDPOINT_WIT. The crate itself is not used.

@@ -38,6 +38,9 @@ wasmtime::component::bindgen!({
 /// The generated value types of `block-adapter`, for callers to build and read.
 pub use exports::mere::script::block_adapter as wit;
 
+#[cfg(feature = "test-support")]
+pub mod test_support;
+
 /// Most bytes a guest component may be (the capsule cap).
 pub const MAX_COMPONENT_BYTES: usize = 16 * 1024 * 1024;
 /// Most bytes of one view payload (the projection session's 1 MiB cap).
