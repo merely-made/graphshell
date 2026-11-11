@@ -2695,7 +2695,7 @@ dependencies = [
 [[package]]
 name = "mere-transport"
 version = "0.0.2"
-source = "git+https://github.com/merely-made/murm.git?branch=main#6ce72f7f27656fa48490b3e8078767272f5fa7e2"
+source = "git+https://github.com/merely-made/murm.git?branch=main#6d354536e899986f19eae366255571a2621ebfb5"
 dependencies = [
  "async-trait",
  "bao-tree",
@@ -2763,7 +2763,6 @@ dependencies = [
  "mien",
  "muniment",
  "murm-ocapn",
- "murm-ocapn-transport",
  "notochord",
  "personae",
  "serde",
@@ -2817,34 +2816,24 @@ dependencies = [
 [[package]]
 name = "murm-ocapn"
 version = "0.1.0"
-source = "git+https://github.com/merely-made/murm.git?branch=main#6ce72f7f27656fa48490b3e8078767272f5fa7e2"
+source = "git+https://github.com/merely-made/murm.git?branch=main#6d354536e899986f19eae366255571a2621ebfb5"
 dependencies = [
  "ed25519-dalek",
  "futures-util",
  "getrandom 0.4.3",
+ "insigne",
+ "mere-transport",
+ "notochord",
+ "personae",
  "thiserror 1.0.69",
  "tokio",
  "zeroize",
 ]
 
 [[package]]
-name = "murm-ocapn-transport"
-version = "0.1.0"
-source = "git+https://github.com/merely-made/murm.git?branch=main#6ce72f7f27656fa48490b3e8078767272f5fa7e2"
-dependencies = [
- "insigne",
- "mere-transport",
- "murm-ocapn",
- "notochord",
- "personae",
- "thiserror 1.0.69",
- "tokio",
-]
-
-[[package]]
 name = "murm-sync"
 version = "0.0.1"
-source = "git+https://github.com/merely-made/murm.git?branch=main#6ce72f7f27656fa48490b3e8078767272f5fa7e2"
+source = "git+https://github.com/merely-made/murm.git?branch=main#6d354536e899986f19eae366255571a2621ebfb5"
 dependencies = [
  "bytes",
  "futures-util",

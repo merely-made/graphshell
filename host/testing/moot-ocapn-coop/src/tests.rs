@@ -749,7 +749,7 @@ async fn a_slow_callback_cannot_grow_the_owner_queue_or_block_authority_updates(
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn existing_native_endpoints_admit_root_authority_then_run_the_real_gemot_adapter() {
     use murm_ocapn::{Bootstrap, PeerLocator, SessionAuthority, SessionConfig, Value, attach};
-    use murm_ocapn_transport::{Credentials, NativeService};
+    use murm_ocapn::native::{Credentials, NativeService};
     use transport::security::SetupLimits;
     use transport::{P2pandaTransport, Transport};
     tokio::time::timeout(std::time::Duration::from_secs(20), async {

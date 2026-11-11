@@ -12,8 +12,7 @@ publish = false
 gemot = { version = "0.1.1", git = "https://github.com/merely-made/gemot.git", branch = "main" }
 mien = { version = "0.0.1", git = "https://github.com/merely-made/gemot.git", branch = "main" }
 transport = { package = "mere-transport", version = "0.0.2", git = "https://github.com/merely-made/murm.git", branch = "main", features = ["noise", "notochord"] }
-murm-ocapn-transport = { version = "0.1.0", git = "https://github.com/merely-made/murm.git", branch = "main" }
-murm-ocapn = { version = "0.1.0", git = "https://github.com/merely-made/murm.git", branch = "main" }
+murm-ocapn = { version = "0.1.0", git = "https://github.com/merely-made/murm.git", branch = "main", features = ["native"] }
 notochord = { version = "0.1.1", git = "https://github.com/merely-made/dramatis.git", branch = "main", features = ["tokio"] }
 personae = { version = "0.3.0", git = "https://github.com/merely-made/dramatis.git", branch = "main" }
 insigne = { version = "0.0.2", git = "https://github.com/merely-made/dramatis.git", branch = "main", features = ["verify"] }
