@@ -96,7 +96,7 @@ Closing Task 7 meant removing only owned worktrees after their commits were inte
 ### UA3. UA shadow slot and the cheap widgets (overlay roots P3)
 `<details>` and `<summary>` (a pure toggle, no IME) and `<input type=checkbox|radio>` through the existing Cambium control views, mounted as a UA shadow root whose element box is the host box.
 - Done when: a fetched page's checkbox toggles, reflects into the page-visible checked state, and the widget is invisible to page scripts except through the standard reflected attributes.
-- Needs: open question 3 (the substrate); Cambium controls in `crates/cambium/cambium/src/controls/` and `host_pool` in `tags.rs`.
+- Needs: open question 3 (the substrate); Cambium controls in `host/crates/cambium/cambium/src/controls/` and `host_pool` in `tags.rs`.
 - Rulings: OQ-1 (adopt the spec vocabularies); the two directives.
 - From: `archive_docs/2026-10-28/2026-07-05_overlay_roots_and_ua_widgets_plan.md:197-201, 215-219`
 
@@ -194,8 +194,8 @@ The same `OperatorFocus` overlay fed by a remote operator's presence over the ep
 - 2026-11-08: superseded for the viewer: it ships one artifact, `pkg/webgl2/` (no Classic Vello), to every browser, with no Auto probe and no remount; `pkg/webgpu/` is an opt-in comparison build (Graphshell host plan, T7). The full page and the extension keep both presenters and Auto.
 - 2026-10-15: the viewer ships per-route artifacts (`pkg/webgpu/`, `pkg/webgl2/`); Auto probes for an actual WebGPU device and remounts on WebGL2 if the WebGPU artifact refuses at boot. The Classic Vello opt-out is a compile error off wasm32. From: `archive_docs/2026-10-28/2026-10-13_browser_presentation_tenants_plan.md:295-296`
 - 2026-10-17: the extent walker excludes descendant content behind nested hidden, clip, auto and scroll boundaries while keeping each boundary's border box and visible overflow; the document-scroll observation reports unavailable when no layout exists. From: `archive_docs/2026-10-28/2026-10-13_browser_presentation_tenants_plan.md:481-488`
-- 2026-10-06: `PortableKeyed` and the nursery live in `crates/cambium/cambium/src/context.rs`; Frisket keys `Slot::View` tiles by `TileId` (`frisket.rs`); `GenetMultiRunner::push_forest_projection` (`multi.rs`) is used by cambium-rootstock and Turnstone; Turnstone's `TearOutActivePane` keeps the pane's DOM, widget state and scroll untouched by the move. From: `archive_docs/2026-10-28/2026-07-08_portable_tiles_plan.md:4-15, 25-29, 151-154`
-- 2026-10-06: the overlay roots' surviving library parts are the controls (`crates/cambium/cambium/src/controls/`, `select.rs`, `slider.rs`) and `host_pool` with its splice-safety test (`tags.rs`); no `HighlightRegistry`, `OverlayRegistry`, `set_overlay` or `ContentLayout` remains in Mere or Genet's components. From: `archive_docs/2026-10-28/2026-07-05_overlay_roots_and_ua_widgets_plan.md:4-12, 118-123`
+- 2026-10-06: `PortableKeyed` and the nursery live in `host/crates/cambium/cambium/src/context.rs`; Frisket keys `Slot::View` tiles by `TileId` (`frisket.rs`); `GenetMultiRunner::push_forest_projection` (`multi.rs`) is used by cambium-rootstock and Turnstone; Turnstone's `TearOutActivePane` keeps the pane's DOM, widget state and scroll untouched by the move. From: `archive_docs/2026-10-28/2026-07-08_portable_tiles_plan.md:4-15, 25-29, 151-154`
+- 2026-10-06: the overlay roots' surviving library parts are the controls (`host/crates/cambium/cambium/src/controls/`, `select.rs`, `slider.rs`) and `host_pool` with its splice-safety test (`tags.rs`); no `HighlightRegistry`, `OverlayRegistry`, `set_overlay` or `ContentLayout` remains in Mere or Genet's components. From: `archive_docs/2026-10-28/2026-07-05_overlay_roots_and_ua_widgets_plan.md:4-12, 118-123`
 
 ## Progress
 

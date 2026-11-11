@@ -8,7 +8,7 @@ conclusion, and a second critique that named the destination (§1, §5-§8): a *
 compiler and runtime for interactive surfaces**, portable across the product family. All
 critique claims code-verified before adoption (see Progress). No code changed this session.
 **Code touched (read-only survey)**: `crates/canvas/arrangements` *(historical citation)* <!-- doc-audit: historical-path -->, `crates/canvas/pictograph/src/canvas`
-(underlay, cartography_scene, fields, sprite_hull), `crates/canvas/cartography` (strategy,
+(underlay, cartography_scene, fields, sprite_hull), `host/crates/canvas/cartography` (strategy,
 request, projection), `crates/forme` (topology, SplitPanes), numen `field.rs`/`coupling.rs`,
 `turnstone/src/shell.rs`, `isometry-core/src/overmap.rs`, `woodshed-views/src/stage.rs`.
 
@@ -477,9 +477,9 @@ Prior art (web, verified 2026-07-21):
 - 3D effectiveness: [Ware & Franck 1996](https://doi.org/10.1145/234972.234975); [Cockburn & McKenzie on spatial memory in 2D/2.5D/3D](https://ir.canterbury.ac.nz/items/6b4acfe3-7fdb-4d43-83af-639ab1972403); [Beyond the classical monoscopic 3D in graph analytics](https://www.researchgate.net/publication/280852653_Beyond_the_classical_monoscopic_3D_in_graph_analytics_An_experimental_study_of_the_impact_of_stereoscopy); [Immersive Analytics: Time to Reconsider the Value of 3D](https://www.researchgate.net/publication/328283405_Immersive_Analytics_Time_to_Reconsider_the_Value_of_3D_for_Information_Visualisation); [AR graph study](https://www.frontiersin.org/journals/virtual-reality/articles/10.3389/frvir.2023.1155628/full)
 
 Code grounding (read 2026-07-21): `crates/canvas/arrangements/src/{lib,registry}.rs` (Layout
-trait, LayoutExtras, LayoutCapability, supports_3d), `crates/canvas/cartography/src/strategy.rs`
-(LayoutStrategy), `crates/canvas/cartography/src/request.rs` (ProjectionRequest's kernel::Graph
-requirement; ViewIntent.dimension), `crates/canvas/cartography/src/projection.rs`
+trait, LayoutExtras, LayoutCapability, supports_3d), `host/crates/canvas/cartography/src/strategy.rs`
+(LayoutStrategy), `host/crates/canvas/cartography/src/request.rs` (ProjectionRequest's kernel::Graph
+requirement; ViewIntent.dimension), `host/crates/canvas/cartography/src/projection.rs`
 (PositionedNode point+radius ceiling), `crates/canvas/pictograph/src/canvas/underlay.rs`
 (projection_from_positions, identity_arrangement), `crates/canvas/pictograph/src/canvas/cartography_scene.rs`
 (project_canvas_strategy positions-only; no host caller), `crates/canvas/pictograph/src/canvas/fields.rs`

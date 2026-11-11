@@ -43,7 +43,7 @@ Netrender pins agree.
 
 A local-patch build against netrender `aba7d837b` (T4 `06f3a12f4` plus the
 filter-slot fix) and genet `f15547d8a34`, driven from a headless-GPU Cambium
-host (`crates/cambium/cambium-genet-winit-host/examples/t4_receipt.rs`),
+host (`host/crates/cambium/cambium-genet-winit-host/examples/t4_receipt.rs`),
 found that **`cambium-rootstock`'s retained-fragment placement is wired to
 never fire.** `frame.rs::emit_scene` passes `|_| None` as the fragment
 lookup into `layout.emit_paint_list_with_leaves`, so

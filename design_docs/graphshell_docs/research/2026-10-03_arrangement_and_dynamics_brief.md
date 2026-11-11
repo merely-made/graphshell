@@ -321,7 +321,7 @@ Ways to meet "the seed-only version dissolved into an unrelated blob" with no pu
 ### 6.6 Recipe slots and the binding
 
 Evidence:
-- **The scene recipe has no motion slot.** `scenograph::ProjectionDefinition` has source, reading, encoding, arrangement, interaction, appearance and provenance (`crates/cambium/scenes/scenograph/src/lib.rs`, lines 240–251).
+- **The scene recipe has no motion slot.** `scenograph::ProjectionDefinition` has source, reading, encoding, arrangement, interaction, appearance and provenance (`host/crates/cambium/scenes/scenograph/src/lib.rs`, lines 240–251).
 - **Physics lives in host state.** On or off is `PracticeRuntimeConfig { layout_id, physics_enabled }` (`graphshell/practice_workspace.rs:224-227`), and the canvas's choice is `SavedSceneV1`'s flattened physics fields (I17).
 - **G4's carrier.** G4 carries the `DynamicsSpec` in `SavedSceneV1` (grammar plan, 177–181).
 - **The binding's text.** Mark's definition of a domain binding is "which disclosed facts and permitted actions supply that recipe".

@@ -1,7 +1,7 @@
 # The djinn test harness: H4 remainder, H5, H6 and the audit's boundary repairs
 
 **Status:** 2026-10-28: cut from `2026-10-05_djinn_test_harness_plan.md`, archived in `archive_docs/2026-10-28/`. The harness is the
-unpublished `crates/system/djinn-testkit` crate plus djinn's observation surfaces (`resident-status-v1`,
+unpublished `host/crates/system/djinn-testkit` crate plus djinn's observation surfaces (`resident-status-v1`,
 `resident-control-v1`, `--events-file`, `--log-filter`, `--installed`). H1 (isolated resident), H2 (walls) and H3 (versioned
 records with a verifier) landed, and the graceful stop with personal sync was fixed under ruling 11. H4 is partly met (the
 status route reports lock state and startup mode). Open: H4's other conditions, H5 (remote runs), H6 (load), the controls
@@ -140,8 +140,8 @@ is taken at finalization, not launch.
 - 2026-11-03 status reconciliation: Q054's ordinary completed-finalization failures were repaired in main's ancestor
   `0f91bbbdf643deae3f3f8e2fb81b4ce3df1d963e`. Requested-evidence hash/read errors and summary/receipt write errors fail
   the returned receipt; `finish` asserts that outcome, and status printing follows the publication attempts. Source:
-  `crates/system/djinn-testkit/src/run.rs` (`finish_record`, `finish`, `write`), with missing-evidence, receipt-path and
-  summary-path collision regressions in `crates/system/djinn-testkit/tests/controls.rs`. The historical L6 receipt reports
+  `host/crates/system/djinn-testkit/src/run.rs` (`finish_record`, `finish`, `write`), with missing-evidence, receipt-path and
+  summary-path collision regressions in `host/crates/system/djinn-testkit/tests/controls.rs`. The historical L6 receipt reports
   14 passing tests (6 unit, 8 controls): `support/receipts/ownership-repair/l6/2026-10-20_l6_receipt.json`.
   L6's `2e683fcfc2aeae164432fcc332835a3c5af01f55` is not an ancestor of current main, but its two source blobs match the
   landed repair. This reconciliation inspected source, controls and history; it did not rerun the tests or qualify an

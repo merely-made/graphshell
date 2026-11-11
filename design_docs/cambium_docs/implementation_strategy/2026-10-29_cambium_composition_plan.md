@@ -57,14 +57,14 @@ The original Q1–Q5 alternatives are folded into these proposed contracts.
   ([presentation plan](2026-10-28_cambium_presentation_plan.md), portable tiles
   constraint).
 - Components stay in Cambium; Meristem stays the renderer-neutral diff and
-  message core (`crates/cambium/cambium/src/component.rs:5-14`).
+  message core (`host/crates/cambium/cambium/src/component.rs:5-14`).
 - Surfaces Meristem cut for lack of a family consumer (environment, proxy,
   side effects) come back only with a consumer
   ([`upstream-xilem.md`](../technical_architecture/upstream-xilem.md)).
 - Settings truth and validation stay with the provider. Draft storage remains
   component-local; an explicit Apply sends the value and its binding/revision
   guards as an intent. This extends the current value-only boundary in
-  `crates/cambium/cambium/src/setting_row.rs:5-16` without moving drafts into
+  `host/crates/cambium/cambium/src/setting_row.rs:5-16` without moving drafts into
   application truth.
 - Diagnostic payloads use fixed vocabulary. Setting values, draft text and
   labels never enter an observation
@@ -515,7 +515,7 @@ scheduler, binding or renderer dependency in Meristem.
 | Cambium `runner.rs`, `events.rs`; existing `retained_mount.rs` for the whole pane | Scheduled dispatch/flush, visibility-aware input/focus admission and update diagnostics. Row retention and natural sizing live in the composition view. `events.rs` is input routing, not the diagnostic store. |
 | Cambium composition support | Flat retained instance table, stable route generations, bounded subscriptions/jobs, transaction validation and a small row/group/drawer placement tree. Workbench keeps whole-pane layout; no second split/tab model or domain store. Module split follows the pilot implementation. |
 | Meristem `views/any_view.rs`, `message_context.rs`, relevant sequences | Structured reuse/replacement/teardown and route/match observations; no required public `View` redesign. |
-| Mere `crates/system/surface-api/settings.rs` | Optional revision-aware snapshot/guarded-apply companion and typed result vocabulary. Binding semantics belong here and in Cambium, not in Meristem. |
+| Mere `host/crates/system/surface-api/settings.rs` | Optional revision-aware snapshot/guarded-apply companion and typed result vocabulary. Binding semantics belong here and in Cambium, not in Meristem. |
 | Turnstone `turnstone/src/settings_provider.rs`, `turnstone/src/settings_pane.rs` | One authoritative writer handle, coherent snapshots/revisions, guarded commit, retained row owners and settings composition commands. Preserve current storage and explicit theme-Apply semantics. |
 | Turnstone `turnstone/src/panes/blueprint.rs`, `turnstone/src/panes/registry.rs`, `turnstone/src/shell/renderers.rs`, `turnstone/src/frame_controls.rs`, `turnstone/src/shell/appearance_editor.rs` | Wire the existing settings config/view schemas, keep owners across placement edits, route all participating writes and input, save/load composition and install diagnostics. Extend schema-owned payload handling rather than generic blueprint fields unless a real need is found. |
 | Turnstone `turnstone/src/diagnostic_observations.rs`, `turnstone/src/shell/effects.rs` | Extend installed observation/inspection/export integration with the producer stream while preserving the existing redacted app-event source and receipt semantics. |
@@ -821,11 +821,11 @@ earlier source revisions.
 - **F1. Settings rows were positional before P0.** Turnstone builds the rows as a
   `Vec<Box<dyn AnyView>>` inside `el("div", rows)` (`turnstone/src/settings_pane.rs:288-300`).
   Meristem's `Vec` sequence is index-based with a generation per index
-  (`crates/cambium/meristem/src/view_sequences/impl_vec.rs`), and every row has the same
+  (`host/crates/cambium/meristem/src/view_sequences/impl_vec.rs`), and every row has the same
   concrete type, so a row's state follows its index, not its setting.
 - **F2. Pre-P0 wrong-binding draft reuse.** `setting_row` re-derives the
   draft only when the spec's `value` or `control` changes
-  (`crates/cambium/cambium/src/setting_row.rs:274-278`); a changed `spec.id` keeps it. The apply closure
+  (`host/crates/cambium/cambium/src/setting_row.rs:274-278`); a changed `spec.id` keeps it. The apply closure
   captures the current id (`turnstone/src/settings_pane.rs:273-285`). With F1, inserting or
   reordering rows moves an unapplied draft onto a neighbouring setting with the
   same control and value, and Apply writes it there. This is a source-level risk that P0 must reproduce and prevent before
@@ -833,27 +833,27 @@ earlier source revisions.
 - **F3. Retained owners exist with focused tests.** `RetainedMount` parks a withdrawn runner
   in a hidden container rather than removing it, and only the owner dispatches
   input; hosts validate custody and use window-scoped layout
-  (`crates/cambium/cambium/src/retained_mount.rs:7-13, 32-53`). Tests cover destination-first mounting,
+  (`host/crates/cambium/cambium/src/retained_mount.rs:7-13, 32-53`). Tests cover destination-first mounting,
   source-first withdrawal with GC and remount, and release after runner state
-  (`crates/cambium/cambium/src/retained_mount.rs:185, 256, 313`). The Settings pane is built on one
+  (`host/crates/cambium/cambium/src/retained_mount.rs:185, 256, 313`). The Settings pane is built on one
   (`turnstone/src/settings_pane.rs:355, 372-412`).
 - **F4. Portable children depend on traversal order.** `PortableKeyed`
   preserves a cross-parent move only when the source sequence rebuilds before
-  the target (`crates/cambium/cambium/src/portable.rs:24-28`). The nursery lives in `GenetCtx` and is
-  drained at the end of a rebuild (`crates/cambium/cambium/src/context.rs:224-260`), so postponing cleanup
+  the target (`host/crates/cambium/cambium/src/portable.rs:24-28`). The nursery lives in `GenetCtx` and is
+  drained at the end of a rebuild (`host/crates/cambium/cambium/src/context.rs:224-260`), so postponing cleanup
   alone does not help a destination visited first.
 - **F5. Erased replacement is intentional.** `AnyView` tears down and bumps a
   generation when the concrete type changes, so old messages go stale
-  (`crates/cambium/meristem/src/views/any_view.rs:100-130`). `ViewId` is meaningful only to
-  the parent that issued it (`crates/cambium/meristem/src/view_ctx.rs:9-23`).
+  (`host/crates/cambium/meristem/src/views/any_view.rs:100-130`). `ViewId` is meaningful only to
+  the parent that issued it (`host/crates/cambium/meristem/src/view_ctx.rs:9-23`).
 - **F6. Component memoization exists.** A memoized component skips its body
   while props are equal and no message has dirtied local state
-  (`crates/cambium/cambium/src/component.rs:102-110, 183, 222`).
+  (`host/crates/cambium/cambium/src/component.rs:102-110, 183, 222`).
 - **F7. The action-silencing adapter is written twice.** `setting_row`'s
   `silence` and Turnstone's title bar (`turnstone/src/chrome_view.rs:1072-1078`) both map
   `MessageResult<()>` to another action type by hand.
 - **F8. Multi-window updates rebuild every projection.** `update` rebuilds all
-  projections; only `update_local` rebuilds one (`crates/cambium/cambium/src/multi.rs:177-200`).
+  projections; only `update_local` rebuilds one (`host/crates/cambium/cambium/src/multi.rs:177-200`).
 - **F9. The diagnostics store already has causal fields.** Armillary
   `apparatus-core`'s `ObservationMetadata` carries `operation`, `cause`
   (a `RecordRef`), `subject`, `semantic_revision` and `presented_frame`
@@ -866,12 +866,12 @@ earlier source revisions.
   included, has a view schema (`turnstone.settings.view`) and `Blueprint`
   persistence (`turnstone/src/panes/registry.rs:124-127, 238, 466-480`).
 
-- 2026-10-29 (source inspection): `crates/system/surface-api/settings.rs` exposes describe/apply without revision guards. `turnstone/src/settings_provider.rs` reloads the current durable base and saves before updating its cached value; `turnstone/src/settings_pane.rs` publishes the live snapshot only after successful apply. P1 preserves that ordering and adds owner serialization/guards; current behavior is not atomic conflict detection.
+- 2026-10-29 (source inspection): `host/crates/system/surface-api/settings.rs` exposes describe/apply without revision guards. `turnstone/src/settings_provider.rs` reloads the current durable base and saves before updating its cached value; `turnstone/src/settings_pane.rs` publishes the live snapshot only after successful apply. P1 preserves that ordering and adds owner serialization/guards; current behavior is not atomic conflict detection.
 - 2026-10-29 (source inspection): Registry's `DiagnosticCorrelation` carries run/source/operation; its optional collector projects into Apparatus history rather than deriving causal `RecordRef`s automatically. `armillary/crates/apparatus-core/src/observation.rs` has one primary `cause`, subject, semantic revision and presented-frame fields. Multi-parent UI links and product installation remain work, tracked jointly with diagnostics M13.
 - 2026-10-29 (source inspection): `turnstone/src/diagnostic_observations.rs` already stores redacted app-event categories in Apparatus with default metadata; `turnstone/src/shell/effects.rs` records those categories at fanout. This is installed diagnostic history, but not the Registry reactive-UI bridge or causal revision/frame evidence proposed here.
 
 - 2026-10-29 (P0 implemented and locally machine-qualified): the shared
-  `crates/cambium/cambium/src/setting_row.rs` now re-derives draft state when
+  `host/crates/cambium/cambium/src/setting_row.rs` now re-derives draft state when
   `spec.id` changes. Its negative control reproduced an old Boolean draft
   reaching the replacement id before the fix. Turnstone's
   `turnstone/src/settings_pane.rs` uses a keyed production row helper; its
@@ -885,9 +885,9 @@ earlier source revisions.
   Code/output policy.
 
 - 2026-10-29 (P1 shared foundations implemented):
-  `crates/cambium/cambium/src/composition.rs` and its tests implement bounded
+  `host/crates/cambium/cambium/src/composition.rs` and its tests implement bounded
   whole-candidate admission and declarative edit classification without view
-  state. `crates/system/surface-api/settings/revisioned.rs` defines the separate
+  state. `host/crates/system/surface-api/settings/revisioned.rs` defines the separate
   object-safe guarded interface. The full Cambium library suite (352 tests)
   and surface-api suite (10 tests) pass. Rejection tests preserve the accepted
   model; delayed stale requests, owner replacement, storage failure and
@@ -921,7 +921,7 @@ earlier source revisions.
   reconnect and revocation already fall under the "source disappears" and
   "returning source requires revalidation" rows. Remote causes need a
   redacted reference form (D13). The request id is correlation only
-  (`crates/system/surface-api/settings/revisioned.rs:71-79,138-149`): a
+  (`host/crates/system/surface-api/settings/revisioned.rs:71-79,138-149`): a
   redelivered Apply carries its old guard and is refused as stale rather than
   returning its original outcome, short of the domain-owned idempotency O3
   asks for.
@@ -943,7 +943,7 @@ earlier source revisions.
   in-process writer boundary only; it establishes no cross-process CAS,
   publication/pin status, or headed acceptance.
 - 2026-10-29 (P2 implementation and automated qualification):
-  `crates/cambium/cambium/src/retained_composition/` implements the flat owner
+  `host/crates/cambium/cambium/src/retained_composition/` implements the flat owner
   table, separate presentation containers, natural row sizing, hidden parking,
   and live-slot/route plus placement-generation admission. It emits typed,
   bounded lifecycle facts without raw binding/config payloads and exposes the

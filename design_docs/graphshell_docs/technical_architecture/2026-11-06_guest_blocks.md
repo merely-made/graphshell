@@ -342,11 +342,11 @@ does not:
   portable Rust with no browser dependency; `muniment/directory` gives the document store a
   native `Backend` (the pane's `store::load` and `save` are generic over `DocumentStore`);
   `cambium-desktop` and `cambium_genet_winit_host::run` give native windows
-  (`graphshell-alembic`, `graphshell-coop`, `goal-surface-host`); `crates/script/app-host`
+  (`graphshell-alembic`, `graphshell-coop`, `goal-surface-host`); `host/crates/script/app-host`
   runs components under wasmtime 45 with a watchdog epoch and `StoreLimits`.
 - **Does not exist:** a host for the `block-guest` world. `app-host` binds only `app-core`
   (`bindgen!` per world; "two worlds, two hosts" is the existing pattern with `document-host`).
-  A native block pane therefore needs a third host crate, **`crates/script/block-host`**, binding
+  A native block pane therefore needs a third host crate, **`host/crates/script/block-host`**, binding
   `block-guest` over the same `mere:script` WIT (via the endpoint's `links` metadata, as D10
   describes), with `guarded_engine` and `Watchdog` shared or copied from `app-host`, exposing
   `BlockScript::attach_bytes`, `describe`, `choices`, `apply`, `run`, `view` as blocking calls.
@@ -367,7 +367,7 @@ does not:
   `CapsuleMount::review` verifies the signature, the component digest and size; `approve` grants
   only `power:block-adapter`, and only if the pack asked; the review dialog names the class the
   component claims and the author key, and a new grant needs a new review. The disclosure comes
-  from a Moot collection through `ports/moot` when the shell has one, exactly as on the web; a
+  from a Moot collection through `host/ports/moot` when the shell has one, exactly as on the web; a
   directory of already-fetched packs is the offline form. Revocation drops the instance and its
   registry entry.
 - **Calling model.** Native calls are in process and bounded by the watchdog, so they are
@@ -418,7 +418,7 @@ only. The count is 8 before and 8 plus the conformance test after.
   `SHEET`'s `blocks-notation-*` classes are renamed `blocks-guest-*`.
 - `rhyme.rs` becomes the first `BlockAdapter` implementation (built in). This is the evidence
   that the trait is not Woodshed-shaped: two implementations before the first guest exists.
-- `block_pane` (new, host-neutral) and `crates/script/block-host` (new, native host); see Native.
+- `block_pane` (new, host-neutral) and `host/crates/script/block-host` (new, native host); see Native.
 - `capsule_applet.rs` gains `power:block-adapter`; `web/applets/worker.mjs` gains the
   request/response path next to the action path.
 - A fixture block guest (a small component built in Mere, not Woodshed) for Mere's own tests of
@@ -501,7 +501,7 @@ Standard done conditions 1 and 3, with D5 and D6, applied to each piece:
    conformance fixture gets a block-guest round trip).
 3. Mere: `BlockAdapter`, the registry, rhyme as the first implementation; the generic pane
    extracted from `web_tree` into `block_pane` with the interim behaviour and the memo; the web
-   binding (Worker path, `power:block-adapter`); `crates/script/block-host`; the `graphshell-blocks`
+   binding (Worker path, `power:block-adapter`); `host/crates/script/block-host`; the `graphshell-blocks`
    native bin; a fixture block guest built in Mere. The Woodshed code stays in Mere and keeps
    working until step 5 is verified.
 4. Woodshed: `woodshedding/blocks` and `woodshed-notation/block-guest`, the pack script, the
@@ -554,7 +554,7 @@ new, from the spike and from rulings 5 and 6.
 Landed (SHAs in the cycle breaks plan's Progress): the `block-guest` world, `rows`, argument and
 pattern fields, and the `vector-sheet` crate in Graphshell; in Mere the `BlockAdapter` trait,
 registry, memo, rhyme as the built-in adapter, the vector sheet painter (`SheetLeaf`), the
-`power:block-adapter` grant, `crates/script/block-host`, the `WorkerAdapter`, the host-neutral
+`power:block-adapter` grant, `host/crates/script/block-host`, the `WorkerAdapter`, the host-neutral
 `graphshell::block_pane` (the web page binds it thinly in `web_tree/blocks.rs`), the pane
 dispatching by class (unclaimed class disabled and named, "Review block adapters" entry),
 `graphshell-blocks` (the native `GuestAdapter`, the native Cambium window `graphshell-blocks` with
@@ -576,13 +576,13 @@ review panel; "Review" verifies the pack and component and shows author key, ask
 "Approve block adapter" grants `power:block-adapter` and starts the Worker, which verifies again, loads the
 jco output only if its derivation manifest matches the hash the page pinned, describes the component and
 registers the class it claims. jco 1.37.0 and @noble/hashes 2.4.0 were fetched from the public registry at
-the versions and sha512 integrity of `ports/moot/examples/capsule-library/pnpm-lock.yaml` (70 packages,
+the versions and sha512 integrity of `host/ports/moot/examples/capsule-library/pnpm-lock.yaml` (70 packages,
 79,955,303 bytes downloaded, all integrity checks passed, no install script run, kept outside any repository);
 no package manager was usable on the machine, so a small script did what `pnpm install --frozen-lockfile`
 does for that closure. Headed check, route and steps: see the plan's Progress entry for 2026-11-07.
 
 **Moot disclosure (2026-11-07).** Before this, a pack reached the web host only through the build
-script's `adapters.json` and native only as local files. `ports/moot/examples/block_adapter_disclosure.rs`
+script's `adapters.json` and native only as local files. `host/ports/moot/examples/block_adapter_disclosure.rs`
 now discloses a signed pack the way `capsule-library` discloses an applet: the pack's author shares it
 into a Moot, the founder selects it into a collection, the contribution travels as a plain drop into a
 retaining member, and that member re-verifies the pack (signature, contributor equals pack author,

@@ -43,7 +43,7 @@ dependencies, and roughly seventeen published crates whose manifests drifted sin
 ## Phases
 
 ### P0. Rename `mesquite` to `mandrake` (D2, D3)
-`crates/cambium/mandrake`, package and lib `mandrake`. The receipt schema id
+`host/crates/cambium/mandrake`, package and lib `mandrake`. The receipt schema id
 `mesquite.commands/v1` is a wire name and stays.
 - Done when: every Mere consumer checks on all targets (native and wasm32), `mandrake`'s tests
   pass, and Woodshed (root and its `ports/` workspaces), Knot, Cleromancy, Isocosm, Turnstone and

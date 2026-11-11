@@ -524,7 +524,7 @@ Node bindings were removed after the identity gate. Receipts and the reusable
 probe remain under the existing testing directory. The shared Mere target and
 the browser package remain available for the open qualification gates.
 
-- Swatch types: `crates/cambium/scenes/scenograph/src/swatch.rs`. Composition: `crates/cambium/scenes/scenomise/src/facet.rs` (`compose_facet`), tests in `facet_tests.rs`. Subgraph specs: `crates/forme/curation` (published as `mere-curation`).
+- Swatch types: `host/crates/cambium/scenes/scenograph/src/swatch.rs`. Composition: `host/crates/cambium/scenes/scenomise/src/facet.rs` (`compose_facet`), tests in `facet_tests.rs`. Subgraph specs: `crates/forme/curation` (published as `mere-curation`).
 - The editor's grid: `ports/graphshell/src/projection_compare.rs` and `web_projection.rs` (`compare_targets`, `toggle_projection_compare`, `pick_projection_compare`); headed scenario `ports/graphshell/web/scenarios/projection_compare.scn`.
 - The catalog's addition records: `graphshell_docs/research/2026-08-15_projection_grammar_catalog.md`, "Addition records". Each promoted primitive needs one.
 

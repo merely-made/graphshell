@@ -4,7 +4,7 @@
 inference protocol; D7 sends key-agreement carriage to its own plan. S6's remaining candidates
 come back as forks.
 
-**For:** splitting `ports/mere-resident` (75 source files, 43,624 lines including inline tests
+**For:** splitting `host/ports/mere-resident` (75 source files, 43,624 lines including inline tests
 and the receipt-host binaries) by responsibility, so that each owner's reusable behaviour is
 tested in its own repository and Mere supplies only concrete graph bindings and host
 composition. Opened by the source homes map's resident review

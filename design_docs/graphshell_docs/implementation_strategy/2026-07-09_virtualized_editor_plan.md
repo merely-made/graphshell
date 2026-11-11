@@ -3,8 +3,8 @@
 **Date**: 2026-07-09
 **Status (2026-10-06):** partially implemented. The rung-3 infrastructure is
 built in Mere, not Genet: Cambium's `arrangement`, `placed` and `placed_with`
-(`crates/cambium/cambium/src/arrangement.rs`) and Sprigging's `VirtualWindow`
-(`crates/cambium/sprigging/src/arrange.rs:52`, formerly chisel), which left
+(`host/crates/cambium/cambium/src/arrangement.rs`) and Sprigging's `VirtualWindow`
+(`host/crates/cambium/sprigging/src/arrange.rs:52`, formerly chisel), which left
 Genet with Cambium in genet `ce79fd44a4d` (2026-09-03). Cambium's read-only
 fold projection landed 2026-09-13 (`2676c5e9`), and its line layout with a
 gutter cell per line on 2026-09-25 (`0d341dee`), P2's gutter without the
@@ -31,7 +31,7 @@ out whole, so it cannot:
 
 **Corrected 2026-10-06 (S14 pass):** genet-layout and meerkat are both gone
 (genet `55c05d11759`, 2026-08-21; `c5f01064`, 2026-07-18). The textarea is now
-Cambium's `styled_textarea` (`crates/cambium/cambium/src/styled_field.rs:190`).
+Cambium's `styled_textarea` (`host/crates/cambium/cambium/src/styled_field.rs:190`).
 
 The chisel catalog's "djot-to-IDE editor ladder" names this: rung 1 highlighting (done,
 genet `highlight`), **rung 2 gutter**, **rung 3 virtualized buffer**, rung 4 structure
@@ -54,8 +54,8 @@ would be the first.
 
 **Corrected 2026-10-06 (S14 pass):** this infrastructure lives in Mere, not
 Genet. `arrangement`, `placed` and `placed_with` are Cambium's
-(`crates/cambium/cambium/src/arrangement.rs`, lines 27, 41 and 62), and
-`VirtualWindow` is Sprigging's (`crates/cambium/sprigging/src/arrange.rs:52`,
+(`host/crates/cambium/cambium/src/arrangement.rs`, lines 27, 41 and 62), and
+`VirtualWindow` is Sprigging's (`host/crates/cambium/sprigging/src/arrange.rs:52`,
 formerly chisel); Cambium and Sprigging left Genet in genet `ce79fd44a4d`
 (2026-09-03). Meerkat is gone, so P1's "first meerkat arrangement consumer"
 and Decision 1's "genet's" read as the 2026-07 layout.
@@ -227,7 +227,7 @@ coordinate path uses the projection.
   2026-09-25 entry below.
 - **2026-09-25, fold rows with a gutter cell landed (recorded 2026-10-06 by
   the S14 pass).** `0d341dee` added `FoldProjection::lines()`, `rows(gutter)`
-  and `FOLD_ROWS_CSS` (`crates/cambium/cambium/src/fold_projection.rs`, lines
+  and `FOLD_ROWS_CSS` (`host/crates/cambium/cambium/src/fold_projection.rs`, lines
   196, 251 and 37), described in its commit as the gutter of this plan's P2,
   without the virtualization. Knot's folded source tile puts its fold controls
   in that gutter (`knot-editor:apps/desktop/src/document_folding.rs`). Lines

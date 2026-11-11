@@ -122,7 +122,7 @@ window's chrome is a window-root of one `GenetMultiRunner` document
 
 ### F2. The session contract erases a whole app, and stops short of four things
 
-`RetainedSurfaceSession` (`crates/cambium/cambium/src/surface.rs`, lines 55 to
+`RetainedSurfaceSession` (`host/crates/cambium/cambium/src/surface.rs`, lines 55 to
 75) is an object-safe Cambium app: a descriptor, availability, its document and
 root, focus, focus traversal, focusables, pointer capture, hit-target queries,
 viewport sync and event dispatch. It was frozen as v1 with the descriptor
@@ -134,7 +134,7 @@ scrolling policy, accessibility hosting, or lifetime management for the host"
 - **No accessibility of its own.** The host projects the session's DOM.
 - **No value or file events.** `ResolvedSurfaceEvent` (lines 45 to 53) has
   click, key, pointer, hover and wheel. The runner has `dispatch_value`
-  (`crates/cambium/cambium/src/runner.rs`, line 1151), which a screen reader's
+  (`host/crates/cambium/cambium/src/runner.rs`, line 1151), which a screen reader's
   SetValue reaches in rootstock hosts.
 - **No state access.** Redshank works around it with a shared handle:
   "that trait carries no state access at all, so the two facts a host must
@@ -146,10 +146,10 @@ scrolling policy, accessibility hosting, or lifetime management for the host"
   screen-reader user that is a trap at every composed boundary.
 
 IME is not missing: `Key::Composition` carries preedit and commit
-(`crates/cambium/cambium/src/key.rs`, lines 50 to 77), and a session receives it
+(`host/crates/cambium/cambium/src/key.rs`, lines 50 to 77), and a session receives it
 as a key event. The candidate window's position comes from the laid-out caret,
 which the host has under B (rootstock's `sync_ime_area`,
-`crates/cambium/cambium-rootstock/src/frame.rs`, lines 406 to 430).
+`host/crates/cambium/cambium-rootstock/src/frame.rs`, lines 406 to 430).
 
 ### F3. The forest document is one application's windows
 
@@ -160,19 +160,19 @@ painted per window (S29). In code:
 
 - `GenetMultiRunner` owns one `State`, and "All projections share one
   `Logic`/`V` *type* ... heterogeneous window types would need boxing and have
-  no consumer yet" (`crates/cambium/cambium/src/multi.rs`, lines 78 to 95).
+  no consumer yet" (`host/crates/cambium/cambium/src/multi.rs`, lines 78 to 95).
 - A dispatch in any window rebuilds every other projection
   (`rebuild_others`, lines 212 to 226, called from each dispatch).
 - `MultiHost` lends the one runner, the shared host state and the hooks to
-  each window's turn (`crates/cambium/cambium-rootstock/src/multi_host.rs`,
+  each window's turn (`host/crates/cambium/cambium-rootstock/src/multi_host.rs`,
   lines 373 to 397 and 525 to 555). Its mutation router files each mutation
   under the window whose subtree it touched (lines 222 to 343).
 - Every window-root is a direct child of the document (`multi.rs`, lines 132
   to 145), and `WindowDom` presents it as the whole page, so that a `:root`
   rule matches the window's top element
-  (`crates/cambium/cambium-rootstock/src/window_dom.rs`, lines 20 to 27).
+  (`host/crates/cambium/cambium-rootstock/src/window_dom.rs`, lines 20 to 27).
 - The windows share one author sheet, with a generation counter
-  (`crates/cambium/cambium-rootstock/src/host.rs`, `swap_sheet`, line 1508).
+  (`host/crates/cambium/cambium-rootstock/src/host.rs`, `swap_sheet`, line 1508).
 
 The forest is the substrate for one application's windows. It is not one for
 several applications. Knot and Woodshed are rootstock hosts, but both use the
@@ -192,8 +192,8 @@ Mounting a second application as another root would need:
 ### F4. View-level embedding exists
 
 Meristem carries Xilem's `lens`, `map_state` and `map_action`
-(`crates/cambium/meristem/src/views/lens.rs`, lines 40 to 92;
-`crates/cambium/meristem/src/views/map_state.rs`). Knot's document view and
+(`host/crates/cambium/meristem/src/views/lens.rs`, lines 40 to 92;
+`host/crates/cambium/meristem/src/views/map_state.rs`). Knot's document view and
 sheet are exported for reuse (`KNOT_DOCUMENT_CSS`, `knot_document_view` in
 `knot-editor/crates/knot-document/src/lib.rs`), and Woodshed's views are "View
 fns + CSS sheets consumed by both hosts"
@@ -204,14 +204,14 @@ actions are mapped into the host's.
 ### F5. Producers are same-process and describe themselves thinly
 
 `TextureProducer` renders on the host's own `wgpu::Device` and queue
-(`crates/cambium/cambium-rootstock/src/producer.rs`, lines 68 to 79). Its
+(`host/crates/cambium/cambium-rootstock/src/producer.rs`, lines 68 to 79). Its
 accessibility is `ProducerSemantics`, a slot role and name with one flat level
 of `ProducerNode` children. Each child has a key, one of five roles (list, list
 item, group, image, graphics object), a name, a rectangle and actions
 (lines 127 to 203). There is no text, value, caret, selection or nesting.
 `cambium-winit-a11y` lowers it to AccessKit nodes, with each action as a child
-button (`crates/cambium/cambium-winit-a11y/src/lib.rs`, lines 290 to 351), and
-the web host lowers it to ARIA (`crates/cambium/cambium-genet-web-host/src/mirror.rs`,
+button (`host/crates/cambium/cambium-winit-a11y/src/lib.rs`, lines 290 to 351), and
+the web host lowers it to ARIA (`host/crates/cambium/cambium-genet-web-host/src/mirror.rs`,
 line 83 onward). That suits a graph canvas. It cannot describe a text editor.
 
 ### F6. Cross-process pixels: the host half exists, the guest half exists only on Windows, and freshness is hard
@@ -338,7 +338,7 @@ The heads read pin five Mere revisions between them:
 Two Mere revisions in one graph give two copies of every type, so a guest
 compiled into a host must build at the host's revisions. Mere and Knot already
 move in lockstep for this reason. The frozen v1 contracts (`mere-surface-api`'s
-descriptor, `crates/system/surface-api/surface.rs` line 11, and
+descriptor, `host/crates/system/surface-api/surface.rs` line 11, and
 `RetainedSurfaceSession`) narrow what can break. But a guest still links
 Cambium and Genet themselves, so a breaking change moves every composed guest
 first. A process boundary removes this: each side builds at its own revisions,
@@ -608,11 +608,11 @@ with A and B.
 (Turnstone U15's lane), windowless, against `accesskit_consumer` 0.35, 0.36
 and 0.38, the consumers under the Windows, AT-SPI and macOS adapters:
 
-- *Tree half,* `crates/forme/uxtree/tests/e1a_subtrees.rs`, 27 checks: the
+- *Tree half,* `host/crates/forme/uxtree/tests/e1a_subtrees.rs`, 27 checks: the
   join itself with model guests whose ids coincide, including one focus move
   into a new guest and between two held guests, and both controls failing as
   they must.
-- *Session half,* `crates/cambium/cambium-winit-a11y/tests/e1a_sessions.rs`,
+- *Session half,* `host/crates/cambium/cambium-winit-a11y/tests/e1a_sessions.rs`,
   18 checks: two `RunnerSurfaceSession`s in `ContainedSession`, laid out and
   projected on their own; done-conditions 1 to 6 above, with a shared leaf
   registry as the control for 6.
@@ -624,7 +624,7 @@ and 0.38, the consumers under the Windows, AT-SPI and macOS adapters:
   reading above does not hold for in-process sessions.
 
 E1b, the headed walks, is next and needs Mark at each machine. Its probe is
-`crates/cambium/cambium-winit-a11y/examples/e1b_two_sessions.rs` (in Mere:
+`host/crates/cambium/cambium-winit-a11y/examples/e1b_two_sessions.rs` (in Mere:
 `Code/testing/mere/` is not reachable from the lane's cloud session). It
 publishes a host menu and two `ContainedSession` panes, joined by
 `uxtree::graft`, through AccessKit's own winit adapter. `--omit-a` and
@@ -909,8 +909,8 @@ stack.
 ### Findings
 
 **F13. The mount exists, and it is unscoped.** `Runner::new_at`
-(`crates/cambium/cambium/src/runner.rs`, line 1246) builds beneath a live mount
-owned by the caller. `RetainedMount` (`crates/cambium/cambium/src/retained_mount.rs`,
+(`host/crates/cambium/cambium/src/runner.rs`, line 1246) builds beneath a live mount
+owned by the caller. `RetainedMount` (`host/crates/cambium/cambium/src/retained_mount.rs`,
 landed in `d5850920` on 2026-10-14) hosts a runner inline in a shared forest
 document. It reparents the owner container between stations and keeps its DOM
 and state intact. Graphshell's port uses it
@@ -918,7 +918,7 @@ and state intact. Graphshell's port uses it
 container is a plain `div`, `cambium-retained-owner`, so a guest inherits the
 host's sheet. AC5's scope class has not been applied. Rootstock's `WindowDom`
 already limits `shadow_roots()` to its own window
-(`crates/cambium/cambium-rootstock/src/window_dom.rs`, line 129).
+(`host/crates/cambium/cambium-rootstock/src/window_dom.rs`, line 129).
 
 **F14. Genet's Shadow DOM supplies the boundary.** It landed 2026-09-07/08
 (`genet/design_docs/2026-09-07_shadow_dom_plan.md`). The flat tree spans both
@@ -1074,7 +1074,7 @@ The disk precondition above is met (1.1 TB free on 2026-10-15). Mark approved
 the probe on 2026-10-15 and ruled "Approve dev-dep (Recommended)" on its one
 fork. It ran against Mere `90ce8f12` with Genet `ae3d9f5`, which contains the
 accessibility fix `85252e20`. The code is
-`crates/cambium/cambium-rootstock/src/mount_probe_tests.rs`, declared in
+`host/crates/cambium/cambium-rootstock/src/mount_probe_tests.rs`, declared in
 `lib.rs` as a test-only module, with `genet-document-resources` added as a
 dev-dependency of `cambium-rootstock` (already a workspace dependency and in
 `Cargo.lock`). It sits in Rootstock because `WindowDom` lives there. It changes

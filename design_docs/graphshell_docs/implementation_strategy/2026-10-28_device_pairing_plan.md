@@ -149,7 +149,7 @@ has no caller.
 
 ### D6. The other network
 A self-hosted iroh-relay both networks can reach, set on every resident (the resident already takes `relay_urls`,
-`ports/mere-resident/src/settings.rs:610`). It runs on T-PC behind a mesh-router port forward and a dynamic-DNS name, with
+`host/ports/mere-resident/src/settings.rs:610`). It runs on T-PC behind a mesh-router port forward and a dynamic-DNS name, with
 other idle mesh machines as further relays once set to stay on (D2 below).
 - Done when: the M4 on the work line (192.168.1.224, D1 below) is reached by key through the relay; a control isolates the
   relay as what carried the dial (direct paths blocked), which is also the reachability plan's open R1 receipt.
@@ -198,7 +198,7 @@ route between them.
   live crate has no per-interface sockets), and ruling 26 keeps it out until diagnosed. Has the diagnosis been done? From:
   `archive_docs/2026-10-28/2026-10-02_device_pairing_by_key_plan.md:611-616,1264-1272`
 - Do the three knot-desktop Collapse tests still fail on Knot's `main`? From: `archive_docs/2026-10-28/2026-10-02_device_pairing_by_key_plan.md:941-949`
-- Do the lane-reported code-comment drifts still hold: `ports/mere-resident/src/pairing.rs:46-48` (the host never writes settings
+- Do the lane-reported code-comment drifts still hold: `host/ports/mere-resident/src/pairing.rs:46-48` (the host never writes settings
   back, while `personal_sync.rs` writes hints), `peer_id.rs:11-14` (a `PeerID` derives from the master, while hosts pass
   per-graph seeds), and `djinn --pairing-facts` computing the group pre-key and omitting it from its output? From:
   `archive_docs/2026-10-28/2026-10-02_device_pairing_by_key_plan.md:1044-1049`
@@ -216,7 +216,7 @@ route between them.
   state. No unlock, installation or trust change was attempted.
 - 2026-11-04 (source-confirmed): personal sync builds its admission roots from
   configured roster/paired roots plus its own local identity
-  (`ports/mere-resident/src/personal_sync.rs`, initial setup and pairing watch).
+  (`host/ports/mere-resident/src/personal_sync.rs`, initial setup and pairing watch).
   This is configured root admission, not proof that every peer is an O-PC
   delegate. Dramatis has signed grant enrollment and validation in
   `repos/dramatis/crates/castellan/src/custody/wallet/enroll.rs`, but that does

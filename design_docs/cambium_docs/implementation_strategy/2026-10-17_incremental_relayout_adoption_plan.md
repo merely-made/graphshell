@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-17. **Status:** approved by the owner 2026-10-17 as proposed; P1 landed be7906481.
 
-Citations are `file:line`. Mere paths are relative to `crates/cambium/cambium-rootstock/src/`
+Citations are `file:line`. Mere paths are relative to `host/crates/cambium/cambium-rootstock/src/`
 (`mere:`), other Mere paths are repo-root-relative; Genet paths are relative to `components/genet-livery/src/` unless marked `genet:`.
 Genet was read at `fa27ea5421c`; Mere pins `e37762d752e` (`Cargo.lock:6425`), which contains the
 same retained path (`document/frame.rs` there references `layout_retained_formatting_root`).
