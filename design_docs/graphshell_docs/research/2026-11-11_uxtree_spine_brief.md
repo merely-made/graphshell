@@ -6,6 +6,8 @@
 [federated tree brief](2026-11-11_uxtree_federated_tree_brief.md) (same day), which reads the producers through, maps
 these nine forks onto six (its §6.7) and corrects two readings here: `stitch` concatenates subtrees and does not
 rehash them, and the canvas outputs Cambium producer semantics, not AccessKit.
+Followed by the [uxtree spine plan](../implementation_strategy/2026-11-11_uxtree_spine_plan.md) (same day), which records Mark's
+rulings on the forks (D1 to D9) and lays out the phases.
 **Ruling carried:** engine split D53 (`mere/design_docs/mere_docs/implementation_strategy/2026-11-07_engine_split_plan.md`,
 Mark, 2026-11-09). Asked what to do with `uxtree`, Mark asked back: "Is there more that can be done with it to
 support accessibility, diagnostics, and automation stack wise?" The ruling, "Grow into the spine (Recommended)",

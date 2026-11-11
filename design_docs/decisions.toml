@@ -179,3 +179,77 @@ summary = "Djinn's lifecycle event file lives in Armillary; the registry-backed 
 title = "Plan adopting the separate key-agreement lane (Mark, 2026-11-05)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-05_resident_split_plan.md"
 summary = "Key agreement moves onto Eidetic's GroupKeyLane and Murm's GroupKeySync under its own plan; roster reconciliation stays in Mere."
+
+[decisions."uxtree-spine D1"]
+title = "The spine is federated (Mark, 2026-11-11)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-11_uxtree_spine_plan.md"
+area = "The stack"
+summary = "uxtree owns one envelope every producer fills beside its own AccessKit tree; AccessKit stays the node type; prototype first."
+draws_on = ["mere:engine-split D53"]
+plans = ["uxtree-spine"]
+
+[decisions."uxtree-spine D2"]
+title = "The types live in uxtree; Genet stays out (Mark, 2026-11-11)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-11_uxtree_spine_plan.md"
+area = "The stack"
+summary = "The envelope types live in uxtree; Genet's projection is unchanged and the host fills the envelope for Genet-backed nodes."
+draws_on = ["uxtree-spine D1", "mere:engine-split D53"]
+plans = ["uxtree-spine"]
+
+[decisions."uxtree-spine D3"]
+title = "The address ends as `(TreeId, NodeId)` (Mark, 2026-11-11)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-11_uxtree_spine_plan.md"
+area = "The stack"
+summary = "An address is (producer instance, local id) until its producer is grafted, then (TreeId, NodeId)."
+draws_on = ["uxtree-spine D1", "uxtree-spine D2", "mere:engine-split D53"]
+plans = ["uxtree-spine"]
+
+[decisions."uxtree-spine D4"]
+title = "Four declared classes of id (Mark, 2026-11-11)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-11_uxtree_spine_plan.md"
+area = "The stack"
+summary = "Ids carry a declared class: Life, Scoped, Derived with a uxtree-owned generation, or Authored; owners recheck every action."
+draws_on = ["uxtree-spine D1"]
+plans = ["uxtree-spine"]
+
+[decisions."uxtree-spine D5"]
+title = "Automation addresses authored keys and role and name, and acts by action id (Mark, 2026-11-11)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-11_uxtree_spine_plan.md"
+area = "The stack"
+summary = "Scenarios address an authored key, else role and name, and act by action id where one exists; pixel clicks only where nothing semantic exists."
+draws_on = ["uxtree-spine D1", "uxtree-spine D4"]
+amends = ["mere:engine-split D53"]
+plans = ["uxtree-spine"]
+
+[decisions."uxtree-spine D6"]
+title = "A JSON snapshot for tooling, and no more (Mark, 2026-11-11)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-11_uxtree_spine_plan.md"
+area = "The stack"
+summary = "The tree with envelopes can be dumped as JSON for tooling and a read-only MCP resource, with redaction; it is not a wire contract and the 2026-07-22 refusal stands."
+draws_on = ["uxtree-spine D1", "mere:engine-split D23"]
+plans = ["uxtree-spine"]
+
+[decisions."uxtree-spine D7"]
+title = "The lint: structure plus labels, bounds and unrouted actions, as a library (Mark, 2026-11-11)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-11_uxtree_spine_plan.md"
+area = "The stack"
+summary = "A side-effect-free lint library checks structure, labels, bounds, unrouted actions and missing envelopes, reports through a sink trait with the registry first, and does not gate publication."
+draws_on = ["uxtree-spine D1", "uxtree-spine D4", "mere:engine-split D26"]
+plans = ["uxtree-spine"]
+
+[decisions."uxtree-spine D8"]
+title = "Events gain the address; the two dead pieces retire (Mark, 2026-11-11)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-11_uxtree_spine_plan.md"
+area = "The stack"
+summary = "UxEvent gets an optional node address; incipit::forme::ux and the kernel's descriptor_for are deleted; ux-events and SurfaceId stay."
+draws_on = ["uxtree-spine D3", "mere:engine-split D39"]
+amends = ["mere:engine-split D59"]
+plans = ["uxtree-spine"]
+
+[decisions."uxtree-spine D9"]
+title = "The generic a11y machinery is promoted into Cambium (Mark, 2026-11-11)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-11_uxtree_spine_plan.md"
+area = "The stack"
+summary = "foreign_a11y and the bridge's generic parts move into cambium-winit-a11y as guest-tree support; one publication path and one id policy; headed checks."
+draws_on = ["uxtree-spine D3", "uxtree-spine D4", "mere:engine-split D102"]
+plans = ["uxtree-spine"]

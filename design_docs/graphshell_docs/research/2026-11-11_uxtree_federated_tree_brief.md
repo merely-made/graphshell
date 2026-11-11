@@ -3,6 +3,8 @@
 **Date:** 2026-11-11
 **Status (2026-11-11):** research brief, complete. Docs only: no code changed, nothing built or run. The forks in
 §6 wait for Mark. No decision is taken here and none is written as one.
+Followed by the [uxtree spine plan](../implementation_strategy/2026-11-11_uxtree_spine_plan.md) (same day), which records
+Mark's rulings on these forks (D1 to D9) and lays out the phases.
 **Ruling carried:** engine split D53 (`mere/design_docs/mere_docs/implementation_strategy/2026-11-07_engine_split_plan.md`),
 and Mark's answer to the first brief's shape question, quoted: "1 is acceptable but i am intrigued by 2 if that is
 the correct boundary to draw, architecturally. i don't mind upheaval clearly". The orchestrator then proposed a third
