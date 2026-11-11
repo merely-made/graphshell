@@ -1,0 +1,12 @@
+# Carried over from Mere's .gitattributes for the paths that moved here (engine
+# split P3 slice 4). Byte-compared fixtures must not be rewritten by autocrlf.
+host/crates/system/tabard/tests/fixtures/** text eol=lf
+host/crates/cambium/cambium/tests/fixtures/component_catalog_*.html text eol=lf
+host/crates/cambium/cambium/examples/component_catalog.css text eol=lf
+host/ports/mere-resident/tests/fixtures/** text eol=lf
+host/ports/mere-resident/install-linux.sh text eol=lf
+host/ports/mere-resident/install-ssh-server-windows.ps1 text eol=lf
+# The Meaning receipt's arXiv corpus, pinned by SHA-256 (dynamics grammar plan, G2,
+# F43). Mere's rule still named crates/canvas/pictograph/src/canvas/tests/data/**
+# after the canvas fold (U1); the files live under cartography now.
+host/crates/canvas/cartography/src/canvas/tests/data/** text eol=lf

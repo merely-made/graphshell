@@ -6,6 +6,10 @@ ceiling = 600
 path = "crates/script-wire/tests/generated/"
 reason = "Generated source subtree; edits belong in the generator or its inputs."
 
+[[exclude]]
+path = "host/support/patches/"
+reason = "Imported upstream crates with local integration patches; retain upstream source layout (moved from Mere with the resident, P3 slice 4)."
+
 [[exception]]
 path = "crates/graphshell-client/src/core.rs"
 reason = "The Graphshell session protocol with the I/O taken out. Existing source-size debt; a responsibility split must preserve Progress, Outcome, Pending and existing module visibility."
@@ -93,3 +97,343 @@ reason = "Real Rootstock hosts and application-owned reader producers across one
 [[exception]]
 path = "host/crates/graphshell/graphshell-client-tests/tests/frozen.rs"
 reason = "predates enforcement (2026-11-11)"
+
+[[exception]]
+path = "host/crates/cambium/cambium-genet-web-host/src/mirror/tests.rs"
+reason = "Mirror tests. Existing source-size debt; a responsibility split must preserve Board, Logic and existing module visibility."
+
+[[exception]]
+path = "host/crates/cambium/cambium-genet-web-host/src/mount.rs"
+reason = "Putting an application on a canvas, and keeping it fed. Existing source-size debt; a responsibility split must preserve Mounted and existing module visibility."
+
+[[exception]]
+path = "host/crates/cambium/cambium-genet-winit-host/examples/t4_receipt.rs"
+reason = "Netrender roadmap T4 receipt, from a Cambium host. Existing source-size debt; a responsibility split must preserve Child, Logic, SolidLeaf and existing module visibility."
+
+[[exception]]
+path = "host/crates/cambium/cambium-genet-winit-host/src/decorations.rs"
+reason = "Client-side decorations: the window frame an application draws itself. Existing source-size debt; a responsibility split must preserve ClickCadence and existing module visibility."
+
+[[exception]]
+path = "host/crates/cambium/cambium-genet-winit-host/src/harness.rs"
+reason = "[Harness]: the host with no window and no GPU. Existing source-size debt; a responsibility split must preserve Harness and existing module visibility."
+
+[[exception]]
+path = "host/crates/cambium/cambium-genet-winit-host/src/headed_tests.rs"
+reason = "Headed receipts for the host's one render core (stack seams P2). Existing source-size debt; a responsibility split must preserve Child, Logic, Readings and existing module visibility."
+
+[[exception]]
+path = "host/crates/cambium/cambium-genet-winit-host/src/lib.rs"
+reason = "The Cambium desktop host: one window through [run], or several over one application state through [run_windows]. Existing source-size debt; a responsibility split must preserve HostEvent, WinitWindow, WinitSurface and existing module visibility."
+
+[[exception]]
+path = "host/crates/cambium/cambium-genet-winit-host/tests/input_routing.rs"
+reason = "The host's input routing, asserted against a real retained DOM and a real retained layout, with no window and no GPU. Existing source-size debt; a responsibility split must preserve App, Child and existing module visibility."
+
+[[exception]]
+path = "host/crates/cambium/cambium-genet-winit-host/tests/scenario.rs"
+reason = "The scenario lane, driven headless: the harness stands in for the event loop, calling after_frame once per frame, then delivering the pointer the lane queued and running the. Existing source-size debt; a responsibility split must preserve App, Child, Logic and existing module visibility."
+
+[[exception]]
+path = "host/crates/cambium/cambium-winit-a11y/examples/e1b_two_sessions.rs"
+reason = "Experiment E1b's probe: one window, two retained Cambium sessions joined as AccessKit subtrees, for a person to walk with a screen reader (app composition brief §8, AC3, ruled. Existing source-size debt; a responsibility split must preserve Notes, Counter, NotesView and existing module visibility."
+
+[[exception]]
+path = "host/crates/cambium/cambium-winit-a11y/src/lib.rs"
+reason = "Accessibility host for a genet-backed Cambium app. Existing source-size debt; a responsibility split must preserve A11yHost and existing module visibility."
+
+[[exception]]
+path = "host/crates/cambium/cambium-winit-a11y/tests/e1a_sessions.rs"
+reason = "Experiment E1a, the session half: two retained Cambium sessions, each with its own state type and document, laid out and projected on their own, then joined under one host as. Existing source-size debt; a responsibility split must preserve Notes, Counter, NotesView and existing module visibility."
+
+[[exception]]
+path = "host/crates/cambium/cambium/examples/component_catalog.css"
+reason = "Component catalog. Existing source-size debt; a responsibility split must preserve existing entry points, fixture identity and module visibility."
+
+[[exception]]
+path = "host/crates/cambium/cambium/examples/component_catalog.rs"
+reason = "Cambium's executable component acceptance surface. Existing source-size debt; a responsibility split must preserve CatalogView, CatalogLogic, CatalogRunner and existing module visibility."
+
+[[exception]]
+path = "host/crates/cambium/cambium/src/retained_composition/view.rs"
+reason = "View. Existing source-size debt; a responsibility split must preserve ComponentOperationSpan and existing module visibility."
+
+[[exception]]
+path = "host/crates/cambium/mandrake/src/lane.rs"
+reason = "The lane lifecycle: tick per presented frame, arm and collect captures, honour a frame limit, defer the close, write the receipt, set the exit code. Existing source-size debt; a responsibility split must preserve PaintReadback, SealReadback, PendingReadback and existing module visibility."
+
+[[exception]]
+path = "host/crates/cambium/mandrake/src/probe_tests.rs"
+reason = "The actual Probe, retained host geometry and wheel callback, without an OS window or GPU. Existing source-size debt; a responsibility split must preserve Store, State, View and existing module visibility."
+
+[[exception]]
+path = "host/crates/cambium/workbench/float.rs"
+reason = "The float layer: tiles presented outside the tiled tree, and the [Workspace] that holds both stations under one rule — every tile is in exactly one place. Existing source-size debt; a responsibility split must preserve RelativeRect, FloatSizeConstraints, FloatingTile and existing module visibility."
+
+[[exception]]
+path = "host/crates/cambium/workbench/lib.rs"
+reason = "Reusable split-and-tab workspace organization for Genet hosts. Existing source-size debt; a responsibility split must preserve TileId, SplitAxis, TileTree and existing module visibility."
+
+[[exception]]
+path = "host/crates/canvas/cartography/src/adapters/parity.rs"
+reason = "The scenograph absorption's parity gate. Existing source-size debt; a responsibility split must preserve existing entry points, fixture identity and module visibility."
+
+[[exception]]
+path = "host/crates/canvas/cartography/src/canvas.rs"
+reason = "The canvas as a reusable, window-agnostic content-root — the graph's spatial presentation (build item 1D of the genet-as-host flip; S1 of the modular integration plan). Existing source-size debt; a responsibility split must preserve AffinityBlend, Drag, EmptyPress and existing module visibility."
+
+[[exception]]
+path = "host/crates/canvas/cartography/src/canvas/backdrop_paint.rs"
+reason = "The canvas's content wash beneath territory: derivation, cache, cross-fade and export (iconography B2 to B4). Existing source-size debt: 643 lines and no exception when it moved from pictograph (engine split D38); a responsibility split must preserve the Canvas content-backdrop methods and existing module visibility."
+
+[[exception]]
+path = "host/crates/canvas/cartography/src/canvas/physics_catalog.rs"
+reason = "The physics catalog: laws × overlays, and the named profiles over them. Existing source-size debt; a responsibility split must preserve PhysicsLaw, OverlayRefusal, PhysicsOverlay and existing module visibility."
+
+[[exception]]
+path = "host/crates/canvas/cartography/src/canvas/physics_controls.rs"
+reason = "Arrangement and physics actions a host's controls apply to the canvas. Existing source-size debt; a responsibility split must preserve PhysicsWrite, TwoLawMix, TwoLawGrouping and existing module visibility."
+
+[[exception]]
+path = "host/crates/canvas/cartography/src/canvas/physics_form.rs"
+reason = "The Map's physics form: flat law, sources, overlays and profile; role, two-law mix, grouping, two-stage schedule and speed, as one model both hosts drive. Existing source-size debt; a responsibility split must preserve Slot, FieldId, Control and existing module visibility."
+
+[[exception]]
+path = "host/crates/graphshell/graphshell-host/src/canary.rs"
+reason = "Canary. Existing source-size debt; a responsibility split must preserve CanaryError, FixtureEndpoint, CanaryRun and existing module visibility."
+
+[[exception]]
+path = "host/crates/graphshell/graphshell-host/src/carrier.rs"
+reason = "G5d: Graphshell's projection carrier. Existing source-size debt; a responsibility split must preserve ProjectionRefusal, ProjectionAcceptError and existing module visibility."
+
+[[exception]]
+path = "host/crates/graphshell/graphshell-host/src/endpoint_catalog.rs"
+reason = "Product endpoints selected by one resident Graphshell host. Existing source-size debt; a responsibility split must preserve ResidentEndpoint, Factory, Registration and existing module visibility."
+
+[[exception]]
+path = "host/crates/graphshell/graphshell-host/src/lifecycle.rs"
+reason = "G5e: what happens to a projection session after it is admitted. Existing source-size debt; a responsibility split must preserve Lapse, ScoreDenial, SessionAuthority and existing module visibility."
+
+[[exception]]
+path = "host/crates/graphshell/graphshell-host/src/live_endpoint.rs"
+reason = "An endpoint whose scene actually moves, and only when it should. Existing source-size debt; a responsibility split must preserve LiveEndpointError, LiveEndpoint, SharedLiveEndpoint and existing module visibility."
+
+[[exception]]
+path = "host/crates/graphshell/graphshell-host/src/projection_host.rs"
+reason = "K2: product endpoints served to network peers by one resident host. Existing source-size debt; a responsibility split must preserve ResidentProjectionError, SelectedRoute, RouteSelector and existing module visibility."
+
+[[exception]]
+path = "host/crates/graphshell/graphshell-host/src/session_loop.rs"
+reason = "The Graphshell request/response loop over an admitted stream. Existing source-size debt; a responsibility split must preserve SessionEnd, SessionSummary, SessionLoopError and existing module visibility."
+
+[[exception]]
+path = "host/crates/graphshell/graphshell-host/src/webrtc_door.rs"
+reason = "The WebRTC door: how a browser holding an invitation becomes an admitted Personae subject, and every way that does not happen. Existing source-size debt; a responsibility split must preserve InviteTerms, SignedInviteDescriptor, RedemptionState and existing module visibility."
+
+[[exception]]
+path = "host/crates/graphshell/graphshell-host/src/webrtc_session.rs"
+reason = "The live half of the WebRTC door: the join sequence over a real channel, and the admitted session it produces. Existing source-size debt; a responsibility split must preserve HostedInvite, JoinConclusion, ServedJoin and existing module visibility."
+
+[[exception]]
+path = "host/crates/incipit/src/roster.rs"
+reason = "Neutral roster snapshot vocabulary and pure helpers, shared by host data builders and views. Existing source-size debt; a responsibility split must preserve RosterTab, RosterSubject, FacetSubject and existing module visibility."
+
+[[exception]]
+path = "host/crates/platen/platen/src/workspace/model.rs"
+reason = "A saved Forme workspace and its portable workbench projection. Existing source-size debt; a responsibility split must preserve WorkspacePreferences, NoPreferences, FormeWorkspace and existing module visibility."
+
+[[exception]]
+path = "host/crates/platen/platen/src/workspace/session.rs"
+reason = "The host's scoped Forme editing session. Existing source-size debt; a responsibility split must preserve DropEffect, DropProposal, LayoutState and existing module visibility."
+
+[[exception]]
+path = "host/crates/cambium/cambium/tests/fixtures/component_catalog_narrow.html"
+reason = "Byte-exact generated HTML golden relocated from the documentation receipts; edits belong in the catalog generator and explicit fixture writer, not a split of the captured document."
+
+[[exception]]
+path = "host/crates/cambium/cambium/tests/fixtures/component_catalog_regular.html"
+reason = "Byte-exact generated HTML golden relocated from the documentation receipts; edits belong in the catalog generator and explicit fixture writer, not a split of the captured document."
+
+[[exception]]
+path = "host/ports/mere-resident/src/sync/carriage.rs"
+reason = "The epoch carriage lane: leased slots for wrapped private-epoch material. Existing source-size debt; a responsibility split must preserve CarriageExt, HeldLease, CarriageCeilings and existing module visibility."
+
+[[exception]]
+path = "host/crates/graphshell/graphshell-host/src/coop/mod.rs"
+reason = "One explicitly chosen holder-owned graph. Existing source-size debt; a responsibility split must preserve Saved, GraphAuthority, GraphReading and existing module visibility."
+
+[[exception]]
+path = "host/crates/graphshell/graphshell-host/src/mere_host.rs"
+reason = "Mere graph truth adapted to Graphshell's portable endpoint vocabulary. Existing source-size debt; a responsibility split must preserve SelectedPersonaRef, MereHostError, PersistedMereHost and existing module visibility."
+
+[[exception]]
+path = "host/crates/graphshell/graphshell-host/src/mere_host_fixture.rs"
+reason = "The H1 reference fixture: literal demo truth for [MereHost]. Existing source-size debt; a responsibility split must preserve existing entry points, fixture identity and module visibility."
+
+[[exception]]
+path = "host/ports/mere-resident/src/bin/distillery_chronicle_receipt_host.rs"
+reason = "Receipt-only live Distillery Chronicle host. Existing source-size debt; a responsibility split must preserve ChronicleFixture, Args and existing module visibility."
+
+[[exception]]
+path = "host/ports/mere-resident/src/bin/djinn.rs"
+reason = "Resident Djinn authority. Existing source-size debt; a responsibility split must preserve AgentEndpoint, Args, PairRequest and existing module visibility."
+
+[[exception]]
+path = "host/ports/mere-resident/src/conditions.rs"
+reason = "What this device can honestly say about itself. Existing source-size debt; a responsibility split must preserve SignalProvenance, ConditionCoverage, StatedConditions and existing module visibility."
+
+[[exception]]
+path = "host/ports/mere-resident/src/door/app_broker.rs"
+reason = "The first-party application door. Existing source-size debt; a responsibility split must preserve AppMessage, AppHostMessage, AppBrokerError and existing module visibility."
+
+[[exception]]
+path = "host/ports/mere-resident/src/door/browser_carrier.rs"
+reason = "Browser-extension carrier over WebExtensions native messaging. Existing source-size debt; a responsibility split must preserve BrowserFamily, BrowserLauncher, AllowedExtensions and existing module visibility."
+
+[[exception]]
+path = "host/ports/mere-resident/src/door/browser_host.rs"
+reason = "Resident identity authority served over the browser native-messaging edge. Existing source-size debt; a responsibility split must preserve BrowserHostError, BrowserSessionEndpoint and existing module visibility."
+
+[[exception]]
+path = "host/ports/mere-resident/src/door/identity_endpoint.rs"
+reason = "Graphshell endpoint adapter for the resident Personae authority. Existing source-size debt; a responsibility split must preserve IdentityAuthority, ResourceReader, SupplementalCard and existing module visibility."
+
+[[exception]]
+path = "host/ports/mere-resident/src/door/identity_projection.rs"
+reason = "The identity cards: Graphshell's presentation of the resident identity read model. Existing source-size debt; a responsibility split must preserve IdentityProjectionAction, IdentityProjectionCard and existing module visibility."
+
+[[exception]]
+path = "host/ports/mere-resident/src/door/projection_offers.rs"
+reason = "Owner policy and short-lived application projection registrations. Existing source-size debt; a responsibility split must preserve ProviderPermission, ProviderPolicyError, ProviderPolicy and existing module visibility."
+
+[[exception]]
+path = "host/ports/mere-resident/src/moot_site.rs"
+reason = "Explicit local Moot publication endpoint. Existing source-size debt; a responsibility split must preserve MootSiteTransport, MootSiteOwnersV1, DiskMootSiteService and existing module visibility."
+
+[[exception]]
+path = "host/ports/mere-resident/src/personal_sync.rs"
+reason = "Djinn bring-up for the resident's personal-graph sync. Existing source-size debt; a responsibility split must preserve DeviceSyncError, SeedNote, BlobAction and existing module visibility."
+
+[[exception]]
+path = "host/ports/mere-resident/src/resident.rs"
+reason = "Product-neutral ownership assembled by the desktop resident. Existing source-size debt; a responsibility split must preserve DjinnResident, MeshAuthor and existing module visibility."
+
+[[exception]]
+path = "host/ports/mere-resident/src/resident_distillery.rs"
+reason = "Resident Distillery composition inside Djinn. Existing source-size debt; a responsibility split must preserve StageVaultLock, ResidentDistillery and existing module visibility."
+
+[[exception]]
+path = "host/ports/mere-resident/src/resident_inference.rs"
+reason = "The resident inference lane (resident inference and recall plan, I1). Existing source-size debt; a responsibility split must preserve ResidentInference and existing module visibility."
+
+[[exception]]
+path = "host/ports/mere-resident/src/resident_mere.rs"
+reason = "A mere's own route inside Djinn (reservoir plan V2, step 5). Existing source-size debt; a responsibility split must preserve MereRoutes, ProfileLookup, Routes and existing module visibility."
+
+[[exception]]
+path = "host/ports/mere-resident/src/resident_reservoir.rs"
+reason = "The resident reservoir inside Djinn (reservoir plan, V1). Existing source-size debt; a responsibility split must preserve EnsureMereV1, ReservoirLane, Shared and existing module visibility."
+
+[[exception]]
+path = "host/ports/mere-resident/src/resident_site.rs"
+reason = "Djinn-owned lifetime for an explicitly handed-off Gemini publication. Existing source-size debt; a responsibility split must preserve PublishedSiteDescriptorV1, GeminiIdentityV1, RetiredSiteCustodyV1 and existing module visibility."
+
+[[exception]]
+path = "host/ports/mere-resident/src/resident_status.rs"
+reason = "The resident's account of itself and its owner-only stop, on the application door (djinn test harness plan, rulings 7 and 9). Existing source-size debt; a responsibility split must preserve Launcher, StartupUnlockV1, ProtectionV1 and existing module visibility."
+
+[[exception]]
+path = "host/ports/mere-resident/src/settings.rs"
+reason = "Persisted owner settings for the Djinn resident. Existing source-size debt; a responsibility split must preserve OwnerSettingsError, OwnerSettings, InferenceLaneSettings and existing module visibility."
+
+[[exception]]
+path = "host/ports/mere-resident/src/sync/graph_keys.rs"
+reason = "This device's membership in one personal graph's key group. Existing source-size debt; a responsibility split must preserve GraphKeyError, OpenedKeyGroup, GraphKeyGroup and existing module visibility."
+
+[[exception]]
+path = "host/ports/mere-resident/src/sync/personal_sync_host.rs"
+reason = "Resident owner of Graphshell's durable personal-graph replica. Existing source-size debt; a responsibility split must preserve PersonalSyncHostConfig, PersonalSyncHostError, PersonalSyncHost and existing module visibility."
+
+[[exception]]
+path = "host/ports/mere-resident/tests/inference_automatic.rs"
+reason = "Real resident settings, graph key agreement, app route and supervisor leases. Existing source-size debt; a responsibility split must preserve existing entry points, fixture identity and module visibility."
+
+[[exception]]
+path = "host/ports/mere-resident/tests/inference_route.rs"
+reason = "The resident inference lane through Djinn's application door (resident inference and recall plan, I1): a resident with the lane on answers an ask over inference.ask to Turnstone's. Existing source-size debt; a responsibility split must preserve existing entry points, fixture identity and module visibility."
+
+[[exception]]
+path = "host/ports/moot/examples/capsule-library.rs"
+reason = "Bounded Moot composition proof. Existing source-size debt; a responsibility split must preserve AnyError, Published, ManagedChild and existing module visibility."
+
+[[exception]]
+path = "host/ports/moot/examples/commons_practice_peer.rs"
+reason = "Proof-only line-JSON peer for a retained Woodshed comparison space. Existing source-size debt; a responsibility split must preserve Role, Invitation, AuthorityEnvelope and existing module visibility."
+
+[[exception]]
+path = "host/ports/moot/src/coop.rs"
+reason = "The coop lifecycle contract: one report shape every consumer can produce from its own snapshot, plus a conformance harness that walks the I3 sequence against a consumer-supplied. Existing source-size debt; a responsibility split must preserve Verdict, Access, Membership and existing module visibility."
+
+[[exception]]
+path = "host/ports/moot/src/resource_coop.rs"
+reason = "Shared-resource and coop interaction draft, independent of a renderer. Existing source-size debt; a responsibility split must preserve ResourceRef, ActivityRef, ContentRead and existing module visibility."
+
+[[exception]]
+path = "host/ports/moot/tests/resource_owner.rs"
+reason = "Signed Gemot owners and real Eidetic/Cambium paths, with unsealed in-memory storage and two independent semantic DOM readings. Existing source-size debt; a responsibility split must preserve Fixture and existing module visibility."
+
+[[exception]]
+path = "host/ports/pelt/core/src/content.rs"
+reason = "One routed piece of browsing content: a document lane or a surface lane behind one command, input, frame and routing API. Existing source-size debt; a responsibility split must preserve PeltLane, PeltLayer, PeltContent and existing module visibility."
+
+[[exception]]
+path = "host/ports/pelt/core/src/lib.rs"
+reason = "Window-neutral Pelt host controller. Existing source-size debt; a responsibility split must preserve PeltDocumentState, PeltLoadMode, PeltHistoryMode and existing module visibility."
+
+[[exception]]
+path = "host/ports/pelt/core/src/pool.rs"
+reason = "Retained content custody independent of arrangement and window lifetime. Existing source-size debt; a responsibility split must preserve PeltDocumentWork, PeltPlacement, Placement and existing module visibility."
+
+[[exception]]
+path = "host/ports/pelt/core/src/workspace.rs"
+reason = "Workspace. Existing source-size debt; a responsibility split must preserve PeltRegistries, LoadRoute, PeltTileRequest and existing module visibility."
+
+[[exception]]
+path = "host/ports/pelt/core/tests/cue.rs"
+reason = "Cue. Existing source-size debt; a responsibility split must preserve Clock and existing module visibility."
+
+[[exception]]
+path = "host/ports/pelt/core/tests/host_surface.rs"
+reason = "A surface the host spawned and routed itself, held in the same content as a document: one command API reaches its web plane, and the host keeps the producer for the work the. Existing source-size debt; a responsibility split must preserve Calls, Page and existing module visibility."
+
+[[exception]]
+path = "host/ports/pelt/core/tests/pool.rs"
+reason = "Pool. Existing source-size debt; a responsibility split must preserve Probe, FakeEngine, FakeSession and existing module visibility."
+
+[[exception]]
+path = "host/ports/pelt/core/tests/routing.rs"
+reason = "Routing. Existing source-size debt; a responsibility split must preserve DocumentProbe, FakeDocumentEngine, FakeDocument and existing module visibility."
+
+[[exception]]
+path = "host/ports/pelt/core/tests/workspace.rs"
+reason = "Workspace. Existing source-size debt; a responsibility split must preserve Probe, FakeEngine, FakeSession and existing module visibility."
+
+[[exception]]
+path = "host/testing/moot-ocapn-coop/src/tests.rs"
+reason = "Src tests. Existing source-size debt; a responsibility split must preserve Queue, Fixture, RuntimePair and existing module visibility."
+
+[[exception]]
+path = "host/crates/cambium/cambium/src/frisket/tests.rs"
+reason = "Predates enforcement (2026-11-11): over the ceiling in Mere without an exception when the toolkit moved. A split along its responsibilities is listed as work after slice 4."
+
+[[exception]]
+path = "host/ports/mere-resident/src/resident_blob_door.rs"
+reason = "Predates enforcement (2026-11-11): over the ceiling in Mere without an exception when the toolkit moved. A split along its responsibilities is listed as work after slice 4."
+
+[[exception]]
+path = "host/ports/mere-resident/src/bin/c1_receipt_host.rs"
+reason = "Predates enforcement (2026-11-11): over the ceiling in Mere without an exception when the toolkit moved. A split along its responsibilities is listed as work after slice 4."
+
+[[exception]]
+path = "host/crates/graphshell/graphshell-door/src/blob_door.rs"
+reason = "Predates enforcement (2026-11-11): over the ceiling in Mere without an exception when the toolkit moved. A split along its responsibilities is listed as work after slice 4."
