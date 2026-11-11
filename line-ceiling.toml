@@ -89,3 +89,7 @@ reason = "Interchange. Existing source-size debt; a responsibility split must pr
 [[exception]]
 path = "host/ports/tabard/workshop/tests/shared_device_loss.rs"
 reason = "Real Rootstock hosts and application-owned reader producers across one shared recovery owner. Existing source-size debt; a responsibility split must preserve WindowState, Child, Logic and existing module visibility."
+
+[[exception]]
+path = "host/crates/graphshell/graphshell-client-tests/tests/frozen.rs"
+reason = "predates enforcement (2026-11-11)"
