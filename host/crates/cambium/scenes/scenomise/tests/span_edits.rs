@@ -7,9 +7,9 @@
 use sceno_backdrops::SceneInput;
 use scenomise::span_edit::{SpanEdit, SpanEditIntent};
 const METRE: &str =
-    include_str!("../../../../../support/design-studies/backdrops/templates/metre.json");
+    include_str!("../../../../canvas/cartography/backdrops/templates/metre.json");
 const MUSIC: &str =
-    include_str!("../../../../../support/design-studies/backdrops/templates/progression.json");
+    include_str!("../../../../canvas/cartography/backdrops/templates/progression.json");
 #[test]
 fn metre_and_progressions_share_proposals_without_source_mutation() {
     for json in [METRE, MUSIC] {

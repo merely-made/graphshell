@@ -7,7 +7,7 @@
 use super::*;
 fn input() -> SceneInput {
     SceneInput::parse(include_str!(
-        "../../../../../../support/design-studies/backdrops/fretboard.json"
+        "../../../backdrops/fretboard.json"
     ))
     .unwrap()
 }
@@ -41,7 +41,7 @@ fn picking_and_refused_replacement_preserve_occurrence_identity() {
 #[test]
 fn progression_span_is_pickable_at_its_edge_and_refusal_preserves_attention() {
     let input = SceneInput::parse(include_str!(
-        "../../../../../../support/design-studies/backdrops/templates/progression.json"
+        "../../../backdrops/templates/progression.json"
     ))
     .unwrap();
     let mut surface = BackdropSurface::new(&input).unwrap();
@@ -90,7 +90,7 @@ fn font_roles_reach_the_label_sheet_only_when_set() {
 #[test]
 fn timeline_rows_use_height_and_stretched_spans_remain_pickable() {
     let input = SceneInput::parse(include_str!(
-        "../../../../../../support/design-studies/backdrops/templates/progression.json"
+        "../../../backdrops/templates/progression.json"
     ))
     .unwrap();
     let surface = BackdropSurface::new(&input).unwrap();
@@ -135,9 +135,9 @@ fn timeline_rows_use_height_and_stretched_spans_remain_pickable() {
 fn interaction_geometry_round_trips_across_template_consumers_and_viewports() {
     for json in [
         include_str!(
-            "../../../../../../support/design-studies/backdrops/templates/progression.json"
+            "../../../backdrops/templates/progression.json"
         ),
-        include_str!("../../../../../../support/design-studies/backdrops/templates/metre.json"),
+        include_str!("../../../backdrops/templates/metre.json"),
     ] {
         let input = SceneInput::parse(json).unwrap();
         let surface = BackdropSurface::new(&input).unwrap();

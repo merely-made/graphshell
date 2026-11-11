@@ -22,7 +22,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .map(PathBuf::from)
         .unwrap_or_else(|| {
             PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-                .join("../../../support/design-studies/backdrops")
+                .join("backdrops")
         });
     let font =
         include_bytes!("../../../cambium/examples/genet_web_smoke/assets/Roboto-Regular.ttf");

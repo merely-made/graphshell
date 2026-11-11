@@ -180,3 +180,4 @@ mod tests;
 
 #[path = "backdrop_surface/operations.rs"]
 mod operations;
+pub mod samples;

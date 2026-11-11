@@ -8,11 +8,11 @@ use sceno_backdrops::SceneInput;
 use scenomise::document::{LinkedScene, SceneDocument};
 fn document() -> SceneDocument {
     let primary = SceneInput::parse(include_str!(
-        "../../../../../support/design-studies/backdrops/templates/progression.json"
+        "../../../../canvas/cartography/backdrops/templates/progression.json"
     ))
     .unwrap();
     let board = SceneInput::parse(include_str!(
-        "../../../../../support/design-studies/backdrops/fretboard.json"
+        "../../../../canvas/cartography/backdrops/fretboard.json"
     ))
     .unwrap();
     SceneDocument::new(
