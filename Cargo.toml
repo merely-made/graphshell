@@ -27,9 +27,9 @@ authors = ["Mark AB (markik)"]
 
 [workspace.dependencies]
 # The protocol layer's own crates. Nothing here names Mere.
-chirograph = { version = "0.0.4", path = "crates/chirograph" }
+chirograph = { version = "0.0.5", path = "crates/chirograph" }
 graphshell-client = { version = "0.0.2", path = "crates/graphshell-client" }
-graphshell-endpoint = { version = "0.0.3", path = "crates/graphshell-endpoint" }
+graphshell-endpoint = { version = "0.0.4", path = "crates/graphshell-endpoint" }
 hest = { version = "0.2.1", path = "crates/hest" }
 sceno = { version = "0.0.7", path = "crates/sceno" }
 sceno-backdrops = { version = "0.0.1", path = "crates/sceno-backdrops" }
