@@ -1,6 +1,7 @@
 # Workspace toolchain. The floor is the crates' rust-version; the channel sits
 # above it on purpose, as in Mere. wasm32-unknown-unknown is declared because
-# chirograph, sceno, scenotime, hest and graphshell-client are wasm-clean.
+# chirograph, sceno, scenotime, hest and graphshell-client are wasm-clean; wasm32-wasip2
+# is the script guests' target (host/crates/script), as in Mere.
 [toolchain]
 channel = "1.99.1"
-targets = ["wasm32-unknown-unknown"]
+targets = ["wasm32-wasip2", "wasm32-unknown-unknown"]
