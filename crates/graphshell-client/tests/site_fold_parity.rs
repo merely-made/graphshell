@@ -10,7 +10,7 @@
 //! `scenotime/tests/fixtures/mer3ly_projection_trace.json` is the
 //! `projection-trace.json` the mer3ly site build wrote at merelyllc.com
 //! `6a0d85d` (mere pinned at `7a5bedd1`), built with
-//! `cargo run --locked --bin site -- --output <dir>`. Its fold step is the
+//! `cargo run --bin site -- --output <dir>`. Its fold step is the
 //! site's `visibility_diff` (`crates/repo-graph/src/lib.rs`): Mere gains a
 //! `["fold", 1]` channel and each target of a relation leaving Mere is set
 //! `visible: false`; the expand step reverses both, and the projection

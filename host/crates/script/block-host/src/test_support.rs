@@ -34,7 +34,7 @@ pub fn fixture_guest_wasm() -> Result<Vec<u8>, String> {
         format!(
             "block-host's fixture guest is missing at {} ({err}). Build it with \
              `rustup target add wasm32-wasip2` and a rebuild of block-host, or by hand: \
-             cd <block-host>/guest && cargo build --locked --target wasm32-wasip2 --release",
+             cd <block-host>/guest && cargo build --target wasm32-wasip2 --release",
             path.display()
         )
     })

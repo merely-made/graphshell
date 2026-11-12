@@ -77,7 +77,11 @@ fn build(root: &Path, dir: &str, artifact: &str, watch: &[&str]) {
 
     println!("cargo::rerun-if-changed={}/src", guest.display());
     println!("cargo::rerun-if-changed={}/Cargo.toml", guest.display());
-    println!("cargo::rerun-if-changed={}/Cargo.lock", guest.display());
+    // No lock is tracked; one on disk is part of the guest's inputs when it is there.
+    let lock = guest.join("Cargo.lock");
+    if lock.exists() {
+        println!("cargo::rerun-if-changed={}", lock.display());
+    }
     println!(
         "cargo::rerun-if-changed={}/rust-toolchain.toml",
         guest.display()

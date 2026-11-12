@@ -37,7 +37,7 @@ the editor and primary window open with the failure visible.
 
 ## Native acceptance
 
-Build with `cargo build --locked -p pelt --bin pelt`. On macOS, use the shared
+Build with `cargo build -p pelt --bin pelt`. On macOS, use the shared
 LaunchServices runner so the product's own native windows receive normal
 activation. Choose a fresh scratch directory; do not use application stores:
 

@@ -1,4 +1,4 @@
 /target
 /guest/target
 /guest-bomb/target
-# Guest portable locks are tracked; local mode uses the root ignore rules.
+# No guest lock is tracked; a lock on disk is used, one for a commit comes from `house resolved show`.

@@ -23,7 +23,7 @@ fn guest_component() -> PathBuf {
     assert!(
         path.exists(),
         "guest component missing at {}. Build it with:\n  \
-         cd crates/script/block-host/guest && cargo build --locked --target wasm32-wasip2 --release",
+         cd crates/script/block-host/guest && cargo build --target wasm32-wasip2 --release",
         path.display()
     );
     path

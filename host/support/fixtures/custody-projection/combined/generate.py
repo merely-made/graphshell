@@ -10,13 +10,16 @@
 
 The output is deliberately outside the Mere workspace. Pass a new or empty
 output directory; existing receipts are never overwritten. The root lock is a
-starting point, not evidence that the generated dependency graph is resolved.
+starting point, not evidence that the generated dependency graph is resolved:
+the lock on disk when there is one, else the one `house resolved show` has for
+HEAD, else none (cargo then resolves afresh).
 """
 import argparse
 import json
 from pathlib import Path
 import re
 import shutil
+import subprocess
 import tomllib
 
 fixture = Path(__file__).resolve().parent
@@ -73,5 +76,34 @@ tomllib.loads(manifest)
 (output / "Cargo.toml").write_text(manifest)
 (output / "src").mkdir()
 shutil.copyfile(fixture / "src/lib.rs", output / "src/lib.rs")
-shutil.copyfile(root / "Cargo.lock", output / "Cargo.lock")
+
+
+def lock_from_note(rel):
+    """The `# ---- <rel>` section of HEAD's resolved note, or None."""
+    try:
+        shown = subprocess.run(["house", "resolved", "show", "HEAD"], cwd=root,
+                               capture_output=True, text=True, check=True).stdout
+    except (OSError, subprocess.CalledProcessError):
+        return None
+    section = None
+    for line in shown.splitlines(keepends=True):
+        if line.startswith("# ---- "):
+            if section is not None:
+                break
+            section = [] if line.strip() == "# ---- " + rel else None
+        elif section is not None:
+            section.append(line)
+    return "".join(section) if section is not None else None
+
+
+root_lock = root / "Cargo.lock"
+if root_lock.exists():
+    shutil.copyfile(root_lock, output / "Cargo.lock")
+else:
+    top = subprocess.run(["git", "rev-parse", "--show-toplevel"], cwd=root,
+                         capture_output=True, text=True).stdout.strip()
+    rel = (root_lock.relative_to(Path(top)) if top else Path("Cargo.lock")).as_posix()
+    note = lock_from_note(rel)
+    if note is not None:
+        (output / "Cargo.lock").write_text(note)
 print(output)

@@ -19,7 +19,7 @@ fn guest_bytes() -> Vec<u8> {
     std::fs::read(&path).unwrap_or_else(|error| {
         panic!(
             "guest component missing at {} ({error}). Build it with:\n  \
-             cd crates/script/authority-host/guest && cargo build --locked --target wasm32-wasip2 --release",
+             cd crates/script/authority-host/guest && cargo build --target wasm32-wasip2 --release",
             path.display()
         )
     })

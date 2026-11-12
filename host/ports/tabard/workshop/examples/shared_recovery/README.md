@@ -94,7 +94,7 @@ artifact closure still have to pass their independent receipts.
 Coordinator-only commands under the serialized Cargo lease:
 
 ```sh
-RUSTFLAGS='--cfg getrandom_backend="wasm_js"' cargo build --locked \
+RUSTFLAGS='--cfg getrandom_backend="wasm_js"' cargo build \
   -p cambium-web --example shared_recovery \
   --target wasm32-unknown-unknown -j2
 wasm-bindgen --target web --no-typescript --out-name shared_recovery \

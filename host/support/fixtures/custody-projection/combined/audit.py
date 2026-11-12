@@ -6,7 +6,7 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 # SPDX-License-Identifier: MPL-2.0
 
-"""Audit a cargo metadata --locked JSON receipt for the combined fixture."""
+"""Audit a cargo metadata JSON receipt for the combined fixture."""
 import json
 from pathlib import Path
 import sys

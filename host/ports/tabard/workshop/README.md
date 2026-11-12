@@ -107,7 +107,7 @@ with the parent. Only the `native-host` adapter and its native dependencies are 
 The native binding's complete CPU gate is:
 
 ```sh
-cargo test --locked --offline -p tabard-workshop --features native-host --lib
+cargo test --offline -p tabard-workshop --features native-host --lib
 ```
 
 ## Fixtures and checks

@@ -8,8 +8,8 @@ alternate governance implementation or persistent activity store.
 Run from the repository root with the committed supplier sources:
 
 ```sh
-cargo test --manifest-path testing/moot-ocapn-coop/Cargo.toml --locked
-cargo clippy --manifest-path testing/moot-ocapn-coop/Cargo.toml --all-targets --no-deps --locked -- -D warnings
+cargo test --manifest-path testing/moot-ocapn-coop/Cargo.toml
+cargo clippy --manifest-path testing/moot-ocapn-coop/Cargo.toml --all-targets --no-deps -- -D warnings
 ```
 
 Tests use synthetic identities and real signed Gemot operations. They cover

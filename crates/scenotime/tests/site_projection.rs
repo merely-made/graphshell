@@ -10,7 +10,7 @@
 //! `fixtures/mer3ly_projection_scene.json` is the `projection-scene.json` the
 //! mer3ly site build wrote at merelyllc.com `00b3997` (the projection code is
 //! unchanged from `acb6bd6`), built with
-//! `cargo run --locked --bin site -- --output <dir>` against mere `ea9e6da7`.
+//! `cargo run --bin site -- --output <dir>` against mere `ea9e6da7`.
 //! Its schema is `mer3ly.portable-projection/v1`. Only its `snapshot` and
 //! `default_trace` are read here: each step's `selection` becomes the host
 //! annotation, and its `diff` the step's diff.

@@ -1,7 +1,7 @@
 # Cargo build artifacts.
 target/
 
-# No Cargo.lock is tracked; see scripts/record-resolved.sh.
+# No Cargo.lock is tracked; see `house resolved show`.
 Cargo.lock
 
 # The mere:script WIT world that document-host's build script materialises from

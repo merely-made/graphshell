@@ -18,7 +18,7 @@
 //!
 //! Run:
 //! ```text
-//! cargo run -p cambium-genet-winit-host --example t4_receipt --locked --offline
+//! cargo run -p cambium-genet-winit-host --example t4_receipt --offline
 //! ```
 //! Writes PNGs and a results log under `T4_RECEIPT_DIR` (default
 //! `C:\Users\mark_\Code\testing\mere\cambium_t4_receipt_20260916`).

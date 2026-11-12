@@ -85,7 +85,7 @@ cargo check --workspace --all-targets --manifest-path host/Cargo.toml
 
 The hooks in `.pre-commit-config.yaml` (run with prek) are line-ceiling, responsa,
 clippy on both roots, clippy with `mere-view`'s query feature, and cargo deny's
-bans check on `host/` with `deny.toml`.
+bans check on `host/` with `host/deny.toml`.
 
 ## What is not here
 
