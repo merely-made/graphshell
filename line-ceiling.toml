@@ -195,10 +195,6 @@ path = "host/crates/incipit/src/roster.rs"
 reason = "Neutral roster snapshot vocabulary and pure helpers, shared by host data builders and views. Existing source-size debt; a responsibility split must preserve RosterTab, RosterSubject, FacetSubject and existing module visibility."
 
 [[exception]]
-path = "host/crates/platen/platen/src/workspace/model.rs"
-reason = "A saved Forme workspace and its portable workbench projection. Existing source-size debt; a responsibility split must preserve WorkspacePreferences, NoPreferences, FormeWorkspace and existing module visibility."
-
-[[exception]]
 path = "host/crates/platen/platen/src/workspace/session.rs"
 reason = "The host's scoped Forme editing session. Existing source-size debt; a responsibility split must preserve DropEffect, DropProposal, LayoutState and existing module visibility."
 
