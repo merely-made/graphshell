@@ -85,7 +85,7 @@ package-cache lock held by another session; the lockfile scan above answers the 
 | mandrake | the same grammar, restated in `wheel::parse_selector` (mere.git `crates/cambium/mandrake/src/wheel.rs:148`) | as taproot | nothing new; one parser |
 | Turnstone scenarios | `act` (576 lines) by palette label; `click-at` (54) by pixel; `assert a11y` (37) by substring of `role: label = value` lines; 172 `.scn` files | label, pixel, text | an action id, so `act` can name the command rather than its copy |
 | `ux-events` | `UxEvent::{SurfaceOpened, SurfaceDismissed, ActionDispatched { action_id, target: Option<NodeKey> }, OpenNodeDispatched}` (graphshell.git `host/crates/system/ux-events/src/ux_observability.rs:84-101`) | surface kind (20 variants, no instance), `hest::actions::ActionId` (an enum), graph `NodeKey` | a surface instance address; the action id and domain reference it already carries |
-| registry lint channels | none: `ux:structural_violation`, `ux:contract_warning`, `ux:tree_build`, `ux:tree_snapshot_built` are referenced only by the descriptor catalog (`crates/system/registry/src/diagnostics/descriptor/catalog/phase3a.rs:377-392`) | channel id | producer provenance (who to blame) and a stability class (to judge "unstable id") |
+| registry lint channels | none: `ux:structural_violation`, `ux:contract_warning`, `ux:tree_build`, `ux:tree_snapshot_built` are referenced only by the descriptor catalog (`host/crates/system/registry/src/diagnostics/descriptor/catalog/phase3a.rs:377-392`) | channel id | producer provenance (who to blame) and a stability class (to judge "unstable id") |
 | Turnstone swatch inspection | `apparatus_core::Inspection` lines projected with `node_id_for_path(&line.id)` | line id | nothing new |
 | `graphshell-mcp` (868 source lines) | chirograph actions on a projection: `projection`, `instance`, `intent`, `observed_epoch`, `observed_revision` required (`src/tools.rs:48-61`) | `mere://<scope>/<projection>` | none: it addresses the scene, not the UI tree |
 
@@ -96,7 +96,7 @@ package-cache lock held by another session; the lockfile scan above answers the 
 | `app-host` guest | out: `actions.emit({name, payload})`; in: typed refusal (mere.git `crates/script/app-host/src/lib.rs` header) | none; a guest sees no tree |
 | `block-host` guest | out: `view` returns scene and sheet bytes, capped at 1 MiB (`block-host/src/lib.rs:254-275`) | the guest produces; the host makes it accessible |
 | Remote projection | chirograph: `AdvertisedAction { intent, label, explanation, payload_schema, input_form, effect }`, `SemanticRole` (3), `BoundsRelationship`; serde | label, role, actions, intent references |
-| Resident | no accessibility code (`ports/mere-resident`, grep) | none |
+| Resident | no accessibility code (`host/ports/mere-resident`, grep) | none |
 | Data formats | program-written text is JSON; postcard inside the stack behind a version header; CBOR across a trust boundary; "identity is never the source text" (`mere/design_docs/2026-10-06_data_formats_brief.md` §1) | applies to any envelope written out |
 
 ## E7. Option 2 bound: files a richer node type would touch

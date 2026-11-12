@@ -314,7 +314,7 @@ Djinn, so both concern Djinn's launcher (the Windows installer under `host/ports
   A to G only is not confirmed. From: `archive_docs/2026-10-28/2026-08-22_djinn_family_resident_services_plan.md:89-93`
 - Where is `ReleaseRefV1` credited? It landed for the WebRTC carrier, not through A4. Options: credit A4 as partial
   here, or leave it to the browser WebRTC carrier plan. From: `archive_docs/2026-10-28/2026-08-22_djinn_family_resident_services_plan.md:255-264`
-- When does Djinn compose Gazette? Gazette is built (`ports/gazette`) but Djinn has no gazette dependency, while the
+- When does Djinn compose Gazette? Gazette is built (`ports/gazette` *(historical citation)* <!-- doc-audit: historical-path -->) but Djinn has no gazette dependency, while the
   ownership table gives Gazette directory resolution, feed polling and contact intake (feed polling is a later scheduler
   consumer, E). From: `archive_docs/2026-10-28/2026-08-22_djinn_family_resident_services_plan.md:57-64,400-402`
 - Is H4's Windows sign-out or reboot receipt the same as D2's Windows switch from the legacy `graphshell-device-host` in
@@ -338,8 +338,8 @@ Djinn, so both concern Djinn's launcher (the Windows installer under `host/ports
 
 ## Findings
 
-- 2026-10-06: Gazette is built (`ports/gazette`, manifest line 7: WebFinger resolution and unverified Gaz address intake);
-  the Djinn composition is what is unbuilt. `ReleaseRefV1` is at `crates/system/luggage/src/release.rs:62` and the
+- 2026-10-06: Gazette is built (`ports/gazette` *(historical citation)* <!-- doc-audit: historical-path -->, manifest line 7: WebFinger resolution and unverified Gaz address intake);
+  the Djinn composition is what is unbuilt. `ReleaseRefV1` is at `crates/system/luggage/src/release.rs:62` *(historical citation)* <!-- doc-audit: historical-path --> and the
   WebRTC carrier's `invite.rs` uses it; `ReleaseOfferV1` and the versioned manifest are absent. Source:
   `archive_docs/2026-10-28/2026-08-22_djinn_family_resident_services_plan.md:60-64,255-259`.
 - 2026-10-06: the desktop resident is `host/ports/mere-resident` (`src/bin/djinn.rs`, `install-windows.ps1`); Graphshell ships no

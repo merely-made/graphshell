@@ -46,7 +46,7 @@ dependencies, and roughly seventeen published crates whose manifests drifted sin
 `host/crates/cambium/mandrake`, package and lib `mandrake`. The receipt schema id
 `mesquite.commands/v1` is a wire name and stays.
 - Done when: every Mere consumer checks on all targets (native and wasm32), `mandrake`'s tests
-  pass, and Woodshed (root and its `ports/` workspaces), Knot, Cleromancy, Isocosm, Turnstone and
+  pass, and Woodshed (root and its `host/ports` workspaces), Knot, Cleromancy, Isocosm, Turnstone and
   Murm's `apps/signalman-desktop` take the new name with their Mere pin bump. Knot, Isocosm,
   Cleromancy, Turnstone and Signalman also drop their `[patch.crates-io] accesskit` row, which
   pointed at Mere's removed patch, at the bump that reaches the remap.
@@ -54,10 +54,10 @@ dependencies, and roughly seventeen published crates whose manifests drifted sin
 ### P1. Remove the blockers
 - accesskit (D4): `cambium-a11y` remaps through accesskit's public `Node` API (8 vector and 7
   single NodeId properties, text selection, tree root, focus, action targets) with a fixture
-  test setting every property and a serde key-set canary; drop `support/patches/accesskit`.
+  test setting every property and a serde key-set canary; drop `support/patches/accesskit` *(historical citation)* <!-- doc-audit: historical-path -->.
 - vello (D5): publish the fork's sparse crates under Netrender names and point Netrender at them.
 - iced/egui (D6): move `embedding-egui`/`embedding-iced` out of `cambium-rootstock` into a probe
-  crate under `crates/probes`; Graphshell's `caller-owned-toolkit-bench` follows.
+  crate under `crates/probes` *(historical citation)* <!-- doc-audit: historical-path -->; Graphshell's `caller-owned-toolkit-bench` follows.
 - Metadata: `publish = false` lifted where the closure requires it; Genet crates' inherited
   `repository` (servo/servo) corrected.
 - Done when: each crate passes `cargo publish --dry-run` against registry-only dependencies

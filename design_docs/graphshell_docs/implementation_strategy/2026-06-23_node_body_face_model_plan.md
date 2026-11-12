@@ -281,7 +281,7 @@ fidelity) = a directly-authored hull, convex now, concave/compound as the B3 fid
   same-call removal/recreation of the same UUID prunes its departed overrides.
   Ordinary edits and metadata clones retain them. Runtime body/hold retirement
   is qualified separately from authored roster intent and delayed host replies;
-  see `support/family-promotion/diagnostics-canvas-cache-review.json`.
+  see `mere/support/family-promotion/diagnostics-canvas-cache-review.json`.
 
   Links: summary Per-node overrides key by member Uuid and are pruned when the member leaves; a reused slot starts clean.
 
@@ -304,7 +304,7 @@ fidelity) = a directly-authored hull, convex now, concave/compound as the B3 fid
   cutouts, breaking the representations-carry-node-identity read. Mark's call: the icon now insets
   within the face (`FAVICON_INSET` 0.72 in orrery's lib.rs, a settings-candidate knob) so the
   accent reads as a frame around it (receipt:
-  `testing/turnstone/images/2026-07-09_favicon_inset_frame.png`). Cover-fit stays available as
+  `testing/turnstone/images/2026-07-09_favicon_inset_frame.png` *(historical citation)* <!-- doc-audit: historical-path -->). Cover-fit stays available as
   `Face::Sprite` (the "alive graph" form is deliberately full-bleed). Alternatives tracked, not
   chosen: a state-colored caption chip (loud; long titles become big colored bars), a hover ring
   (state on demand only — loses the at-a-glance constellation read the status-cluster glyphs and

@@ -108,13 +108,13 @@ the implemented source and its current qualification scope.
 
 | Capability | Current source | Work needed for this consumer |
 |---|---|---|
-| Component-local state and equal-props memoization | [component.rs](../../../crates/cambium/cambium/src/component.rs) | Keep independently editable components in a flat owner table outside the placement tree; expose lifecycle and skip evidence. Memoization currently skips a body only after its parent has produced the next view. |
-| Whole-pane retention and same-document moves | [retained_mount.rs](../../../crates/cambium/cambium/src/retained_mount.rs), `turnstone/src/settings_pane.rs`, `turnstone/src/shell/renderers.rs` | Keep this whole-pane boundary. Inside it, the composition view owns ordinary row elements and naturally sized placement wrappers; pane-filling retained mounts are not allocated per row. |
-| Typed runner plus erased host integration | [runner.rs](../../../crates/cambium/cambium/src/runner.rs), [surface.rs](../../../crates/cambium/cambium/src/surface.rs) | Keep one runner for the settings pane and route its composition children by stable table slot/generation. RetainedSurfaceSession remains the whole-pane host boundary. |
-| Keys and move operations | [portable.rs](../../../crates/cambium/cambium/src/portable.rs), [keyed.rs](../../../crates/cambium/cambium/src/keyed.rs), [element_splice.rs](../../../crates/cambium/meristem/src/element_splice.rs) | Keep ordinary keyed children for ordinary local lists. `PortableKeyed` uses a per-context nursery and pass lifetime; it does not establish cross-runner owner retention or hidden lifetime by itself. |
-| Pane identities, binding vocabulary and saved configuration | `turnstone/src/panes/blueprint.rs`, `turnstone/src/panes/registry.rs`; [workbench](../../../crates/cambium/workbench/lib.rs) | Add the settings composition payload inside the existing settings `PaneConfig` schema. Do not replace the frame/space model or create another settings store. |
-| Typed settings controls and provider projection | [setting_row.rs](../../../crates/cambium/cambium/src/setting_row.rs), [settings contract](../../../crates/system/surface-api/settings.rs) | Add guarded binding/commit and dirty/conflicted draft behavior. P0 resets a replacement id as well as changed value/control. `SettingsProvider::apply` still has no expected revision; conflict-preserving reconciliation remains P1/P3 work. |
-| Scoped updates and observations | [multi.rs](../../../crates/cambium/cambium/src/multi.rs), [Registry collector](../../../crates/system/registry/src/observations.rs) | Named dependency revisions, a bounded dirty-component queue, causal producer events and a product-installed bridge. Existing `update_local` is manual scoping, not dependency tracking. |
+| Component-local state and equal-props memoization | [component.rs](../../../host/crates/cambium/cambium/src/component.rs) | Keep independently editable components in a flat owner table outside the placement tree; expose lifecycle and skip evidence. Memoization currently skips a body only after its parent has produced the next view. |
+| Whole-pane retention and same-document moves | [retained_mount.rs](../../../host/crates/cambium/cambium/src/retained_mount.rs), `turnstone/src/settings_pane.rs`, `turnstone/src/shell/renderers.rs` | Keep this whole-pane boundary. Inside it, the composition view owns ordinary row elements and naturally sized placement wrappers; pane-filling retained mounts are not allocated per row. |
+| Typed runner plus erased host integration | [runner.rs](../../../host/crates/cambium/cambium/src/runner.rs), [surface.rs](../../../host/crates/cambium/cambium/src/surface.rs) | Keep one runner for the settings pane and route its composition children by stable table slot/generation. RetainedSurfaceSession remains the whole-pane host boundary. |
+| Keys and move operations | [portable.rs](../../../host/crates/cambium/cambium/src/portable.rs), [keyed.rs](../../../host/crates/cambium/cambium/src/keyed.rs), [element_splice.rs](../../../host/crates/cambium/meristem/src/element_splice.rs) | Keep ordinary keyed children for ordinary local lists. `PortableKeyed` uses a per-context nursery and pass lifetime; it does not establish cross-runner owner retention or hidden lifetime by itself. |
+| Pane identities, binding vocabulary and saved configuration | `turnstone/src/panes/blueprint.rs`, `turnstone/src/panes/registry.rs`; [workbench](../../../host/crates/cambium/workbench/lib.rs) | Add the settings composition payload inside the existing settings `PaneConfig` schema. Do not replace the frame/space model or create another settings store. |
+| Typed settings controls and provider projection | [setting_row.rs](../../../host/crates/cambium/cambium/src/setting_row.rs), [settings contract](../../../host/crates/system/surface-api/settings.rs) | Add guarded binding/commit and dirty/conflicted draft behavior. P0 resets a replacement id as well as changed value/control. `SettingsProvider::apply` still has no expected revision; conflict-preserving reconciliation remains P1/P3 work. |
+| Scoped updates and observations | [multi.rs](../../../host/crates/cambium/cambium/src/multi.rs), [Registry collector](../../../host/crates/system/registry/src/observations.rs) | Named dependency revisions, a bounded dirty-component queue, causal producer events and a product-installed bridge. Existing `update_local` is manual scoping, not dependency tracking. |
 
 One correctness prerequisite precedes exposing reorder: today's settings rows
 are a positional `Vec` of the same view type, and draft reconciliation checks
@@ -304,7 +304,7 @@ atomic rename alone is insufficient. Persistence stays with the existing
 Pandect application-settings path/API, not a Cambium side store.
 
 A remote edit proposal through Murm's optional live interaction layer (Murm's
-`design_docs/2026-10-29_secure_sessions_and_live_interaction_plan.md`, O2–O3)
+`design_docs/2026-10-29_secure_sessions_and_live_interaction_plan.md` *(historical citation)* <!-- doc-audit: historical-path -->, O2–O3)
 would be one more writer: its exported object submits through this authority,
 never the provider. Request ids are correlation only today, and a redelivered
 Apply is refused by its stale guard. Before remote writers are admitted, a
@@ -860,7 +860,7 @@ earlier source revisions.
   (armillary `armillary/crates/apparatus-core/src/observation.rs:49-61` at `06340b0`).
   Turnstone copies `AppEvent` categories into it and states it has no
   operation correlation (`turnstone/src/diagnostic_observations.rs:1-5`). Mesquite
-  exposes the batch type (`crates/cambium/mesquite/src/lib.rs:94`). Neither supplies the complete reactive decision/causal stream required
+  exposes the batch type (`crates/cambium/mesquite/src/lib.rs:94` *(historical citation)* <!-- doc-audit: historical-path -->). Neither supplies the complete reactive decision/causal stream required
   here; existing store metadata does not establish that stream.
 - **F10. Turnstone persists pane view-state.** Every registered pane, Settings
   included, has a view schema (`turnstone.settings.view`) and `Blueprint`
@@ -921,7 +921,7 @@ earlier source revisions.
   reconnect and revocation already fall under the "source disappears" and
   "returning source requires revalidation" rows. Remote causes need a
   redacted reference form (D13). The request id is correlation only
-  (`host/crates/system/surface-api/settings/revisioned.rs:71-79,138-149`): a
+  (`host/crates/system/surface-api/settings/revisioned.rs:71-79,138-149` *(historical citation)* <!-- doc-audit: historical-path -->): a
   redelivered Apply carries its old guard and is refused as stale rather than
   returning its original outcome, short of the domain-owned idempotency O3
   asks for.

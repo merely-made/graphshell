@@ -66,7 +66,7 @@ named in the phase that first needs them.
 
 ### P0. The prototype (gate)
 
-Extend the E1a bench, `crates/cambium/cambium-winit-a11y/tests/e1a_sessions.rs` (615 lines; it grafts two retained Cambium sessions
+Extend the E1a bench, `host/crates/cambium/cambium-winit-a11y/tests/e1a_sessions.rs` (615 lines; it grafts two retained Cambium sessions
 through `uxtree::graft` and reads them back through `accesskit_consumer`), with:
 
 - a Cambium session carrying a texture producer that advertises a command (Life ids, an action id, a domain reference,
@@ -201,7 +201,7 @@ variants carry it is named in P8. Two deletions:
 
 - `incipit::forme::ux` (458 lines, no caller in Mere, Graphshell or Turnstone; it moves to Graphshell's `host/` with
   `incipit` at the cutover, since incipit is not among the five crates that stay, D102). A Graphshell change.
-- `descriptor_for` in `mere-kernel` (`crates/graph/graph-kernel/src/accessibility.rs`, 376 lines in the file; no
+- `descriptor_for` in `mere-kernel` (`mere/crates/graph/graph-kernel/src/accessibility.rs`, 376 lines in the file; no
   caller). `mere-kernel` stays in Mere, so this is a Mere change. It touches `mere:engine-split D59`'s "no kernel code
   moves" only as a deletion. The file also holds `SurfaceId` and the `AccessibilityDescriptor` type (Findings): the
   deletion takes `descriptor_for`, its tests and what only it uses; `SurfaceId` stays. Where `SurfaceId` then lives is
@@ -461,7 +461,7 @@ Each is a question for a later round, with its evidence. None is answered here.
   1,000 with its parts" (first brief fork 8) and 799 non-test lines in ten files plus 174 in `shell/foreign_a11y.rs`
   (second brief §1); D9 uses 799.
 - 2026-11-11: the five `ux:` channels are declared and referenced only by the descriptor catalog
-  (`crates/system/registry/src/diagnostics/descriptor/catalog/phase3a.rs:377-392`); `git grep` found no emitter in
+  (`host/crates/system/registry/src/diagnostics/descriptor/catalog/phase3a.rs:377-392`); `git grep` found no emitter in
   Mere, Graphshell or Turnstone (E5). P7 repeats the grep at its start.
 - 2026-11-11: action ids are the weakest envelope field. DOM-derived producers know an action's kind and not the
   command it runs; only the canvas, graphshell-client and Cambium texture producers have ids (second brief §3.2). The

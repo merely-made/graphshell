@@ -6,9 +6,9 @@
 **Status**: Research / design probe (with Mark). Five projection ideas, code-grounded but
 uncommitted. Each graduates to its own `implementation_strategy/` plan if and when it is picked
 up; this doc is the menu and the shared framing, not a build schedule.
-**Code touched (read-only survey)**: `crates/graph/graph-kernel` (node + edge taxonomy),
+**Code touched (read-only survey)**: `mere/crates/graph/graph-kernel` (node + edge taxonomy),
  `crates/graph/node-lineage` *(historical citation)* <!-- doc-audit: historical-path --> (visit trees), `crates/orrery/cartography` *(historical citation)* <!-- doc-audit: historical-path --> (signal contract),
- `crates/forme` (lens + graphlet), `crates/platen` (projection assembly), `crates/meerkat` *(historical citation)* <!-- doc-audit: historical-path --> (host).
+ `host/crates/forme` (lens + graphlet), `host/crates/platen` (projection assembly), `crates/meerkat` *(historical citation)* <!-- doc-audit: historical-path --> (host).
 
 **Related**:
 
@@ -42,7 +42,7 @@ Three words are easy to conflate, so they are pinned here.
 - An **arrangement** is a layout *inside* the orrery: grid, radial, penrose, phyllotaxis, kanban,
   timeline, spectral. It positions the current nodes. The `crates/orrery/arrangements` *(historical citation)* <!-- doc-audit: historical-path --> registry
   owns these.
- - A **lens** (`forme::ProjectionLens`, `crates/forme/forme/src/lens.rs`) already enumerates which
+ - A **lens** (`forme::ProjectionLens`, `crates/forme/forme/src/lens.rs` *(historical citation)* <!-- doc-audit: historical-path -->) already enumerates which
   *topology* drives a view's hierarchy: `Traversal`, `Arrangement`, `Containment`, `Semantic`,
   `Recency`, `All`. A lens picks which edge family is load-bearing.
 - A **projection** is a whole surface or mode that reads the graph a particular way. The orrery

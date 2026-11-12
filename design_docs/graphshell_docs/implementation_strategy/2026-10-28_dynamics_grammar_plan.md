@@ -53,7 +53,7 @@ Meaningful physics and links
 ## Phases
 
 ### G4b2. Composition pickers, cheap runners and the role-group picker
-Mixes, groupings and schedules run only through the canvas API; no picker builds them. `derive` refuses nested mixes and groupings, overlays inside a node and any shape the canvas does not run, naming the path. F49's role-group key is a session-only canvas setting with no picker or saved field; the spec's target carries group roles and the picker surfaces them in both web UIs. Lives in `crates/canvas/pictograph` and `ports/graphshell`. The design round is queued and paused under F199.
+Mixes, groupings and schedules run only through the canvas API; no picker builds them. `derive` refuses nested mixes and groupings, overlays inside a node and any shape the canvas does not run, naming the path. F49's role-group key is a session-only canvas setting with no picker or saved field; the spec's target carries group roles and the picker surfaces them in both web UIs. Lives in `crates/canvas/pictograph` *(historical citation)* <!-- doc-audit: historical-path --> and `turnstone/ports/graphshell`. The design round is queued and paused under F199.
 - Done when: not written in the source. G4's list names what must stay true: the remote board's receipt and the eleven law receipts stay green, and an unknown term kind or channel fails explicitly.
 - Needs: G4b1 and G2c (both built)
 - Rulings: F78, F105, F108, F133, F134, F141, F197, F199
@@ -174,7 +174,7 @@ Large-session candidate-copy and log-list costs, and the full-list and AST mater
 ### M2. The mapping layer, presets and the graph signals (slices 3 and 4)
 A configurable signal-to-parameter table with named presets (a `NodeMaterial`, size and behaviour bundle), the user picking which quantity drives which parameter, and conditional presets (a query, tag or state adopts a preset). Slice 4 binds the graph signals already produced in pictograph (importance as weight, affinity as edge tension, clusters as forces) through that layer; its wait is over. Degree stands in until bound.
 - Done when: not written beyond the slice text: a configurable table and presets exist, conditional presets work, and importance, affinity and clusters reach physical parameters through them.
-- Needs: M1's seams; the graph signals producer in `crates/canvas/pictograph/src/signals/`
+- Needs: M1's seams; the graph signals producer in `crates/canvas/pictograph/src/signals/` *(historical citation)* <!-- doc-audit: historical-path -->
 - Rulings: -
 - From: `archive_docs/2026-10-28/2026-06-24_meaningful_physics_signals_plan.md:72-78, 116-120, 150-162`.
 
@@ -225,7 +225,7 @@ The link model defers to this plan: a weighted strength policy, one aggregated s
 - 2026-10-12 (coupling): a generic force or strength explanation would misdescribe velocity assignment, multiplicative damping and positional advection; damping ignores coupling strength; the wall is a depth-scaled force, not exact positional exclusion; a point evaluation is not an applied-effect trace, an aggregate force or a validator; the trace's pre-integration observations must not be shown as one coupling's isolated contribution. From: `archive_docs/2026-10-28/2026-10-02_dynamics_grammar_plan.md:1625-1630, 1642-1651, 1674-1678`.
 - 2026-10-12 (field runtime): `reset_field_runtime` rewinds time and bumps the clock epoch; ordinary seeding and binding rebuilds keep time; the clock is local runtime state, never graph truth, sync timestamps or a persisted scene schema. From: `archive_docs/2026-10-28/2026-10-02_dynamics_grammar_plan.md:1735-1745`.
 - 2026-10-11 (Knot consumer): playback advances one fixed tick per eligible frame, not wall-clock simulation; compiled card footprints sit in a fixed physics plane and the display is clamped to it, a presentation choice and not a physical wall. From: `archive_docs/2026-10-28/2026-10-02_dynamics_grammar_plan.md:1596-1603`.
-- 2026-10-10 (field substrate): field picking takes the last matching field in hash-map iteration and paint order, an authoring ambiguity and not a precedence; the field-wide strength shortcut reads the first matching coupling but sets every coupling (`crates/graph/graph-kernel/src/graph/field_ops.rs`); the canvas converter takes selector matches independently of extent, which F204's runtime now filters. From: `archive_docs/2026-10-28/2026-06-13_scriptable_field_regions_plan.md:165-178`.
+- 2026-10-10 (field substrate): field picking takes the last matching field in hash-map iteration and paint order, an authoring ambiguity and not a precedence; the field-wide strength shortcut reads the first matching coupling but sets every coupling (`mere/crates/graph/graph-kernel/src/graph/field_ops.rs`); the canvas converter takes selector matches independently of extent, which F204's runtime now filters. From: `archive_docs/2026-10-28/2026-06-13_scriptable_field_regions_plan.md:165-178`.
 - 2026-10-06 (signals): meerkat's content, sync, observability and steward sources left on 2026-07-18; live equivalents exist for two (Turnstone's `ContentStates`, stickleback's `SyncStatus`); importance, community and affinity are produced in pictograph's `signals` and the affinity spring is built from them. From: `archive_docs/2026-10-28/2026-06-24_meaningful_physics_signals_plan.md:46-51, 72-78`.
 
 ## Progress

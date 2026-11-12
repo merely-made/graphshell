@@ -26,8 +26,8 @@ same retained path (`document/frame.rs` there references `layout_retained_format
   AccessKit (`genet:components/genet-winit-host/Cargo.toml:10`).
 - The retained path is driven by `LiveryDocument<ScriptedDom>` in three Mere/Genet consumers:
   `genet:components/genet-documents/src/engines/livery.rs:434` and `:598`,
-  `ports/pelt/desktop/frisket_surface.rs:741`, and
-  `crates/canvas/pictograph/src/canvas.rs:407`.
+  `host/ports/pelt/desktop/frisket_surface.rs:741`, and
+  `crates/canvas/pictograph/src/canvas.rs:407` *(historical citation)* <!-- doc-audit: historical-path -->.
 - The entry points are `LiveryDocument::apply_dom_mutations(&[DomMutation])` (`document.rs:377`) or
   `mutate_dom` (`:399`), then `frame(w, h)` (`document/frame.rs:301`). `frame` tries, in order:
   repaint-only for positioned motion (`:354-360`), repaint-only for `background-color` (`:462`),

@@ -25,7 +25,7 @@ Receipts go to `archive_docs/receipts/2026-11-06_key_lane_plan_receipts.md` (DOC
 
 ## Findings (2026-11-06)
 
-Read by a subagent and spot-checked. Paths are under `ports/` in Mere; the Graphshell code is
+Read by a subagent and spot-checked. Paths are under `host/ports` in Mere; the Graphshell code is
 being extracted to its own repository, so items are also named.
 
 - Mere and the lane use the **same types and library**. `GraphKeyGroup`
@@ -112,7 +112,7 @@ removed variants with a named error, not a decode panic.
   splitting it into a Mere profile crate and over leaving it to the engine-split drift audit.
   Put to Mark on finding that engine-split moves `mere-resident` to Graphshell while this plan
   assumed graph keys stayed in Mere. The personal-graph event types travel with
-  `ports/graphshell`, so carriage and events stay together. Outcome: refines the constraint
+  `turnstone/ports/graphshell`, so carriage and events stay together. Outcome: refines the constraint
   drawn from resident-split ("Mere keeps graph authority"). *Amended 2026-11-09 by engine-split
   D67 and D69: the event types move to pandect with `personal_sync`, not with the port; carriage
   still follows the resident.*

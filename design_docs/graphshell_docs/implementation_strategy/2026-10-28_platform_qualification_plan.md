@@ -43,7 +43,7 @@ Cases the sources name as not exercised natively. Turnstone's dirty parent-quit 
 - From: `archive_docs/2026-10-28/2026-07-05_theme_modes_plan.md:453-455,1209,1400-1402,1419-1424,1462-1463,1482-1486`; `archive_docs/2026-10-28/2026-10-23_contextual_navigation_plan.md:92-93`; `archive_docs/2026-10-28/2026-07-03_archived_plan_tails_plan.md:165,1239`
 
 ### A1. Human assistive-technology acceptance
-A person using real assistive technology on a real platform, for flows the sources verified only through accessibility projections or automated mirrors. Hest's commands, whose human AT acceptance was part of neither publication nor the H4 receiving; the browser presentation tenants' ARIA mirror (picking, keyboard focus and actions, clipping); the appearance work's live screen-reader validation of custom calculator authoring, Turnstone activation, editable content and full graph workspaces, with physical AT, formal contrast, physical IME and formal OS accessibility; curation's keyboard gestures, live screen-reader interaction and recovery for folds; a VoiceOver check of the Graphshell window tree, where a new checklist would target `ports/graphshell` and adapter installation would be separated from OS traversal if VoiceOver cannot enter the tree; and a physical Narrator receipt for tear-out.
+A person using real assistive technology on a real platform, for flows the sources verified only through accessibility projections or automated mirrors. Hest's commands, whose human AT acceptance was part of neither publication nor the H4 receiving; the browser presentation tenants' ARIA mirror (picking, keyboard focus and actions, clipping); the appearance work's live screen-reader validation of custom calculator authoring, Turnstone activation, editable content and full graph workspaces, with physical AT, formal contrast, physical IME and formal OS accessibility; curation's keyboard gestures, live screen-reader interaction and recovery for folds; a VoiceOver check of the Graphshell window tree, where a new checklist would target `turnstone/ports/graphshell` and adapter installation would be separated from OS traversal if VoiceOver cannot enter the tree; and a physical Narrator receipt for tear-out.
 - Done when: each flow is completed by a person on the named screen reader or input method and recorded as a human run; automated checks do not count.
 - Needs: N1 for the platforms; assistive-technology access
 - Rulings: -
@@ -72,7 +72,7 @@ Curation named Isocosm's VTT campaign as a consumer of folds; its Overmap has no
 
 ## Open questions
 
-- **Which host carries X4**: the scrying tile's home is gone with meerkat; the tails name Pelt (`ports/pelt/desktop/scrying_receipt.rs`) as the nearest live host. From: `archive_docs/2026-10-28/2026-07-03_archived_plan_tails_plan.md:949-961`.
+- **Which host carries X4**: the scrying tile's home is gone with meerkat; the tails name Pelt (`host/ports/pelt/desktop/scrying_receipt.rs`) as the nearest live host. From: `archive_docs/2026-10-28/2026-07-03_archived_plan_tails_plan.md:949-961`.
 
 ## Findings
 

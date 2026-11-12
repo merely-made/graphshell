@@ -142,7 +142,7 @@ lifetime), *edit* (a document edit), *run* (another process).
 | `mere-registry` diagnostics and observations | Channel ids `ux:*` (39 of 254 constants), run, source and operation correlation, bounded history. No per-node identity. | by channel id | unrelated | `diagnostics` 4,346 (D26) + `observations.rs` 182 |
 | Publication observations | `A11yPublicationOutcome`: fixed-code, serialisable, "certify neither reader delivery nor actor work" | per publication | unrelated | `a11y_publication.rs` 111 |
 | Turnstone swatch inspection | Projects `apparatus_core::Inspection` lines into a uxtree (`apparatus/inspection`, id from `line.id`). The one diagnostics-to-uxtree bridge in the family. | line id | built on | `swatch_pane/inspection.rs` |
-| App inspections | Field, link and access inspection (228, 773, 281): domain ids (`Uuid`, `FieldId`, statement handles). They inspect the graph, not the UI. | domain | unrelated | in `ports/graphshell/src` |
+| App inspections | Field, link and access inspection (228, 773, 281): domain ids (`Uuid`, `FieldId`, statement handles). They inspect the graph, not the UI. | domain | unrelated | in `turnstone/ports/graphshell/src` |
 | Content report | Genet `ContentReport`, `OutlineEntry { depth, role, name }`: no id | none | unrelated | `inspect.rs` 162 |
 
 ### Automation

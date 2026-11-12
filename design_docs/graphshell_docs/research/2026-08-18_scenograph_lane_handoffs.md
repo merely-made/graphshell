@@ -16,7 +16,7 @@ and unforced surface does not ship.
 (`design_docs/scenograph_docs/technical_architecture/2026-07-22_scene_contract_note.md`),
 projection_proofs_plan (`mere/design_docs/archive_docs/2026-10-06_completed_plans/2026-07-21_projection_proofs_plan.md`),
 [swatch_primitive_design](../design/2026-06-27_swatch_primitive_design.md),
-Woodshed's [stage/set/tools plan](../../../../woodshed/design_docs/archive_docs/2026-11-03/2026-07-11_stage_set_tools_plan.md).
+Woodshed's stage/set/tools plan (`woodshed/design_docs/archive_docs/2026-11-03/2026-07-11_stage_set_tools_plan.md`).
 
 ## Verified entry state (checked 2026-08-18, not inherited from docs)
 
@@ -71,7 +71,7 @@ Listed once here so each lane can point at them rather than re-deriving.
 **founded 2026-08-18**; the rendering half remains.
 
 > **Taken 2026-08-18.** `StageGraphSnapshot` exists at
-> [the Woodshed `StageGraphSnapshot` source](../../../../woodshed/crates/woodshed-core/src/stage_scene.rs).
+> the Woodshed `StageGraphSnapshot` source (`woodshed/crates/woodshed-core/src/stage_scene.rs`).
 > The lane was adapter-only,
 > because the entry state below was wrong in woodshed's favour: `CardId`,
 > `Set::graph()`, and a 16-kind relation engine (`relations_between` returns

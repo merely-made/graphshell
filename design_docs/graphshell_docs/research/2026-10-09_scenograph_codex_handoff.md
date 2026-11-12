@@ -69,8 +69,8 @@ granular configurable font roles and meaningful visible dynamics, and records
 the need to compose theme values with semantic channels. Owner plans carry
 research inputs and candidate proofs. Existing work order and viewer ownership
 stand; site Rulings 161–162 below replace R160. This is not qualification of the shared checkout's
-concurrent dynamics implementation. The subsequent [primitive planning
-direction, §9.9](../../2026-08-23_projection_scenes_and_graph_native_platform.md#99-plan-through-graph-primitives-2026-10-09)
+concurrent dynamics implementation. The subsequent primitive planning
+direction, §9.9 (`mere/design_docs/2026-08-23_projection_scenes_and_graph_native_platform.md`)
 asks for nodes, links and fields to be inspectable/configurable and connected
 to dynamics. Graphshell is the reference host; the proposed terminology needs
 reconciliation before a new proof is opened.
@@ -122,7 +122,7 @@ this update does not dispatch implementation or change the B1/S2 order.
 
 Source findings checked against that published tree:
 
-- The [canvas bridge](../../../crates/canvas/pictograph/src/canvas/seiche_bridge.rs)
+- The [canvas bridge](../../../crates/canvas/pictograph/src/canvas/seiche_bridge.rs) *(historical citation)* <!-- doc-audit: historical-link -->
   captures matching graph-node keys and a field definition/registry. It passes
   no extent, occurrence mapping, `FieldId` or `CouplingId` into `CouplingForce`.
   A visible explanation therefore needs an owner-held provenance map from the
@@ -137,7 +137,7 @@ Source findings checked against that published tree:
   dynamic body's position and skips pinned kinematic bodies. Explanations and
   per-effect controls must disclose these actual effects, not promise one
   generic strength or additive composition for all responses.
-- Graph [coupling iteration](../../../crates/graph/graph-kernel/src/graph/field_ops.rs)
+- Graph coupling iteration (`mere/crates/graph/graph-kernel/src/graph/field_ops.rs`)
   has unspecified order. The bridge collects that order; Seiche's simulation
   applies couplings sequentially, and `set_coupling_forces` simply installs the
   vector. Multiple velocity assignments, damping mixed with assignment, and
@@ -149,7 +149,7 @@ Source findings checked against that published tree:
   by this path. Open responses apply no force; their owning consumers still need
   execution. Runtime field actions need an explicit clock and event contract
   before this becomes a script/motion authoring adapter.
-- The existing [field controls](../../../crates/canvas/pictograph/src/canvas/input.rs)
+- The existing [field controls](../../../crates/canvas/pictograph/src/canvas/input.rs) *(historical citation)* <!-- doc-audit: historical-link -->
   read the first coupling's strength and write every coupling for the field via
   `SetFieldCouplingStrength`. The kernel implementation confirms the draft's
   finding. A per-effect edit needs an exact coupling address and its recorded
@@ -176,7 +176,7 @@ non-dynamic advection hold and unsupported physical responses. Sampling still
 uses time zero. This replaces the missing evaluation API, not the missing
 stable field/coupling/occurrence provenance or applied-effect trace at that
 foundation checkpoint; the tracing continuation below supplies the next adapter.
-The [engine draft receipt](../../../../../testing/mere/design_docs/mere_docs/testing/receipts/2026-10-12_coupling_effects/README.md)
+The engine draft receipt (`Code/testing/mere/design_docs/mere_docs/testing/receipts/2026-10-12_coupling_effects/README.md`)
 records the original-executor trajectory comparison, the failing deduplication
 control, read-only query checks, runnable real integration and its qualification
 boundaries. Membership, clocks, event execution and conflicting writers remain
@@ -332,7 +332,7 @@ be preserved during that owner's cutover. F199's broader queue stays paused.
    - F193: the recipe's `arrangement.kind` and the spec's `target.arrangement` must agree; binding refuses a mismatch, naming both paths.
    - F194: `ProjectionVariant` varies dynamics by a catalog preset id or a whole `DynamicsSlot`, one or the other (naming both is refused under F201).
    - F195: SE70's settle is a seiche function, `settle(spec, inputs, bound) -> positions`, every host calls, with a native-against-wasm identity receipt. The default step bound for a spec with no stop rule goes back to Mark as a measured number.
-2. **The grid's dynamics axis** (Scenograph plan SE54, SE55, SE70, track S1's last open item). After the slot: `scenograph::swatch::AxisKind` gains `Dynamics`; the projection editor's comparison (`ports/graphshell/src/projection_compare.rs`) can vary it; settled cells call F195's settle; the focused cell runs live (SE55).
+2. **The grid's dynamics axis** (Scenograph plan SE54, SE55, SE70, track S1's last open item). After the slot: `scenograph::swatch::AxisKind` gains `Dynamics`; the projection editor's comparison (`turnstone/ports/graphshell/src/projection_compare.rs`) can vary it; settled cells call F195's settle; the focused cell runs live (SE55).
 3. **B1, backdrops in the Graphshell viewer** (Scenograph plan §2 B1, SE86). Independent of the others.
 4. **S2, linked swatches** (Scenograph plan §2 S2, SE84, SE85). The sandbox state was read directly at site `9ba3f03` and is recorded below. Refresh it against the site's current source before mapping, and put to Mark the new name for appearance-part selection (SE84) before writing it.
 
@@ -400,7 +400,7 @@ all 15 site checkpoints and their keys, clean unknown-membership refusal,
 a planted propagation control, narrow keyboard recovery and the plain viewer's
 mount and actual page-wheel check. Actual captures were inspected; control
 density and small glyphs remain usability concerns. The
-[Fold receipt](../../../ports/graphshell/docs/receipts/host_dataset_folds.json)
+[Fold receipt](../../../ports/graphshell/docs/receipts/host_dataset_folds.json) *(historical citation)* <!-- doc-audit: historical-link -->
 records fresh source and bundle hashes, commands and capture paths, preserving
 superseded device-loss and harness failures as history. Browser and receipt
 server are stopped; the coordinated GPU slot is released.
@@ -524,8 +524,8 @@ Node bindings were removed after the identity gate. Receipts and the reusable
 probe remain under the existing testing directory. The shared Mere target and
 the browser package remain available for the open qualification gates.
 
-- Swatch types: `host/crates/cambium/scenes/scenograph/src/swatch.rs`. Composition: `host/crates/cambium/scenes/scenomise/src/facet.rs` (`compose_facet`), tests in `facet_tests.rs`. Subgraph specs: `crates/forme/curation` (published as `mere-curation`).
-- The editor's grid: `ports/graphshell/src/projection_compare.rs` and `web_projection.rs` (`compare_targets`, `toggle_projection_compare`, `pick_projection_compare`); headed scenario `ports/graphshell/web/scenarios/projection_compare.scn`.
+- Swatch types: `host/crates/cambium/scenes/scenograph/src/swatch.rs`. Composition: `host/crates/cambium/scenes/scenomise/src/facet.rs` (`compose_facet`), tests in `facet_tests.rs`. Subgraph specs: `crates/forme/curation` *(historical citation)* <!-- doc-audit: historical-path --> (published as `mere-curation`).
+- The editor's grid: `turnstone/ports/graphshell/src/projection_compare.rs` and `web_projection.rs` (`compare_targets`, `toggle_projection_compare`, `pick_projection_compare`); headed scenario `turnstone/ports/graphshell/web/scenarios/projection_compare.scn`.
 - The catalog's addition records: `graphshell_docs/research/2026-08-15_projection_grammar_catalog.md`, "Addition records". Each promoted primitive needs one.
 
 ## How this lane works (Mark's standing rules)
@@ -538,6 +538,6 @@ renumber or reopen the separate Scenograph SE lane.
 - **Forks go to Mark.** Any decision with more than one defensible answer becomes a question with evidence and options, recommendation first. Record his answer verbatim as the next unused numbered ruling in the owning plan and commit it the same turn. Check the current plan first: SE87 and F199 are the latest at this context refresh, so the next numbers are SE88 and F200. Mark anything beyond his words *Reading, not ruled*.
 - **Evidence before claims.** Check code, counts and paths before writing them down; when evidence contradicts a ruling, reopen it with Mark.
 - **Worktrees.** Work in a worktree off `origin/main`; push only your own commits as a fast-forward; never bare `git stash`. Each worktree builds in its own directory (F183): a gitignored `.cargo/config.toml` with `[build] build-dir = "C:/t/cargo-build/mere-<lane>"` and `[profile.dev] debug = 0`. At most three cargo builds at once.
-- **Gates.** Tests pass, controls fail where they should, and a gate reruns only when its inputs moved. Headed checks run in Chrome and Firefox: build `ports/graphshell/web` for `wasm32-unknown-unknown`, `wasm-bindgen --target web --out-dir pkg`, serve with `Code/testing/mere/scenograph-editor/sink_server.py <port> <web dir>`, and open `index.html?scenario=scenarios/<name>.scn&sink=http://127.0.0.1:<port>/scenario-receipt`; receipts land in `Code/testing/mere/scenograph-editor/receipts/`. A hidden browser tab gets no frames: keep it visible. Look at the whole screenshot, not only the feature.
-- **Docs.** New active docs need a `DOC_README.md` entry and a D2 record (`support/doc-audit/d2/`, checked by `scripts/mere_doc_judgment_audit.py`). Don't reformat whole files that were unformatted on main.
+- **Gates.** Tests pass, controls fail where they should, and a gate reruns only when its inputs moved. Headed checks run in Chrome and Firefox: build `turnstone/ports/graphshell/web` for `wasm32-unknown-unknown`, `wasm-bindgen --target web --out-dir pkg`, serve with `Code/testing/mere/scenograph-editor/sink_server.py <port> <web dir>`, and open `index.html?scenario=scenarios/<name>.scn&sink=http://127.0.0.1:<port>/scenario-receipt`; receipts land in `Code/testing/mere/scenograph-editor/receipts/`. A hidden browser tab gets no frames: keep it visible. Look at the whole screenshot, not only the feature.
+- **Docs.** New active docs need a `DOC_README.md` entry and a D2 record (`mere/support/doc-audit/d2`, checked by `scripts/mere_doc_judgment_audit.py`). Don't reformat whole files that were unformatted on main.
 - **Clean up** each lane's worktree, branch and build directory when it lands.

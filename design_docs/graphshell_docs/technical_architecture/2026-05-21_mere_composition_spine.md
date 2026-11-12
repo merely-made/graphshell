@@ -26,7 +26,7 @@ host/realization rows (§1, §7, §9, §12) are pre-flip; read them through the
 > "TileManager survives as Verso runtime" never happened. Verso's disposition
 > was decided and executed 2026-06-10: the crates are deleted (topology §9)
 > and the name is designated for the compatibility-view / engine-flip charter
-> (verso_docs charter (`design_docs/verso_docs/technical_architecture/2026-06-10_compatibility_view_charter.md`)).
+> (verso_docs charter (`design_docs/verso_docs/technical_architecture/2026-06-10_compatibility_view_charter.md` *(historical citation)* <!-- doc-audit: historical-path -->)).
 > The model→plan layers
 > (forme, platen) and the arrangement ontology are unaffected. A full
 > §1/§7/§9/§12 refresh is still owed (topology doc, staleness flag).
@@ -352,11 +352,11 @@ re-saves the workbench forme on every edit).
 > on 2026-07-18 because its `PaneContent` enumerates that app's panes. Ruled the
 > same day with Mark: the *reusable* pane model belongs in genet, beside the
 > tile contract, the Cambium split/tab furniture, and the surface currently
-> trapped in `ports/pelt`. Pelt needs panes and cannot depend on mere, so the
+> trapped in `host/ports/pelt`. Pelt needs panes and cannot depend on mere, so the
 > shared home has to sit at or below genet. **The name frisket travels to that
 > genet component; turnstone's crate retires into it, and its graph binding
 > becomes content payload rather than tree structure.** forme and platen do not
 > move: forme's compare/mirror/focus-path relations only mean something over
 > graph members, and platen carries the document lane. Direction recorded in
 > genet's
-> [frisket pane component doc](../../../../genet/docs/2026-07-24_frisket_pane_component_direction.md).
+> frisket pane component doc (`genet/docs/2026-07-24_frisket_pane_component_direction.md`).

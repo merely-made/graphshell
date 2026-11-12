@@ -103,7 +103,7 @@ own plans.
   touches arrangements arrives as a request to carry it into the catalog and
   the adoption plan. This lane carried F18-F30 and the hold fixes that way.
 - **The stack seams session** ("Graph database concept for Mere") runs the S14
-  doc audit. It records findings in `support/doc-audit/d2/` and hands each one
+  doc audit. It records findings in `mere/support/doc-audit/d2` and hands each one
   to its owning lane. This lane applied batch 43 at `18f4cb8c`.
 - **Merging and pushing.** mere's main checkout is shared and usually holds
   other sessions' unpushed commits. Work in a worktree off origin and push your

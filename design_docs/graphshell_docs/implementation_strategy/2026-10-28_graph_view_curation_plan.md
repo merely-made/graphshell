@@ -173,7 +173,7 @@ lens), other read-side textual projections, and the three-way auto-size, moot un
   fallback otherwise; P4, the outline opens as an editable note and a reorder persists as a
   containment or arrangement edge.
 - Needs: a living host (question below); the signals producer at
-  `crates/canvas/pictograph/src/signals/`.
+  `crates/canvas/pictograph/src/signals/` *(historical citation)* <!-- doc-audit: historical-path -->.
 - Rulings: -
 - From: `archive_docs/2026-10-28/2026-06-23_gloss_outline_lens_plan.md:5-13,108-110,146-148,171-180,186-249,355-368`
 
@@ -218,14 +218,14 @@ lens), other read-side textual projections, and the three-way auto-size, moot un
 ## Findings
 
 - 2026-10-06: the durable `ViewIntent` and its store live in pandect
-  (`crates/system/pandect/src/view_intent_store.rs`, `pandect::ViewIntent`);
+  (`crates/system/pandect/src/view_intent_store.rs` *(historical citation)* <!-- doc-audit: historical-path -->, `pandect::ViewIntent`);
   `cartography::ViewIntent` is the immutable per-projection request.
 - 2026-10-06: surviving swatch library parts are the shape classifier
-  (`crates/mere/src/subgraph/classifier.rs`), `SessionSubgraphs::record_session`
-  (`crates/mere/src/subgraph.rs`) and the per-visible-cell spring feed `visible_relation_edges`
-  (`crates/canvas/pictograph/src/canvas/seiche_bridge.rs`); the glossary lives at
-  `crates/mere/src/glossary.rs` with `cap_outline_rows` and `MAX_OUTLINE_DEPTH` in
-  `crates/mere/src/gloss.rs`.
+  (`crates/mere/src/subgraph/classifier.rs` *(historical citation)* <!-- doc-audit: historical-path -->), `SessionSubgraphs::record_session`
+  (`crates/mere/src/subgraph.rs` *(historical citation)* <!-- doc-audit: historical-path -->) and the per-visible-cell spring feed `visible_relation_edges`
+  (`crates/canvas/pictograph/src/canvas/seiche_bridge.rs` *(historical citation)* <!-- doc-audit: historical-path -->); the glossary lives at
+  `crates/mere/src/glossary.rs` *(historical citation)* <!-- doc-audit: historical-path --> with `cap_outline_rows` and `MAX_OUTLINE_DEPTH` in
+  `crates/mere/src/gloss.rs` *(historical citation)* <!-- doc-audit: historical-path -->.
 - 2026-10-15: fold records are curation-owned (v2 with a v1 migration), several folds may be active
   in the Canvas, boundary routing runs over the full fold set, and a scope-aware fold never hides a
   partially scoped member; exact empty scopes stay empty (`scope_to_exact_members`). 2026-10-16:

@@ -16,7 +16,7 @@ scenograph_0_0_3_release_plan (`mere/design_docs/archive_docs/2026-10-06_complet
 (0.0.3 published 2026-07-24), the scene contract note
 (`design_docs/scenograph_docs/technical_architecture/2026-07-22_scene_contract_note.md`),
 projection_proofs_plan (`mere/design_docs/archive_docs/2026-10-06_completed_plans/2026-07-21_projection_proofs_plan.md`),
-woodshed's [stage/set/tools plan](../../../../woodshed/design_docs/archive_docs/2026-11-03/2026-07-11_stage_set_tools_plan.md),
+woodshed's stage/set/tools plan (`woodshed/design_docs/archive_docs/2026-11-03/2026-07-11_stage_set_tools_plan.md`),
 [swatch_primitive_design](../design/2026-06-27_swatch_primitive_design.md)
 (the cells-as-edges ruling that multi-edge is truth).
 
@@ -27,7 +27,7 @@ woodshed's [stage/set/tools plan](../../../../woodshed/design_docs/archive_docs/
   scenotime (epoch/revision identity, diff, snapshot, default pick),
   scenograph facade. 45 family tests.
 - **Consumers**: mere by path; isometry and turnstone by git (branch `main`);
-  `ports/graphshell` including the remote client, which is the standing proof
+  `turnstone/ports/graphshell` including the remote client, which is the standing proof
   that scenes cross a wire to a viewer with no source access.
 - **Loose ends the 0.0.3 release recorded** (**re-checked 2026-08-18**): the
   isometry and turnstone re-resolves are **closed, and were never actually
@@ -86,7 +86,7 @@ Stage renders a Set graph through the portable contract with fanned relations,
 before woodshed's release.
 
 **Founded 2026-08-18.** woodshed took its first `sceno` dependency;
-[`StageGraphSnapshot`](../../../../woodshed/crates/woodshed-core/src/stage_scene.rs)
+`woodshed/crates/woodshed-core/src/stage_scene.rs`
 lives in Woodshed and
 emits the Set as items plus fanned relations (10 module tests, 68 core tests,
 workspace green). It was adapter-only work, because the finding on arrival

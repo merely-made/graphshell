@@ -7,9 +7,9 @@ hulls-as-fields follow-up (§5), an adversarial review that corrected the archit
 conclusion, and a second critique that named the destination (§1, §5-§8): a **projection
 compiler and runtime for interactive surfaces**, portable across the product family. All
 critique claims code-verified before adoption (see Progress). No code changed this session.
-**Code touched (read-only survey)**: `crates/canvas/arrangements` *(historical citation)* <!-- doc-audit: historical-path -->, `crates/canvas/pictograph/src/canvas`
+**Code touched (read-only survey)**: `crates/canvas/arrangements` *(historical citation)* <!-- doc-audit: historical-path -->, `crates/canvas/pictograph/src/canvas` *(historical citation)* <!-- doc-audit: historical-path -->
 (underlay, cartography_scene, fields, sprite_hull), `host/crates/canvas/cartography` (strategy,
-request, projection), `crates/forme` (topology, SplitPanes), numen `field.rs`/`coupling.rs`,
+request, projection), `host/crates/forme` (topology, SplitPanes), numen `field.rs`/`coupling.rs`,
 `turnstone/src/shell.rs`, `isometry-core/src/overmap.rs`, `woodshed-views/src/stage.rs`.
 
 **Related**:
@@ -480,13 +480,13 @@ Code grounding (read 2026-07-21): `crates/canvas/arrangements/src/{lib,registry}
 trait, LayoutExtras, LayoutCapability, supports_3d), `host/crates/canvas/cartography/src/strategy.rs`
 (LayoutStrategy), `host/crates/canvas/cartography/src/request.rs` (ProjectionRequest's kernel::Graph
 requirement; ViewIntent.dimension), `host/crates/canvas/cartography/src/projection.rs`
-(PositionedNode point+radius ceiling), `crates/canvas/pictograph/src/canvas/underlay.rs`
-(projection_from_positions, identity_arrangement), `crates/canvas/pictograph/src/canvas/cartography_scene.rs`
-(project_canvas_strategy positions-only; no host caller), `crates/canvas/pictograph/src/canvas/fields.rs`
-(field-region interaction), `crates/canvas/pictograph/src/canvas/sprite_hull.rs`,
-`crates/system/pandect/src/arrangement_facets.rs` (arrangement.position +
-ARRANGEMENT_SPRITE_HULL), `crates/forme/forme/src/topology.rs` (visible_walk ignoring
-ProjectionLens), `crates/forme/forme/src/tree/layout.rs` (SplitPanes), numen
+(PositionedNode point+radius ceiling), `crates/canvas/pictograph/src/canvas/underlay.rs` *(historical citation)* <!-- doc-audit: historical-path -->
+(projection_from_positions, identity_arrangement), `crates/canvas/pictograph/src/canvas/cartography_scene.rs` *(historical citation)* <!-- doc-audit: historical-path -->
+(project_canvas_strategy positions-only; no host caller), `crates/canvas/pictograph/src/canvas/fields.rs` *(historical citation)* <!-- doc-audit: historical-path -->
+(field-region interaction), `crates/canvas/pictograph/src/canvas/sprite_hull.rs` *(historical citation)* <!-- doc-audit: historical-path -->,
+`mere/crates/system/pandect/src/arrangement_facets.rs` (arrangement.position +
+ARRANGEMENT_SPRITE_HULL), `crates/forme/forme/src/topology.rs` *(historical citation)* <!-- doc-audit: historical-path --> (visible_walk ignoring
+ProjectionLens), `crates/forme/forme/src/tree/layout.rs` *(historical citation)* <!-- doc-audit: historical-path --> (SplitPanes), numen
 `field.rs`/`coupling.rs`, `turnstone/src/shell.rs` (per-surface rasterize + ordered composite),
 `isometry-core/src/overmap.rs:123` (hand-rolled deterministic force layout),
 `woodshed-views/src/stage.rs:48` (hand-built radial GraphCanvasSwatch).

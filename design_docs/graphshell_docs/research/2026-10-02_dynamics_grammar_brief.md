@@ -9,7 +9,7 @@
 
 *Reading, not ruled* marks this brief's own inference. Every other claim is a quotation, a file and line, or a cited source.
 
-**Path key.** Short paths in the tables expand as follows. `seiche/` is `crates/conatus/seiche/src/` *(historical citation)* <!-- doc-audit: historical-path -->; `pictograph/` is `crates/canvas/pictograph/src/canvas/`; `cartography/` is `host/crates/canvas/cartography/src/`; `sceno/` is `graphshell/crates/sceno/src/`; `numen/` is `crates/conatus/numen/src/` *(historical citation)* <!-- doc-audit: historical-path -->. The main files are `crates/conatus/seiche/src/lib.rs` *(historical citation)* <!-- doc-audit: historical-path -->, `crates/conatus/seiche/src/forces.rs` *(historical citation)* <!-- doc-audit: historical-path -->, `crates/canvas/pictograph/src/canvas/physics_catalog.rs`, `crates/canvas/pictograph/src/canvas/cartography_scene.rs` and `graphshell/crates/sceno/src/score.rs`. Files that exist only on a branch are cited in git's `rev:path` form, for example `1bf47cf9:crates/conatus/seiche/src/laws/density.rs`.
+**Path key.** Short paths in the tables expand as follows. `seiche/` is `crates/conatus/seiche/src/` *(historical citation)* <!-- doc-audit: historical-path -->; `pictograph/` is `crates/canvas/pictograph/src/canvas/` *(historical citation)* <!-- doc-audit: historical-path -->; `cartography/` is `host/crates/canvas/cartography/src/`; `sceno/` is `graphshell/crates/sceno/src/`; `numen/` is `crates/conatus/numen/src/` *(historical citation)* <!-- doc-audit: historical-path -->. The main files are `crates/conatus/seiche/src/lib.rs` *(historical citation)* <!-- doc-audit: historical-path -->, `crates/conatus/seiche/src/forces.rs` *(historical citation)* <!-- doc-audit: historical-path -->, `crates/canvas/pictograph/src/canvas/physics_catalog.rs` *(historical citation)* <!-- doc-audit: historical-path -->, `crates/canvas/pictograph/src/canvas/cartography_scene.rs` *(historical citation)* <!-- doc-audit: historical-path --> and `graphshell/crates/sceno/src/score.rs`. Files that exist only on a branch are cited in git's `rev:path` form, for example `1bf47cf9:crates/conatus/seiche/src/laws/density.rs`.
 
 ## 0. The result on one page
 
@@ -53,7 +53,7 @@ The orchestrating session's working sketch is tested here rather than assumed:
 | Level-of-detail rungs as declarative conditions (Gosling) | catalog line 433; adoption A3 | realization rungs selected by measured conditions | P5's "Node count per host, measured" threshold ruling (plan, P5 rulings) |
 | Effectiveness knowledge versioned beside the grammar (Draco) | catalog line 427; adoption Findings, last row | which compositions carry which inference, with numbers | scattered across P2 receipts and density probes |
 | Set-scoped constraints (SetCoLa) | catalog line 428; adoption A5 | scope as selection; kind matrix as a pair partition | numen `NodeSelector` for couplings only (`numen/coupling.rs`) |
-| A portable, versioned record of what was chosen (`Score`, `SCORE_VERSION`) | `sceno/score.rs:35-57` | a dynamics spec | `PhysicsChoice` (`pictograph/physics_board.rs:48`) and `SavedSceneV1`'s physics fields (`ports/graphshell/src/product.rs`, lines 216–243) |
+| A portable, versioned record of what was chosen (`Score`, `SCORE_VERSION`) | `sceno/score.rs:35-57` | a dynamics spec | `PhysicsChoice` (`pictograph/physics_board.rs:48`) and `SavedSceneV1`'s physics fields (`turnstone/ports/graphshell/src/product.rs`, lines 216–243) |
 | "Solver proposes, the score records" | adoption lines 194–197 | the dynamics spec is a proposal procedure; realized positions are recorded as placements | A6 closed (adoption lines 264–290): `Placement::Coordinate` and holds carry realized placement |
 | A forcing consumer, then a second heterogeneous one | catalog lines 357–400 | the same discipline for promoting a spec | §9, F4 |
 
@@ -445,7 +445,7 @@ Determinism is partial today:
 - Anneal and Kinds are seeded (`LAW_SEED`, `physics_catalog.rs:56`);
 - seiche's manifest names no rapier features (`crates/conatus/seiche/Cargo.toml` *(historical citation)* <!-- doc-audit: historical-path -->, line 19), so cross-platform bit-identity is not claimed. Whether a spec promises reproduction or only resemblance is a receipt question, unverified here.
 
-**How it would travel.** `SavedSceneV1` already carries the choice in flattened form: law, overlays and three sources (`ports/graphshell/src/product.rs`, lines 216–243), plus damping, paused and `arrangement_pull`. Affinity is absent, as the plan noted. Shelfmark lets a target own an opaque delta section, which is how mer3ly carries `mer3ly.motion`. So a citation could carry a `dynamics` section with no envelope change (*Reading*).
+**How it would travel.** `SavedSceneV1` already carries the choice in flattened form: law, overlays and three sources (`turnstone/ports/graphshell/src/product.rs`, lines 216–243), plus damping, paused and `arrangement_pull`. Affinity is absent, as the plan noted. Shelfmark lets a target own an opaque delta section, which is how mer3ly carries `mer3ly.motion`. So a citation could carry a `dynamics` section with no envelope change (*Reading*).
 
 **Its forcing consumers.** The first is Graphshell's own saved scene. The remote board mirrors the canvas's choice every frame (plan, P3). mer3ly is a candidate second consumer only for its motion class (F-h).
 

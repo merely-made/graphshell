@@ -13,8 +13,8 @@ The four questions this note left open are answered below under
 Scenograph 0.0.3 release plan (`mere/design_docs/archive_docs/2026-10-06_completed_plans/2026-07-24_scenograph_0_0_3_release_plan.md`).
 
 The family moved on 2026-07-23: the standalone `scenograph` repo was absorbed
-into mere at `crates/scenograph`, and on 2026-09-03 the three crates moved
-again to `crates/cambium/scenes/` under the Cambium umbrella, with the generic
+into mere at `crates/scenograph` *(historical citation)* <!-- doc-audit: historical-path -->, and on 2026-09-03 the three crates moved
+again to `host/crates/cambium/scenes` under the Cambium umbrella, with the generic
 `scenograph` facade dissolved (platform boundary plan, P2). The proof sequence
 and findings live
 in this repo beside it,

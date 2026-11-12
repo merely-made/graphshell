@@ -29,7 +29,7 @@ A change that requires the redirect is ready to publish only after the matching
 Genet seam release is on the pinned revision.
 
 The crates.io `parley` patch must also point at the selected Genet checkout's
-`support/patches/parley` during local engine work. A Git-source redirect alone
+`support/patches/parley` *(historical citation)* <!-- doc-audit: historical-path --> during local engine work. A Git-source redirect alone
 does not replace this separate patch entry. For shipping verification, invoke
 ordinary Cargo from the owning workspace with redirect-free automatic configs
 and inspect resolved package sources. `python scripts/cargo_mode.py verify --metadata-only`
@@ -132,7 +132,7 @@ workspace, native and Wasm checks described in
 [Genet compatibility](../technical_architecture/genet-compatibility.md).
 Its reconciled standalone lock, full dependency classification, detector controls
 and failed cache attempt are retained under
-`testing/mere/receipts/2026-09-29/scroll-main-integration`.
+`testing/mere/receipts/2026-09-29/scroll-main-integration` *(historical citation)* <!-- doc-audit: historical-path -->.
 Commands retain the explicit toolchain/environment and shared stable target.
 Later receipts record source mtimes as well as hashes; the earlier host suite
 records hashes only. A changed timestamp requires classification even when
@@ -152,7 +152,7 @@ the earlier Rootstock/host/Mesquite/Seiche tests; classified locked default and
 all-feature graphs and deliberate source faults cover the follow-on merge.
 Every new gate preserves source hashes and mtimes with the same explicit Rust
 1.98.1 environment and stable target. See
-`testing/mere/receipts/2026-09-29/scroll-insigne-integration/final-checkpoint.json`
+`testing/mere/receipts/2026-09-29/scroll-insigne-integration/final-checkpoint.json` *(historical citation)* <!-- doc-audit: historical-path -->
 and [Genet compatibility](../technical_architecture/genet-compatibility.md).
 Pre.4, S13 and downstream adoption retain their separate gates. No isolated
 home or worktree was created, and `C:\t\cargo-targets\mere` remains the reusable
@@ -184,9 +184,9 @@ offline reconciliation: only the already-landed text and diagnostics edges above
 were missing, with no other package/version/source drift.
 
 The standalone web lock remains ignored by repository policy. Its exact tested
-bytes are archived as [graphshell-web-Cargo.lock.txt](../../../../../testing/mere/design_docs/cambium_docs/testing/receipts/generated-names/graphshell-web-Cargo.lock.txt)
+bytes are archived as `Code/testing/mere/design_docs/cambium_docs/testing/receipts/generated-names/graphshell-web-Cargo.lock.txt`
 with SHA-256 `f9aaf5929ecf9dc37157d641d09a17384b22d34bc7abbaafa16fa6614c264560`.
-Copy that file to `ports/graphshell/web/Cargo.lock` before reproducing the web gate.
+Copy that file to `turnstone/ports/graphshell/web/Cargo.lock` before reproducing the web gate.
 From the Code root, the commands are:
 
 ```powershell

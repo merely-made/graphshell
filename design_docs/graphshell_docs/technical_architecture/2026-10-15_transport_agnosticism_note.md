@@ -36,7 +36,7 @@ still needs is underneath it:
    (`host/ports/mere-resident/src/resident_mere.rs:263-332`) registers `mere/<domain>` and
    `ambient/mere/<domain>` on the `AppEndpointCatalog`, which wraps the same
    `ResidentEndpointCatalog` that `ResidentProjectionHost` serves
-   (`ports/graphshell/src/native/app_broker.rs:134`,
+   (`ports/graphshell/src/native/app_broker.rs:134` *(historical citation)* <!-- doc-audit: historical-path -->,
    `native/projection_host.rs:203-206`). The registration is reusable; no
    dialable accept loop exposes it. The Djinn product binary runs no
    projection host over QUIC; the only Djinn projection host is Distillery's
@@ -46,7 +46,7 @@ still needs is underneath it:
    application" (`resident_mere.rs:359-361`). Only the app door binds one
    (`app_broker.rs:326`, `with_application`); a session admitted over QUIC or
    WebRTC carries a subject and no application
-   (`ports/graphshell/src/lifecycle.rs:121-144`). The disclosed view state is
+   (`ports/graphshell/src/lifecycle.rs:121-144` *(historical citation)* <!-- doc-audit: historical-path -->). The disclosed view state is
    keyed by application too (`SessionGraphV1.application`), which is why the
    lifted panel now takes the application it reads as.
 3. **A native line pump.** The browser has one (`web_rtc_link.rs` feeds
@@ -72,14 +72,14 @@ carrier-proven peer (same file, module docs).
 | **stdio** (`graphshell-endpoint` `stdio`) | Projection sessions to a child process | None: Open is refused as "does not authenticate" (`stdio.rs:199-242`); trust is the parent spawning the child | Transport-blind (`dispatch_common`) |
 | **local** (`graphshell-endpoint` `local`) | In-process projection sessions, JSON round-tripped on purpose (`local.rs:15-26`) | None; session plane refused (`local.rs:101-110`) | Transport-blind |
 | **network NDJSON** (`graphshell-endpoint` `network`) | Projection sessions over any `AsyncRead + AsyncWrite` | Admission-ignorant by design (`network.rs:7-19`); the stream arrives admitted | Transport-blind |
-| **QUIC projection** (`ports/graphshell` `carrier`, `network_carrier`, `session_loop`, K2 `native/projection_host`) | Projection sessions over iroh QUIC through `mere-transport`'s `P2pandaTransport` | `notochord::admit_session` over the stream after ALPN `mere/graphshell/v1` (`admission.rs:51`, `carrier.rs:168-199`); the hello's subject must equal the carrier-proven peer; session id from the transcript (`lifecycle.rs:23-29`); authority re-read per request (`session_loop.rs:217-235`) | Transport-blind after admission: the serve loop takes any stream |
+| **QUIC projection** (`turnstone/ports/graphshell` `carrier`, `network_carrier`, `session_loop`, K2 `native/projection_host`) | Projection sessions over iroh QUIC through `mere-transport`'s `P2pandaTransport` | `notochord::admit_session` over the stream after ALPN `mere/graphshell/v1` (`admission.rs:51`, `carrier.rs:168-199`); the hello's subject must equal the carrier-proven peer; session id from the transcript (`lifecycle.rs:23-29`); authority re-read per request (`session_loop.rs:217-235`) | Transport-blind after admission: the serve loop takes any stream |
 | **WebRTC door** (`webrtc_door`, `webrtc_join`, `webrtc_session`, `webrtc_browser`; frames from `mere-webrtc-carrier`) | Projection sessions, browser to host | Invite redemption, host-signed DTLS-fingerprint challenge, then sans-I/O `notochord::admit` with a link-only binding (`webrtc_door.rs:519-552`, `604-606`); no peer id | Transport-blind after `stream_over_frames` turns frames into a `DuplexStream` carrying NDJSON (`webrtc_session.rs:18-29`) |
 | **Browser native messaging** (`browser_carrier`, `native/browser_host`) | Projection sessions, extension to native host | Extension-id allow-list, `BrowserChallenge` nonce, `LocalLink` shared link; the host then runs notochord for the browser over an in-process `tokio::io::duplex` (`browser_carrier.rs:584-631`) | Blind inside the duplex; the envelope (`BrowserMessage`, `BrowserHostMessage`) is not |
 | **App door** (UDS / named pipe; `native/app_broker`, `app_client`, `local_endpoint`, `local_session`) | Routes for first-party apps, plus custody calls | `AppHello` v1/v2, the same `BrowserChallenge`, `LocalLink`, `admit_local_client` over a duplex; the only place an application id is bound (`app_broker.rs:326`) | Blind inside the duplex; the envelope (`AppMessage`) is door-specific |
 | **Device broker relay** (`native/device_broker`) | Native-messaging bytes copied onto an owner-only socket (`device_broker.rs:148-168`) | `DeviceBrokerHello` and the allow-list (`device_broker.rs:204-247`), then as native messaging | Inherits the browser carrier |
 | **`ResidentMereProxy`** (`native/resident_mere_proxy`) | An endpoint whose verbs forward over `AppBrokerClient` (`resident_mere_proxy.rs:157-218`) | Inherits the app door's admission | Composes one carrier into another's catalog |
 | **Sync lanes** (`personal_sync`, `carriage`, Djinn's Knot and Distillery lanes) | Signed p2panda operations (CBOR), gossip and log sync, iroh blobs | Per-graph transport key (`native/personal_sync_host.rs:195`), policy-before-insert per operation (`personal_sync.rs:931`); no session | Not chirograph; shares only the byte plane |
-| **Mesh admitted ingress** (`crates/mesh/mesh`) | Retained mesh content | ALPN `mere/mesh-retained-admitted/v1` (`ingress/mod.rs:33`), notochord frames, sans-I/O `notochord::admit` (`ingress/session.rs:80-110`) | Own wire |
+| **Mesh admitted ingress** (`crates/mesh/mesh` *(historical citation)* <!-- doc-audit: historical-path -->) | Retained mesh content | ALPN `mere/mesh-retained-admitted/v1` (`ingress/mod.rs:33`), notochord frames, sans-I/O `notochord::admit` (`ingress/session.rs:80-110`) | Own wire |
 | **Knot publish** (Knot `publish_carrier`, `publish_host`, `publish_client`) | Publication over ALPN `mere/knot-publish/v1` | Noise responder, then notochord, then an action check (`publish_carrier.rs:89-129`); "intentionally parallel" to Graphshell's carrier (`:7-12`) | Own wire (postcard over notochord frames) |
 
 Below all of these, `mere-transport` (Murm `native/crates/transport`) already
@@ -119,7 +119,7 @@ duplication is in how each carrier gets bytes to and from that contract.
 
 1. **NDJSON server loops.** `stdio::serve_with` and
    `serve_resumable_notifying` (`graphshell-endpoint/src/stdio.rs:73-180`)
-   against `serve_admitted_session_with` (`ports/graphshell/src/session_loop.rs:151-282`).
+   against `serve_admitted_session_with` (`ports/graphshell/src/session_loop.rs:151-282` *(historical citation)* <!-- doc-audit: historical-path -->).
    Line writers twice (`stdio.rs:244-256`, `session_loop.rs:302-329`). Notice
    polling three ways: a thread with `recv_timeout`, `tokio::time::timeout`,
    and a direct pull (`local.rs:118`).
@@ -575,7 +575,7 @@ At Mere `b567660d67c4d900f1d638345c89715e1f36c575`, all 24 files in
 This is a source-review checkpoint, not completion of the Mere audit or a
 headed/remote acceptance gate. No production code changed in this pass.
 The detailed findings, authority map, coverage and native diagnostics are in
-[`Code/testing/mere/support/receipts/authority-success-audit`](../../../../../testing/mere/receipt-relocation-2026-11-04/authority-reader.md).
+`Code/testing/mere/receipt-relocation-2026-11-04/authority-reader.md`.
 
 - **Q056 / A052, message admission can contradict its reply.** The
   sans-I/O helper keeps Notochord's reply, then can replace an accepted
@@ -800,4 +800,4 @@ resource-correlation findings. The all-feature client gate passes 91 tests,
 including these remote tests, and fails the existing exact-byte trace test
 (Q073), whose default-field reserialization changes are documented separately.
 Native results are recorded in
-the [audit receipt](../../../../../testing/mere/support/receipts/authority-success-audit/scenograph_review_receipt.json).
+the audit receipt (`Code/testing/mere/support/receipts/authority-success-audit/scenograph_review_receipt.json`).

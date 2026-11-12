@@ -18,7 +18,7 @@ the host-neutral extraction of the pane is described under Native but is Mere wo
 
 ## What exists today
 
-Read 2026-11-06 at Mere `1a26ec4e6`, `ports/graphshell`.
+Read 2026-11-06 at Mere `1a26ec4e6`, `turnstone/ports/graphshell`.
 
 - **`block_editing`** (`src/block_editing.rs`, `rhyme.rs`, `store.rs`, library `graphshell`, feature
   `editable-blocks` = `web`, `knot-editor-host`, `illume`, `woodshedding`): `Document` (a Knot editor
@@ -35,7 +35,7 @@ Read 2026-11-06 at Mere `1a26ec4e6`, `ports/graphshell`.
   and `Preview` (write-notation atomicity, the saved-music reading, and grouping through one
   history); the other 5 are pure.
 - **`web_tree/blocks.rs`** (1,315 lines, no tests): a private module of the `graphshell-web`
-  cdylib (`ports/graphshell/web`, lib path `../src/web.rs`). It is the whole pane, written in
+  cdylib (`turnstone/ports/graphshell/web`, lib path `../src/web.rs`). It is the whole pane, written in
   the page's private types (`use super::*`: `TreePage`, `AppCtx`, `Logic`, `Child`,
   `ProbeSnapshot`, `custom_leaf`). Nine hooks in the page: the `blocks` field
   (`web_tree.rs:510`), `toolbar`, `workspace`, `active`, `control`, `busy`, `fields`,
@@ -46,7 +46,7 @@ Read 2026-11-06 at Mere `1a26ec4e6`, `ports/graphshell`.
     command search, preview, apply, rhyme.
   - Woodshed (leaves; roughly 350 to 450 lines, the exact cut is made at the move): the
     bar-grouping branch, `insert_progression` and its fixture
-    `support/woodshed-block-example.json`, `write_notation`, the `notation_*` state,
+    `support/woodshed-block-example.json` *(historical citation)* <!-- doc-audit: historical-path -->, `write_notation`, the `notation_*` state,
     `notation_leaf`, `notation_readings` and its `NotationLeaf` paint leaf (`NOTATION_KEY`, the
     `produce` and `render` of the leaf at about `:1110`), the bar-line plaintext export, and the
     backdrop `SceneInput` from `bars::scene`.
@@ -257,7 +257,7 @@ single source (DOC_POLICY §2); a Mere-local copy would be exactly the drift D10
 
 **The host side is a Mere feature.** The pane, `block_editing::BlockAdapter` (the Rust trait),
 the guest wrapper that calls a mounted component, review and grants (`capsule_applet`), and the
-Worker plumbing stay in `ports/graphshell`, which D8 left above Mere.
+Worker plumbing stay in `turnstone/ports/graphshell`, which D8 left above Mere.
 
 **Ruled (decision 1): the interface goes in the graphshell protocol WIT as a new `block-guest`
 world.** It is added in step 2 of the order of work, after Mark answers R1, because R1 may add a
@@ -333,7 +333,7 @@ D12 and it is in Mere's pane, not in Woodshed.
 
 ### Native (ruling 6: a native block pane now, over `app-host`)
 
-Today there is none: `editable-blocks` requires `web`, which in `ports/graphshell` is a misnomer
+Today there is none: `editable-blocks` requires `web`, which in `turnstone/ports/graphshell` is a misnomer
 for the portable host modules (they compile natively; the same crate already builds Cambium
 desktop shells), and `applets` is the same. Ruling 6 adds one. What exists to build on, and what
 does not:
@@ -356,7 +356,7 @@ does not:
   adapter calls) and two bindings: the existing `web_tree` one (storage `IndexedDbBackend`,
   adapters through the Worker, results memoised) and a native one. This is the largest single piece
   of work in D13 and should land before the guest moves (order of work, step 3).
-- **Which native shell:** a new bin **`graphshell-blocks`** in `ports/graphshell`
+- **Which native shell:** a new bin **`graphshell-blocks`** in `turnstone/ports/graphshell`
   (feature `editable-blocks-native`), a Cambium desktop window in the style of `graphshell-alembic`:
   one window, the generic pane, a document directory under the user's data dir, and a review
   dialog. None of the three existing native shells is a document editor, and putting the pane in
@@ -393,7 +393,7 @@ and a user may add one by address.
 | `block_editing/bars.rs` (741 lines): the adapter logic | `woodshedding` feature `blocks` | the 5 pure `bars` tests move unchanged |
 | `bars::scene` (the arrangement `SceneInput`) | `woodshed-notation` feature `block-guest` | covered by a view test |
 | notation-view portion of `web_tree/blocks.rs` (about 350 to 450 lines: `insert_progression`, `write_notation`, `notation_*`, the `NotationLeaf` leaf, bar-line export, backdrop scene call) | `woodshed-notation` feature `block-guest`, as `view`, `run` and the claim's `example` | none exist; add component round-trip tests |
-| `support/woodshed-block-example.json` | `woodshed-notation` (`block-guest`) | covered by the example test |
+| `support/woodshed-block-example.json` *(historical citation)* <!-- doc-audit: historical-path --> | `woodshed-notation` (`block-guest`) | covered by the example test |
 
 Tests (ruling 7): 5 of the 8 are pure and move unchanged to `woodshedding` (count 8 before; 5 plus
 3 rewritten after). The 3 that use `Document` and `Preview` (write-notation atomicity, the
@@ -406,7 +406,7 @@ Mere's host and applies a result through `Document`. That test is a Woodshed dev
 it adds `graphshell` (with `editable-blocks`, `knot-editor-host`, `illume`) to Woodshed's root lock
 only. The count is 8 before and 8 plus the conformance test after.
 
-**Stays in Mere, generalised** (`ports/graphshell`):
+**Stays in Mere, generalised** (`turnstone/ports/graphshell`):
 
 - `block_editing`: `Document`, `Preview`, `Change`, `store`, `rhyme`, `MAX_DOCUMENT_BYTES`, and
   `Div`, unchanged. New: `trait BlockAdapter { claim; choices; apply; run; view }` and a
@@ -448,11 +448,11 @@ Until a block adapter claiming `progression` is installed and approved:
 
 Standard done conditions 1 and 3, with D5 and D6, applied to each piece:
 
-- **Mere's locks.** `woodshedding` leaves `ports/graphshell/Cargo.toml` (`:56`, `:222`);
-  `woodshed-notation` leaves `ports/graphshell/web/Cargo.toml` (`:40`, `:53`).
+- **Mere's locks.** `woodshedding` leaves `turnstone/ports/graphshell/Cargo.toml` (`:56`, `:222`);
+  `woodshed-notation` leaves `turnstone/ports/graphshell/web/Cargo.toml` (`:40`, `:53`).
   `editable-blocks` keeps its name for the generic pane and loses `dep:woodshedding`. After
   relocking, `Cargo.lock` (now `woodshedding` at line 21327) and
-  `ports/graphshell/web/Cargo.lock` (now `woodshed-notation` at 12296 and `woodshedding` at
+  `turnstone/ports/graphshell/web/Cargo.lock` (now `woodshed-notation` at 12296 and `woodshedding` at
   12306) hold no Woodshed package. The new `block-host` crate and `graphshell-blocks` bin add
   Mere-only edges.
 - **No dev edge.** Mere's tests of the pane, loader, registry and `block-host` use a fixture guest
@@ -476,11 +476,11 @@ Standard done conditions 1 and 3, with D5 and D6, applied to each piece:
   | `Cargo.lock` (workspace) | 32 | 4 | yes / yes | relock; gains `wit-bindgen` edges and the conformance test's `graphshell` editor stack |
   | `validation/relationship-recipe` | 26 | 4 | yes / yes | relock (the features' optional deps are recorded) |
   | `examples/musicxml-timing` | 0 | 0 | yes / no | relock; gains only `serde_json` and its registry dependencies, because `blocks` is the only feature on `woodshedding` and needs nothing else |
-  | `ports/hocket` | 22 | 2 | no / no | untouched |
-  | `ports/redshank` | 25 | 2 | no / no | untouched |
-  | `ports/redshank/spikes/playback` | 0 | 0 | no / no | untouched |
-  | `ports/ringdown` | 0 | 0 | no / no | untouched |
-  | `testing/campaigns/audio-packs-ap0` | 0 | 0 | no / no | already broken (known), not chased |
+  | `ports/hocket` *(historical citation)* <!-- doc-audit: historical-path --> | 22 | 2 | no / no | untouched |
+  | `ports/redshank` *(historical citation)* <!-- doc-audit: historical-path --> | 25 | 2 | no / no | untouched |
+  | `ports/redshank/spikes/playback` *(historical citation)* <!-- doc-audit: historical-path --> | 0 | 0 | no / no | untouched |
+  | `ports/ringdown` *(historical citation)* <!-- doc-audit: historical-path --> | 0 | 0 | no / no | untouched |
+  | `testing/campaigns/audio-packs-ap0` *(historical citation)* <!-- doc-audit: historical-path --> | 0 | 0 | no / no | already broken (known), not chased |
 
   Three roots hold `woodshedding`, so three relock. This corrects my first draft, which expected
   Hocket and Redshank to churn: their locks hold neither package. The split in "What Woodshed

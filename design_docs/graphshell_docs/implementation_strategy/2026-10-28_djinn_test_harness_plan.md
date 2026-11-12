@@ -48,7 +48,7 @@ are settled or landed. Each `Source:` is a line range in that file.
 - **12.** The installed resident is told apart by the `--installed` flag the installer passes; manual runs need it or explicit
   endpoints. Source: `:267-272`.
 - **13.** Stop is its own `resident-control-v1` route so granting status never grants stop; the guard's installed-locations list
-  mirrors the installers' paths, is overridable and is empty on Unix; the crate sits under `crates/system`; status is read
+  mirrors the installers' paths, is overridable and is empty on Unix; the crate sits under `host/crates/system`; status is read
   by running `djinn --resident-status`; receipts default to `%TEMP%\djinn-receipts`; the Linux test bus is left to H5. Source: `:274-281`.
 
 ## Phases
@@ -142,7 +142,7 @@ is taken at finalization, not launch.
   the returned receipt; `finish` asserts that outcome, and status printing follows the publication attempts. Source:
   `host/crates/system/djinn-testkit/src/run.rs` (`finish_record`, `finish`, `write`), with missing-evidence, receipt-path and
   summary-path collision regressions in `host/crates/system/djinn-testkit/tests/controls.rs`. The historical L6 receipt reports
-  14 passing tests (6 unit, 8 controls): `support/receipts/ownership-repair/l6/2026-10-20_l6_receipt.json`.
+  14 passing tests (6 unit, 8 controls): `mere/support/receipts/ownership-repair/l6/2026-10-20_l6_receipt.json`.
   L6's `2e683fcfc2aeae164432fcc332835a3c5af01f55` is not an ancestor of current main, but its two source blobs match the
   landed repair. This reconciliation inspected source, controls and history; it did not rerun the tests or qualify an
   installed resident. The controls do not capture stdout or exercise simultaneous failures or interruption between writes.

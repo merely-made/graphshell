@@ -26,7 +26,7 @@ and the forest mount's owner is the shadow host. See the
 [probe note and AC11 to AC12](#progress-mount-probe-ac7-run-2026-10-15) in §12.
 
 Read against Mere `362c5d5a` (main moved during the read; no commit in that
-window touched `crates/cambium`), Turnstone `032463ae` (the committed tree:
+window touched `host/crates/cambium`), Turnstone `032463ae` (the committed tree:
 another session is repinning its working tree, which was not used), Knot
 `210ee64b`, Woodshed `cefc903d`, wgpu-graft `95bab7e5`, wgpu-weld `b5cf0435`,
 wgpu-scry `2c3ebd24`, netrender `0edc6077`, Genet `90c5ef50`, and the AccessKit
@@ -398,7 +398,7 @@ still hold:
   pane. `sync_viewport` and Turnstone's pane scroll already put them there.
 - **C4, cross-graph composition with provenance.** The kernel's
   `copy_node_from` and `CopiedFrom` survive
-  (`crates/graph/graph-kernel/src/graph/cross_graph.rs`, line 51). The
+  (`mere/crates/graph/graph-kernel/src/graph/cross_graph.rs`, line 51). The
   stability principle carries over unchanged: a binding changes only on an
   affirmative act. *Reading, not ruled:* a composed pane is a leaf, a live view
   of the guest's own authority. Taking content from it into the host's graph is
@@ -914,7 +914,7 @@ owned by the caller. `RetainedMount` (`host/crates/cambium/cambium/src/retained_
 landed in `d5850920` on 2026-10-14) hosts a runner inline in a shared forest
 document. It reparents the owner container between stations and keeps its DOM
 and state intact. Graphshell's port uses it
-(`ports/graphshell/docs/receipts/query_views_20261013/`). The owner
+(`ports/graphshell/docs/receipts/query_views_20261013/` *(historical citation)* <!-- doc-audit: historical-path -->). The owner
 container is a plain `div`, `cambium-retained-owner`, so a guest inherits the
 host's sheet. AC5's scope class has not been applied. Rootstock's `WindowDom`
 already limits `shadow_roots()` to its own window

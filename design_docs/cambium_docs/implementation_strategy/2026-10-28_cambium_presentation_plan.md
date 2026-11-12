@@ -157,7 +157,7 @@ Descend to the focused node's document and highlight the focused accessibility e
 - From: `archive_docs/2026-10-28/2026-06-25_operator_presence_overlay_plan.md:154-156, 55-57`
 
 ### OP4. The web-clip inspector as the local-cursor source (build step 3)
-Build the hover-pick inspector as the local-cursor source of the same element-highlight primitive, so the inspector and presence share code. The building blocks exist (`web_clip_script` with its `elementFromPoint` picker, `ClipRect` and semantic clip lowering in `inker/crates/fleece/src/clip.rs`; `write_clip_node` in `crates/mere/src/clip.rs`) but no host calls them; the inspector UI is unbuilt.
+Build the hover-pick inspector as the local-cursor source of the same element-highlight primitive, so the inspector and presence share code. The building blocks exist (`web_clip_script` with its `elementFromPoint` picker, `ClipRect` and semantic clip lowering in `inker/crates/fleece/src/clip.rs`; `write_clip_node` in `crates/mere/src/clip.rs` *(historical citation)* <!-- doc-audit: historical-path -->) but no host calls them; the inspector UI is unbuilt.
 - Done when: the source states none.
 - Needs: OP3.
 - Rulings: -
@@ -205,7 +205,7 @@ The same `OperatorFocus` overlay fed by a remote operator's presence over the ep
   `1c064dfef`, with eight headed Chrome/AMD WebGPU cases, both native scenarios,
   20 individually reviewed captures and actual browser/native resource release.
   Forme preview borrowing and command-menu graph focus are repaired. The
-  [checkpoint](../../../../../testing/mere/closure-audit/batch-11-checkpoint.md)
+  checkpoint (`Code/testing/mere/closure-audit/batch-11-checkpoint.md`)
   binds packages/builds, unchanged-input CPU evidence and source identities.
   Browser seed nodes have no article bodies, so their reading captures qualify
   layout/persistence only. Human AT, physical pointer, cross-app and other

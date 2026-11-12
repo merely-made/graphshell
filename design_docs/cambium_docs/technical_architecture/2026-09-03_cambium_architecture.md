@@ -56,17 +56,17 @@ separate devices; embedding in a shared core is not automatic across an entire
 application. Accepting that core and a winit event loop also does not establish
 compatibility with every toolkit, render target or GPU context.
 
-Source: [native host](../../../crates/cambium/cambium-genet-winit-host/src/lib.rs),
-[multi-window host](../../../crates/cambium/cambium-genet-winit-host/src/windows.rs),
-[shared window state](../../../crates/cambium/cambium-rootstock/src/multi_host.rs)
-and [Pelt appearance editor](../../../ports/pelt/desktop/appearance_editor.rs).
+Source: [native host](../../../host/crates/cambium/cambium-genet-winit-host/src/lib.rs),
+[multi-window host](../../../host/crates/cambium/cambium-genet-winit-host/src/windows.rs),
+[shared window state](../../../host/crates/cambium/cambium-rootstock/src/multi_host.rs)
+and [Pelt appearance editor](../../../host/ports/pelt/desktop/appearance_editor.rs).
 Existing native/device-recovery evidence keeps its original bounds in the
 [shared-device recovery record](2026-10-11_shared_device_recovery_owner.md).
 This wording update adds no new native or physical-device qualification.
 
 ## Command menus (2026-09-30)
 
-Cambium's [`CommandMenuBar`](../../../crates/cambium/cambium/src/command_menu_bar.rs)
+Cambium's [`CommandMenuBar`](../../../host/crates/cambium/cambium/src/command_menu_bar.rs)
 supplies retained menu views, open/selection state and pointer/key delivery.
 The product supplies its command catalog, enabled descriptions and dispatch
 callback. Menu structure does not establish permission or application authority.
@@ -143,8 +143,8 @@ coordinates may leave the content box. The application maps admitted content
 coordinates to its last rendered scene and owns any depth query or selection.
 
 The API and lifecycle implementation are in
-[`producer.rs`](../../../crates/cambium/cambium-rootstock/src/producer.rs) and
-[`producer/registry.rs`](../../../crates/cambium/cambium-rootstock/src/producer/registry.rs).
+[`producer.rs`](../../../host/crates/cambium/cambium-rootstock/src/producer.rs) and
+[`producer/registry.rs`](../../../host/crates/cambium/cambium-rootstock/src/producer/registry.rs).
 `FrameProfile.producers` attributes producer rendering and image staging separately
 from document raster and presentation. This is CPU attribution, not a GPU-time
 measurement.
@@ -183,9 +183,9 @@ onto it — that plane arrives after the new session has already laid out, so a 
 `clamp_nested_scroll` (`genet/components/genet-livery/src/document/scrolling.rs`), but
 rootstock reuses its own `element_scroll_range` and its own overflow test rather than
 copying code across repositories. Implementation in
-[`owned_layout.rs`](../../../crates/cambium/cambium-rootstock/src/owned_layout.rs), with
+[`owned_layout.rs`](../../../host/crates/cambium/cambium-rootstock/src/owned_layout.rs), with
 four cases in
-[`owned_layout/tests.rs`](../../../crates/cambium/cambium-rootstock/src/owned_layout/tests.rs):
+[`owned_layout/tests.rs`](../../../host/crates/cambium/cambium-rootstock/src/owned_layout/tests.rs):
 a shrinking container, a box that stops scrolling or leaves the DOM, an untouched
 sibling, and a plane carried onto a fresh session. Three of the four fail with the clamp
 calls removed. Validated on Rust 1.97.1, `--offline --locked`: rootstock's 40 tests and
@@ -283,7 +283,7 @@ these hooks; the native Knot site scenario verifies the below-fold closure.
 Validation: 15 scenario integration tests, 17 Mesquite unit tests and 16 host
 unit tests pass. Headed smoke and Mere View theme runs each captured three
 nonblank, distinct frames. Evidence is under
-`testing/knot-editor/images/2026-09-27_7c/unification/` in the workspace.
+`testing/knot-editor/images/2026-09-27_7c/unification/` *(historical citation)* <!-- doc-audit: historical-path --> in the workspace.
 Knot `f14f9ef` consumes Mere `8fce5365` and passes 426 tests with 3 ignored
 across workspace, standalone document and retention gates. Its native site run
 passes with three nonblank frames; the final image confirms the site and pages
@@ -344,12 +344,12 @@ on resize, `Host::relayout`. `cambium-genet-web-host` was checked for
 `viewport_scroll()` so a test can tell the window's offset from a container's.
 
 Implementation: `AppCtx::scroll_into_view` and `ScrollIntoView` in
-[`host.rs`](../../../crates/cambium/cambium-rootstock/src/host.rs), resolution in
-`Host::relayout` in [`frame.rs`](../../../crates/cambium/cambium-rootstock/src/frame.rs),
+[`host.rs`](../../../host/crates/cambium/cambium-rootstock/src/host.rs), resolution in
+`Host::relayout` in [`frame.rs`](../../../host/crates/cambium/cambium-rootstock/src/frame.rs),
 and `ScrollAlign` with `OwnedLayout::scroll_into_view` in
-[`owned_layout.rs`](../../../crates/cambium/cambium-rootstock/src/owned_layout.rs).
+[`owned_layout.rs`](../../../host/crates/cambium/cambium-rootstock/src/owned_layout.rs).
 Eight harness cases in
-[`tests/scroll_request.rs`](../../../crates/cambium/cambium-genet-winit-host/tests/scroll_request.rs)
+[`tests/scroll_request.rs`](../../../host/crates/cambium/cambium-genet-winit-host/tests/scroll_request.rs)
 drive the request from an `after_dispatch` hook: an element far below the fold reaches
 the viewport top (and an element above the new offset comes back up); a nested
 container scrolls and the window does not; a grow-to-content `overflow: auto` box is
@@ -371,7 +371,7 @@ reconstruction. Rootstock's outer text system, a Reader `SmolwebDocument`, and
 an isolated Stylesheet `LiveryDocument` are three separate owners; registering
 outer faces alone does not provision the producer documents. Host-selected CSS
 generic mappings preserve authored family requests and quoted aliases. See the
-[Workshop host resource seam](../../../ports/tabard/workshop/README.md#retained-host-font-resources)
+[Workshop host resource seam](../../../host/ports/tabard/workshop/README.md#retained-host-font-resources)
 and `genet/components/genet-livery/README.md` for the owned APIs. Invalid resource
 replacement is typed and batch-atomic; it must not advance accepted source
 revision or image authority. GPU/session execution refusals have their own

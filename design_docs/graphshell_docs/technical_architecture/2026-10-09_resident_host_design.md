@@ -19,7 +19,7 @@ but the host process still holds the complete writer, baseline and history.
 Candidate/replay cloning can increase the peak. Report process memory separately
 from reader-record savings; this milestone makes no bounded-process-memory claim.
 
-`ports/graphshell/src/mere_host.rs` already owns GraphSession and staged storage.
+`ports/graphshell/src/mere_host.rs` *(historical citation)* <!-- doc-audit: historical-path --> already owns GraphSession and staged storage.
 `host/ports/mere-resident/src/resident_mere.rs` shares hosts by session and sends revision
 notices. Reuse that ownership and event path. Refuse an independently opened
 writer without proven ownership. Do not add a general multiwriter lock service,
@@ -56,7 +56,7 @@ the complete candidate through GraphSession::edit_now. Never carry resident
 NodeKeys into the writer. Let existing capture produce exact replay records;
 keep Author, product validation, replay comparison, journal and undo authority.
 
-`crates/graph/graph-kernel/src/graph/apply.rs` distinguishes live and replay
+`mere/crates/graph/graph-kernel/src/graph/apply.rs` distinguishes live and replay
 operations. Replay tag edits use legacy Surface setters; live tag edits affect
 the shown Resource under current Author. ReplayAssertRelationByIds targets
 Surface assertions; live AssertRelation uses current placement. ReplayAddNode
@@ -67,7 +67,7 @@ strings before replay, whose existing parser assumes valid captured IDs.
 Proposed commands: CreateAddress, EditNode, SetFacet, SetPinned, SetMimeHint and
 AssertRelation, carrying UUIDs, decoded JSON and existing EdgeAssertion values.
 Pandect does not depend on Graphshell's product types. The initial adapter
-preserves these existing operations from `ports/graphshell/src/product.rs`:
+preserves these existing operations from `turnstone/ports/graphshell/src/product.rs`:
 
 | Operation | Complete-writer adaptation and checks |
 |---|---|
@@ -105,13 +105,13 @@ deferred: it needs an operation/dependency/validation/history contract.
 
 ## Prepare, write, acknowledge and refresh
 
-`crates/system/pandect/src/graph_session.rs` applies before storage: apply calls
+`mere/crates/system/pandect/src/graph_session.rs` applies before storage: apply calls
 apply_now and then store; pending describes unstored writes and stored acknowledges
 a committed batch without reapplying. Preserve that contract. A store error is
 not evidence that an edit never happened.
 
 Recommend preparing addressable generation/record/catalog/head WriteOps separately
-in `crates/system/pandect/src/addressable_graph/write.rs`, then combining them
+in `mere/crates/system/pandect/src/addressable_graph/write.rs`, then combining them
 with existing Pending forced-checkpoint writes. The prepared object carries source
 cursor/revision and generation. Pause further writer edits for this first staged
 commit; await without holding the browser host borrow, acknowledge only confirmed
@@ -184,12 +184,12 @@ contract under a quiescent ownership transition. Loaded views own their bytes;
 subsequent demand selects current head. Conservatively retain crash-left refs.
 Never erase session baseline/journal/history, archives or blobs as generation GC.
 
-`crates/eidetic/muniment/src/backend.rs` supplies default-refusing transact.
-`crates/eidetic/muniment/src/indexeddb_backend.rs` currently snapshots all store
+`crates/eidetic/muniment/src/backend.rs` *(historical citation)* <!-- doc-audit: historical-path --> supplies default-refusing transact.
+`crates/eidetic/muniment/src/indexeddb_backend.rs` *(historical citation)* <!-- doc-audit: historical-path --> currently snapshots all store
 values for it. A later scoped transaction-read extension must fetch declared
 values and bounded prefix key names in one transaction, abort on overflow,
 retain native Send/wasm ?Send and default typed refusal for old implementors.
-`crates/system/pandect/src/wallet_sealed_backend.rs` must preserve authenticated
+`crates/system/pandect/src/wallet_sealed_backend.rs` *(historical citation)* <!-- doc-audit: historical-path --> must preserve authenticated
 reads/sealed writes and suppress the batch on any error. Scoped reads remove
 unrelated values, not oversized selected-record peaks. Detailed GC chronology,
 reachability, budgets and concurrent-publication protocol need a separate spec.

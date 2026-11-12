@@ -137,7 +137,7 @@ preserves all 1,688 locked package versions, dependency arrays and checksums.
 Only 33 current Genet, nine Boa and three Vano source revisions move; the two
 legacy Knot-owned Genet identities stay unchanged. The default resolved graph
 does not activate either JavaScript engine. The candidate lock is frozen as
-`testing/genet/forms/mere-forms-lock-preparation.Cargo.lock` under the Code root.
+`testing/genet/forms/mere-forms-lock-preparation.Cargo.lock` *(historical citation)* <!-- doc-audit: historical-path --> under the Code root.
 The catalog acceptance program passes and regenerates both HTML receipts with
 the app textboxes and their existing names; this is artifact preparation, with
 fresh consumer tests still pending. Each run restores the original manifest and
@@ -443,12 +443,12 @@ control fails the referenced-name test; restored source passes. Native smoke
 evidence and current limitations are recorded in the
 [Cambium architecture](2026-09-03_cambium_architecture.md#dom-selector-parity-2026-09-29-implemented-and-verified)
 and the diagnostics plan (`mere/design_docs/archive_docs/2026-10-28/2026-06-08_system_diagnostics_and_accessibility_plan.md`).
-Raw receipts live under `testing/cambium/semantic-observation` in the shared Code
+Raw receipts live under `testing/cambium/semantic-observation` *(historical citation)* <!-- doc-audit: historical-path --> in the shared Code
 root. The dated compatibility checkpoints below retain their original scope.
 
 ### Historical September 13 boundary
 
-Cambium is now a Mere workspace family under `crates/cambium/`; it is not a
+Cambium is now a Mere workspace family under `host/crates/cambium`; it is not a
 Genet workspace subtree. Mere owns the current `cambium`, `meristem`,
 `sprigging`, and `workbench` paths, while pinning Genet seam packages at one
 immutable `genet.git` revision (`7baa554c66f966295ee945d908738b635afe136a`).
@@ -471,9 +471,9 @@ must keep these families aligned.
 
 | Boundary | Current source in this workspace | State |
 | --- | --- | --- |
-| Cambium family | `crates/cambium/` workspace members | Mere-owned |
+| Cambium family | `host/crates/cambium` workspace members | Mere-owned |
 | Genet DOM seams | `genet-scripted-dom`, `layout-dom-api`, and `genet-static-dom` pinned to the revision above | Genet dependency boundary |
-| Errand | `crates/system/errand` 0.3.4 | Mere-owned protocol AST dependency |
+| Errand | `crates/system/errand` *(historical citation)* <!-- doc-audit: historical-path --> 0.3.4 | Mere-owned protocol AST dependency |
 
 Downstream consumers' pins and registry publication state need verification in
 their own repositories or registries; this document records only the current
@@ -545,7 +545,7 @@ web lock retains 30.0.0. Both retain NetRender `9607d16` and netrender-vello
 0.10.1. Web source-detector controls also reject both deliberate faults.
 
 Raw commands, compiler identity, original and accepted locks, source audits,
-controls and logs are in `testing/mere/receipts/2026-09-27/genet-text-publication`
+controls and logs are in `testing/mere/receipts/2026-09-27/genet-text-publication` *(historical citation)* <!-- doc-audit: historical-path -->
 under the shared Code root. An initial direct-Cargo compile invocation selected
 rustc 1.97.1 for dependencies and failed on existing 1.98.1 artifacts; the
 retained successful commands explicitly select the repository's 1.98.1
@@ -608,7 +608,7 @@ compile gates remain pending. After the focused controls, C: had about
 adequate headroom, without reducing proof scope or deleting evidence.
 Commands explicitly use Rust 1.98.1, four jobs and the stable Mere target;
 incremental output is disabled for this bounded run. Receipts are under
-`testing/mere/receipts/2026-09-28/inline-scroll-adoption` in the shared Code
+`testing/mere/receipts/2026-09-28/inline-scroll-adoption` *(historical citation)* <!-- doc-audit: historical-path --> in the shared Code
 root. Main publication, pre.4 reconciliation and S13 remain separate gates.
 
 ## 2026-09-29 resumed verification before main integration
@@ -679,7 +679,7 @@ shared device; pre.4 tensor/release and S13 acceptance remain separate.
 All commands preserve 3,034 tracked-file/ignored-lock hashes. The earlier host
 wrapper has hashes only; seven later runtime/check runs also preserve mtimes.
 
-Evidence: `testing/mere/receipts/2026-09-29/scroll-main-integration/combined-checkpoint.json`
+Evidence: `testing/mere/receipts/2026-09-29/scroll-main-integration/combined-checkpoint.json` *(historical citation)* <!-- doc-audit: historical-path -->
 under the shared Code root. This accepts only the a31b9a14 checkpoint, pending
 independent review and local commit. Remote main advanced to `ee77bf23` during
 verification; its Personae/Insigne migration must be integrated and the affected
@@ -709,6 +709,6 @@ does not establish compilation of that excluded package.
 
 Every follow-on gate retains 3,034 source/lock hashes and unchanged mtimes.
 Shared-device rendering establishes correctness, not performance. Evidence is
-`testing/mere/receipts/2026-09-29/scroll-insigne-integration/final-checkpoint.json`
+`testing/mere/receipts/2026-09-29/scroll-insigne-integration/final-checkpoint.json` *(historical citation)* <!-- doc-audit: historical-path -->
 under the shared Code root. Pre.4, S13 and downstream adoption retain their
 separate gates.

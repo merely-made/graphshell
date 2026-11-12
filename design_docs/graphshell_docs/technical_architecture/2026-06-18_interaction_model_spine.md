@@ -7,7 +7,7 @@ feature plans are non-overlapping layers it cross-refs. Written to stop the plan
 (six docs circling the orrery-as-interactive-document with overlapping claims), verified against
 the tree by a five-agent consolidation pass (2026-06-18).
 **Code**: `crates/meerkat/` *(historical citation)* <!-- doc-audit: historical-path --> (fetch, content, render, input, window_view), `crates/orrery/` *(historical citation)* <!-- doc-audit: historical-path -->
-(orrery + gyre + arrangements), `inker/crates/inker/` (engines), `crates/graph/` (kernel + linked-data).
+(orrery + gyre + arrangements), `inker/crates/inker/` (engines), `mere/crates/graph` (kernel + linked-data).
 
 This doc is the **spine**; the [composition spine](2026-05-21_mere_composition_spine.md) stays
 the *arrangement ontology* (forme / platen projection). Where this doc names an owner, that plan
@@ -34,7 +34,7 @@ In scope now (the model is stated over these):
   fetched + routed + rendered through the document-canvas lane.
 - **djot**: wired. `DjotKnotEngine` registered in `nematic::engines()` (lib.rs:98), routed by
   `text/x-knot` (routing.rs:343); the default knot grammar (jotdown).
-- **linked-data / semantic web**: mature. `crates/graph/linked-data` (JSON-LD + RDFa
+- **linked-data / semantic web**: mature. `mere/crates/graph/linked-data` (JSON-LD + RDFa
   ingest/export), routed as the linked-data ingest harvest, default-off.
 - **p2p / cooperative**: substrate live (murm Cable + p2panda transport + moothold tessera, in
   `comms_host.rs` / `sync.rs`); the named gaps are a shared-session and a moot-content card path.
@@ -45,7 +45,7 @@ In scope now (the model is stated over these):
 Deferred to the later **Genet / WPT track** (not this spine): full-web HTML via genet (the
 flat-scene lane), scrying / compat WebView (the 549-LOC Windows-only self-rendering tile), the WPT
 conformance grind, page-supplied CSS fidelity. Full-web rides the
-compatibility-view charter (`design_docs/verso_docs/technical_architecture/2026-06-10_compatibility_view_charter.md`);
+compatibility-view charter (`design_docs/verso_docs/technical_architecture/2026-06-10_compatibility_view_charter.md` *(historical citation)* <!-- doc-audit: historical-path -->);
 this spine treats genet / scrying only as the embedded-frame compositing case.
 
 ## The pipeline, stage by stage

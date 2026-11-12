@@ -240,7 +240,7 @@ Exact edits (a working copy of them, against Knot `b19eebf` and Mere
 
 1. Every `rev = "<old Mere>"` with `www.github.com/merely-made/mere.git` →
    `R`, in `Cargo.toml`, `apps/desktop/Cargo.toml`,
-   `crates/knot-document/Cargo.toml`, `crates/knot-site/Cargo.toml`.
+   `crates/knot-document/Cargo.toml` *(historical citation)* <!-- doc-audit: historical-path -->, `crates/knot-site/Cargo.toml` *(historical citation)* <!-- doc-audit: historical-path -->.
 2. Every `git = "https://github.com/merely-made/murm.git", rev =
    "3d9e799fe06d2a58754569b8dc11b2dbc7d506e9"` → `git =
    "https://www.github.com/merely-made/murm.git", rev = "<M>"` (eight rows:
@@ -248,13 +248,13 @@ Exact edits (a working copy of them, against Knot `b19eebf` and Mere
    `mere-webrtc-carrier` rows in each patch table).
 3. Drop `graphshell`: delete both `graphshell = { git = …mere.git, rev = … }`
    rows in the root `Cargo.toml` (the workspace row and the patch-table row);
-   in `crates/knot-editor/Cargo.toml` `[dev-dependencies]` delete
+   in `crates/knot-editor/Cargo.toml` *(historical citation)* <!-- doc-audit: historical-path --> `[dev-dependencies]` delete
    `graphshell.workspace = true` and keep `graphshell-host = { workspace =
    true, features = ["native"] }` and `graphshell-client.workspace = true`.
-4. Source: `crates/knot-editor/tests/rosette_projection.rs` and
+4. Source: `crates/knot-editor/tests/rosette_projection.rs` *(historical citation)* <!-- doc-audit: historical-path --> and
    `tests/revision_bell.rs`: `graphshell::view::` → `graphshell_host::view::`,
    `graphshell::sessions::` → `graphshell_host::sessions::`.
-5. `crates/knot-editor/src/mere_overlay.rs` test
+5. `crates/knot-editor/src/mere_overlay.rs` *(historical citation)* <!-- doc-audit: historical-path --> test
    `a_reading_adds_sessions_and_archive_and_keeps_the_catalog_graph`: the
    `MergeModel` literal gains `dropped: Vec::new()` (Lane B added the field).
 6. Add a pin note under the existing ones in the root `Cargo.toml`.
@@ -310,7 +310,7 @@ revision and one Murm revision for the Murm packages. Call it `T`.
 ### 7.6 Woodshed (merely-made/woodshed), on Mere `R2`
 
 Three roots, each with its own manifest and patch tables: the root,
-`ports/hocket`, `validation/relationship-recipe`. In each:
+`ports/hocket` *(historical citation)* <!-- doc-audit: historical-path -->, `validation/relationship-recipe`. In each:
 
 1. Every Mere row (alias) → `R2`.
 2. Every Murm row → the alias at `M` (at Woodshed `4005c5a` these are the
@@ -382,12 +382,12 @@ Ordered; each step keeps every carrier working.
    while waiting for the next browser frame, also wait on the admitted
    session's notices (`BrowserSessionClient::wait_for_notice`) with
    `tokio::select!`, and write each as a `Notice` frame. The extension
-   (`ports/graphshell/web/extension/bridge.js`, the `port.onMessage`
+   (`turnstone/ports/graphshell/web/extension/bridge.js`, the `port.onMessage`
    listener) ignores unknown `type`s today, so this is safe before step 2.
 2. **The extension consumes them.** `bridge.js`: on `type === "notice"`,
    resume the named session from the notice (re-snapshot it as it does after
    an intent) instead of polling; add a case to `smoke-native-host.mjs`.
-3. **The app door pushes.** `crates/graphshell/graphshell-endpoint/src/door/wire.rs`:
+3. **The app door pushes.** `crates/graphshell/graphshell-endpoint/src/door/wire.rs` *(historical citation)* <!-- doc-audit: historical-path -->:
    add `AppHostMessage::Notice { notice }`; `host/ports/mere-resident/src/door/app_broker.rs`:
    forward the session's notices as they arrive (the same `select!`), and
    keep answering `TakeNotice` / `WaitNotice` for one release; the client

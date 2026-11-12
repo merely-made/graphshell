@@ -34,7 +34,7 @@ in Turnstone's `denizen.rs`.
   `SignedDelegationRevocation`; it takes only an id. So another holder of the
   certificate cannot verify that a resident was revoked.
 - **Graphshell's guest invitations have the same shape.**
-  `ports/graphshell/src/coop` builds each `DelegationCertificate` and has
+  `ports/graphshell/src/coop` *(historical citation)* <!-- doc-audit: historical-path --> builds each `DelegationCertificate` and has
   custody sign it under the `mere.graphshell` act rule. That path does sign its
   revocations.
 - **The local door trusts whatever app id a client declares.** `graphshell-mcp`

@@ -465,7 +465,7 @@ and open item 4; the Scenograph editor plan's track S1, rulings SE53 to SE83.
   frame and cell item (`graphshell-client/tests/facet_frozen.rs`); the editor
   gives each cell a labelled button.
 - **First forcing consumer:** the projection editor's comparison grid
-  (`ports/graphshell/src/projection_compare.rs`, Preview | Compare).
+  (`turnstone/ports/graphshell/src/projection_compare.rs`, Preview | Compare).
 - **Second heterogeneous consumer:** the gloss pane, **pending** (SE62).
 - **Receipt:** `scenograph` swatch tests (round trip, validation refusals);
   `scenomise` facet tests (shared scale and its independent control, mixed
