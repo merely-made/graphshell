@@ -5,8 +5,8 @@
 // SPDX-License-Identifier: MPL-2.0
 
 //! The saved scene as the canvas captures and restores it (dynamics grammar
-//! plan, F142, F151). The stored shapes and facet ids are pandect's
-//! (`pandect::saved_scene`); this module reads and writes them against the
+//! plan, F142, F151). The stored shapes and facet ids are
+//! pandect's; this module reads and writes them against the
 //! canvas's vocabularies, so Graphshell and Turnstone share one capture, one
 //! restore, one validation and one version 2/3 conversion.
 
@@ -14,9 +14,10 @@ use std::collections::{BTreeMap, HashMap, HashSet};
 
 use kernel::geometry::PortablePoint;
 use kernel::graph::Graph;
+use crate::saved_scene::{DEFAULT_ARRANGEMENT, StoredScene};
 use pandect::{
-    CartographyGeometry, DEFAULT_ARRANGEMENT, SAVED_SCENE_FACET, SAVED_SCENE_FACET_V2,
-    SAVED_SCENE_FACET_V3, SavedDynamics, SavedRolesV1, SavedSceneV2, SavedSceneV3, StoredScene,
+    CartographyGeometry, SAVED_SCENE_FACET, SAVED_SCENE_FACET_V2, SAVED_SCENE_FACET_V3,
+    SavedDynamics, SavedRolesV1, SavedSceneV2, SavedSceneV3,
 };
 use uuid::Uuid;
 

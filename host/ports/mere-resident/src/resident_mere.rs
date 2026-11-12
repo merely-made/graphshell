@@ -414,7 +414,7 @@ impl MereRoutes {
         let launch = self.inner.launch.get_or_try_init(|| async {
             let root = DirectoryBackend::open(&self.inner.shared_root)
                 .map_err(|error| error.to_string())?;
-            pandect::record_launch(&JsonSlots::new(root), self.inner.persona)
+            crate::persona_settings_store::record_launch(&JsonSlots::new(root), self.inner.persona)
                 .await
                 .map_err(|error| error.to_string())
         });

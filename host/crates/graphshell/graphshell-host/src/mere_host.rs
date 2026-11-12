@@ -751,7 +751,7 @@ impl<B: Backend> MereHost<B> {
 
     /// This host, stamping `launch` on every node navigated from now on: the
     /// number the persona's boot owner recorded for this process
-    /// ([`pandect::record_launch`]). Sessions this host begins later take it
+    /// (`mere_resident::persona_settings_store::record_launch`). Sessions this host begins later take it
     /// too.
     pub fn with_launch(mut self, launch: u64) -> Self {
         self.launch = launch;

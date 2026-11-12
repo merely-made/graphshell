@@ -43,5 +43,7 @@ pub mod resident_site;
 #[cfg(feature = "moot-site")]
 pub mod moot_site;
 pub mod resident_status;
+pub mod persona_settings_store;
 pub mod settings;
+pub mod settings_store;
 pub mod sync;

@@ -10,3 +10,6 @@ host/ports/mere-resident/install-ssh-server-windows.ps1 text eol=lf
 # F43). Mere's rule still named crates/canvas/pictograph/src/canvas/tests/data/**
 # after the canvas fold (U1); the files live under cartography now.
 host/crates/canvas/cartography/src/canvas/tests/data/** text eol=lf
+
+# Written by pandect before the P4 sidecar moves: byte-exact.
+host/ports/mere-resident/tests/fixtures/pre_p4_policy_root/** -text

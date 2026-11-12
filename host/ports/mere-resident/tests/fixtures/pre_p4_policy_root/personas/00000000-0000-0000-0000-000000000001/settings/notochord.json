@@ -1,0 +1,72 @@
+{
+  "version": 2,
+  "networks": [
+    {
+      "policy": {
+        "version": 2,
+        "network": [
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7
+        ],
+        "accepted_profiles": [],
+        "trusted_roots": [],
+        "discovery": {
+          "announce": false
+        },
+        "services": {
+          "/services/murm": {
+            "access": "MemberOnly",
+            "domain": "mere.network",
+            "actions": [
+              "connect"
+            ],
+            "require_transport_identity": true,
+            "max_sessions": 3
+          }
+        },
+        "transit": {
+          "enabled": true
+        },
+        "limits": {
+          "max_hello_bytes": 2048,
+          "max_reply_bytes": 512,
+          "max_certificates": 4,
+          "max_certificate_bytes": 2048,
+          "max_delegation_depth": 4,
+          "deadline_ms": 10000
+        }
+      },
+      "revocations": []
+    }
+  ]
+}

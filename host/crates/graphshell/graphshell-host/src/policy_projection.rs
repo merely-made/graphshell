@@ -7,7 +7,7 @@
 //! N4: host-facing projection of Notochord owner policy.
 //!
 //! The editable model stays in Notochord and persistence stays in
-//! pandect. This module turns that model into plain settings rows and
+//! sporran. This module turns that model into plain settings rows and
 //! a headed receipt. It never serializes carrier facts or an admitted
 //! principal.
 
@@ -19,7 +19,7 @@ use notochord::{
     NetworkId, OwnerNetworkPolicy, OwnerPolicyEdit, OwnerPolicySet, ProfileRef, ServiceAccess,
     ServiceRule,
 };
-use pandect::{PersonaId, load_notochord_policy, save_notochord_policy};
+use sporran::{load_notochord_policy, save_notochord_policy};
 
 use crate::admission::PROJECTION_SERVICE;
 
@@ -129,8 +129,9 @@ pub struct PolicyReceipt {
     pub stages: Vec<PolicyReceiptStage>,
 }
 
-/// Run N4's owner-policy scenario through the real persistence seam.
-pub fn run_n4_policy_scenario(data_root: &Path, persona: PersonaId) -> io::Result<PolicyReceipt> {
+/// Run N4's owner-policy scenario through the real persistence seam, in the
+/// persona's settings directory the caller names.
+pub fn run_n4_policy_scenario(settings_dir: &Path) -> io::Result<PolicyReceipt> {
     let network_id = NetworkId([9; 32]);
     let mut network = OwnerNetworkPolicy::closed(network_id);
     network.apply(OwnerPolicyEdit::AcceptedProfiles(vec![ProfileRef {
@@ -172,8 +173,8 @@ pub fn run_n4_policy_scenario(data_root: &Path, persona: PersonaId) -> io::Resul
 
     let mut policies = OwnerPolicySet::new();
     policies.upsert(network);
-    save_notochord_policy(data_root, persona, &policies)?;
-    let restarted = load_notochord_policy(data_root, persona)?
+    save_notochord_policy(settings_dir, &policies)?;
+    let restarted = load_notochord_policy(settings_dir)?
         .and_then(|restored| restored.network(network_id).cloned())
         .ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "restored policy is absent"))?;
     stages.push(stage(
@@ -335,7 +336,7 @@ mod tests {
             std::env::temp_dir().join(format!("graphshell-n4-independence-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&root);
         let receipt =
-            run_n4_policy_scenario(&root, PersonaId::default_persona()).expect("scenario");
+            run_n4_policy_scenario(&root).expect("scenario");
 
         let initial = &receipt.stages[0].view;
         let murm_disabled = &receipt.stages[1].view;
@@ -355,7 +356,7 @@ mod tests {
         assert_eq!(murm_disabled.services, transit_disabled.services);
         assert!(!transit_disabled.transit);
 
-        let restored = load_notochord_policy(&root, PersonaId::default_persona())
+        let restored = load_notochord_policy(&root)
             .expect("load")
             .expect("policy")
             .network(NetworkId([9; 32]))

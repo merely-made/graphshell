@@ -70,6 +70,15 @@ pub mod adapters;
 // was `pictograph::canvas` until engine split D38 (2026-11-09) folded it here.
 #[cfg(feature = "canvas")]
 pub mod canvas;
+// The facet namespaces and saved-scene store the canvas saves through, moved
+// from pandect (engine split D134). The stored shapes (`CartographyGeometry`,
+// `SavedSceneV2`/`V3`) stay pandect's: its sync grammar carries them (D69).
+#[cfg(feature = "canvas")]
+pub mod arrangement_facets;
+#[cfg(feature = "canvas")]
+pub mod saved_scene;
+#[cfg(feature = "canvas")]
+pub mod scene_facets;
 pub mod minimap;
 pub mod overlay;
 pub mod projection;

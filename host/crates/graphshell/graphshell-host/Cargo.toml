@@ -47,6 +47,7 @@ native = [
     "dep:blake3",
     "dep:pandect",
     "dep:rand_core",
+    "dep:sporran",
     "dep:serde",
     "dep:uuid",
     "dep:tokio",
@@ -160,6 +161,8 @@ pollster = { version = "0.4", optional = true }
 # `native`'s session store, and the session `mere-host` serves in the browser
 # too, so it is not in the native-only table.
 pandect = { workspace = true, optional = true }
+# The owner policy file (`policy_projection`), Dramatis's.
+sporran = { workspace = true, optional = true }
 mere-overmap = { workspace = true, optional = true }
 url = { version = "2", optional = true }
 scenograph = { workspace = true, optional = true }
