@@ -79,8 +79,8 @@ The toolchain is pinned in `rust-toolchain.toml`, with the `wasm32-unknown-unkno
 and `wasm32-wasip2` targets.
 
 ```
-cargo test --workspace --locked
-cargo check --workspace --all-targets --locked --manifest-path host/Cargo.toml
+cargo test --workspace
+cargo check --workspace --all-targets --manifest-path host/Cargo.toml
 ```
 
 The hooks in `.pre-commit-config.yaml` (run with prek) are line-ceiling, responsa,

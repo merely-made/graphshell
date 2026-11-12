@@ -3,5 +3,5 @@
 # chirograph, sceno, scenotime, hest and graphshell-client are wasm-clean; wasm32-wasip2
 # is the script guests' target (host/crates/script), as in Mere.
 [toolchain]
-channel = "1.99.1"
+channel = "stable"
 targets = ["wasm32-wasip2", "wasm32-unknown-unknown"]

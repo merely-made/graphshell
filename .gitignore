@@ -1,7 +1,8 @@
 # Cargo build artifacts.
 target/
 
-# Cargo.lock is tracked: the protocol workspace is tested with --locked.
+# No Cargo.lock is tracked; see scripts/record-resolved.sh.
+Cargo.lock
 
 # The mere:script WIT world that document-host's build script materialises from
 # graphshell-endpoint's build metadata (a build product, not a second copy).

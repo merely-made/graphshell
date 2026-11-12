@@ -6,15 +6,15 @@
 # Run from host/, the workspace root.
 set -eu
 
-cargo check --locked -p mere-cartography --no-default-features --features canvas
-cargo check --locked -p graphshell-host --no-default-features --features board
+cargo check -p mere-cartography --no-default-features --features canvas
+cargo check -p graphshell-host --no-default-features --features board
 
 for pkg in mere-cartography graphshell-host; do
     case $pkg in
         mere-cartography) features=canvas ;;
         graphshell-host) features=board ;;
     esac
-    tree=$(cargo tree --locked -p "$pkg" --no-default-features --features "$features" -e normal --prefix none)
+    tree=$(cargo tree -p "$pkg" --no-default-features --features "$features" -e normal --prefix none)
     if printf '%s\n' "$tree" | grep -E '^(rapier2d|rapier|parry2d|parry|nalgebra|simba|glamx) '; then
         echo "$pkg with physics-engine off still links the engine" >&2
         exit 1

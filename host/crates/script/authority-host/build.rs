@@ -45,7 +45,7 @@ fn main() {
     // library needs no wasm and the tests that load the guest name the command to run.
     let mut cmd = Command::new("cargo");
     cmd.current_dir(&guest)
-        .args(["build", "--locked", "--target", "wasm32-wasip2", "--release"]);
+        .args(["build", "--target", "wasm32-wasip2", "--release"]);
     for (key, _) in std::env::vars() {
         if key == "CARGO_HOME" || key == "CARGO_BUILD_JOBS" {
             continue;

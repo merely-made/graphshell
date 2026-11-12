@@ -84,7 +84,6 @@ fn main() {
         let mut cmd = Command::new("cargo");
         cmd.current_dir(&guest).args([
             "build",
-            "--locked",
             "--target",
             "wasm32-wasip2",
             "--release",
