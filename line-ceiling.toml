@@ -323,10 +323,6 @@ path = "host/ports/moot/examples/commons_practice_peer.rs"
 reason = "Proof-only line-JSON peer for a retained Woodshed comparison space. Existing source-size debt; a responsibility split must preserve Role, Invitation, AuthorityEnvelope and existing module visibility."
 
 [[exception]]
-path = "host/ports/moot/src/coop.rs"
-reason = "The coop lifecycle contract: one report shape every consumer can produce from its own snapshot, plus a conformance harness that walks the I3 sequence against a consumer-supplied. Existing source-size debt; a responsibility split must preserve Verdict, Access, Membership and existing module visibility."
-
-[[exception]]
 path = "host/ports/moot/src/resource_coop.rs"
 reason = "Shared-resource and coop interaction draft, independent of a renderer. Existing source-size debt; a responsibility split must preserve ResourceRef, ActivityRef, ContentRead and existing module visibility."
 
