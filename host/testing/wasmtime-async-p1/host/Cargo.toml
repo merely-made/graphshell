@@ -1,0 +1,19 @@
+# Async host for the Wasmtime-45 component-model-async maturity probe.
+# Enables the (off-by-default, self-described "very incomplete") component-model-async
+# feature to test whether host-fulfilled suspend/resume actually works on 45.
+[package]
+name = "wt-async-host"
+version = "0.0.1"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+publish = false
+
+[workspace]
+
+[dependencies]
+# Stock wasmtime 45 (default features incl. async + component-model). NOT the
+# "component-model-async" feature — Model A (fiber async) is the mature path and
+# does not need it. That is the point of the probe.
+wasmtime = "45"
+wasmtime-wasi = "45"
+tokio = { version = "1", features = ["rt", "rt-multi-thread", "macros", "time"] }

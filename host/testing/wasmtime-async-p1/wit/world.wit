@@ -1,0 +1,19 @@
+package probe:suspend@0.1.0;
+
+/// A SYNC host import (no `async` keyword) the guest calls plainly. The host
+/// implements it as a Rust `async fn`; with `Config::async_support` the component
+/// runs on a fiber that suspends during the host's await and resumes on
+/// completion. The guest sees an ordinary call (no async coloring); the host
+/// thread is never blocked. This is the mature "fiber async" path (Model A),
+/// distinct from the "very incomplete" component-model-async (WIT `async func`).
+interface host-io {
+    fetch: func(req: string) -> string;
+}
+
+/// A sync export the host invokes via `call_run` on an async store. Its body
+/// calls `fetch` twice; if fiber suspension works on 45, the host sees the call
+/// park at each fetch and resume with the value, staying live in between.
+world async-probe {
+    import host-io;
+    export run: func(input: string) -> string;
+}
