@@ -2567,3 +2567,7 @@ mod tests {
         );
     }
 }
+
+#[cfg(test)]
+#[path = "mere_host_cursor_tests.rs"]
+mod cursor_tests;
