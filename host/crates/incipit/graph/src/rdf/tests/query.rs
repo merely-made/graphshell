@@ -5,10 +5,11 @@
 // SPDX-License-Identifier: MPL-2.0
 
 use super::*;
-use kernel::graph::apply::assert_semantic_relation_in_scope;
-use kernel::graph::fixtures::GraphFixtures;
-use kernel::graph::{SemanticStatementSpec, SemanticSubKind};
-use kernel::types::{GraphScope, NodeProperty};
+use crate::graph::apply::assert_semantic_relation_in_scope;
+use crate::graph::{SemanticStatementSpec, SemanticSubKind};
+use crate::types::{GraphScope, NodeProperty};
+use mere::query::*;
+use oxrdf::Term;
 
 #[test]
 fn hash_functions_return_known_digests() {
@@ -264,10 +265,10 @@ fn adapter_patterns_preserve_graph_scopes_and_rdf_terms() {
     let graph = rich_graph();
     let indexed = IndexedDataset::for_graph(&graph);
     let adapter = indexed.read(View::Live);
-    let materialized: oxrdf::Dataset = crate::dataset_quads(&graph).into_iter().collect();
+    let materialized: oxrdf::Dataset = mere::dataset_quads(&graph).into_iter().collect();
     let oracle = &materialized;
-    let user: Term = NamedNode::new(crate::GRAPH_SCOPE_USER).unwrap().into();
-    let source: Term = NamedNode::new(crate::GRAPH_SCOPE_SOURCE).unwrap().into();
+    let user: Term = NamedNode::new(mere::GRAPH_SCOPE_USER).unwrap().into();
+    let source: Term = NamedNode::new(mere::GRAPH_SCOPE_SOURCE).unwrap().into();
     let missing: Term = NamedNode::new("https://missing.test/graph").unwrap().into();
     for scope in [Some(None), None, Some(Some(&user)), Some(Some(&source))] {
         let actual = rows(&adapter, None, None, None, scope);
@@ -288,7 +289,7 @@ fn adapter_patterns_preserve_graph_scopes_and_rdf_terms() {
         NamedNode::new("http://www.w3.org/2001/XMLSchema#date").unwrap(),
     )
     .into();
-    let reified = crate::dataset_quads(&graph)
+    let reified = mere::dataset_quads(&graph)
         .into_iter()
         .find_map(|quad| matches!(quad.object, Term::Triple(_)).then_some(quad.object))
         .expect("fixture has an RDF 1.2 reified triple");
@@ -392,8 +393,8 @@ fn adapter_deduplicates_base_quads_but_keeps_each_assertion_reifier() {
 
 #[test]
 fn explicit_resource_assertions_keep_canonical_pages_exact_terms_and_scopes() {
-    use kernel::graph::resource::{ResourceNode, TAGGED_WITH_IRI};
-    use kernel::persistence::{
+    use crate::graph::resource::{ResourceNode, TAGGED_WITH_IRI};
+    use crate::persistence::{
         PersistedEdge, PersistedEdgeFamily, PersistedResourceRecord, PersistedSemanticEdgeData,
         PersistedSemanticStatement,
     };
@@ -486,10 +487,10 @@ fn explicit_resource_assertions_keep_canonical_pages_exact_terms_and_scopes() {
         vec![vec![Some("false".to_string())]]
     );
     assert_eq!(sparql(&graph, absent), sparql_materialized(&graph, absent));
-    let quads = crate::dataset_quads(&graph);
+    let quads = mere::dataset_quads(&graph);
     let reifiers: std::collections::HashSet<_> = quads
         .iter()
-        .filter(|quad| quad.predicate.as_str() == crate::RDF_REIFIES)
+        .filter(|quad| quad.predicate.as_str() == mere::RDF_REIFIES)
         .map(|quad| quad.subject.clone())
         .collect();
     assert_eq!(reifiers.len(), 3);

@@ -13,7 +13,8 @@
 //! materialized from the same projection, kept as the parity column. It also
 //! prints the index build time and the index's `memory_bytes()`.
 //!
-//! `cargo run --release -p mere-rdf --features query --example adapter_scale -- 1000 10000 100000`
+//! `cargo run --release -p mere-kernel --features query,fixtures --example adapter_scale -- 1000 10000 100000`
+//! (in `mere-kernel` since engine split P5 L3: it builds a kernel graph)
 //!
 //! A query that took longer than the budget at one scale is skipped at the next.
 //! The borrowed adapter the first measurement timed was deleted with P2.
@@ -74,14 +75,13 @@ fn build(n: usize) -> (Graph, Vec<NodeKey>) {
     let statements_ms = t.elapsed().as_secs_f64() * 1000.0;
     let t = Instant::now();
     for (i, key) in keys.iter().enumerate() {
-        let property = NodeProperty::new(
-            "https://schema.org/position".to_string(),
-            i.to_string(),
-        );
+        let property = NodeProperty::new("https://schema.org/position".to_string(), i.to_string());
         graph.append_node_properties(*key, vec![property]);
     }
     let properties_ms = t.elapsed().as_secs_f64() * 1000.0;
-    eprintln!("build {n}: add_node {nodes_ms:.1} ms, assert_semantic_statement {statements_ms:.1} ms, append_node_properties {properties_ms:.1} ms");
+    eprintln!(
+        "build {n}: add_node {nodes_ms:.1} ms, assert_semantic_statement {statements_ms:.1} ms, append_node_properties {properties_ms:.1} ms"
+    );
     (graph, keys)
 }
 
@@ -158,8 +158,7 @@ fn main() {
             let call_ms = t.elapsed();
             let coverage = graph.coverage_note();
             let t = Instant::now();
-            let held = sparql_on(&indexed, query, View::Live, coverage)
-                .map(|r| r.rows.len());
+            let held = sparql_on(&indexed, query, View::Live, coverage).map(|r| r.rows.len());
             let indexed_ms = t.elapsed();
             let t = Instant::now();
             let materialized = materialized_rows(&dataset, query);

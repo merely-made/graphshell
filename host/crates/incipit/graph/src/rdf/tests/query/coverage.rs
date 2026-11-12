@@ -5,9 +5,10 @@
 // SPDX-License-Identifier: MPL-2.0
 
 use super::*;
-use kernel::graph::{
+use crate::graph::{
     CoverageLayer, CoverageLimit, CoverageNote, PendingLink, ResourceNode, SemanticStatementSpec,
 };
+use mere::query::*;
 
 #[test]
 fn select_empty_select_and_ask_preserve_every_known_coverage_layer() {
@@ -50,7 +51,7 @@ fn select_empty_select_and_ask_preserve_every_known_coverage_layer() {
 #[test]
 fn pending_unknown_targets_are_possession_limits_unless_known_to_be_unloaded() {
     let mut graph = Graph::new();
-    let source = kernel::graph::apply::add_node(
+    let source = crate::graph::apply::add_node(
         &mut graph,
         None,
         "https://example.org/source".into(),

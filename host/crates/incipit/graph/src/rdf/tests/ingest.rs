@@ -5,11 +5,17 @@
 // SPDX-License-Identifier: MPL-2.0
 
 use super::*;
-use kernel::graph::Graph;
-use kernel::types::GraphScope;
+use crate::graph::Graph;
+use crate::types::GraphScope;
+#[allow(unused_imports)]
+use mere::acquire::ingest::*;
+#[allow(unused_imports)]
+use mere::*;
 use oxrdf::GraphName;
+#[allow(unused_imports)]
+use oxrdf::{NamedOrBlankNode, Quad, Term};
 
-/// [`crate::to_jsonld`] emits. One recognized predicate (`rel#cites`) and one
+/// [`mere::to_jsonld`] emits. One recognized predicate (`rel#cites`) and one
 /// raw predicate (`schema:citation`).
 const SAMPLE: &[u8] = br#"[
   {
@@ -107,7 +113,7 @@ fn from_jsonld_parses_nodes_literals_types_and_edges() {
 
 #[test]
 fn apply_materializes_recognized_and_raw_edges() {
-    use kernel::graph::{EdgeFamily, Graph, RelationSelector, SemanticSubKind};
+    use crate::graph::{EdgeFamily, Graph, RelationSelector, SemanticSubKind};
 
     let contribution = from_jsonld(SAMPLE).expect("valid JSON-LD");
     let mut graph = Graph::new();
@@ -211,7 +217,7 @@ fn from_jsonld_preserves_typed_and_language_tagged_literals() {
 
 #[test]
 fn a_harvested_hyperlink_records_extracted_from_provenance_on_the_target() {
-    use kernel::graph::{Graph, ProvenanceSubKind};
+    use crate::graph::{Graph, ProvenanceSubKind};
 
     // The shape a materialize / crawl contribution carries: a source page
     // linking to a target (capture plan C3).
@@ -454,7 +460,7 @@ fn unbundled_remote_context_is_refused() {
 
 #[test]
 fn every_ingest_assertion_path_supplies_source_or_author() {
-    use kernel::graph::Author;
+    use crate::graph::Author;
     let author = Author::engine("jsonld", "1");
     for recognized in [false, true] {
         for metadata in [0, 1, 2] {
@@ -522,8 +528,8 @@ fn every_ingest_assertion_path_supplies_source_or_author() {
     }
 }
 
-#[path = "tests/identity.rs"]
+#[path = "ingest/identity.rs"]
 mod identity;
 
-#[path = "tests/metadata.rs"]
+#[path = "ingest/metadata.rs"]
 mod metadata;

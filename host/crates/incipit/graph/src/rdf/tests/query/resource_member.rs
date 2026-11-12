@@ -5,7 +5,8 @@
 // SPDX-License-Identifier: MPL-2.0
 
 use super::*;
-use kernel::graph::{CoverageLayer, CoverageLimit, CoverageNote, ResourceNode, apply};
+use crate::graph::{CoverageLayer, CoverageLimit, CoverageNote, ResourceNode, apply};
+use mere::query::*;
 
 fn held_graph() -> (Graph, uuid::Uuid) {
     let mut graph = Graph::new();

@@ -4,10 +4,9 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 // SPDX-License-Identifier: MPL-2.0
 
-use super::{sparql, sparql_with_history};
-use kernel::graph::fixtures::GraphFixtures;
-use kernel::graph::{Graph, SemanticStatement, SemanticSubKind, predicate_iri};
-use kernel::types::{AssertionWithdrawal, GraphScope};
+use crate::graph::{Graph, SemanticStatement, SemanticSubKind, predicate_iri};
+use crate::types::{AssertionWithdrawal, GraphScope};
+use mere::query::{sparql, sparql_with_history};
 
 #[test]
 fn history_requires_an_explicit_projection_and_named_graph_query() {
@@ -39,7 +38,7 @@ fn history_requires_an_explicit_projection_and_named_graph_query() {
 
     let history_query = format!(
         "ASK {{ GRAPH <{}> {{ ?reifier <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> ?fact }} }}",
-        crate::ASSERTION_HISTORY_GRAPH_IRI
+        mere::ASSERTION_HISTORY_GRAPH_IRI
     );
     assert_eq!(
         sparql(&graph, &history_query).unwrap().rows,

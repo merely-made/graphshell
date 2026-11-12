@@ -4,28 +4,30 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 // SPDX-License-Identifier: MPL-2.0
 
+use super::node_direct_quads;
 #[cfg(feature = "query")]
 use super::node_quads;
-use super::{
+use super::{apply_contribution, apply_import, node_id};
+use crate::graph::{EdgeAssertion, Graph, SemanticSubKind};
+use crate::types::{GraphScope, NodeProperty};
+use mere::dataset_quads;
+use mere::from_trig_envelope;
+use mere::reifier::statement_reifier_id;
+use mere::{
     ASSERTION_HISTORY_GRAPH_IRI, GraphContribution, MERE_ASSERTED_GRAPH_KIND,
     MERE_ASSERTED_GRAPH_NAME, MERE_LAST_ASSERTED_AT, MERE_LIFECYCLE_VERSION, MERE_METHOD_VERSION,
     PROV_GENERATED_AT_TIME, PROV_INVALIDATED_AT_TIME, PROV_WAS_ASSOCIATED_WITH,
     PROV_WAS_ATTRIBUTED_TO, PROV_WAS_DERIVED_FROM, PROV_WAS_GENERATED_BY, PROV_WAS_INVALIDATED_BY,
-    RDF_REIFIES, RDFS_LABEL, apply_contribution, apply_import, dataset_quads_with_history,
-    from_jsonld, from_nquads_envelope, node_id, statement_reifier_id, to_jsonld, to_jsonld_compact,
-    to_jsonld_with_history, to_nquads_with_history, to_trig_with_history, withdrawal_activity_id,
+    RDF_REIFIES, RDFS_LABEL, dataset_quads_with_history, from_jsonld, from_nquads_envelope,
+    to_jsonld, to_jsonld_compact, to_jsonld_with_history, to_nquads_with_history,
+    to_trig_with_history, withdrawal_activity_id,
 };
-use super::{dataset_quads, node_direct_quads};
-use crate::from_trig_envelope;
-use kernel::graph::fixtures::GraphFixtures;
-use kernel::graph::{EdgeAssertion, Graph, SemanticSubKind};
-use kernel::types::{GraphScope, NodeProperty};
 use oxrdf::{GraphName, NamedNode, Term};
 use serde_json::json;
 
 #[test]
 fn type_export_uses_affirmative_statuses_and_retains_review_records() {
-    use kernel::types::{
+    use crate::types::{
         ClassificationProvenance, ClassificationScheme, ClassificationStatus, NodeClassification,
     };
 
@@ -49,9 +51,9 @@ fn type_export_uses_affirmative_statuses_and_retains_review_records() {
             primary: true,
         };
         assert!(graph.add_node_classifications(key, vec![record.clone()]));
-        let types: Vec<_> = super::dataset_quads(&graph)
+        let types: Vec<_> = mere::dataset_quads(&graph)
             .into_iter()
-            .filter(|quad| quad.predicate.as_str() == super::RDF_TYPE)
+            .filter(|quad| quad.predicate.as_str() == mere::RDF_TYPE)
             .collect();
         assert_eq!(types.len(), usize::from(exported), "{record:?}");
         if exported {
@@ -68,7 +70,7 @@ fn type_export_uses_affirmative_statuses_and_retains_review_records() {
         assert_eq!(node.types.contains(&record.value), exported, "{record:?}");
         #[cfg(feature = "query")]
         {
-            let rows = super::query::sparql(
+            let rows = mere::query::sparql(
                 &graph,
                 "SELECT ?type WHERE { <https://classification.test> a ?type }",
             )
@@ -181,7 +183,7 @@ fn node_direct_quads_export_each_outgoing_parallel_bucket_without_reversing_inco
         .collect();
 
     assert!(
-        predicates.contains(&kernel::graph::predicate_iri(SemanticSubKind::UserGrouped)),
+        predicates.contains(&crate::graph::predicate_iri(SemanticSubKind::UserGrouped)),
         "outgoing predicates: {predicates:?}"
     );
     assert!(predicates.contains(&"https://example.test/parallel-outgoing"));
@@ -193,7 +195,7 @@ fn node_direct_quads_export_each_outgoing_parallel_bucket_without_reversing_inco
         oxrdf::GraphName::NamedNode(oxrdf::NamedNode::new("urn:graph:parallel").unwrap());
     let incoming_graph =
         oxrdf::GraphName::NamedNode(oxrdf::NamedNode::new("urn:graph:incoming").unwrap());
-    let dataset = super::dataset_quads(&graph);
+    let dataset = mere::dataset_quads(&graph);
     assert!(dataset.iter().any(|quad| {
         quad.subject == oxrdf::NamedOrBlankNode::from(a_id.clone())
             && quad.predicate.as_str() == "https://example.test/parallel-outgoing"
@@ -241,7 +243,7 @@ fn instance_objects(document: &serde_json::Value, reifier_count: usize) -> serde
     let is_reifier = |node: &&serde_json::Value| {
         node["@type"].as_array().is_some_and(|types| {
             types.contains(&serde_json::Value::String(
-                crate::formats::jsonld::RDF_STATEMENT.into(),
+                mere::formats::jsonld::RDF_STATEMENT.into(),
             ))
         })
     };
@@ -310,7 +312,7 @@ fn assert_round_trip(contribution: &GraphContribution, graph: &Graph) {
         .expect("node a");
     assert_eq!(a.title.as_deref(), Some("Article A"));
     assert_eq!(a.tags, vec!["research".to_string()]);
-    let expected = crate::from_quads(crate::dataset_quads(graph), "round-trip oracle")
+    let expected = mere::from_quads(mere::dataset_quads(graph), "round-trip oracle")
         .expect("native RDF contribution");
     assert_eq!(
         contribution, &expected,
@@ -318,12 +320,12 @@ fn assert_round_trip(contribution: &GraphContribution, graph: &Graph) {
     );
 }
 
-#[path = "tests/history.rs"]
+#[path = "projection/history.rs"]
 mod history;
 
-#[path = "tests/roundtrip.rs"]
+#[path = "projection/roundtrip.rs"]
 mod roundtrip;
 
 #[cfg(feature = "query")]
-#[path = "tests/sparql.rs"]
+#[path = "projection/sparql.rs"]
 mod sparql;

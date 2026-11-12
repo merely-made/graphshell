@@ -5,22 +5,22 @@
 // SPDX-License-Identifier: MPL-2.0
 
 #[cfg(not(target_arch = "wasm32"))]
-use kernel::graph::apply::{self as graph_apply, GraphDelta, GraphDeltaResult, apply_graph_delta};
+use crate::graph::apply::{self as graph_apply, GraphDelta, GraphDeltaResult, apply_graph_delta};
 #[cfg(not(target_arch = "wasm32"))]
-use kernel::graph::{
+use crate::graph::{
     Graph, NodeKey, ProvenanceSubKind, ResourceNode, SemanticStatement, SemanticStatementSpec,
     SemanticSubKind, sub_kind_from_iri,
 };
 #[cfg(not(target_arch = "wasm32"))]
-use kernel::types::{
+use crate::types::{
     ClassificationProvenance, ClassificationScheme, ClassificationStatus, NodeClassification,
     NodeDerivation,
 };
 
 #[cfg(not(target_arch = "wasm32"))]
-use super::{GraphContribution, ImportEnvelope, NodeContribution, SubjectIdentity};
+use crate::persistence::PersistedResourceRecord;
 #[cfg(not(target_arch = "wasm32"))]
-use kernel::persistence::PersistedResourceRecord;
+use mere::{GraphContribution, ImportEnvelope, NodeContribution, SubjectIdentity};
 
 #[cfg(not(target_arch = "wasm32"))]
 #[path = "exact.rs"]
@@ -79,9 +79,9 @@ pub fn apply_import_with_identity(
 ) -> ApplyOutcome {
     apply_inner(
         graph,
-        &envelope.contribution,
+        envelope.contribution(),
         identity,
-        Some(&envelope.evidence),
+        Some(envelope.evidence()),
     )
 }
 
@@ -90,7 +90,7 @@ fn apply_inner(
     graph: &mut Graph,
     contribution: &GraphContribution,
     identity: impl FnMut(&NodeContribution) -> SubjectIdentity,
-    evidence: Option<&super::envelope::ImportEvidence>,
+    evidence: Option<&mere::acquire::ingest::envelope::ImportEvidence>,
 ) -> ApplyOutcome {
     let admission = (graph.resource_nodes().count(), graph.node_count());
     let appearances = graph.appearance_admission_revision();
@@ -111,7 +111,7 @@ fn apply_suppressed(
     graph: &mut Graph,
     contribution: &GraphContribution,
     mut identity: impl FnMut(&NodeContribution) -> SubjectIdentity,
-    evidence: Option<&super::envelope::ImportEvidence>,
+    evidence: Option<&mere::acquire::ingest::envelope::ImportEvidence>,
 ) -> ApplyOutcome {
     use std::collections::HashMap;
 
@@ -225,11 +225,11 @@ fn apply_suppressed(
         };
         if let Some(id) = graph.shown_resource_id(key) {
             for label in &node.tags {
-                let concept_iri = kernel::graph::resource_tags::tag_concept_iri(source, label);
+                let concept_iri = crate::graph::resource_tags::tag_concept_iri(source, label);
                 let _ = graph.tag_resource_with_asserter(
                     id,
                     &concept_iri,
-                    kernel::graph::resource_tags::TagConcept {
+                    crate::graph::resource_tags::TagConcept {
                         owner_iri: source.into(),
                         label: label.clone(),
                     },
@@ -242,7 +242,7 @@ fn apply_suppressed(
             && graph
                 .define_tag_concept(
                     id,
-                    kernel::graph::resource_tags::TagConcept {
+                    crate::graph::resource_tags::TagConcept {
                         owner_iri: definition.owner.clone(),
                         label: definition.label.clone(),
                     },
@@ -270,7 +270,9 @@ fn apply_suppressed(
             key,
             node.types
                 .iter()
-                .filter(|iri| !is_definition || iri.as_str() != super::envelope::SKOS_CONCEPT)
+                .filter(|iri| {
+                    !is_definition || iri.as_str() != mere::acquire::ingest::envelope::SKOS_CONCEPT
+                })
                 .map(|type_iri| rdf_type_classification(type_iri))
                 .collect(),
         );
@@ -287,7 +289,7 @@ fn apply_suppressed(
                 .iter()
                 .filter(|property| {
                     property.predicate == "http://www.w3.org/2004/02/skos/core#prefLabel"
-                        && property.graph_scope == kernel::types::GraphScope::Default
+                        && property.graph_scope == crate::types::GraphScope::Default
                 })
                 .collect();
             let labels: std::collections::BTreeSet<_> = descriptions
@@ -306,7 +308,7 @@ fn apply_suppressed(
                 .filter(|edge| {
                     edge.subject == node.id
                         && edge.predicate == "http://www.w3.org/ns/prov#wasAttributedTo"
-                        && edge.graph_scope == kernel::types::GraphScope::Default
+                        && edge.graph_scope == crate::types::GraphScope::Default
                 })
                 .map(|edge| edge.object.as_str())
                 .collect();
@@ -317,7 +319,7 @@ fn apply_suppressed(
             {
                 let _ = graph.define_tag_concept(
                     id,
-                    kernel::graph::resource_tags::TagConcept {
+                    crate::graph::resource_tags::TagConcept {
                         owner_iri: (*owners.first().unwrap()).into(),
                         label: (*labels.first().unwrap()).into(),
                     },

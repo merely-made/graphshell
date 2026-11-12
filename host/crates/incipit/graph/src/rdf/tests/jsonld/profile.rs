@@ -20,8 +20,8 @@ fn four_formats_preserve_the_complete_assertion_profile() {
             .iter()
             .any(|quad| quad.contains("vocab#A") && quad.contains("vocab#B"))
     );
-    let expanded = crate::to_jsonld(&graph);
-    let compact = crate::to_jsonld_compact(&graph);
+    let expanded = mere::to_jsonld(&graph);
+    let compact = mere::to_jsonld_compact(&graph);
     let expanded_text = serde_json::to_vec(&expanded).unwrap();
     let compact_text = serde_json::to_vec(&compact).unwrap();
     assert!(
@@ -39,14 +39,14 @@ fn four_formats_preserve_the_complete_assertion_profile() {
             .as_array()
             .unwrap()
             .iter()
-            .any(|node| { node["@id"] == crate::GRAPH_SCOPE_USER && node["@graph"].is_array() })
+            .any(|node| { node["@id"] == mere::GRAPH_SCOPE_USER && node["@graph"].is_array() })
     );
 
     let contributions = [
-        crate::from_jsonld(&expanded_text).unwrap(),
-        crate::from_jsonld(&compact_text).unwrap(),
-        crate::from_nquads(&crate::to_nquads(&graph), "formats").unwrap(),
-        crate::from_trig(&crate::to_trig(&graph).unwrap(), "formats").unwrap(),
+        mere::from_jsonld(&expanded_text).unwrap(),
+        mere::from_jsonld(&compact_text).unwrap(),
+        mere::from_nquads(&mere::to_nquads(&graph), "formats").unwrap(),
+        mere::from_trig(&mere::to_trig(&graph).unwrap(), "formats").unwrap(),
     ];
     for (index, contribution) in contributions.iter().enumerate() {
         assert_eq!(
@@ -63,7 +63,7 @@ fn four_formats_preserve_the_complete_assertion_profile() {
             3
         );
         let mut restored = Graph::new();
-        let outcome = crate::apply_contribution(&mut restored, contribution);
+        let outcome = crate::rdf::apply_contribution(&mut restored, contribution);
         assert_eq!(outcome.edges_skipped, 0);
         assert_eq!(outcome.edges_asserted, 9);
         assert_eq!(
@@ -72,7 +72,7 @@ fn four_formats_preserve_the_complete_assertion_profile() {
             "format {index}: exact profile"
         );
         let before = normalized(&restored);
-        crate::apply_contribution(&mut restored, contribution);
+        crate::rdf::apply_contribution(&mut restored, contribution);
         assert_eq!(
             normalized(&restored),
             before,
@@ -82,13 +82,13 @@ fn four_formats_preserve_the_complete_assertion_profile() {
         {
             let query = format!(
                 "SELECT ?id ?author ?time WHERE {{ GRAPH <{}> {{ ?id <{}> ?triple ; <{}> ?author ; <{}> ?time }} }}",
-                crate::GRAPH_SCOPE_USER,
+                mere::GRAPH_SCOPE_USER,
                 RDF_REIFIES,
-                crate::PROV_WAS_ATTRIBUTED_TO,
-                crate::PROV_GENERATED_AT_TIME,
+                mere::PROV_WAS_ATTRIBUTED_TO,
+                mere::PROV_GENERATED_AT_TIME,
             );
-            let mut expected_rows = crate::query::sparql(&graph, &query).unwrap().rows;
-            let mut rows = crate::query::sparql(&restored, &query).unwrap().rows;
+            let mut expected_rows = mere::query::sparql(&graph, &query).unwrap().rows;
+            let mut rows = mere::query::sparql(&restored, &query).unwrap().rows;
             assert_eq!(
                 expected_rows.len(),
                 5,
@@ -129,7 +129,7 @@ fn two_classic_literal_reifiers_retain_ids_and_sources() {
         ));
         input.push(quad(
             &statement_reifier_id(id),
-            crate::PROV_WAS_ATTRIBUTED_TO,
+            mere::PROV_WAS_ATTRIBUTED_TO,
             NamedNode::new(author).unwrap().into(),
             GraphName::DefaultGraph,
         ));
@@ -240,7 +240,7 @@ fn nonclassic_reifiers_keep_existing_known_field_attachment() {
         ),
         quad(
             &wrapper,
-            crate::RDFS_LABEL,
+            mere::RDFS_LABEL,
             oxrdf::Literal::new_language_tagged_literal("bonjour", "fr")
                 .unwrap()
                 .into(),
@@ -248,13 +248,13 @@ fn nonclassic_reifiers_keep_existing_known_field_attachment() {
         ),
         quad(
             &wrapper,
-            crate::PROV_GENERATED_AT_TIME,
+            mere::PROV_GENERATED_AT_TIME,
             oxrdf::Literal::new_simple_literal("1970-01-01T00:00:00Z").into(),
             graph.clone(),
         ),
         quad(
             &wrapper,
-            crate::PROV_WAS_ATTRIBUTED_TO,
+            mere::PROV_WAS_ATTRIBUTED_TO,
             NamedNode::new("https://author.test/").unwrap().into(),
             graph,
         ),

@@ -8,7 +8,7 @@ use super::*;
 
 #[test]
 fn rdf_subject_identity_is_exact_by_default_and_pages_are_explicit() {
-    use kernel::graph::ResourceNode;
+    use crate::graph::ResourceNode;
     use oxrdf::{GraphName, Literal, NamedNode};
     let terms = ["https://vocab.test/terms#A", "https://vocab.test/terms#B"];
     let pages = [
@@ -113,8 +113,8 @@ fn rdf_subject_identity_is_exact_by_default_and_pages_are_explicit() {
 
 #[test]
 fn exact_subject_binding_replays_without_an_implicit_page_resource() {
-    use kernel::graph::ResourceNode;
-    use kernel::graph::capture::{CapturedDelta, replay_captured_deltas};
+    use crate::graph::ResourceNode;
+    use crate::graph::capture::{CapturedDelta, replay_captured_deltas};
     use std::sync::{Arc, Mutex};
 
     let iri = "https://vocab.test/terms#Case";
@@ -178,9 +178,9 @@ fn exact_subject_binding_replays_without_an_implicit_page_resource() {
 
 #[test]
 fn subject_identity_preserves_existing_resource_metadata_and_shown_binding() {
-    use kernel::graph::ResourceNode;
-    use kernel::graph::apply::{GraphDelta, apply_graph_delta};
-    use kernel::persistence::{PersistedResourceFacet, PersistedResourceRecord};
+    use crate::graph::ResourceNode;
+    use crate::graph::apply::{GraphDelta, apply_graph_delta};
+    use crate::persistence::{PersistedResourceFacet, PersistedResourceRecord};
 
     let iri = "https://vocab.test/terms#A";
     let prepared = ResourceNode::for_term(iri);

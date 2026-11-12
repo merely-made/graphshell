@@ -181,8 +181,8 @@ fn compact_export_round_trips_through_ingest() {
 /// handles. "Lossless under the profile" as a checked property.
 #[test]
 fn dataset_round_trip_is_lossless_under_the_profile() {
-    use super::super::{GRAPH_SCOPE_USER, RDF_REIFIES};
-    use kernel::graph::SemanticStatementSpec;
+    use crate::graph::SemanticStatementSpec;
+    use mere::{GRAPH_SCOPE_USER, RDF_REIFIES};
     use oxrdf::{GraphName, NamedNode, Term};
 
     let mut graph = Graph::new();
@@ -263,9 +263,9 @@ fn dataset_round_trip_is_lossless_under_the_profile() {
     published.datatype = Some("http://www.w3.org/2001/XMLSchema#date".to_string());
     published.provenance_iri = Some("https://persona.test/mark".to_string());
     published.asserted_at_ms = Some(1_720_000_200_000);
-    kernel::graph::apply::apply_graph_delta(
+    crate::graph::apply::apply_graph_delta(
         &mut graph,
-        kernel::graph::apply::GraphDelta::AppendNodeProperty {
+        crate::graph::apply::GraphDelta::AppendNodeProperty {
             key: a,
             property: published,
         },
@@ -275,33 +275,33 @@ fn dataset_round_trip_is_lossless_under_the_profile() {
         "bonjour".to_string(),
     );
     greeting.lang = Some("fr".to_string());
-    kernel::graph::apply::apply_graph_delta(
+    crate::graph::apply::apply_graph_delta(
         &mut graph,
-        kernel::graph::apply::GraphDelta::AppendNodeProperty {
+        crate::graph::apply::GraphDelta::AppendNodeProperty {
             key: a,
             property: greeting,
         },
     );
 
     // rdf:type via classification (through the delta, the public write).
-    let _ = kernel::graph::apply::apply_graph_delta(
+    let _ = crate::graph::apply::apply_graph_delta(
         &mut graph,
-        kernel::graph::apply::GraphDelta::AddNodeClassification {
+        crate::graph::apply::GraphDelta::AddNodeClassification {
             key: a,
-            classification: kernel::types::NodeClassification {
-                scheme: kernel::types::ClassificationScheme::Custom("rdf:type".to_string()),
+            classification: crate::types::NodeClassification {
+                scheme: crate::types::ClassificationScheme::Custom("rdf:type".to_string()),
                 value: "https://schema.org/Article".to_string(),
                 label: None,
                 confidence: 1.0,
-                provenance: kernel::types::ClassificationProvenance::Imported,
-                status: kernel::types::ClassificationStatus::Imported,
+                provenance: crate::types::ClassificationProvenance::Imported,
+                status: crate::types::ClassificationStatus::Imported,
                 primary: false,
             },
         },
     );
 
     let normalized = |graph: &Graph| -> Vec<String> {
-        let mut lines: Vec<String> = crate::dataset_quads(graph)
+        let mut lines: Vec<String> = mere::dataset_quads(graph)
             .iter()
             .map(|quad| format!("{quad} ."))
             .collect();
@@ -310,7 +310,7 @@ fn dataset_round_trip_is_lossless_under_the_profile() {
     };
     let exported = normalized(&graph);
 
-    let reifiers: Vec<_> = crate::dataset_quads(&graph)
+    let reifiers: Vec<_> = mere::dataset_quads(&graph)
         .into_iter()
         .filter(|quad| {
             quad.predicate.as_str() == RDF_REIFIES
@@ -327,10 +327,11 @@ fn dataset_round_trip_is_lossless_under_the_profile() {
         "one shared triple term"
     );
 
-    let contribution = crate::acquire::ingest::from_quads_envelope(crate::dataset_quads(&graph), "gate")
-        .expect("quad ingest");
+    let contribution =
+        mere::acquire::ingest::from_quads_envelope(mere::dataset_quads(&graph), "gate")
+            .expect("quad ingest");
     let mut reimported = Graph::new();
-    let outcome = crate::acquire::ingest::apply_import(&mut reimported, &contribution);
+    let outcome = crate::rdf::apply_import(&mut reimported, &contribution);
     assert!(outcome.edges_skipped == 0, "self-contained contribution");
     assert_eq!(
         outcome.edges_asserted, 5,

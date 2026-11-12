@@ -12,7 +12,7 @@ fn sparql_selects_a_literal_and_an_edge_over_node_quads() {
     let graph = seed();
 
     // A curated literal: A's schema:name.
-    let names = crate::query::sparql(
+    let names = mere::query::sparql(
         &graph,
         "SELECT ?name WHERE { <https://a.test> <https://schema.org/name> ?name }",
     )
@@ -21,7 +21,7 @@ fn sparql_selects_a_literal_and_an_edge_over_node_quads() {
     assert_eq!(names.rows, vec![vec![Some("Article A".to_string())]]);
 
     // A recognized semantic edge: A cites B (canonical Mere IRI).
-    let cites = crate::query::sparql(
+    let cites = mere::query::sparql(
         &graph,
         "SELECT ?t WHERE { <https://a.test> <https://mere.computer/ns/rel#cites> ?t }",
     )
@@ -36,7 +36,7 @@ fn sparql_graph_clause_sees_scoped_statements_and_properties() {
     let a = graph.add_node("https://a.test".to_string(), Default::default());
     let b = graph.add_node("https://b.test".to_string(), Default::default());
 
-    kernel::graph::apply::assert_semantic_relation_in_scope(
+    crate::graph::apply::assert_semantic_relation_in_scope(
         &mut graph,
         a,
         b,
@@ -55,7 +55,7 @@ fn sparql_graph_clause_sees_scoped_statements_and_properties() {
     ]
     ));
 
-    let scoped_edge = crate::query::sparql(
+    let scoped_edge = mere::query::sparql(
         &graph,
         "SELECT ?t WHERE { GRAPH <https://mere.computer/ns/graph#source> { <https://a.test> <https://mere.computer/ns/rel#cites> ?t } }",
     )
@@ -65,7 +65,7 @@ fn sparql_graph_clause_sees_scoped_statements_and_properties() {
         vec![vec![Some("https://b.test".to_string())]]
     );
 
-    let scoped_property = crate::query::sparql(
+    let scoped_property = mere::query::sparql(
         &graph,
         "SELECT ?v WHERE { GRAPH <https://mere.computer/ns/graph#user> { <https://a.test> <https://schema.org/datePublished> ?v } }",
     )
@@ -83,7 +83,7 @@ fn sparql_exposes_reifier_metadata_but_node_quads_stay_clean() {
     let a = graph.add_node("https://a.test".to_string(), Default::default());
     let b = graph.add_node("https://b.test".to_string(), Default::default());
 
-    kernel::graph::apply::assert_semantic_relation_in_scope(
+    crate::graph::apply::assert_semantic_relation_in_scope(
         &mut graph,
         a,
         b,
@@ -127,7 +127,7 @@ fn sparql_exposes_reifier_metadata_but_node_quads_stay_clean() {
             .all(|quad| quad.predicate.as_str() != RDF_REIFIES)
     );
 
-    let edge_metadata = crate::query::sparql(
+    let edge_metadata = mere::query::sparql(
         &graph,
         "SELECT ?prov ?label WHERE {
                 GRAPH <https://mere.computer/ns/graph#source> {
@@ -145,7 +145,7 @@ fn sparql_exposes_reifier_metadata_but_node_quads_stay_clean() {
         ]]
     );
 
-    let property_metadata = crate::query::sparql(
+    let property_metadata = mere::query::sparql(
         &graph,
         "SELECT ?prov WHERE {
                 GRAPH <https://mere.computer/ns/graph#user> {

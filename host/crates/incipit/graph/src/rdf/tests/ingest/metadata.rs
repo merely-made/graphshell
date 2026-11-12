@@ -76,7 +76,7 @@ fn single_valued_lifecycle_metadata_rejects_conflicts_independent_of_quad_order(
     ];
 
     for (predicate, first, second, field) in conflicts {
-        let reifier = NamedNode::new(crate::reifier::statement_reifier_id("conflict")).unwrap();
+        let reifier = NamedNode::new(mere::reifier::statement_reifier_id("conflict")).unwrap();
         let reifies = NamedNode::new(RDF_REIFIES).unwrap();
         let base = Triple::new(
             NamedNode::new("https://subject.test/").unwrap(),
@@ -125,7 +125,7 @@ fn single_valued_lifecycle_metadata_rejects_conflicts_independent_of_quad_order(
 fn identical_single_valued_lifecycle_metadata_duplicates_are_accepted() {
     use oxrdf::{Literal, NamedNode, Triple};
 
-    let reifier = NamedNode::new(crate::reifier::statement_reifier_id("duplicate")).unwrap();
+    let reifier = NamedNode::new(mere::reifier::statement_reifier_id("duplicate")).unwrap();
     let reifies = NamedNode::new(RDF_REIFIES).unwrap();
     let predicate = NamedNode::new(MERE_LAST_ASSERTED_AT).unwrap();
     let date = Literal::new_typed_literal(
@@ -162,7 +162,7 @@ fn identical_single_valued_lifecycle_metadata_duplicates_are_accepted() {
 fn conflicting_reifies_targets_are_rejected_independent_of_quad_order() {
     use oxrdf::{NamedNode, Triple};
 
-    let reifier_iri = crate::reifier::statement_reifier_id("target-conflict");
+    let reifier_iri = mere::reifier::statement_reifier_id("target-conflict");
     let reifier = NamedNode::new(&reifier_iri).unwrap();
     let reifies = NamedNode::new(RDF_REIFIES).unwrap();
     let predicate = NamedNode::new("https://predicate.test/rel").unwrap();
@@ -201,7 +201,7 @@ fn conflicting_reifies_targets_are_rejected_independent_of_quad_order() {
 fn identical_reifies_target_duplicates_are_accepted() {
     use oxrdf::{NamedNode, Triple};
 
-    let reifier_iri = crate::reifier::statement_reifier_id("target-duplicate");
+    let reifier_iri = mere::reifier::statement_reifier_id("target-duplicate");
     let reifier = NamedNode::new(&reifier_iri).unwrap();
     let target = Quad::new(
         reifier.clone(),
@@ -227,7 +227,7 @@ fn partial_withdrawal_time_without_activity_is_preserved_as_tombstone() {
     use oxrdf::{Literal, NamedNode, Triple};
 
     let reifier =
-        NamedNode::new(crate::reifier::statement_reifier_id("partial-withdrawal")).unwrap();
+        NamedNode::new(mere::reifier::statement_reifier_id("partial-withdrawal")).unwrap();
     let base = Quad::new(
         reifier.clone(),
         NamedNode::new(RDF_REIFIES).unwrap(),
@@ -261,7 +261,7 @@ fn partial_withdrawal_time_without_activity_is_preserved_as_tombstone() {
 fn supplied_last_asserted_time_survives_without_lifecycle_marker() {
     use oxrdf::{Literal, NamedNode, Triple};
 
-    let reifier = NamedNode::new(crate::reifier::statement_reifier_id("unversioned-last")).unwrap();
+    let reifier = NamedNode::new(mere::reifier::statement_reifier_id("unversioned-last")).unwrap();
     let base = Quad::new(
         reifier.clone(),
         NamedNode::new(RDF_REIFIES).unwrap(),
@@ -301,10 +301,8 @@ fn supplied_last_asserted_time_survives_without_lifecycle_marker() {
 fn method_version_without_method_iri_is_rejected() {
     use oxrdf::{Literal, NamedNode, Triple};
 
-    let reifier = NamedNode::new(crate::reifier::statement_reifier_id(
-        "orphan-method-version",
-    ))
-    .unwrap();
+    let reifier =
+        NamedNode::new(mere::reifier::statement_reifier_id("orphan-method-version")).unwrap();
     let base = Quad::new(
         reifier.clone(),
         NamedNode::new(RDF_REIFIES).unwrap(),

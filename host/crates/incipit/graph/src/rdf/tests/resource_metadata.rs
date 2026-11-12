@@ -5,17 +5,20 @@
 // SPDX-License-Identifier: MPL-2.0
 
 use super::*;
-use crate::{
-    RDF_REIFIES, apply_contribution, apply_import, dataset_quads, from_jsonld,
-    from_jsonld_envelope, from_nquads_envelope, from_trig_envelope, to_jsonld, to_jsonld_compact,
-    to_nquads, to_trig,
-};
-use kernel::graph::apply::{GraphDelta, add_node, apply_graph_delta};
-use kernel::graph::{Author, ResourceNode};
-use kernel::types::{
+use crate::graph::apply::{GraphDelta, add_node, apply_graph_delta};
+use crate::graph::{Author, ResourceNode};
+use crate::rdf::{apply_contribution, apply_import};
+use crate::types::{
     ClassificationProvenance, ClassificationStatus, NodeClassification, NodeProperty,
 };
-use oxrdf::GraphName;
+use mere::projection::{SKOS_CONCEPT, SKOS_PREF_LABEL};
+#[allow(unused_imports)]
+use mere::*;
+use mere::{
+    RDF_REIFIES, dataset_quads, from_jsonld, from_jsonld_envelope, from_nquads_envelope,
+    from_trig_envelope, to_jsonld, to_jsonld_compact, to_nquads, to_trig,
+};
+use oxrdf::{GraphName, Term};
 
 fn fixture() -> Graph {
     let mut graph = Graph::new();
@@ -131,7 +134,7 @@ fn resource_metadata_canonical_subjects_affirmative_types_and_reifiers() {
     );
     #[cfg(feature = "query")]
     {
-        let rows = crate::query::sparql(
+        let rows = mere::query::sparql(
             &graph,
             "SELECT ?s WHERE { ?s <urn:predicate:greeting> ?v } ORDER BY ?s",
         )
@@ -141,7 +144,7 @@ fn resource_metadata_canonical_subjects_affirmative_types_and_reifiers() {
             rows.rows[0][0].as_deref(),
             Some("https://example.test/page")
         );
-        let rows=crate::query::sparql(&graph,"SELECT ?r WHERE { { ?r <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> ?t } UNION { GRAPH ?g { ?r <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> ?t } } }").unwrap();
+        let rows=mere::query::sparql(&graph,"SELECT ?r WHERE { { ?r <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> ?t } UNION { GRAPH ?g { ?r <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> ?t } } }").unwrap();
         assert_eq!(rows.rows.len(), 4);
     }
 }
@@ -262,7 +265,7 @@ fn envelope_keeps_paired_definition_and_literal_assertions_with_exact_handles() 
             SKOS_PREF_LABEL,
             Literal::new_simple_literal("Paired").into(),
         ),
-        (crate::PROV_WAS_ATTRIBUTED_TO, owner.clone().into()),
+        (mere::PROV_WAS_ATTRIBUTED_TO, owner.clone().into()),
         (
             "urn:predicate:ordinary",
             Literal::new_simple_literal("value").into(),
@@ -283,7 +286,7 @@ fn envelope_keeps_paired_definition_and_literal_assertions_with_exact_handles() 
             ["", "label\nopaque"],
         ),
         (
-            crate::PROV_WAS_ATTRIBUTED_TO,
+            mere::PROV_WAS_ATTRIBUTED_TO,
             owner.into(),
             ["owner\0opaque", "00000000-0000-0000-0000-000000000001"],
         ),
@@ -308,7 +311,7 @@ fn envelope_keeps_paired_definition_and_literal_assertions_with_exact_handles() 
             );
         }
     }
-    let envelope = crate::from_quads_envelope(quads.clone(), "paired").unwrap();
+    let envelope = mere::from_quads_envelope(quads.clone(), "paired").unwrap();
     let mut graph = Graph::new();
     assert_eq!(apply_import(&mut graph, &envelope).edges_skipped, 0);
     let id = ResourceNode::for_term(subject.as_str()).id();
@@ -425,7 +428,7 @@ fn envelope_foreign_definition_controls_keep_partial_typed_and_scoped_claims() {
             text.push_str(&format!(
                 " {} <{owner}>",
                 if index == 0 {
-                    format!("; <{}>", crate::PROV_WAS_ATTRIBUTED_TO)
+                    format!("; <{}>", mere::PROV_WAS_ATTRIBUTED_TO)
                 } else {
                     ",".into()
                 }

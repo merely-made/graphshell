@@ -5,14 +5,23 @@
 // SPDX-License-Identifier: MPL-2.0
 
 use super::*;
-use crate::acquire::ingest::{IngestError, from_quads};
-use crate::reifier::statement_reifier_id;
-use kernel::graph::fixtures::GraphFixtures;
-use kernel::graph::resource::ResourceNode;
-use kernel::graph::{Graph, SemanticStatement};
-use kernel::persistence::{PersistedEdge, PersistedEdgeFamily, PersistedResourceRecord};
-use kernel::persistence::{PersistedSemanticEdgeData, PersistedSemanticStatement};
-use kernel::types::{GraphScope, NodeProperty};
+use crate::graph::resource::ResourceNode;
+use crate::graph::{Graph, SemanticStatement};
+use crate::persistence::PersistedSemanticStatement;
+use crate::persistence::{PersistedEdge, PersistedEdgeFamily, PersistedResourceRecord};
+use crate::types::{GraphScope, NodeProperty};
+use mere::acquire::ingest::{IngestError, from_quads};
+#[allow(unused_imports)]
+use mere::formats::jsonld::*;
+use mere::reifier::statement_reifier_id;
+#[allow(unused_imports)]
+use mere::*;
+#[allow(unused_imports)]
+use oxrdf::{GraphName, NamedNode, NamedOrBlankNode, Quad, Term, Triple};
+#[allow(unused_imports)]
+use serde_json::{Map, Value, json};
+#[allow(unused_imports)]
+use std::collections::{BTreeMap, HashMap, HashSet};
 
 fn quad(subject: &str, predicate: &str, object: Term, graph: GraphName) -> Quad {
     Quad::new(
@@ -43,7 +52,7 @@ fn classic_record(
 }
 
 fn normalized(graph: &Graph) -> Vec<String> {
-    let mut quads: Vec<_> = crate::dataset_quads(graph)
+    let mut quads: Vec<_> = mere::dataset_quads(graph)
         .into_iter()
         .map(|quad| quad.to_string())
         .collect();
@@ -139,7 +148,7 @@ fn profile_graph() -> Graph {
                 .enumerate()
                 .map(|(index, id)| PersistedSemanticStatement {
                     statement_id: id.into(),
-                    predicate: kernel::graph::resource::TAGGED_WITH_IRI.into(),
+                    predicate: crate::graph::resource::TAGGED_WITH_IRI.into(),
                     recognized_sub_kind: None,
                     label: Some(format!("resource {index}")),
                     basis: Default::default(),
@@ -170,13 +179,15 @@ fn profile_graph() -> Graph {
     graph
 }
 
+#[path = "jsonld/descriptions.rs"]
 mod descriptions;
+#[path = "jsonld/profile.rs"]
 mod profile;
 
 #[cfg(feature = "query")]
 mod directional_descriptions {
     use super::*;
-    use crate::acquire::ingest::GraphContribution;
+    use mere::acquire::ingest::GraphContribution;
     use oxjsonld::JsonLdParser;
     use oxrdf::BaseDirection;
 
@@ -194,7 +205,7 @@ mod directional_descriptions {
                 (RDF_SUBJECT): {"@id": "urn:subject"},
                 (RDF_PREDICATE): {"@id": "urn:predicate"},
                 (RDF_OBJECT): description_objects,
-                (crate::PROV_WAS_ATTRIBUTED_TO): {"@id": "urn:author"}
+                (mere::PROV_WAS_ATTRIBUTED_TO): {"@id": "urn:author"}
             }
         ]))
         .unwrap()
@@ -230,7 +241,7 @@ mod directional_descriptions {
         for (predicate, object) in [
             (RDF_SUBJECT, "urn:subject"),
             (RDF_PREDICATE, "urn:predicate"),
-            (crate::PROV_WAS_ATTRIBUTED_TO, "urn:author"),
+            (mere::PROV_WAS_ATTRIBUTED_TO, "urn:author"),
         ] {
             assert!(contribution.edges.iter().any(|edge| {
                 edge.subject == "urn:foreign:claim"
@@ -254,7 +265,7 @@ mod directional_descriptions {
         let bytes = input(json!({
             "@value": "same", "@language": "en", "@direction": "rtl"
         }));
-        let contribution = crate::from_jsonld(&bytes).unwrap();
+        let contribution = mere::from_jsonld(&bytes).unwrap();
         assert_eq!(asserted_property(&contribution).provenance_iri, None);
         assert_ordinary_description(&contribution, &bytes);
     }
@@ -264,7 +275,7 @@ mod directional_descriptions {
         let bytes = input(json!({
             "@value": "same", "@language": "en", "@direction": "ltr"
         }));
-        let contribution = crate::from_jsonld(&bytes).unwrap();
+        let contribution = mere::from_jsonld(&bytes).unwrap();
         assert_eq!(
             asserted_property(&contribution).provenance_iri.as_deref(),
             Some("urn:author")
@@ -306,7 +317,7 @@ mod directional_descriptions {
             {"@value": "same", "@language": "en", "@direction": "ltr"},
             {"@value": "same", "@language": "en", "@direction": "rtl"}
         ]));
-        let contribution = crate::from_jsonld(&bytes).unwrap();
+        let contribution = mere::from_jsonld(&bytes).unwrap();
         assert_eq!(asserted_property(&contribution).provenance_iri, None);
         assert_ordinary_description(&contribution, &bytes);
         let objects = JsonLdParser::new()

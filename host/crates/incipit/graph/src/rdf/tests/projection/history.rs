@@ -8,7 +8,7 @@ use super::*;
 
 #[test]
 fn default_export_omits_withdrawn_surface_and_resource_assertions() {
-    use kernel::graph::{RelationKey, SemanticStatementSpec, predicate_iri};
+    use crate::graph::{RelationKey, SemanticStatementSpec, predicate_iri};
 
     let mut graph = Graph::new();
     let a = graph.add_node("https://a.test".to_string(), Default::default());
@@ -104,8 +104,8 @@ fn default_export_omits_withdrawn_surface_and_resource_assertions() {
 
 #[test]
 fn all_family_assertions_export_distinct_reifiers_and_withdrawal_history() {
-    use kernel::graph::{ContainmentSubKind, ImportedSubKind, RelationKind, SemanticStatement};
-    use kernel::types::{AssertionBasis, AssertionMethod};
+    use crate::graph::{ContainmentSubKind, ImportedSubKind, RelationKind, SemanticStatement};
+    use crate::types::{AssertionBasis, AssertionMethod};
 
     let mut graph = Graph::new();
     let from = graph.add_node("https://family.test/from".into(), Default::default());
@@ -203,7 +203,7 @@ fn all_family_assertions_export_distinct_reifiers_and_withdrawal_history() {
     assert!(!expanded.contains(&statement_reifier_id("family:withdrawn")));
     #[cfg(feature = "query")]
     {
-        let rows = super::super::query::sparql(
+        let rows = mere::query::sparql(
             &graph,
             &format!(
                 "SELECT ?target WHERE {{ GRAPH <urn:family:scope> {{ <https://family.test/from> <{predicate}> ?target }} }}"
@@ -340,13 +340,13 @@ fn all_family_assertions_export_distinct_reifiers_and_withdrawal_history() {
 
 #[test]
 fn explicit_history_roundtrips_lifecycle_basis_and_original_scope() {
-    use kernel::graph::{Author, SemanticStatement};
-    use kernel::types::{AssertionBasis, AssertionMethod, AssertionWithdrawal};
+    use crate::graph::{Author, SemanticStatement};
+    use crate::types::{AssertionBasis, AssertionMethod, AssertionWithdrawal};
 
     let mut graph = Graph::new();
     let from = graph.add_node("https://history.test/from".into(), Default::default());
     let to = graph.add_node("https://history.test/to".into(), Default::default());
-    let predicate = kernel::graph::predicate_iri(SemanticSubKind::Cites).to_string();
+    let predicate = crate::graph::predicate_iri(SemanticSubKind::Cites).to_string();
     let id = "rdf:history/withdrawn:one";
     let basis = AssertionBasis {
         note: Some("checked against source".into()),
@@ -539,7 +539,7 @@ fn explicit_history_roundtrips_lifecycle_basis_and_original_scope() {
 
     let jsonld = to_jsonld_with_history(&graph);
     let envelope =
-        crate::from_jsonld_envelope(serde_json::to_string(&jsonld).unwrap().as_bytes()).unwrap();
+        mere::from_jsonld_envelope(serde_json::to_string(&jsonld).unwrap().as_bytes()).unwrap();
     let mut restored_jsonld = Graph::new();
     apply_import(&mut restored_jsonld, &envelope);
     let (_, restored_tombstone) = restored_jsonld.find_semantic_statement(id).unwrap();

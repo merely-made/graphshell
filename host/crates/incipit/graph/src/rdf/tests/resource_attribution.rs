@@ -4,10 +4,11 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 // SPDX-License-Identifier: MPL-2.0
 
-use crate::{apply_contribution, from_jsonld};
-use kernel::graph::resource::TAGGED_WITH_IRI;
-use kernel::graph::resource_tags::tag_concept_iri;
-use kernel::graph::{Author, Graph, ResourceNode};
+use crate::graph::resource::TAGGED_WITH_IRI;
+use crate::graph::resource_tags::tag_concept_iri;
+use crate::graph::{Author, Graph, ResourceNode};
+use crate::rdf::apply_contribution;
+use mere::from_jsonld;
 #[test]
 fn resource_metadata_foreign_keywords_use_explicit_agent_else_source() {
     let contribution=from_jsonld(br#"[

@@ -4,9 +4,8 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 // SPDX-License-Identifier: MPL-2.0
 
-use super::{IndexedDataset, View, sparql, sparql_on};
-use kernel::graph::fixtures::GraphFixtures;
-use kernel::graph::{Graph, SemanticStatementSpec};
+use crate::graph::{Graph, SemanticStatementSpec};
+use mere::query::{IndexedDataset, View, sparql, sparql_on};
 use oxrdf::{GraphName, Literal, NamedNode, Quad};
 
 fn named(iri: &str) -> NamedNode {

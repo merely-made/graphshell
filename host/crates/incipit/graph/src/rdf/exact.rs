@@ -6,17 +6,17 @@
 
 //! Exact carried assertions use record captures, not live content deduplication.
 
-use super::super::EdgeContribution;
-use kernel::graph::apply::{GraphDelta, apply_graph_delta};
-use kernel::graph::predicate_registry::GraphStratum;
-use kernel::graph::resource_content::RESOURCE_PROPERTIES;
-use kernel::graph::resource_properties::merge_resource_properties;
-use kernel::graph::{EdgeFamily, Graph, NodeKey, RelationKind, sub_kind_from_iri};
-use kernel::persistence::{
+use crate::graph::GraphStratum;
+use crate::graph::apply::{GraphDelta, apply_graph_delta};
+use crate::graph::resource_content::RESOURCE_PROPERTIES;
+use crate::graph::resource_properties::merge_resource_properties;
+use crate::graph::{EdgeFamily, Graph, NodeKey, RelationKind, sub_kind_from_iri};
+use crate::persistence::{
     GraphSnapshot, PersistedEdge, PersistedEdgeFamily, PersistedResourceFacet,
     PersistedSemanticStatement, PersistedSemanticSubKind,
 };
-use kernel::types::NodeProperty;
+use crate::types::NodeProperty;
+use mere::EdgeContribution;
 
 fn preflight(snapshot: &GraphSnapshot) -> bool {
     Graph::try_from_recorded_snapshot(snapshot)
@@ -83,8 +83,8 @@ pub(super) fn import_properties(
         .all(|property| graph.resource_properties(id).contains(property))
 }
 
-fn persisted_kind(kind: kernel::graph::SemanticSubKind) -> PersistedSemanticSubKind {
-    use kernel::graph::SemanticSubKind as Kind;
+fn persisted_kind(kind: crate::graph::SemanticSubKind) -> PersistedSemanticSubKind {
+    use crate::graph::SemanticSubKind as Kind;
     match kind {
         Kind::Hyperlink => PersistedSemanticSubKind::Hyperlink,
         Kind::UserGrouped => PersistedSemanticSubKind::UserGrouped,
@@ -146,7 +146,7 @@ pub(super) fn import_edge(
             .try_assert_persisted_semantic_statement(
                 from,
                 to,
-                kernel::graph::SemanticStatement {
+                crate::graph::SemanticStatement {
                     statement_id: id.clone(),
                     predicate: edge.predicate.clone(),
                     recognized_sub_kind: sub_kind_from_iri(&edge.predicate),
@@ -282,22 +282,22 @@ pub(super) fn import_edge(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use kernel::persistence::{
+    use crate::persistence::{
         PersistedNavigationTrigger, PersistedTraversalEdgeData, PersistedTraversalMetrics,
         PersistedTraversalRecord,
     };
-    use kernel::types::GraphScope;
+    use crate::types::GraphScope;
 
     #[test]
     fn carried_import_refuses_conflicting_and_cross_store_handles_without_writes() {
         let mut graph = Graph::new();
-        let from = kernel::graph::apply::add_node(
+        let from = crate::graph::apply::add_node(
             &mut graph,
             None,
             "https://from.test/".into(),
             Default::default(),
         );
-        let to = kernel::graph::apply::add_node(
+        let to = crate::graph::apply::add_node(
             &mut graph,
             None,
             "https://to.test/".into(),
@@ -362,19 +362,19 @@ mod tests {
     #[test]
     fn exact_ingest_writes_canonical_records_with_family_from_predicate_iri() {
         let mut graph = Graph::new();
-        let from = kernel::graph::apply::add_node(
+        let from = crate::graph::apply::add_node(
             &mut graph,
             None,
             "https://from.test/".into(),
             Default::default(),
         );
-        let to = kernel::graph::apply::add_node(
+        let to = crate::graph::apply::add_node(
             &mut graph,
             None,
             "https://to.test/".into(),
             Default::default(),
         );
-        let predicate = RelationKind::Containment(kernel::graph::ContainmentSubKind::UserFolder)
+        let predicate = RelationKind::Containment(crate::graph::ContainmentSubKind::UserFolder)
             .predicate_iri()
             .unwrap();
         let edge = EdgeContribution {
@@ -423,13 +423,13 @@ mod tests {
     #[test]
     fn carried_surface_import_preserves_parallel_rows_and_traversals() {
         let mut graph = Graph::new();
-        let from = kernel::graph::apply::add_node(
+        let from = crate::graph::apply::add_node(
             &mut graph,
             None,
             "https://from.test/".into(),
             Default::default(),
         );
-        let to = kernel::graph::apply::add_node(
+        let to = crate::graph::apply::add_node(
             &mut graph,
             None,
             "https://to.test/".into(),
@@ -445,7 +445,7 @@ mod tests {
                 predicate: "urn:predicate:held".into(),
                 recognized_sub_kind: None,
                 label: Some("held".into()),
-                basis: kernel::types::AssertionBasis {
+                basis: crate::types::AssertionBasis {
                     note: Some("held".into()),
                     ..Default::default()
                 },
@@ -497,15 +497,15 @@ mod tests {
             before.contains(&second),
         );
         for sub_kind in [
-            kernel::graph::ArrangementSubKind::TileGroup,
-            kernel::graph::ArrangementSubKind::SplitPair,
+            crate::graph::ArrangementSubKind::TileGroup,
+            crate::graph::ArrangementSubKind::SplitPair,
         ] {
             apply_graph_delta(
                 &mut graph,
                 GraphDelta::AssertRelation {
                     from,
                     to,
-                    assertion: kernel::graph::EdgeAssertion::Arrangement { sub_kind },
+                    assertion: crate::graph::EdgeAssertion::Arrangement { sub_kind },
                     asserter_iri: "urn:author:layout".into(),
                 },
             );

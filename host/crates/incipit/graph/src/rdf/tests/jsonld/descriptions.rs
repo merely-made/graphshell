@@ -36,7 +36,7 @@ fn incomplete_multivalued_and_unasserted_descriptions_remain_rdf() {
             )),
             3 => input.push(quad(
                 &statement_reifier_id("description"),
-                crate::PROV_WAS_ATTRIBUTED_TO,
+                mere::PROV_WAS_ATTRIBUTED_TO,
                 NamedNode::new("https://first.test/").unwrap().into(),
                 GraphName::DefaultGraph,
             )),
@@ -45,7 +45,7 @@ fn incomplete_multivalued_and_unasserted_descriptions_remain_rdf() {
         if mode == 3 {
             input.push(quad(
                 &statement_reifier_id("description"),
-                crate::PROV_WAS_ATTRIBUTED_TO,
+                mere::PROV_WAS_ATTRIBUTED_TO,
                 NamedNode::new("https://second.test/").unwrap().into(),
                 GraphName::DefaultGraph,
             ));
@@ -298,7 +298,7 @@ fn reserved_identifier_validation_also_covers_standalone_jsonld_records() {
             { "@id": "https://positive.test/", "https://schema.org/name": [{ "@value": "positive" }] },
             { "@id": id, "@type": [RDF_STATEMENT], RDF_SUBJECT: [{ "@id": "https://s.test/" }] }
         ])).unwrap();
-        let result = crate::from_jsonld(&input);
+        let result = mere::from_jsonld(&input);
         assert_eq!(result.is_ok(), valid, "{id}");
         if let Ok(contribution) = result {
             assert!(
@@ -330,31 +330,31 @@ fn unsupported_metadata_stays_descriptive_and_extra_annotations_are_retained() {
     let wrapper = statement_reifier_id("metadata");
     for (predicate, value) in [
         (
-            crate::PROV_GENERATED_AT_TIME,
+            mere::PROV_GENERATED_AT_TIME,
             oxrdf::Literal::new_typed_literal(
                 "not a date",
-                NamedNode::new_unchecked(crate::XSD_DATETIME),
+                NamedNode::new_unchecked(mere::XSD_DATETIME),
             )
             .into(),
         ),
         (
-            crate::PROV_GENERATED_AT_TIME,
+            mere::PROV_GENERATED_AT_TIME,
             oxrdf::Literal::new_typed_literal(
                 "1960-01-01T00:00:00Z",
-                NamedNode::new_unchecked(crate::XSD_DATETIME),
+                NamedNode::new_unchecked(mere::XSD_DATETIME),
             )
             .into(),
         ),
         (
-            crate::PROV_WAS_ATTRIBUTED_TO,
+            mere::PROV_WAS_ATTRIBUTED_TO,
             oxrdf::Literal::new_simple_literal("not an agent IRI").into(),
         ),
         (
-            crate::RDFS_LABEL,
+            mere::RDFS_LABEL,
             NamedNode::new("https://label.test/").unwrap().into(),
         ),
         (
-            crate::RDFS_LABEL,
+            mere::RDFS_LABEL,
             oxrdf::Literal::new_language_tagged_literal("bonjour", "fr")
                 .unwrap()
                 .into(),
@@ -395,23 +395,23 @@ fn unsupported_metadata_stays_descriptive_and_extra_annotations_are_retained() {
     valid.push(base);
     valid.push(quad(
         &wrapper,
-        crate::PROV_GENERATED_AT_TIME,
+        mere::PROV_GENERATED_AT_TIME,
         oxrdf::Literal::new_typed_literal(
             "1970-01-01T00:00:00Z",
-            NamedNode::new_unchecked(crate::XSD_DATETIME),
+            NamedNode::new_unchecked(mere::XSD_DATETIME),
         )
         .into(),
         GraphName::DefaultGraph,
     ));
     valid.push(quad(
         &wrapper,
-        crate::RDFS_LABEL,
+        mere::RDFS_LABEL,
         oxrdf::Literal::new_simple_literal("label").into(),
         GraphName::DefaultGraph,
     ));
     valid.push(quad(
         &wrapper,
-        crate::PROV_WAS_ATTRIBUTED_TO,
+        mere::PROV_WAS_ATTRIBUTED_TO,
         NamedNode::new("https://author.test/").unwrap().into(),
         GraphName::DefaultGraph,
     ));
