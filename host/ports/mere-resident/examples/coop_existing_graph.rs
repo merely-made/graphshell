@@ -85,7 +85,17 @@ async fn attach(c: &mut AppBrokerClient, d: &EndpointDescriptor, id: pandect::Se
 async fn main() {
     let args = std::env::args().skip(1).collect::<Vec<_>>();
     let domain = args.get(1).map(String::as_str).unwrap_or("coop-acceptance");
-    if args[0] == "seed" {
+    if args[0] == "grant" {
+        // What an owner's yes writes for this declaration (D25), from the
+        // resident's own `grant_for`; the harness puts it in the owner
+        // settings' `applications` before Djinn starts (engine-split D130).
+        let grant = mere_resident::applications::grant_for(
+            &AppId::new(graphshell_door::declaration::APP),
+            &graphshell_door::declaration::declaration(),
+            None,
+        );
+        println!("{}", serde_json::to_string(&grant).unwrap());
+    } else if args[0] == "seed" {
         let (mut reservoir, descriptor) =
             open(mere_resident::resident_reservoir::RESIDENT_RESERVOIR_ROUTE).await;
         let s = reservoir
@@ -238,6 +248,6 @@ async fn main() {
         .await;
         println!("saved");
     } else {
-        panic!("seed DOMAIN | read DOMAIN UUID | ordinary-add DOMAIN UUID URL")
+        panic!("grant | seed DOMAIN | read DOMAIN UUID | ordinary-add DOMAIN UUID URL")
     }
 }
