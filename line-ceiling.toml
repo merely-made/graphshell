@@ -111,10 +111,6 @@ path = "host/crates/cambium/cambium-genet-winit-host/examples/t4_receipt.rs"
 reason = "Netrender roadmap T4 receipt, from a Cambium host. Existing source-size debt; a responsibility split must preserve Child, Logic, SolidLeaf and existing module visibility."
 
 [[exception]]
-path = "host/crates/cambium/cambium-genet-winit-host/src/decorations.rs"
-reason = "Client-side decorations: the window frame an application draws itself. Existing source-size debt; a responsibility split must preserve ClickCadence and existing module visibility."
-
-[[exception]]
 path = "host/crates/cambium/cambium-genet-winit-host/src/harness.rs"
 reason = "[Harness]: the host with no window and no GPU. Existing source-size debt; a responsibility split must preserve Harness and existing module visibility."
 
