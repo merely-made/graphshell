@@ -167,10 +167,6 @@ path = "host/crates/cambium/mandrake/src/probe_tests.rs"
 reason = "The actual Probe, retained host geometry and wheel callback, without an OS window or GPU. Existing source-size debt; a responsibility split must preserve Store, State, View and existing module visibility."
 
 [[exception]]
-path = "host/crates/cambium/workbench/float.rs"
-reason = "The float layer: tiles presented outside the tiled tree, and the [Workspace] that holds both stations under one rule — every tile is in exactly one place. Existing source-size debt; a responsibility split must preserve RelativeRect, FloatSizeConstraints, FloatingTile and existing module visibility."
-
-[[exception]]
 path = "host/crates/cambium/workbench/lib.rs"
 reason = "Reusable split-and-tab workspace organization for Genet hosts. Existing source-size debt; a responsibility split must preserve TileId, SplitAxis, TileTree and existing module visibility."
 
