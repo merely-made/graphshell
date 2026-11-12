@@ -33,6 +33,27 @@ carries the house header.
 These are vendored patch trees consumed through
 `[patch]`; they are upstream's work carrying upstream's terms.
 
+## Derivatives carrying MPL-2.0 with an upstream notice retained
+
+These are **not** skipped. Each file receives Exhibit A and Mark's copyright
+line, and every upstream copyright line above it is kept verbatim. Apply with
+`--retain-notice`, which preserves foreign copyright lines while replacing
+Mark's own.
+
+Ruled 2026-08-27, on the brief's substantial-derivative precedent: cambium and meristem go MPL-2.0 with the Apache
+notice retained. The Apache-2.0 sources are Linebender's `xilem_core` (all of
+meristem) and `xilem_web` (six cambium files: `splice.rs`, `optional_action.rs`,
+`text.rs`, `pod.rs`, `element.rs`, `event.rs`), each keeping `Copyright <year>
+the Xilem Authors`; the
+Xilem ledger (`design_docs/cambium_docs/technical_architecture/upstream-xilem.md`)
+lists the files and the audit base. Both MIT and Apache-2.0 permit relicensing a derivative so
+long as the notice travels with it.
+
+**This section is deliberately not the skip list.** The tool reads only the
+`## Retained licenses` and `## Frozen evidence` tables above. Adding a path
+here documents a disposition; it does not exempt the path from receiving a
+header.
+
 ## Published grants that arrived with a crate
 
 A published version keeps the grant it shipped with, permanently; MPL-2.0
