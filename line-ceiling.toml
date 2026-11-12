@@ -199,40 +199,8 @@ path = "host/crates/canvas/cartography/src/canvas/physics_form.rs"
 reason = "The Map's physics form: flat law, sources, overlays and profile; role, two-law mix, grouping, two-stage schedule and speed, as one model both hosts drive. Existing source-size debt; a responsibility split must preserve Slot, FieldId, Control and existing module visibility."
 
 [[exception]]
-path = "host/crates/graphshell/graphshell-host/src/canary.rs"
-reason = "Canary. Existing source-size debt; a responsibility split must preserve CanaryError, FixtureEndpoint, CanaryRun and existing module visibility."
-
-[[exception]]
-path = "host/crates/graphshell/graphshell-host/src/carrier.rs"
-reason = "G5d: Graphshell's projection carrier. Existing source-size debt; a responsibility split must preserve ProjectionRefusal, ProjectionAcceptError and existing module visibility."
-
-[[exception]]
-path = "host/crates/graphshell/graphshell-host/src/endpoint_catalog.rs"
-reason = "Product endpoints selected by one resident Graphshell host. Existing source-size debt; a responsibility split must preserve ResidentEndpoint, Factory, Registration and existing module visibility."
-
-[[exception]]
-path = "host/crates/graphshell/graphshell-host/src/lifecycle.rs"
-reason = "G5e: what happens to a projection session after it is admitted. Existing source-size debt; a responsibility split must preserve Lapse, ScoreDenial, SessionAuthority and existing module visibility."
-
-[[exception]]
-path = "host/crates/graphshell/graphshell-host/src/live_endpoint.rs"
-reason = "An endpoint whose scene actually moves, and only when it should. Existing source-size debt; a responsibility split must preserve LiveEndpointError, LiveEndpoint, SharedLiveEndpoint and existing module visibility."
-
-[[exception]]
-path = "host/crates/graphshell/graphshell-host/src/projection_host.rs"
-reason = "K2: product endpoints served to network peers by one resident host. Existing source-size debt; a responsibility split must preserve ResidentProjectionError, SelectedRoute, RouteSelector and existing module visibility."
-
-[[exception]]
-path = "host/crates/graphshell/graphshell-host/src/session_loop.rs"
-reason = "The Graphshell request/response loop over an admitted stream. Existing source-size debt; a responsibility split must preserve SessionEnd, SessionSummary, SessionLoopError and existing module visibility."
-
-[[exception]]
 path = "host/crates/graphshell/graphshell-host/src/webrtc_door.rs"
 reason = "The WebRTC door: how a browser holding an invitation becomes an admitted Personae subject, and every way that does not happen. Existing source-size debt; a responsibility split must preserve InviteTerms, SignedInviteDescriptor, RedemptionState and existing module visibility."
-
-[[exception]]
-path = "host/crates/graphshell/graphshell-host/src/webrtc_session.rs"
-reason = "The live half of the WebRTC door: the join sequence over a real channel, and the admitted session it produces. Existing source-size debt; a responsibility split must preserve HostedInvite, JoinConclusion, ServedJoin and existing module visibility."
 
 [[exception]]
 path = "host/crates/incipit/src/roster.rs"
