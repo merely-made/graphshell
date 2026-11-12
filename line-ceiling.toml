@@ -183,10 +183,6 @@ path = "host/crates/canvas/cartography/src/canvas.rs"
 reason = "The canvas as a reusable, window-agnostic content-root — the graph's spatial presentation (build item 1D of the genet-as-host flip; S1 of the modular integration plan). Existing source-size debt; a responsibility split must preserve AffinityBlend, Drag, EmptyPress and existing module visibility."
 
 [[exception]]
-path = "host/crates/canvas/cartography/src/canvas/backdrop_paint.rs"
-reason = "The canvas's content wash beneath territory: derivation, cache, cross-fade and export (iconography B2 to B4). Existing source-size debt: 643 lines and no exception when it moved from pictograph (engine split D38); a responsibility split must preserve the Canvas content-backdrop methods and existing module visibility."
-
-[[exception]]
 path = "host/crates/canvas/cartography/src/canvas/physics_catalog.rs"
 reason = "The physics catalog: laws × overlays, and the named profiles over them. Existing source-size debt; a responsibility split must preserve PhysicsLaw, OverlayRefusal, PhysicsOverlay and existing module visibility."
 
