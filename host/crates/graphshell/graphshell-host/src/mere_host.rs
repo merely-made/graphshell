@@ -32,6 +32,7 @@ use muniment::{Backend, JsonSlots, StoreError};
 /// The view types a host writes through [`MereHost::set_view_now`].
 pub use incipit::view::ViewIntent as SessionViewIntent;
 use incipit::view::{VIEW_INTENT_SCHEMA, ViewIntent};
+use attention::decode_view;
 use pandect::graph_placement::{PlacementProfile, materialize_snapshot};
 use pandect::graph_session::{CommitExtra, LegacyTransactionBackend};
 use pandect::{
@@ -227,8 +228,12 @@ pub struct MereHost<B> {
     /// session changes: a host without a canvas holds one (dynamics grammar
     /// plan, F87).
     served_registry: std::sync::Mutex<cartography::canvas::ChannelRegistry>,
+    /// This device's attention for the graph's views, by `app/view` (D133).
+    attention: BTreeMap<String, incipit::view::AttentionState>,
 }
 
+#[path = "mere_host_attention.rs"]
+mod attention;
 #[path = "mere_host_coupling.rs"]
 mod coupling;
 #[path = "mere_host_resident_view.rs"]
@@ -330,6 +335,7 @@ impl<B: Backend + Clone> MereHost<B> {
             resident_generation: None,
             resident_view: Default::default(),
             served_registry: std::sync::Mutex::new(cartography::canvas::ChannelRegistry::new()),
+            attention: BTreeMap::new(),
         }
     }
 
@@ -405,7 +411,7 @@ impl<B: Backend + Clone> MereHost<B> {
             },
         };
         let epoch = Self::advance_epoch(&slots, fallback).await?;
-        Ok(Self::assemble(
+        let mut host = Self::assemble(
             backend,
             graph_session,
             selected_persona,
@@ -413,7 +419,9 @@ impl<B: Backend + Clone> MereHost<B> {
             access_context,
             (epoch, epoch),
             reopened,
-        ))
+        );
+        host.load_attention().await?;
+        Ok(host)
     }
 
     /// Observe the live session changed last, writing nothing: no epoch is
@@ -445,6 +453,7 @@ impl<B: Backend + Clone> MereHost<B> {
             reopened,
         );
         host.observing = true;
+        host.load_attention().await?;
         Ok(host)
     }
 
@@ -482,7 +491,7 @@ impl<B: Backend + Clone> MereHost<B> {
             graph_session = graph_session.with_validator(validator)?;
         }
         let epoch = Self::advance_epoch(&JsonSlots::new(backend.clone()), 0).await?;
-        Ok(Self::assemble(
+        let mut host = Self::assemble(
             backend,
             graph_session,
             selected_persona,
@@ -490,7 +499,9 @@ impl<B: Backend + Clone> MereHost<B> {
             access_context,
             (epoch, epoch),
             true,
-        ))
+        );
+        host.load_attention().await?;
+        Ok(host)
     }
 
     /// Switch to a new session begun from `graph`, keeping the one it replaces
@@ -533,6 +544,8 @@ impl<B: Backend + Clone> MereHost<B> {
         self.projection_revision = 1;
         self.resources.clear();
         self.instance_targets.clear();
+        // Attention is a graph's; this one is new.
+        self.attention.clear();
         Ok(())
     }
 }
@@ -1022,7 +1035,7 @@ impl<B: Backend> MereHost<B> {
     /// `via`'s view named `view`, if it has one.
     pub fn view(&self, via: &str, view: &str) -> Option<ViewIntent> {
         let key = ViewKey::new(via, view).ok()?;
-        self.graph_session.view(&key)?.decode(VIEW_INTENT_SCHEMA)
+        decode_view(self.graph_session.view(&key)?)
     }
 
     /// [`set_view`](Self::set_view), not stored until the next batch.
@@ -1185,9 +1198,10 @@ impl<B: Backend> MereHost<B> {
                     .views()
                     .filter(|(key, _)| key.app() == self.via)
                     .filter_map(|(key, state)| {
-                        Some((key.view().to_owned(), state.decode(VIEW_INTENT_SCHEMA)?))
+                        Some((key.view().to_owned(), decode_view(state)?))
                     })
                     .collect(),
+                attention: self.attention_of_app(),
                 session: self.graph_session.id(),
                 read_only: self.graph_session.manifest().codicil_read_only,
                 epoch: self.projection_epoch(),
@@ -2563,6 +2577,7 @@ mod tests {
                 wire::UNDO_INTENT,
                 wire::REDO_INTENT,
                 wire::SET_VIEW_INTENT,
+                wire::SET_ATTENTION_INTENT,
             ]
         );
     }
@@ -2571,3 +2586,7 @@ mod tests {
 #[cfg(test)]
 #[path = "mere_host_cursor_tests.rs"]
 mod cursor_tests;
+
+#[cfg(test)]
+#[path = "mere_host_attention_tests.rs"]
+mod attention_tests;

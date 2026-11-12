@@ -80,6 +80,7 @@ fn envelope() -> wire::SessionGraphV1 {
         schema: wire::SESSION_GRAPH_SCHEMA.into(),
         application: "test".into(),
         views: BTreeMap::new(),
+        attention: BTreeMap::new(),
         session: pandect::SessionId(uuid::Uuid::from_u128(7)),
         read_only: true,
         epoch: SceneEpoch(1),

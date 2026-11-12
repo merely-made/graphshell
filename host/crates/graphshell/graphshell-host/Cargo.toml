@@ -181,7 +181,7 @@ getrandom = { version = "0.3", features = ["wasm_js"], optional = true }
 [dev-dependencies]
 # The kernel's test graph builders (`graph::fixtures`), dev-only.
 kernel = { workspace = true, features = ["fixtures"] }
-muniment.workspace = true
+muniment = { workspace = true, features = ["directory"] }
 pollster = "0.4"
 uuid.workspace = true
 transport = { workspace = true, features = ["test-identity"] }

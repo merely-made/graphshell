@@ -55,7 +55,7 @@ use mere_overmap::wire::{
     MERGE_SESSION_INTENT, MERGE_SOURCE, MINT_SESSION_INTENT, MergeChoiceV1, MergeResolutionV1,
     OPEN_CODICIL_INTENT, PENDING_MERGE_SCHEMA, PendingMergeV1, RESOLVE_MERGE_INTENT,
     RESTORE_SESSION_INTENT, SAVE_CODICIL_INTENT, SESSIONS_SCHEMA, SESSIONS_SOURCE,
-    SessionsActionV1, SetViewV1, StepV1, TRASH_SESSION_INTENT,
+    SessionsActionV1, SetAttentionV1, SetViewV1, StepV1, TRASH_SESSION_INTENT,
 };
 use muniment::{DirectoryBackend, JsonSlots, RedbBackend};
 use pandect::{
@@ -1810,7 +1810,50 @@ impl MereEndpoint {
         })
     }
 
+    /// Keep this device's attention for one of the application's views. It
+    /// writes no journal or view entry, so a read-only archive takes it
+    /// without forking (engine split D133, contract C7).
+    fn invoke_attention(&mut self, intent: IntentInvocation) -> Result<IntentResult, String> {
+        let host = Arc::clone(&self.host);
+        let app = self.app.clone();
+        let (result, seen) = run(async move {
+            let mut host = host.lock().await;
+            if Some(intent.target) != host.session_instance() {
+                let reason = "attention is kept on the session item".to_string();
+                return (IntentResult::Rejected { reason }, None);
+            }
+            if intent.observed_epoch != host.projection_epoch() {
+                let stale = IntentResult::Stale {
+                    current_epoch: host.projection_epoch(),
+                    current_revision: host.projection_revision(),
+                };
+                return (stale, None);
+            }
+            let outcome = match serde_json::from_slice::<SetAttentionV1>(&intent.payload) {
+                Ok(payload) if payload.schema == session_item::SET_ATTENTION_SCHEMA => host
+                    .set_attention(&app, &payload.view, payload.state)
+                    .await
+                    .map_err(|error| error.to_string()),
+                Ok(payload) => Err(format!("unknown attention schema {:?}", payload.schema)),
+                Err(error) => Err(format!("invalid attention payload: {error}")),
+            };
+            let seen = Some((host.projection_epoch(), host.projection_revision()));
+            match outcome {
+                Ok(()) => (IntentResult::Accepted, seen),
+                Err(reason) => (IntentResult::Rejected { reason }, seen),
+            }
+        });
+        if let Some(seen) = seen {
+            self.seen_graph = seen;
+            self.seen_notes = self.notes_position(seen);
+        }
+        Ok(result)
+    }
+
     fn invoke_graph(&mut self, intent: IntentInvocation) -> Result<IntentResult, String> {
+        if intent.intent == session_item::SET_ATTENTION_INTENT {
+            return self.invoke_attention(intent);
+        }
         if self.shared.domain_bound() && intent.target != InstanceId(0) {
             return Ok(IntentResult::Rejected {
                 reason: "domain writes require a complete journaled session candidate".into(),
@@ -2805,7 +2848,27 @@ mod tests {
         assert_eq!(nodes(&thaw), 1);
         let material = disclosed_graph(&mut app, &thaw);
         assert!(material.read_only);
+        let thaw_session = material.session;
         assert_eq!(material.into_graph().unwrap().node_count(), 1);
+        // Attention is the device's: the thaw takes it without forking.
+        let looked = incipit::view::AttentionState {
+            focus: Some("https://thaw.test/1".into()),
+            ..Default::default()
+        };
+        assert_eq!(
+            app.invoke(on_item(
+                &thaw,
+                session_item::SET_ATTENTION_INTENT,
+                serde_json::to_vec(&SetAttentionV1::new("reading", looked.clone())).unwrap()
+            ))
+            .unwrap(),
+            IntentResult::Accepted
+        );
+        let still = graph(&mut app);
+        let kept = disclosed_graph(&mut app, &still);
+        assert!(kept.read_only, "attention does not fork the archive");
+        assert_eq!(kept.session, thaw_session);
+        assert_eq!(kept.attention["reading"], looked);
         assert!(
             mere_overmap::route::archive_intent(
                 &MereViewRequest::Archive(ArchiveRequest::Compose(vec![
@@ -3623,7 +3686,7 @@ mod tests {
             .unwrap();
         drive_common_panel(&mut panel, &mut endpoint, false);
         assert!(panel.view_saved());
-        assert_eq!(panel.saved_view().focus.as_deref(), Some("https://1.test/"));
+        assert_eq!(panel.saved_attention().focus.as_deref(), Some("https://1.test/"));
         assert_eq!(panel.saved_view().strategy.as_deref(), Some("grid.default"));
         let saved = panel.saved_view().clone();
         let current = graph(&mut endpoint);

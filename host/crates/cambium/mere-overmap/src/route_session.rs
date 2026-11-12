@@ -56,6 +56,7 @@ pub struct MereRouteSession {
     closed: bool,
     primary: Option<MountedScene>,
     saved_view: incipit::view::ViewIntent,
+    saved_attention: incipit::view::AttentionState,
     read_only: bool,
     material: Option<crate::wire::SessionGraphV1>,
     records: HashMap<String, chirograph::PortableCardV1>,
@@ -65,6 +66,13 @@ pub struct MereRouteSession {
     /// so far, by conflict key. Choices stay with this panel until Apply.
     merge: Option<crate::wire::PendingMergeV1>,
     merge_choices: BTreeMap<String, MergeOption>,
+}
+
+impl MereRouteSession {
+    /// This device's attention for the view, kept apart from the arrangement.
+    pub fn saved_attention(&self) -> &incipit::view::AttentionState {
+        &self.saved_attention
+    }
 }
 
 /// The panel over a native admitted stream: `graphshell_client::pump`

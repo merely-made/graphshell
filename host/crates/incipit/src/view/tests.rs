@@ -55,16 +55,25 @@ fn save_then_load_round_trips_intent() {
 }
 
 #[test]
-fn focus_round_trips_and_counts_as_nonempty() {
-    let dir = temp_session_dir("focus");
-    let frame = fixture_frame();
-    let mut intent = ViewIntent::new();
-    intent.focus = Some("https://example.com/page".to_string());
-    assert!(!intent.is_empty(), "a focus alone is worth persisting");
-    save_view_intent(&dir, &frame, 1, &intent).unwrap();
-    let restored = load_view_intent(&dir, &frame, 1).unwrap().unwrap();
-    assert_eq!(restored.focus.as_deref(), Some("https://example.com/page"));
-    fs::remove_dir_all(&dir).ok();
+fn attention_round_trips_and_stays_out_of_the_arrangement() {
+    let attention = AttentionState {
+        camera: Some(CameraSnapshot {
+            coefficients: [2.0, 0.0, 0.0, 2.0, 5.0, -5.0],
+        }),
+        focus: Some("https://example.com/page".to_string()),
+        mirror_tiles: true,
+    };
+    assert!(!attention.is_empty());
+    let bytes = serde_json::to_vec(&attention).unwrap();
+    assert_eq!(
+        serde_json::from_slice::<AttentionState>(&bytes).unwrap(),
+        attention
+    );
+    assert!(AttentionState::default().is_empty());
+    let keys = serde_json::to_value(ViewIntent::new()).unwrap();
+    for key in ["camera", "focus", "mirror_tiles"] {
+        assert!(keys.get(key).is_none(), "{key} is not arrangement");
+    }
 }
 
 #[test]
@@ -213,20 +222,22 @@ fn strategy_round_trips_and_counts_as_nonempty() {
 }
 
 #[test]
-fn mirror_tiles_round_trip_and_count_as_nonempty() {
-    let dir = temp_session_dir("mirror-tiles");
-    let frame = fixture_frame();
-    let mut intent = ViewIntent::new();
-    intent.mirror_tiles = true;
-    assert!(
-        !intent.is_empty(),
-        "mirror mode alone is durable pane scope"
-    );
-    save_view_intent(&dir, &frame, 1, &intent).unwrap();
-    let restored = load_view_intent(&dir, &frame, 1).unwrap().unwrap();
-    assert!(restored.mirror_tiles);
-    assert_eq!(restored, intent);
-    fs::remove_dir_all(&dir).ok();
+fn a_v1_value_decodes_as_arrangement_with_attention_dropped() {
+    let stored = serde_json::json!({
+        "strategy": "spectral.default",
+        "hidden_assertions": ["a"],
+        "camera": {"coefficients": [1.0, 0.0, 0.0, 1.0, 3.0, 4.0]},
+        "focus": "https://example.com/page",
+        "mirror_tiles": true,
+    });
+    let intent: ViewIntent = serde_json::from_value(stored).unwrap();
+    assert_eq!(intent.strategy.as_deref(), Some("spectral.default"));
+    assert!(intent.hidden_assertions.contains("a"));
+    let bytes = serde_json::to_vec(&intent).unwrap();
+    let text = String::from_utf8(bytes).unwrap();
+    for key in ["camera", "focus", "mirror_tiles"] {
+        assert!(!text.contains(key), "{key} must not be re-encoded");
+    }
 }
 
 #[test]

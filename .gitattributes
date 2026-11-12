@@ -13,3 +13,5 @@ host/crates/canvas/cartography/src/canvas/tests/data/** text eol=lf
 
 # Written by pandect before the P4 sidecar moves: byte-exact.
 host/ports/mere-resident/tests/fixtures/pre_p4_policy_root/** -text
+host/crates/graphshell/graphshell-host/tests/fixtures/pre_c7_views/** -text
+host/crates/graphshell/graphshell-host/tests/fixtures/pre_c7_live_view.json -text

@@ -301,7 +301,7 @@ mod tests {
     use uuid::Uuid;
 
     use super::*;
-    use incipit::view::{CameraSnapshot, HiddenRelationRecord};
+    use incipit::view::HiddenRelationRecord;
 
     const CREATED_AT: Timestamp = Timestamp(1_723_000_000_000);
     const SOURCE_SCOPE: &str = "session:fixture/graph:root";
@@ -321,10 +321,6 @@ mod tests {
             )
             .expect("two members form a fold"),
         ];
-        view.camera = Some(CameraSnapshot {
-            coefficients: [1.0, 0.0, 0.0, 1.0, 20.0, -10.0],
-        });
-        view.focus = Some("https://example.test/field-notes".to_string());
         view.strategy = Some("timeline.updated".to_string());
         LiveViewRecord {
             version: LIVE_VIEW_RECORD_VERSION,
@@ -432,3 +428,7 @@ mod tests {
         ));
     }
 }
+
+#[cfg(test)]
+#[path = "live_view_pre_c7_tests.rs"]
+mod pre_c7_tests;

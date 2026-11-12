@@ -43,9 +43,15 @@ use uuid::Uuid;
 pub const VIEW_INTENT_DIR: &str = "views";
 
 /// The schema a [`ViewIntent`] carries when a session stores it as an opaque
-/// view state (engine split D44). Pandect reads view entries written before
-/// the split, which carry no schema, as this one.
-pub const VIEW_INTENT_SCHEMA: &str = "mere.view-intent/v1";
+/// view state: arrangement only (engine split D133, contract C7). Attention
+/// stays in the device-local [`AttentionState`].
+pub const VIEW_INTENT_SCHEMA: &str = "mere.view-intent/v2";
+
+/// The schema view states carried before C7, when a view also held camera,
+/// focus and mirror mode. Pandect reads entries written before the schema
+/// tag as this one. A value of it decodes as a [`ViewIntent`]: the attention
+/// keys are dropped.
+pub const VIEW_INTENT_SCHEMA_V1: &str = "mere.view-intent/v1";
 
 /// One entry in [`ViewIntent::hidden_relations`]. Keyed by stable
 /// node UUIDs and the [`kernel::graph::RelationKind::tag`]
@@ -69,54 +75,12 @@ impl HiddenRelationRecord {
     }
 }
 
-/// 2D affine snapshot for serialisation. Stores the six kurbo
-/// `Affine` coefficients verbatim — round-trips identity, pan,
-/// zoom, and rotation.
-///
-/// Wire-shape kept compact (a single `[f64; 6]`) so the JSON
-/// representation reads clearly and diffs cleanly:
-///
-/// ```text
-/// "camera": { "coefficients": [1.0, 0.0, 0.0, 1.0, 100.0, 50.0] }
-/// ```
-///
-/// (That value is a pure pan of (100, 50) with identity scale +
-/// no rotation.)
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
-pub struct CameraSnapshot {
-    /// kurbo `Affine::as_coeffs()` order: `[a, b, c, d, e, f]` for
-    /// the affine `[[a, c, e], [b, d, f]]`.
-    pub coefficients: [f64; 6],
-}
-
-impl CameraSnapshot {
-    /// Identity transform — no pan, no zoom, no rotation.
-    pub const IDENTITY: Self = Self {
-        coefficients: [1.0, 0.0, 0.0, 1.0, 0.0, 0.0],
-    };
-
-    /// True when this snapshot equals identity. The save path can
-    /// skip persisting an identity camera (no user gesture worth
-    /// recording).
-    pub fn is_identity(&self) -> bool {
-        *self == Self::IDENTITY
-    }
-}
-
-impl Default for CameraSnapshot {
-    fn default() -> Self {
-        Self::IDENTITY
-    }
-}
-
-/// Persistable per-pane view state. v0 carried `hidden_relations`
-/// only; `camera` joined per the spatial-chrome IR brief §6's
-/// pan/zoom-as-substrate-camera framing; `focus` (the focused node's
-/// URL) joined when the host began restoring it on reload. Future fields
-/// (`form_factor`, `filter`, `strategy`, `overlays`) land as their
-/// producers wire up. Per the plan §2, bundling unwired
-/// fields now would be the half-finished shape the user's memory
-/// warns against.
+/// Persistable per-pane arrangement: what a person deliberately sets up for
+/// a view (hidden relations, links and assertions, folds, layout strategy, the
+/// command menu). It replicates through the view log. Camera, focus and mirror
+/// mode are attention, which stays on the device ([`AttentionState`], engine
+/// split D133, contract C7); a value stored before that, schema
+/// [`VIEW_INTENT_SCHEMA_V1`], decodes here with those keys dropped.
 ///
 /// `BTreeSet` over `HashSet` for deterministic JSON output —
 /// dev-tier inspection wants stable diffs.
@@ -145,30 +109,12 @@ pub struct ViewIntent {
     /// apply them finds them intact after this one saves.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub retained_folds: Vec<serde_json::Value>,
-    /// Substrate camera snapshot (pan + zoom). `None` when the pane
-    /// has no saved camera (fresh pane → host falls back to
-    /// `CameraSnapshot::IDENTITY`). Save path uses `None` for
-    /// identity cameras too, since persisting an unmoved camera is
-    /// wasted I/O.
-    #[serde(default)]
-    pub camera: Option<CameraSnapshot>,
-    /// URL of the node this pane is focused on, so a reload re-opens its media.
-    /// Keyed by URL (URL identity) rather than petgraph `NodeKey`, which isn't
-    /// stable across save/load — the same reason `GraphSnapshot` is URL-keyed.
-    /// `None` when nothing is focused.
-    #[serde(default)]
-    pub focus: Option<String>,
     /// The orrery pane's active layout strategy (a cartography adapter `projection_id`,
     /// e.g. `"phyllotaxis.default"`), or `None` for force-directed (seiche, the default).
     /// The host re-applies it on load; the positions themselves are recomputed, never
     /// persisted (analytic layouts re-derive from the node set). (Layout picker.)
     #[serde(default)]
     pub strategy: Option<String>,
-    /// Whether the orrery pane is in live workbench-mirror mode: scoped each frame to
-    /// the workbench's open tiles. Restored on load (the scope itself re-derives from
-    /// the open tiles, never persisted). `false` by default. (Workbench mirror.)
-    #[serde(default)]
-    pub mirror_tiles: bool,
     /// A host's command menu as the person keeps it (Scenograph editor plan,
     /// SE31; moved from `command-menu` to Hest at H1). `None` for views that
     /// are not a menu; absent from older views.
@@ -190,10 +136,7 @@ impl ViewIntent {
             && self.hidden_assertions.is_empty()
             && self.folds.is_empty()
             && self.retained_folds.is_empty()
-            && self.camera.is_none()
-            && self.focus.is_none()
             && self.strategy.is_none()
-            && !self.mirror_tiles
             && self.commands.is_none()
     }
 }
@@ -261,6 +204,9 @@ pub fn load_view_intent(
 pub fn view_intent_exists(session_dir: &Path, frame_id_str: &str, pane_id: u64) -> bool {
     view_intent_path(session_dir, frame_id_str, pane_id).exists()
 }
+
+mod attention;
+pub use attention::{AttentionState, CameraSnapshot};
 
 #[cfg(test)]
 mod tests;

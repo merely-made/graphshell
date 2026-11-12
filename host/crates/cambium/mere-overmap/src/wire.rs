@@ -54,6 +54,10 @@ pub struct SessionGraphV1 {
     /// The admitted application's own parallel view state only.
     pub application: String,
     pub views: std::collections::BTreeMap<String, ViewIntent>,
+    /// This device's attention for the application's views, by view name.
+    /// Device-local: not part of the session, never in its log (C7).
+    #[serde(default)]
+    pub attention: std::collections::BTreeMap<String, incipit::view::AttentionState>,
     pub session: SessionId,
     /// A thaw remains immutable; the first explicit edit forks it.
     pub read_only: bool,
@@ -232,6 +236,9 @@ pub const STEP_SCHEMA: &str = "mere.session.step/v1";
 pub const SET_VIEW_INTENT: &str = "mere.session.view";
 /// Schema of [`SetViewV1`].
 pub const SET_VIEW_SCHEMA: &str = "mere.session.view/v1";
+
+mod attention;
+pub use attention::{SET_ATTENTION_INTENT, SET_ATTENTION_SCHEMA, SetAttentionV1};
 
 /// Payload of [`APPLY_EDITS_INTENT`].
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]

@@ -69,6 +69,7 @@ impl MereRouteSession {
             closed: false,
             primary: None,
             saved_view: Default::default(),
+            saved_attention: Default::default(),
             read_only: false,
             material: None,
             records: HashMap::new(),
@@ -108,7 +109,7 @@ impl MereRouteSession {
             .get(&key)
             .and_then(|card| card.values.iter().find(|value| value.label == "Address"));
         !self.in_flight()
-            && address.is_some_and(|address| self.saved_view.focus.as_ref() == Some(&address.value))
+            && address.is_some_and(|address| self.saved_attention.focus.as_ref() == Some(&address.value))
             && self
                 .saved_view
                 .strategy
@@ -135,7 +136,7 @@ impl MereRouteSession {
             return self.records.contains_key(key).then(|| key.clone());
         }
         let snapshot = self.snapshot(&self.graph).ok()?;
-        let focus = self.saved_view.focus.as_ref()?;
+        let focus = self.saved_attention.focus.as_ref()?;
         mere_route::node_cards(&snapshot, &self.cards)
             .into_iter()
             .find(|(_, card)| {
@@ -316,6 +317,7 @@ impl MereRouteSession {
         self.outbox.clear();
         self.primary = None;
         self.saved_view = Default::default();
+        self.saved_attention = Default::default();
         self.read_only = false;
         self.material = None;
         self.records.clear();
@@ -365,25 +367,37 @@ impl MereRouteSession {
         &self,
         request: &MereViewRequest,
     ) -> Result<Option<chirograph::IntentInvocation>, String> {
-        let mut view = self.saved_view.clone();
-        match request {
-            MereViewRequest::Activate(key) => {
-                view.focus = Some(
-                    self.records
-                        .get(key)
-                        .and_then(|card| card.values.iter().find(|value| value.label == "Address"))
-                        .ok_or("The selected record has no disclosed address.")?
-                        .value
-                        .clone(),
-                );
-                view.strategy = Some(view.strategy.unwrap_or_else(|| "spectral.default".into()));
-            },
-            MereViewRequest::Layout(key) => view.strategy = Some(key.clone()),
-            _ => return Ok(None),
-        }
-        if self.read_only {
+        if self.read_only && matches!(request, MereViewRequest::Activate(_) | MereViewRequest::Layout(_)) {
             return Err("A read-only archive cannot save this view implicitly.".into());
         }
+        let (intent, payload) = match request {
+            MereViewRequest::Activate(key) => {
+                let focus = self
+                    .records
+                    .get(key)
+                    .and_then(|card| card.values.iter().find(|value| value.label == "Address"))
+                    .ok_or("The selected record has no disclosed address.")?
+                    .value
+                    .clone();
+                let state = incipit::view::AttentionState {
+                    focus: Some(focus),
+                    ..self.saved_attention.clone()
+                };
+                (
+                    crate::wire::SET_ATTENTION_INTENT,
+                    serde_json::to_vec(&crate::wire::SetAttentionV1::new(self.view_name(), state)),
+                )
+            },
+            MereViewRequest::Layout(key) => {
+                let mut view = self.saved_view.clone();
+                view.strategy = Some(key.clone());
+                (
+                    crate::wire::SET_VIEW_INTENT,
+                    serde_json::to_vec(&crate::wire::SetViewV1::new(self.view_name(), view)),
+                )
+            },
+            _ => return Ok(None),
+        };
         let snapshot = self.snapshot(&self.graph)?;
         let target = snapshot
             .scene
@@ -401,9 +415,8 @@ impl MereRouteSession {
             target,
             observed_epoch: snapshot.scene.epoch,
             observed_revision: snapshot.scene.revision,
-            intent: crate::wire::SET_VIEW_INTENT.into(),
-            payload: serde_json::to_vec(&crate::wire::SetViewV1::new(self.view_name(), view))
-                .map_err(|e| e.to_string())?,
+            intent: intent.into(),
+            payload: payload.map_err(|e| e.to_string())?,
         }))
     }
     pub(super) fn drain_notices(&mut self) -> Result<bool, String> {
@@ -532,6 +545,11 @@ impl MereRouteSession {
                         }
                         self.saved_view = material
                             .views
+                            .get(&self.view_name())
+                            .cloned()
+                            .unwrap_or_default();
+                        self.saved_attention = material
+                            .attention
                             .get(&self.view_name())
                             .cloned()
                             .unwrap_or_default();

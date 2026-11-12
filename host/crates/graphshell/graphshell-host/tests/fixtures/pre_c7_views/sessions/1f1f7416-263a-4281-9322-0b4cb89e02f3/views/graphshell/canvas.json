@@ -1,0 +1,25 @@
+{
+  "schema": "mere.view-intent/v1",
+  "value": {
+    "camera": {
+      "coefficients": [
+        1.0,
+        0.0,
+        0.0,
+        1.0,
+        -20.0,
+        7.5
+      ]
+    },
+    "focus": "https://pre-c7.test/3",
+    "folds": [],
+    "hidden_assertions": [
+      "assertion-a",
+      "assertion-b"
+    ],
+    "hidden_links": [],
+    "hidden_relations": [],
+    "mirror_tiles": false,
+    "strategy": "spectral.default"
+  }
+}

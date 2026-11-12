@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "session_id": "1f1f7416-263a-4281-9322-0b4cb89e02f3",
+  "root_graph_id": "c8e782c9-b137-4ecb-831b-235bc0aaab1a",
+  "sub_graph_refs": [],
+  "display_name": null,
+  "persona_id": "00000000-0000-0000-0000-000000000001",
+  "created_at": {
+    "secs_since_epoch": 1794503970,
+    "nanos_since_epoch": 512297800
+  },
+  "updated_at": {
+    "secs_since_epoch": 1794503970,
+    "nanos_since_epoch": 529298200
+  },
+  "parent_session": null,
+  "consolidated_codicils": [],
+  "last_consolidated_at": null,
+  "storage_path": null,
+  "forked_at": null,
+  "trashed": null,
+  "source_codicil": null,
+  "codicil_read_only": false,
+  "picked_from": null,
+  "lineage": "fork",
+  "merged": null
+}
