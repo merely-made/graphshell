@@ -211,10 +211,6 @@ path = "host/crates/cambium/cambium/tests/fixtures/component_catalog_regular.htm
 reason = "Byte-exact generated HTML golden relocated from the documentation receipts; edits belong in the catalog generator and explicit fixture writer, not a split of the captured document."
 
 [[exception]]
-path = "host/ports/mere-resident/src/sync/carriage.rs"
-reason = "The epoch carriage lane: leased slots for wrapped private-epoch material. Existing source-size debt; a responsibility split must preserve CarriageExt, HeldLease, CarriageCeilings and existing module visibility."
-
-[[exception]]
 path = "host/crates/graphshell/graphshell-host/src/coop/mod.rs"
 reason = "One explicitly chosen holder-owned graph. Existing source-size debt; a responsibility split must preserve Saved, GraphAuthority, GraphReading and existing module visibility."
 
