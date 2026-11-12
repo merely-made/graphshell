@@ -1,0 +1,26 @@
+# P0 DocumentScript probe — direct-Rust guest component.
+# Standalone: its own workspace root and Cargo.lock, outside the host workspace.
+# Builds to a Component Model component via the wasm32-wasip2 target, which
+# componentizes at link time using the WIT section wit-bindgen embeds.
+[package]
+name = "document-script-p0-guest"
+version = "0.0.1"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+publish = false
+
+[workspace]
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+# std build. On the wasip2 target this also imports the WASI world (wasi:io,
+# wasi:cli, ...), so the host must grant WASI alongside `log`. A truly minimal
+# (only-`mere:script/log`) component needs a no_std build plus an allocator and
+# the mem/alloc-error intrinsics — recorded as a P0 finding, deferred here.
+wit-bindgen = "0.58"
+
+[profile.release]
+opt-level = "s"
+strip = true

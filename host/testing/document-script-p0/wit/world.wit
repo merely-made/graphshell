@@ -1,0 +1,127 @@
+package mere:script@0.1.0;
+
+/// One granted capability. The guest can log and nothing else: it has no
+/// network, clock, or storage unless those interfaces are *also* imported into
+/// its world. Unimported means unreachable, enforced at instantiation (§10.4).
+interface log {
+    log: func(message: string);
+}
+
+/// The document vocabulary the script and host exchange. Values are *copied*
+/// across the boundary; no language-native object graph crosses it (§2.2).
+interface document {
+    /// Opaque, host-assigned, stable node identity (§10.3). It survives content
+    /// edits AND moves, is unambiguous (unlike a content hash, which collides on
+    /// identical content and changes under edits), and is capability-scoped: the
+    /// host mints ids and maps id -> node, so a script cannot forge a reference to
+    /// a node outside its grant. Mirrors serval's `NodeId` (`ReflectorData = u64`).
+    type node-id = u64;
+
+    /// A new node a mutation creates.
+    record block {
+        kind: string,
+        text: string,
+    }
+
+    /// One node in a flat document-view. The tree is reconstructed from `parent`
+    /// (WIT value types are not recursive, so the view ships flat, in document
+    /// order).
+    record view-node {
+        id: node-id,
+        parent: option<node-id>,
+        kind: string,
+        text: string,
+        /// Change-detection token, NOT an address: a script's mirror compares it
+        /// to skip unchanged nodes / detect edits cheaply (and it dovetails with
+        /// Mere's content-addressed sync). A real impl uses a subtree Merkle hash;
+        /// this probe hashes node content.
+        content-hash: u64,
+    }
+
+    /// A copied snapshot of the document at a revision. Carries its `revision`
+    /// (§10.3) so a later batch can cite the revision it was computed against.
+    record document-view {
+        revision: u64,
+        nodes: list<view-node>,
+    }
+
+    /// What slice of the document a script pulls. `subtree` lets a script copy
+    /// only what it needs instead of the whole document every turn, trimming the
+    /// per-interaction canonical-ABI copy (§7.2).
+    variant document-query {
+        whole-document,
+        subtree(node-id),
+    }
+
+    /// One event delivered to the script for a single turn.
+    record event {
+        kind: string,
+        payload: string,
+    }
+
+    record set-text-args {
+        node: node-id,
+        text: string,
+    }
+    record insert-args {
+        reference: node-id,
+        new: block,
+    }
+    record append-args {
+        parent: node-id,
+        new: block,
+    }
+
+    /// Id-targeted mutations (§10.3). Positional ops use id-relative anchors
+    /// (parent / sibling node-ids), not index paths, so a batch's earlier edits
+    /// do not invalidate later ones (no operational-transform fragility).
+    variant mutation {
+        set-text(set-text-args),
+        remove(node-id),
+        insert-before(insert-args),
+        append-child(append-args),
+    }
+
+    /// A batch the script asks the host to apply *atomically* against
+    /// `expected-revision` (optimistic concurrency): all changes apply, or none.
+    record apply-batch {
+        expected-revision: u64,
+        changes: list<mutation>,
+    }
+
+    variant turn-error {
+        /// `expected-revision` did not match the host's current revision; carries
+        /// the current revision so the script can rebase, not just learn "conflict"
+        /// (§10.3).
+        revision-conflict(u64),
+        /// A mutation referenced a node-id the host does not know (or that is out of
+        /// the granted scope). Reported before any change applies (atomicity).
+        unknown-node(node-id),
+        /// The script declined or could not handle the event.
+        refused(string),
+    }
+}
+
+/// The host capability the script calls back into mid-turn: pull a (scoped)
+/// copied snapshot on demand (the §5 `inspect` seam), instead of the host pushing
+/// the whole document every turn. Granted like any capability; the returned view
+/// is a value copy, so no live document handle crosses the boundary.
+interface document-host {
+    use document.{document-view, document-query};
+    inspect: func(query: document-query) -> document-view;
+}
+
+/// Per-turn outer contract (§10.2): the host delivers an event; the script pulls
+/// the snapshot it needs via the `inspect` import (re-entrant, scoped) and returns
+/// an atomic, revision-checked batch. Synchronous (§10.8 sync probe).
+world document-core {
+    import log;
+    import document-host;
+    use document.{event, apply-batch, turn-error};
+
+    /// Lifecycle (§6 P1): the host activates the script before delivering events,
+    /// and deactivates it at teardown.
+    export activate: func();
+    export handle-event: func(ev: event) -> result<apply-batch, turn-error>;
+    export deactivate: func();
+}

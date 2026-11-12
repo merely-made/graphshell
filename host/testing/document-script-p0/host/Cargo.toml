@@ -1,0 +1,18 @@
+# P0 DocumentScript probe — Wasmtime host runner.
+# Standalone: its own workspace root and Cargo.lock, outside the host workspace.
+# Pins released Wasmtime 45.0.2 — the §10.8 *sync* probe runs on the released
+# runtime; the async path is gated on the unreleased Wasmtime 46.
+[package]
+name = "document-script-p0-host"
+version = "0.0.1"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+publish = false
+
+[workspace]
+
+[dependencies]
+wasmtime = "45"
+# The std guest imports the WASI world on the wasip2 target; grant it the WASI
+# runtime floor alongside the `log` capability so it can instantiate.
+wasmtime-wasi = "45"
