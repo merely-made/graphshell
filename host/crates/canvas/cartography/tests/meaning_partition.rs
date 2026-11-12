@@ -298,7 +298,7 @@ fn the_partitions_resolution_and_the_local_models_on_the_arxiv_bar() {
     let started = Instant::now();
     let provider = BertEmbeddingProvider::load(
         models.join(variant.model),
-        esp::embed::bert::Device::ndarray(),
+        esp::embed::bert::Device::flex(),
     )
     .expect("the model loads on the CPU")
     .with_pooling(variant.pooling);

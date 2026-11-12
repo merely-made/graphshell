@@ -610,10 +610,10 @@ async fn exercise_inner(native: bool) {
                     .unwrap()
                     .0
             } else {
-                InferenceDevice::ndarray()
+                InferenceDevice::flex()
             };
             #[cfg(not(feature = "inference-gpu"))]
-            let device = InferenceDevice::ndarray();
+            let device = InferenceDevice::flex();
             let loader = if native { "burn-wgpu" } else { "burn-ndarray" };
             let provider = resolved
                 .load_resident_with_layer_source(

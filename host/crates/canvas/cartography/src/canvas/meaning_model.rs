@@ -134,7 +134,7 @@ impl MeaningModel {
         let dir = self.check(models)?;
         let provider = esp::embed::bert::BertEmbeddingProvider::load(
             dir,
-            esp::embed::bert::Device::ndarray(),
+            esp::embed::bert::Device::flex(),
         )?
         .with_pooling(self.pooling()?);
         Ok(

@@ -125,7 +125,7 @@ async fn exercise_route(library_model: bool) {
         let provider = load_library_session(
             &mut store,
             row,
-            &InferenceDevice::ndarray(),
+            &InferenceDevice::flex(),
             "burn-ndarray",
             4,
         )
@@ -539,7 +539,7 @@ async fn keyed_personal_graph_devices_continue_a_seeded_ask() {
     let reference = load_library_session(
         &mut *library.lock().await,
         row,
-        &InferenceDevice::ndarray(),
+        &InferenceDevice::flex(),
         "burn-ndarray",
         8,
     )

@@ -294,7 +294,7 @@ impl ResidentDistillery {
         settings: distillery::inference_stage::StageSettings,
     ) -> Result<Arc<distillery::inference_stage::StageService>, String> {
         let (device, gpu) = match loader {
-            "burn-ndarray" => (distillery::inference::InferenceDevice::ndarray(), None),
+            "burn-ndarray" => (distillery::inference::InferenceDevice::flex(), None),
             "burn-flex" => (distillery::inference::InferenceDevice::flex(), None),
             #[cfg(feature = "inference-gpu")]
             "burn-wgpu" => (
@@ -549,7 +549,7 @@ impl ResidentDistillery {
                         trainer_adapter = Some(adapter);
                         device
                     },
-                    _ => distillery::TrainerDevice::ndarray(),
+                    _ => distillery::TrainerDevice::flex(),
                 };
                 let mut resource = distillery::TrainerResource::new(Arc::clone(store), device);
                 if lane
