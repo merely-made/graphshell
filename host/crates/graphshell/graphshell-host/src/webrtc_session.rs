@@ -59,7 +59,6 @@ use notochord::{
     AdmittedPrincipal, AdmittedSession, LocalNetworkPolicy, RevocationLedger, SessionHello,
 };
 use personae::IdentityProvider;
-use rand_core::{OsRng, RngCore};
 use tokio::io::DuplexStream;
 use tokio::task::JoinHandle;
 use webrtc_carrier::native::{Carrier, CarrierControl, PumpEnd, stream_over_frames};
@@ -184,7 +183,7 @@ pub async fn host_join<P: IdentityProvider, F: JoinFrames>(
 
     // Challenge: the host contributes its nonce and signs the transcript.
     let mut server_nonce = [0u8; 32];
-    OsRng.fill_bytes(&mut server_nonce);
+    getrandom::fill(&mut server_nonce).expect("operating system random source");
     let challenge = LinkChallenge::new(
         PROJECTION_PROTOCOL,
         channel_label,
@@ -222,7 +221,7 @@ pub async fn host_join<P: IdentityProvider, F: JoinFrames>(
             // Grant: the delegation the redemption bought, scoped from the
             // host's own copy of the invitation.
             let mut nonce = [0u8; 32];
-            OsRng.fill_bytes(&mut nonce);
+            getrandom::fill(&mut nonce).expect("operating system random source");
             let delegation = mint_delegation(
                 provider,
                 root_authority,

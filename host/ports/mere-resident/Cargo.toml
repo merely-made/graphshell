@@ -93,7 +93,7 @@ errand = { workspace = true, optional = true, features = ["serve"] }
 retinue = { workspace = true, optional = true }
 scroll-protocol = { workspace = true, optional = true, features = ["server"] }
 url = { version = "2.5", optional = true }
-pollster = { version = "0.4", optional = true }
+pollster = { version = "1", optional = true }
 # Local redacted lifecycle diagnostics, without the projection/rendering feature.
 apparatus-core = { workspace = true, features = ["serde"] }
 registry = { workspace = true, features = ["observations"] }
@@ -187,7 +187,7 @@ sha2.workspace = true
 ssh-agent-lib = "0.6"
 # Importing an SSH key through the native picker (`src/identity_ui.rs`).
 ssh-key = { version = "0.6", features = ["ed25519", "encryption"] }
-thiserror = "1"
+thiserror = "2"
 # "signal" is what lets the run loop stop the mesh works deliberately on Ctrl-C
 # rather than being killed mid-lease.
 tokio = { version = "1", features = ["io-std", "io-util", "macros", "net", "process", "rt-multi-thread", "signal", "sync", "time"] }
@@ -325,7 +325,7 @@ graphshell-door = { workspace = true, features = ["projection-door", "projection
 djinn = { workspace = true, features = ["resident", "door-serve"] }
 ostiary = { workspace = true, features = ["native"] }
 castellan-client = { workspace = true, features = ["client"] }
-pollster = "0.4"
+pollster = "1"
 mere-view.workspace = true
 p2panda-core = { package = "p2mere-core", version = "0.10" }
 # The Knot residue test's baselines (iroh alone, p2panda-net alone), built as
@@ -340,7 +340,7 @@ p2panda-net = { package = "p2mere-net", version = "0.10", default-features = fal
   "sync",
 ] }
 stickleback.workspace = true
-safetensors = "0.4"
+safetensors = "0.8"
 scenotime.workspace = true
 tempfile = "3"
 tokio = { version = "1", features = ["macros", "rt", "rt-multi-thread", "sync", "time"] }

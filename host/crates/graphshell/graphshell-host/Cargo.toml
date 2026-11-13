@@ -46,7 +46,7 @@ native = [
     "notochord/tokio",
     "dep:blake3",
     "dep:pandect",
-    "dep:rand_core",
+    "dep:getrandom",
     "dep:sporran",
     "dep:serde",
     "dep:uuid",
@@ -141,10 +141,9 @@ notochord = { workspace = true, optional = true }
 personae = { workspace = true, optional = true }
 serde = { workspace = true, optional = true }
 serde_json.workspace = true
-thiserror = { version = "1", optional = true }
-# The join's nonces; `rand_core` would bring a third `getrandom` major into
-# a wasm graph (see `webrtc_join`'s module docs).
-getrandom = { version = "0.3", optional = true }
+thiserror = { version = "2", optional = true }
+# Nonces and session ids, straight from the OS (see `webrtc_join`'s module docs).
+getrandom = { version = "0.4", optional = true }
 webrtc-carrier = { workspace = true, optional = true }
 pictograph.workspace = true
 # The graph canvas the board and the mere host draw (engine split D38).
@@ -157,7 +156,7 @@ portolan = { workspace = true, optional = true }
 fleece = { workspace = true, optional = true }
 uuid = { workspace = true, optional = true }
 muniment = { workspace = true, optional = true }
-pollster = { version = "0.4", optional = true }
+pollster = { version = "1", optional = true }
 # `native`'s session store, and the session `mere-host` serves in the browser
 # too, so it is not in the native-only table.
 pandect = { workspace = true, optional = true }
@@ -170,19 +169,18 @@ scenograph = { workspace = true, optional = true }
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 # An invitation's network id and session (`invitation`).
 blake3 = { workspace = true, optional = true }
-rand_core = { version = "0.6", features = ["getrandom"], optional = true }
 tokio = { version = "1", features = ["io-util", "macros", "net", "rt-multi-thread", "sync", "time"], optional = true }
 # The one audited `AcceptedSession -> SessionFacts` adapter (Notochord N1).
 transport = { workspace = true, features = ["notochord"], optional = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-getrandom = { version = "0.3", features = ["wasm_js"], optional = true }
+getrandom = { version = "0.4", features = ["wasm_js"], optional = true }
 
 [dev-dependencies]
 # The kernel's test graph builders (`graph::fixtures`), dev-only.
 kernel = { workspace = true, features = ["fixtures"] }
 muniment = { workspace = true, features = ["directory"] }
-pollster = "0.4"
+pollster = "1"
 uuid.workspace = true
 transport = { workspace = true, features = ["test-identity"] }
 webrtc-carrier = { workspace = true, features = ["native"] }

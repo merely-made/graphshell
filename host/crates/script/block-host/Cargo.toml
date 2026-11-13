@@ -28,7 +28,7 @@ graphshell-endpoint = { workspace = true }
 wasmtime = "45"
 wasmtime-wasi = "45"
 # Drives the async exports from sync callers; the lib stays executor-neutral.
-pollster = "0.4"
+pollster = "1"
 
 [dev-dependencies]
 vector-sheet = { workspace = true }

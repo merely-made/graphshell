@@ -79,8 +79,6 @@ use personae::delegation::DelegationError;
 use personae::delegation::Issue;
 use personae::{Ed25519Keypair, Ed25519PublicKey, Ed25519Signature};
 use personae::{IdentityError, IdentityProvider};
-#[cfg(all(feature = "native", not(target_arch = "wasm32")))]
-use rand_core::{OsRng, RngCore};
 use serde::{Deserialize, Serialize};
 #[cfg(all(feature = "native", not(target_arch = "wasm32")))]
 use transport::{AcceptedSession, Alpn, IngressContext};
@@ -109,8 +107,8 @@ pub const WEBRTC_HOST_SIGNING_SALT: &[u8] = b"mere.graphshell/webrtc-host-signin
 ///
 /// The rendezvous id and the redemption seed are deliberately absent: an
 /// invitation whose secret its caller chose is an invitation whose secret its
-/// caller can reuse, so the door mints both from `OsRng` and never accepts
-/// them as arguments.
+/// caller can reuse, so the door mints both from the OS random source and
+/// never accepts them as arguments.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct InviteTerms {
     /// The network the redeemed delegation is scoped to.
@@ -352,9 +350,9 @@ pub fn issue_invite<P: IdentityProvider>(
     terms: &InviteTerms,
 ) -> Result<InviteIssue, DoorError> {
     let mut rendezvous = [0u8; webrtc_carrier::INVITE_ID_BYTES];
-    OsRng.fill_bytes(&mut rendezvous);
+    getrandom::fill(&mut rendezvous).expect("operating system random source");
     let mut seed = [0u8; 32];
-    OsRng.fill_bytes(&mut seed);
+    getrandom::fill(&mut seed).expect("operating system random source");
 
     let host_key = provider.master_public_key().to_bytes();
     let verifier = Ed25519Keypair::from_seed(seed).public_key();

@@ -62,7 +62,7 @@ reason = "held by spm_precompiled 0.1.4; gone when its holders move to base64 0.
 
 [[bans.skip]]
 crate = "base64@0.22.1"
-reason = "held by attohttpc 0.30.1, castellan 0.0.4, castellan-client 0.0.2, chirograph 0.0.5 +16 more; moves when the holding crates (git/reg/ws) move to base64 0.23.1"
+reason = "held by attohttpc 0.30.1, genet-scripted 0.2.0, netfetcher 0.1.1, portmapper 0.19.3, tokio-websockets 0.13.3, turso_sync_engine 0.8.3, wasmtime-internal-cache 45.0.3; moves when the holding crates (git/reg) move to base64 0.23.1"
 
 
 [[bans.skip]]
@@ -100,7 +100,7 @@ reason = "held by chacha20poly1305 0.10.1, ssh-cipher 0.2.0; gone when its holde
 
 [[bans.skip]]
 crate = "chacha20poly1305@0.10.1"
-reason = "held by p2mere-encryption 0.10.0; gone when its holders move to chacha20poly1305 0.11.0 (p2mere-encryption 0.10.0 is its latest release)"
+reason = "held by p2mere-encryption 0.10.0; gone when its holders move to chacha20poly1305 0.11.0 (p2mere main moved in 2aedd0f1; goes when p2mere publishes past 0.10.0)"
 
 [[bans.skip]]
 crate = "cipher@0.4.4"
@@ -228,7 +228,7 @@ reason = "held by const-random-macro 0.1.16, gemot-site-host 0.0.1, mere 0.1.0, 
 
 [[bans.skip]]
 crate = "getrandom@0.3.4"
-reason = "held by ahash 0.8.12, castellan 0.0.4, djinn-custodian 0.0.1, fastbloom 0.14.1 +7 more; moves when the holding crates (git/reg/ws) move to getrandom 0.4.3"
+reason = "held by ahash 0.8.12, fastbloom 0.14.1, mere 0.1.0, mere-rdfc 0.1.0, pandect 0.2.0, rand_core 0.9.5, tokenizers 0.23.2, turso_core 0.8.3; moves when the holding crates (git/reg) move to getrandom 0.4.3"
 
 [[bans.skip]]
 crate = "ghash@0.5.1"
@@ -284,7 +284,7 @@ reason = "held by cubecl-opt 0.12.0-pre.2; gone when its holders move to hi_spar
 
 [[bans.skip]]
 crate = "hkdf@0.12.4"
-reason = "held by elliptic-curve 0.13.8, p2mere-encryption 0.10.0; gone when its holders move to hkdf 0.13.0 (elliptic-curve 0.13.8 in the graph, 0.14.3 newest; p2mere-encryption 0.10.0 is its latest release)"
+reason = "held by elliptic-curve 0.13.8, p2mere-encryption 0.10.0; gone when its holders move to hkdf 0.13.0 (elliptic-curve 0.13.8 in the graph, 0.14.3 newest; p2mere main moved in 2aedd0f1; goes when p2mere publishes past 0.10.0)"
 
 [[bans.skip]]
 crate = "hmac@0.12.1"
@@ -423,7 +423,7 @@ reason = "held by mandrake 0.1.0; ours (mandrake); png 0.18 makes Reader::output
 
 [[bans.skip]]
 crate = "pollster@0.4.0"
-reason = "held by app-host 0.0.1, block-host 0.0.1, distillery 0.0.1, djinn-custodian 0.0.1 +6 more; moves when the holding crates (git/ws) move to pollster 1.0.1"
+reason = "held by distillery 0.0.1, esp 0.1.0; moves when the holding crates (git) move to pollster 1.0.1"
 
 [[bans.skip]]
 crate = "poly1305@0.8.0"
@@ -471,11 +471,11 @@ reason = "held by rand 0.8.8; gone when its holders move to rand_chacha 0.10.0 (
 
 [[bans.skip]]
 crate = "rand_chacha@0.9.0"
-reason = "held by p2mere-encryption 0.10.0, rand 0.9.5, rav1e 0.8.1; gone when its holders move to rand_chacha 0.10.0 (p2mere-encryption 0.10.0 is its latest release; rand 0.9.5 in the graph, 0.10.3 newest)"
+reason = "held by p2mere-encryption 0.10.0, rand 0.9.5, rav1e 0.8.1; gone when its holders move to rand_chacha 0.10.0 (p2mere main moved in 2aedd0f1; goes when p2mere publishes past 0.10.0; rand 0.9.5 in the graph, 0.10.3 newest)"
 
 [[bans.skip]]
 crate = "rand_core@0.6.4"
-reason = "held by castellan 0.0.4, crypto-bigint 0.5.5, crypto-common 0.1.7, distillery 0.0.1 +16 more; moves when the holding crates (git/reg/ws) move to rand_core 0.10.1"
+reason = "held by castellan 0.0.4, mere-resident 0.0.2 (both for ssh-key 0.6.7's key generation), ssh-key 0.6.7, crypto-bigint 0.5.5, crypto-common 0.1.7, elliptic-curve 0.13.8, ff 0.13.1, group 0.13.0, p521 0.13.3, rand 0.8.8, rand_chacha 0.3.1, rand_pcg 0.3.1, rsa 0.9.10, shuttle 0.8.1, signature 2.2.0; moves with ssh-key 0.7 and the holding crates (git/reg/ws) moving to rand_core 0.10.1"
 
 [[bans.skip]]
 crate = "rand_core@0.9.5"
@@ -529,7 +529,7 @@ reason = "held by bindgen 0.69.5, bindgen 0.72.1; gone when its holders move to 
 
 [[bans.skip]]
 crate = "signature@2.2.0"
-reason = "held by castellan 0.0.4, ecdsa 0.16.9, ed25519 2.2.3, mere-resident 0.0.2 +3 more; moves when the holding crates (git/reg/ws) move to signature 3.0.0"
+reason = "held by castellan 0.0.4, mere-resident 0.0.2 (both verify ssh-key 0.6.7 signatures), ecdsa 0.16.9, ed25519 2.2.3, rsa 0.9.10, ssh-agent-lib 0.6.0, ssh-key 0.6.7; moves with ssh-key 0.7 and the holding crates (git/reg/ws) moving to signature 3.0.0"
 
 [[bans.skip]]
 crate = "smol_str@0.1.24"
@@ -565,7 +565,7 @@ reason = "held by arg_enum_proc_macro 0.3.4, aristo-macros 0.4.1, asn1-rs-derive
 
 [[bans.skip]]
 crate = "thiserror@1.0.69"
-reason = "held by calloop 0.13.0, castellan 0.0.4, castellan-client 0.0.2, commons-spine 0.0.1 +29 more; moves when the holding crates (git/reg/ws) move to thiserror 2.0.21"
+reason = "held by calloop 0.13.0, djinn-testkit 0.0.1, jni 0.21.1, mere-transport 0.0.2, murm-ocapn 0.1.0, murm-sync 0.0.1, murm-webrtc 0.0.1, ndk 0.9.0, nvml-wrapper 0.13.0, redox_users 0.4.6, smithay-client-toolkit 0.19.2, sysctl 0.6.0, witx 0.9.1; moves when the holding crates (git/reg/ws) move to thiserror 2.0.21"
 
 [[bans.skip]]
 crate = "thiserror-impl@1.0.69"
@@ -594,10 +594,6 @@ reason = "held by wasm-compose 0.248.0, wasm-encoder 0.248.0, wasmprinter 0.248.
 [[bans.skip]]
 crate = "wast@35.0.2"
 reason = "held by witx 0.9.1; gone when its holders move to wast 263.0.0 (witx 0.9.1 is its latest release)"
-
-[[bans.skip]]
-crate = "webpki-roots@0.26.11"
-reason = "held by ureq 2.12.1; gone when its holders move to webpki-roots 1.0.12 (ureq 2.12.1 in the graph, 3.5.2 newest)"
 
 [[bans.skip]]
 crate = "windows-core@0.62.2"

@@ -183,7 +183,7 @@ impl Invitation {
             return Err("choose an expiry within thirty days".into());
         }
         let mut nonce = [0; 32];
-        rand_core::RngCore::fill_bytes(&mut rand_core::OsRng, &mut nonce);
+        getrandom::fill(&mut nonce).expect("operating system random source");
         let grant = signer.certificate(DelegationCertificate::new(
             DelegationParent::Root(owner),
             owner,
@@ -273,7 +273,7 @@ impl Invitation {
             return Err("only the owner can end guest access".into());
         }
         let mut nonce = [0; 32];
-        rand_core::RngCore::fill_bytes(&mut rand_core::OsRng, &mut nonce);
+        getrandom::fill(&mut nonce).expect("operating system random source");
         signer.revocation(DelegationRevocation::new(
             self.grant.certificate.id(),
             self.owner.root(),
@@ -298,7 +298,7 @@ impl Invitation {
         let key = identity.derive_keypair(terms.salt).map_err(|e| e.to_string())?;
         let signing = personae::InMemoryProvider::from_seed(key.to_seed());
         let mut nonce = [0; 32];
-        rand_core::RngCore::fill_bytes(&mut rand_core::OsRng, &mut nonce);
+        getrandom::fill(&mut nonce).expect("operating system random source");
         open_session_for(
             &signing,
             NetworkId(terms.network(self.owner.root(), self.session)),

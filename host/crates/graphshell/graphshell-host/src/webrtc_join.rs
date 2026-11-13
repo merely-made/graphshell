@@ -21,10 +21,10 @@
 //!
 //! ## Entropy without `rand`
 //!
-//! Nonces come from [`getrandom`] 0.3 directly rather than through `rand_core`.
-//! Not a preference: the identity stack already carries two `getrandom` majors
+//! Nonces come from [`getrandom`] directly rather than through `rand_core`.
+//! Not a preference: the identity stack already carries `getrandom` majors
 //! into a wasm build, each needing its own opt-in to reach the JavaScript
-//! backend, and `rand_core 0.6`'s `getrandom` feature would have added a third.
+//! backend, and `rand_core`'s `getrandom` feature would add another.
 //! One more major is one more way for the browser build to fail at link time
 //! with a message about a crate nobody named.
 

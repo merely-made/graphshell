@@ -46,7 +46,11 @@ impl HttpsFetcher {
     /// cap.
     pub fn new() -> Self {
         Self {
-            agent: ureq::AgentBuilder::new().build(),
+            // ureq 2's redirect limit; ureq 3 defaults to 10.
+            agent: ureq::Agent::config_builder()
+                .max_redirects(5)
+                .build()
+                .into(),
             max_response_bytes: 1024 * 1024 * 1024,
         }
     }
@@ -73,8 +77,8 @@ impl HttpsFetcher {
             .call()
             .map_err(|e| Error::new(format!("https fetch {url}: {e}")))?;
 
-        if let Some(len_str) = response.header("Content-Length") {
-            if let Ok(len) = len_str.parse::<u64>() {
+        if let Some(len_str) = response.headers().get("Content-Length") {
+            if let Ok(len) = len_str.to_str().unwrap_or_default().parse::<u64>() {
                 if len > self.max_response_bytes {
                     return Err(Error::new(format!(
                         "https fetch {url}: Content-Length {len} exceeds max {}",
@@ -85,7 +89,7 @@ impl HttpsFetcher {
         }
 
         let mut buffer = Vec::new();
-        let reader = response.into_reader();
+        let reader = response.into_body().into_reader();
         let mut limited = reader.take(self.max_response_bytes.saturating_add(1));
         limited
             .read_to_end(&mut buffer)

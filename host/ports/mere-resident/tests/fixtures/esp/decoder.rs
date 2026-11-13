@@ -80,5 +80,5 @@ pub fn weights_bytes() -> Vec<u8> {
             )
         })
         .collect();
-    safetensors::serialize(views, &None).unwrap()
+    safetensors::serialize(views, None).unwrap()
 }

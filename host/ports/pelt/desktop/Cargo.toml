@@ -151,7 +151,7 @@ pelt-core = { workspace = true }
 # the former `../../tabard` relative path becomes a workspace path dep.
 tabard = { workspace = true }
 tinct = { workspace = true, optional = true }
-pollster = { version = "0.4", optional = true }
+pollster = { version = "1", optional = true }
 raw-window-handle = { workspace = true, optional = true }
 webgl_wgpu = { workspace = true, optional = true }
 wgpu = { version = "30", default-features = false, features = ["std", "parking_lot", "dx12", "metal", "vulkan", "wgsl"], optional = true }
