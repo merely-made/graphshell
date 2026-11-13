@@ -42,7 +42,10 @@ async fn run() -> Result<(), Box<dyn std::error::Error>> {
     AllowedExtensions::default().admit(&launcher)?;
 
     let identity = InMemoryProvider::from_seed([0x51; 32]);
-    let mut private = ssh_key::PrivateKey::random(&mut rand_core::OsRng, Algorithm::Ed25519)?;
+    let mut private = ssh_key::PrivateKey::random(
+        &mut rand_core::UnwrapErr(getrandom::SysRng),
+        Algorithm::Ed25519,
+    )?;
     private.set_comment("H4d headed approval receipt");
     let public = ssh_key::PublicKey::from(&private);
     let mut profile = Profile::new(

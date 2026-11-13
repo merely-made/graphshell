@@ -781,8 +781,11 @@ mod tests {
     /// private half nothing served may contain. The same check against the
     /// real keeper lives with djinn (`tests/keeper_endpoint.rs`).
     fn endpoint_with_private_sentinel() -> (IdentityEndpoint<FixedIdentity>, String) {
-        let mut private =
-            ssh_key::PrivateKey::random(&mut rand_core::OsRng, Algorithm::Ed25519).unwrap();
+        let mut private = ssh_key::PrivateKey::random(
+            &mut rand_core::UnwrapErr(getrandom::SysRng),
+            Algorithm::Ed25519,
+        )
+        .unwrap();
         private.set_comment("endpoint-receipt");
         let private_openssh = private.to_openssh(LineEnding::LF).unwrap().to_string();
         let public = private.public_key();

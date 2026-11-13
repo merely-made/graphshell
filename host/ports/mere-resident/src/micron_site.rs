@@ -84,7 +84,6 @@ impl NomadNetListenerPolicyV1 {
 mod native {
     use super::*;
     use crate::resident_site::{load_json, save_json_atomic};
-    use rand_core::RngCore;
     use retinue::{
         endpoint::{Endpoint, InboundLinkLimits, ResourceSession, ResourceTransferConfig},
         identity::PrivateIdentity,
@@ -124,7 +123,7 @@ mod native {
                 return Err("NomadNet identity is missing; restore its original key".into());
             }
             let mut secret = vec![0; 64];
-            rand_core::OsRng.fill_bytes(&mut secret);
+            getrandom::fill(&mut secret).expect("operating system random source");
             let stored = IdentityV1 { version: 1, secret };
             save_json_atomic(&path, &stored)?;
             stored

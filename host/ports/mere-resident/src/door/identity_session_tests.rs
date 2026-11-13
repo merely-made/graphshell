@@ -89,8 +89,11 @@ async fn browser_carrier_delivers_public_identity_cards_and_an_approval() {
     // A fixed authority holding one pending signing request: the carrier
     // and endpoint are what is under test here. The keeper's own approval
     // path (agent, broker, signature) is castellan's and djinn's to prove.
-    let mut private =
-        ssh_key::PrivateKey::random(&mut rand_core::OsRng, Algorithm::Ed25519).unwrap();
+    let mut private = ssh_key::PrivateKey::random(
+        &mut rand_core::UnwrapErr(getrandom::SysRng),
+        Algorithm::Ed25519,
+    )
+    .unwrap();
     private.set_comment("admitted-identity");
     let private_openssh = private.to_openssh(LineEnding::LF).unwrap().to_string();
     let pending = personae::signing::SigningRequest::new(

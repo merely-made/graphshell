@@ -62,7 +62,10 @@ fn persona(
     name: &str,
     seed: u8,
 ) -> Result<(Profile, String), Box<dyn std::error::Error>> {
-    let mut private = ssh_key::PrivateKey::random(&mut rand_core::OsRng, Algorithm::Ed25519)?;
+    let mut private = ssh_key::PrivateKey::random(
+        &mut rand_core::UnwrapErr(getrandom::SysRng),
+        Algorithm::Ed25519,
+    )?;
     private.set_comment(format!("{name} key"));
     let mut profile = Profile::new(
         ProfileId(id.to_string()),

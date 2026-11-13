@@ -31,8 +31,11 @@ use ssh_key::{Algorithm, LineEnding};
 type Kept = Keeper;
 
 fn endpoint_with_private_sentinel() -> (IdentityEndpoint<Kept>, String) {
-    let mut private =
-        ssh_key::PrivateKey::random(&mut rand_core::OsRng, Algorithm::Ed25519).unwrap();
+    let mut private = ssh_key::PrivateKey::random(
+        &mut rand_core::UnwrapErr(getrandom::SysRng),
+        Algorithm::Ed25519,
+    )
+    .unwrap();
     private.set_comment("endpoint-receipt");
     let private_openssh = private.to_openssh(LineEnding::LF).unwrap().to_string();
     let mut profile = Profile::new(

@@ -54,7 +54,6 @@ use mesh::{Job, JobBoard, JobBoardSnapshot, ResourceId};
 use notochord::{NetworkId, ProfileRef, TrustedRoot};
 use sporran::{DeviceSettings, MeshLendingSettings, StatedConditionSettings};
 use personae::{IdentityProvider, InMemoryProvider, ProfileId};
-use rand_core::{OsRng, RngCore};
 use scenograph::{ProjectionInputBinding, PublicSourceRevision, RevisionEvidence, SourceBinding};
 use serde::Deserialize;
 use serde_json::json;
@@ -350,7 +349,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let binding_receipt = Arc::new(chronicle_binding_receipt(&observer)?);
 
     let mut provider_seed = [0u8; 32];
-    OsRng.fill_bytes(&mut provider_seed);
+    getrandom::fill(&mut provider_seed).expect("operating system random source");
     let provider = Arc::new(InMemoryProvider::from_seed(provider_seed));
     let host_key = provider.master_public_key().to_bytes();
     let policy = projection_policy(

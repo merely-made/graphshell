@@ -714,13 +714,12 @@ impl ResidentDistillery {
         &self,
         key: [u8; 32],
     ) -> Result<Arc<distillery::inference::durable::PersonaRunJournal<RedbBackend>>, String> {
-        use rand_core::RngCore;
         let device_path = self.inference_root.join("inference-device");
         let device = match std::fs::read_to_string(&device_path) {
             Ok(device) => device,
             Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
                 let mut bytes = [0u8; 16];
-                rand_core::OsRng.fill_bytes(&mut bytes);
+                getrandom::fill(&mut bytes).expect("operating system random source");
                 let id: String = bytes.iter().map(|byte| format!("{byte:02x}")).collect();
                 let device = format!(
                     "{}:{id}",

@@ -102,10 +102,16 @@ struct EncryptedFixture {
 
 impl EncryptedFixture {
     fn create(path: PathBuf) -> Result<(Self, String), Box<dyn std::error::Error>> {
-        let mut private = PrivateKey::random(&mut rand_core::OsRng, Algorithm::Ed25519)?;
+        let mut private = PrivateKey::random(
+            &mut rand_core::UnwrapErr(getrandom::SysRng),
+            Algorithm::Ed25519,
+        )?;
         private.set_comment("H4e native picker receipt");
         let fingerprint = private.fingerprint(ssh_key::HashAlg::Sha256).to_string();
-        let private = private.encrypt(&mut rand_core::OsRng, RECEIPT_PASSPHRASE)?;
+        let private = private.encrypt(
+            &mut rand_core::UnwrapErr(getrandom::SysRng),
+            RECEIPT_PASSPHRASE,
+        )?;
         let encoded = private.to_openssh(LineEnding::LF)?;
         let mut file = OpenOptions::new()
             .write(true)

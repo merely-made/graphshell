@@ -34,7 +34,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .unwrap_or_else(|| PathBuf::from("ports/graphshell/docs/receipts"));
     std::fs::create_dir_all(&output_root)?;
 
-    let mut private = ssh_key::PrivateKey::random(&mut rand_core::OsRng, Algorithm::Ed25519)?;
+    let mut private = ssh_key::PrivateKey::random(
+        &mut rand_core::UnwrapErr(getrandom::SysRng),
+        Algorithm::Ed25519,
+    )?;
     private.set_comment("Graphshell receipt key");
     let public = ssh_key::PublicKey::from(&private);
     let mut profile = Profile::new(
@@ -119,8 +122,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         })?,
     )?);
 
-    let mut imported_private =
-        ssh_key::PrivateKey::random(&mut rand_core::OsRng, Algorithm::Ed25519)?;
+    let mut imported_private = ssh_key::PrivateKey::random(
+        &mut rand_core::UnwrapErr(getrandom::SysRng),
+        Algorithm::Ed25519,
+    )?;
     imported_private.set_comment("Native import receipt");
     let imported_private_openssh = imported_private.to_openssh(LineEnding::LF)?.to_string();
     let imported = host.import_ssh_private(
