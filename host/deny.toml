@@ -230,7 +230,7 @@ reason = "held by hashbrown 0.15.5; gone when its holders move to foldhash 0.2.0
 
 [[bans.skip]]
 crate = "getrandom@0.2.17"
-reason = "held by const-random-macro 0.1.16, gemot-site-host 0.0.1, mere-rdf 0.0.1, rand_core 0.6.4 +5 more; moves when the holding crates (git/reg) move to getrandom 0.4.3"
+reason = "held by const-random-macro 0.1.16, gemot-site-host 0.0.1, mere 0.1.0, rand_core 0.6.4 +5 more; moves when the holding crates (git/reg) move to getrandom 0.4.3"
 
 [[bans.skip]]
 crate = "getrandom@0.3.4"

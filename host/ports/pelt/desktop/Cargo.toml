@@ -131,7 +131,7 @@ cambium-rootstock = { workspace = true, optional = true }
 tabard-workshop = { workspace = true, optional = true, features = ["native-host"] }
 mandrake = { workspace = true, optional = true }
 taproot = { workspace = true, optional = true }
-dirs = { version = "6", optional = true }
+dirs = { version = "7", optional = true }
 netrender = { workspace = true, optional = true }
 # Only `save_buffer_with_format(.., ImageFormat::Png)` is used, so this takes
 # the png-only feature set mere's other image consumer already uses.

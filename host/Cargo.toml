@@ -82,7 +82,7 @@ wgpu-cue = { git = "https://github.com/merely-made/wgpu-cue.git", branch = "main
 # carriage is selected at the owning crate.
 seiche = { version = "0.0.6", git = "https://github.com/merely-made/seiche.git", branch = "main", default-features = false }
 cartography = { package = "mere-cartography", version = "0.0.2", path = "crates/canvas/cartography" }
-linked-data = { package = "mere-rdf", version = "0.0.1", git = "https://github.com/merely-made/mere.git", branch = "main" }
+linked-data = { package = "mere", version = "0.1.0", git = "https://github.com/merely-made/mere.git", branch = "main" }
 kernel = { package = "mere-kernel", version = "0.0.3", git = "https://github.com/merely-made/mere.git", branch = "main" }
 # The graph-canvas content-root (was `orrery`; that name retired to the Merely
 # product tier ladder, 2026-07-09 — see the boundary pass plan amendments).
