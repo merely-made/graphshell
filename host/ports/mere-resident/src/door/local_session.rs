@@ -230,7 +230,7 @@ mod tests {
     /// is what keeps a first-party name from being replayable as a browser.
     #[test]
     fn two_labels_on_one_challenge_do_not_share_a_link() {
-        let challenge = BrowserChallenge::fresh();
+        let challenge = BrowserChallenge::fresh().expect("nonce");
         let connect = BrowserMessage::Connect {
             schema: "mere.graphshell/browser-connect/v1".to_string(),
             host_nonce: challenge.host_nonce.clone(),

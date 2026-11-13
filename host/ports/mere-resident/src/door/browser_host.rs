@@ -35,6 +35,9 @@ use graphshell_host::session_notices::serve_admitted_session_notifying;
 pub enum BrowserHostError {
     #[error(transparent)]
     Carrier(#[from] BrowserCarrierError),
+    /// The operating system could not supply the challenge nonce.
+    #[error(transparent)]
+    Nonce(#[from] ostiary::wire::NonceError),
     #[error("local browser grant failed: {0}")]
     Delegation(#[from] DelegationError),
     /// The door's kept keys are unavailable (rulings 40, 46).
@@ -172,7 +175,7 @@ where
     R: tokio::io::AsyncRead + Unpin,
     W: tokio::io::AsyncWrite + Unpin,
 {
-    let challenge = BrowserChallenge::fresh();
+    let challenge = BrowserChallenge::fresh()?;
     write_native_message_async(
         writer,
         &BrowserHostMessage::Challenge {

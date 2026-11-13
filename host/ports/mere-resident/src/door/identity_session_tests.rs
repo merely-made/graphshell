@@ -113,7 +113,7 @@ async fn browser_carrier_delivers_public_identity_cards_and_an_approval() {
 
     let launcher =
         BrowserLauncher::parse(&[format!("chrome-extension://{CHROMIUM_EXTENSION_ID}/")]).unwrap();
-    let challenge = BrowserChallenge::fresh();
+    let challenge = BrowserChallenge::fresh().expect("nonce");
     let link = BrowserLink::accept(
         launcher,
         &challenge,
