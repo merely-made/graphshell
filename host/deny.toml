@@ -482,9 +482,6 @@ crate = "rand_core@0.9.5"
 reason = "held by rand 0.9.5, rand_chacha 0.9.0; gone when its holders move to rand_core 0.10.1 (rand 0.9.5 in the graph, 0.10.3 newest; rand_chacha 0.9.0 in the graph, 0.10.0 newest)"
 
 
-[[bans.skip]]
-crate = "redb@2.6.4"
-reason = "held by gemot 0.1.1, muniment 0.2.1; moves when the holding crates (git) move to redb 4.5.0"
 
 [[bans.skip]]
 crate = "redox_syscall@0.4.1"
