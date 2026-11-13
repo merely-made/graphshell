@@ -392,9 +392,6 @@ reason = "held by av-scenechange 0.14.1; gone when its holders move to pastey 0.
 crate = "pbkdf2@0.12.2"
 reason = "held by bcrypt-pbkdf 0.10.0; gone when its holders move to pbkdf2 0.13.0 (bcrypt-pbkdf 0.10.0 in the graph, 0.11.0 newest)"
 
-[[bans.skip]]
-crate = "pem@3.0.6"
-reason = "held by rcgen 0.13.2; gone when its holders move to pem 4.0.0 (rcgen 0.13.2 in the graph, 0.14.10 newest)"
 
 [[bans.skip]]
 crate = "pem-rfc7468@0.7.0"
@@ -496,9 +493,6 @@ reason = "held by castellan 0.0.4, crypto-bigint 0.5.5, crypto-common 0.1.7, dis
 crate = "rand_core@0.9.5"
 reason = "held by rand 0.9.5, rand_chacha 0.9.0; gone when its holders move to rand_core 0.10.1 (rand 0.9.5 in the graph, 0.10.3 newest; rand_chacha 0.9.0 in the graph, 0.10.0 newest)"
 
-[[bans.skip]]
-crate = "rcgen@0.13.2"
-reason = "held by gemot-site-host 0.0.1 (gemot) and misfin 0.0.4 (errand); gone when those move to rcgen 0.14.10"
 
 [[bans.skip]]
 crate = "redb@2.6.4"
@@ -732,9 +726,6 @@ reason = "held by toml 0.9.12+spec-1.1.0; gone when its holders move to winnow 1
 crate = "wit-parser@0.248.0"
 reason = "held by wasmtime-internal-component-macro 45.0.3, wasmtime-internal-wit-bindgen 45.0.3; gone when its holders move to wit-parser 0.263.0 (wasmtime-internal-component-macro 45.0.3 in the graph, 50.0.1 newest; wasmtime-internal-wit-bindgen 45.0.3 in the graph, 50.0.1 newest)"
 
-[[bans.skip]]
-crate = "yasna@0.5.2"
-reason = "held by rcgen 0.13.2; gone when its holders move to yasna 0.6.0 (rcgen 0.13.2 in the graph, 0.14.10 newest)"
 
 [[bans.skip]]
 crate = "zstd@0.13.5"
