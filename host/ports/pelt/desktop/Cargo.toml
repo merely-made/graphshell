@@ -187,10 +187,6 @@ genet-bole = { workspace = true, optional = true }
 genet-vano = { workspace = true, optional = true }
 # The `LayoutDom` trait (for the inline-`<script>` DOM walk) + QualName parts.
 layout-dom-api = { workspace = true, optional = true }
-# `encoding_rs` (`<script charset>`) and `base64` (`<script integrity>`) served the
-# external-script processing L5 moved into genet-scripted; no feature enables them now.
-encoding_rs = { version = "0.8", features = ["serde"], optional = true }
-base64 = { workspace = true, optional = true }
 
 [target.'cfg(target_os = "windows")'.dependencies]
 windows-sys = { version = "0.61", features = [
