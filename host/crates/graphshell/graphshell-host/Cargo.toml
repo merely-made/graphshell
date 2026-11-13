@@ -86,7 +86,7 @@ coop = [
 # form and the shared fixture; the viewer stays in the app (engine split D91).
 goal-surface = [
     "dep:eidetic",
-    "dep:chartulary",
+    "dep:portolan",
     "dep:fleece",
     "fleece/retained-traversal",
     "dep:kernel",
@@ -99,7 +99,7 @@ board-gpu = ["board", "cartography/gpu"]
 # D68): MereHost, the handler registry, the session item and the resident
 # view. Native and wasm alike.
 mere-host = [
-    "dep:chartulary",
+    "dep:portolan",
     "dep:incipit",
     "incipit/view",
     "dep:kernel",
@@ -153,7 +153,7 @@ incipit = { workspace = true, optional = true }
 eidetic = { workspace = true, optional = true }
 graphshell-door = { workspace = true, optional = true }
 kernel = { workspace = true, optional = true }
-chartulary = { workspace = true, optional = true }
+portolan = { workspace = true, optional = true }
 fleece = { workspace = true, optional = true }
 uuid = { workspace = true, optional = true }
 muniment = { workspace = true, optional = true }

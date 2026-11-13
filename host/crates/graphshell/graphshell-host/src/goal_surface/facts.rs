@@ -9,7 +9,7 @@
 //! concepts with who holds them. A browser task owns these across a store
 //! read, where it cannot hold the graph.
 
-use chartulary::Labeled;
+use portolan::Labeled;
 use kernel::graph::resource::TAGGED_WITH_IRI;
 use kernel::graph::{Graph, RelationKind};
 use std::collections::{BTreeMap, BTreeSet};

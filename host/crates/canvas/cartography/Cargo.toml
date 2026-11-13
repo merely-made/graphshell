@@ -68,7 +68,7 @@ physics-engine = ["seiche?/actor"]
 image-decode = ["genet-livery?/image-decode"]
 # Graph-structural signal producers over the kernel graph
 # (`cartography::signals`, beside the contract they fill).
-signals = ["dep:chartulary", "dep:libm"]
+signals = ["dep:fieldbook", "dep:portolan", "dep:libm"]
 # The canvas's and the board's repulsion staged on the host's GPU
 # (`Canvas::set_physics_device`; physics catalog plan, P5c). Opt-in per consumer.
 gpu = ["canvas", "physics-engine", "seiche/gpu"]
@@ -129,7 +129,8 @@ scenomise.workspace = true
 serde = { version = "1.0", features = ["derive"] }
 armillary = { workspace = true, optional = true }
 chirograph = { workspace = true, optional = true }
-chartulary = { workspace = true, optional = true }
+fieldbook = { workspace = true, optional = true }
+portolan = { workspace = true, optional = true }
 emblem = { workspace = true, optional = true }
 incipit = { workspace = true, optional = true, features = ["arrangement"] }
 esp = { workspace = true, optional = true }

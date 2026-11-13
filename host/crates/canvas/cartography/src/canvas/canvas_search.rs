@@ -23,7 +23,7 @@
 use std::collections::HashMap;
 use std::hash::Hash;
 
-use chartulary::field::FieldId;
+use fieldbook::field::FieldId;
 use numen::FieldProjection;
 
 use crate::canvas::field_bridge::register_similarity_field_from_scores;

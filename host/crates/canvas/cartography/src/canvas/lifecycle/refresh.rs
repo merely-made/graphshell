@@ -118,7 +118,7 @@ impl Canvas {
                 } => {
                     let id = uuid(resource_id)?;
                     let index = expected.resources.iter().position(|record| {
-                        chartulary::resource_id_from_canonical_iri(&record.canonical_iri) == id
+                        portolan::resource_id_from_canonical_iri(&record.canonical_iri) == id
                     });
                     match (index, record) {
                         (Some(index), Some(record)) => expected.resources[index] = record.clone(),
@@ -129,7 +129,7 @@ impl Canvas {
                         (None, None) => {},
                     }
                     if let Some(record) = record
-                        && chartulary::resource_id_from_canonical_iri(&record.canonical_iri) != id
+                        && portolan::resource_id_from_canonical_iri(&record.canonical_iri) != id
                     {
                         return Err("recorded resource identity does not match its record".into());
                     }

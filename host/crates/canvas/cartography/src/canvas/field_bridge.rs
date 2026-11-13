@@ -26,8 +26,8 @@
 use std::collections::HashMap;
 use std::hash::Hash;
 
-use chartulary::field::FieldId;
-use chartulary::field_ast::ScalarField;
+use fieldbook::field::FieldId;
+use fieldbook::field_ast::ScalarField;
 use numen::FieldProjection;
 
 use esp::embed::VectorIndex;

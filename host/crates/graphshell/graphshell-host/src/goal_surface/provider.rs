@@ -8,7 +8,7 @@
 //!
 //! # Identity mapping
 //!
-//! A retained page is one common resource (`chartulary::resource_id` of the
+//! A retained page is one common resource (`portolan::resource_id` of the
 //! canonical address, the same identity `ResourceCaptureStore` keys versions
 //! by). Its [`RecallSourceId`] is
 //!
@@ -175,7 +175,7 @@ impl RetainedPages {
             if out.pages.len() >= bounds.max_pages {
                 break;
             }
-            let resource = chartulary::resource_id(&entry.url);
+            let resource = portolan::resource_id(&entry.url);
             let mut versions = BTreeMap::new();
             // Current first so a tight cap keeps what the page says now.
             let mut wanted = vec![entry.blob.clone()];

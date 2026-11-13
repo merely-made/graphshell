@@ -7,7 +7,7 @@
 //! Stemma-backed scope visits with mutable, view-only bookmarks.
 
 use super::{ScopeCamera, ScopeVisit};
-use chartulary::stemma::{
+use hodograph::{
     BindingSnapshot, EntryPrivacy, EntrySnapshot, OwnerSnapshot, Stemma, StemmaSnapshot,
     TransitionKind, VisitId, VisitSnapshot,
 };

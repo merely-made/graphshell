@@ -22,7 +22,7 @@ use std::fs;
 use std::io::{self, BufRead};
 use std::path::{Path, PathBuf};
 
-use chartulary::{Author, Container};
+use portolan::{Author, Container};
 use commons_spine::{
     CommonsExt, GemotAuthorityView, Replica, commons_write_capability, from_operation,
 };

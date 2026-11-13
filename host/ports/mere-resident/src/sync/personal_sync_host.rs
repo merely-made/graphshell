@@ -1212,7 +1212,7 @@ impl PersonalSyncHost {
                 projection
                     .graph
                     .facets()
-                    .get(&node.id, &chartulary::FacetId::new(facet))
+                    .get(&node.id, &portolan::FacetId::new(facet))
             };
             let run = facet_of(crate::sync::receipts::FACET_RUN);
             if let Some(card) = crate::sync::receipts::receipt_card(

@@ -18,7 +18,7 @@ persona-picker = ["dep:dramatis", "dep:identity"]
 tracing = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 # Owner-scoped navigation lineage and its persisted snapshot, shared with Eidetic.
-chartulary = { workspace = true }
+hodograph = { workspace = true }
 serde_json = { workspace = true }
 # The generic undo History; EditHistory is the text field's instance of it.
 backstep = { workspace = true }

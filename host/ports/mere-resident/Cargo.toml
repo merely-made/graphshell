@@ -102,7 +102,7 @@ armillary = { workspace = true, features = ["tokio"] }
 # browser door's nonces (`door::browser_host`), moved from Graphshell's
 # `native` with the stack lift plan's P5.
 base64.workspace = true
-chartulary.workspace = true
+portolan.workspace = true
 eidetic = { workspace = true, features = ["pack-signing"] }
 # The reviewed wasm guests that decide a domain's authority (cycle breaks P3).
 authority-host.workspace = true

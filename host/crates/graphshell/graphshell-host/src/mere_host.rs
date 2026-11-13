@@ -9,7 +9,7 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::time::{Duration, SystemTime};
 
-use chartulary::{FacetError, FacetId};
+use portolan::{FacetError, FacetId};
 use chirograph::{
     BoundsRelationship, CachePolicy, CardValueV1, ContentHash, EndpointDescriptor,
     IntentInvocation, IntentResult, PortableCardV1, PresentationBinding, PresentationCapability,
@@ -1824,19 +1824,19 @@ mod tests {
                     facets
                         .set(
                             surface_id,
-                            chartulary::FacetId::new(
+                            portolan::FacetId::new(
                                 kernel::graph::node_facets::SEMANTIC_PROPERTIES,
                             ),
                             serde_json::to_value(vec![property.clone(), property]).unwrap(),
-                            &chartulary::AcceptAll,
+                            &portolan::AcceptAll,
                         )
                         .unwrap();
                     facets
                         .set(
                             surface_id,
-                            chartulary::FacetId::new("extension.origin-note"),
+                            portolan::FacetId::new("extension.origin-note"),
                             serde_json::json!({"statement_id":"resource-literal-handle"}),
-                            &chartulary::AcceptAll,
+                            &portolan::AcceptAll,
                         )
                         .unwrap();
                     let mut supplied = original.clone();
@@ -1908,7 +1908,7 @@ mod tests {
                         assert_eq!(
                             graph.graph().facets().get(
                                 &surface_id,
-                                &chartulary::FacetId::new("extension.origin-note")
+                                &portolan::FacetId::new("extension.origin-note")
                             ),
                             Some(&serde_json::json!({"statement_id":"resource-literal-handle"}))
                         );

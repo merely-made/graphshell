@@ -48,7 +48,7 @@ pub use importance::*;
 /// adjacency. Every signal here (degree, betweenness, community, bridges, affinity) is
 /// pure topology, so binding them to this seam instead of a concrete graph makes them
 /// run on any graph that can enumerate its nodes and a node's undirected neighbours.
-/// mere's `kernel::graph::Graph` and the generic `chartulary::Graph` both implement it,
+/// mere's `kernel::graph::Graph` and the generic `portolan::Graph` both implement it,
 /// so the same algorithms serve the browser and any substrate graph — the analytics
 /// become promotable. (Graph signals — the promotable seam.)
 pub trait TopologyView {
@@ -72,13 +72,13 @@ impl TopologyView for Graph {
     }
 }
 
-impl<N: chartulary::Identified, E> TopologyView for chartulary::Graph<N, E> {
+impl<N: portolan::Identified, E> TopologyView for portolan::Graph<N, E> {
     fn node_keys(&self) -> impl Iterator<Item = NodeKey> + '_ {
         self.nodes().map(|(key, _)| key)
     }
 
     fn neighbors_undirected(&self, key: NodeKey) -> impl Iterator<Item = NodeKey> + '_ {
-        chartulary::Graph::neighbors_undirected(self, key)
+        portolan::Graph::neighbors_undirected(self, key)
     }
 }
 
@@ -88,9 +88,9 @@ mod tests;
 #[cfg(test)]
 mod substrate_tests {
     use super::*;
-    use chartulary::{Container, Graph as ChartGraph, Recognized, Relation, RelationClass};
+    use portolan::{Container, Graph as ChartGraph, Recognized, Relation, RelationClass};
 
-    /// The structural signals run on a generic `chartulary::Graph`, not just mere's
+    /// The structural signals run on a generic `portolan::Graph`, not just mere's
     /// `kernel::graph::Graph` — the promotability payoff of the `TopologyView` seam.
     #[test]
     fn structural_signals_run_on_a_generic_chartulary_graph() {
