@@ -525,7 +525,7 @@ mod read_effects {
                 .with_client_cert_verifier(verifier)
                 .with_single_cert(
                     vec![certificate.cert.der().clone()],
-                    PrivateKeyDer::Pkcs8(certificate.key_pair.serialize_der().into()),
+                    PrivateKeyDer::Pkcs8(certificate.signing_key.serialize_der().into()),
                 )
                 .unwrap();
             let acceptor = tokio_rustls::TlsAcceptor::from(Arc::new(config));
@@ -537,7 +537,7 @@ mod read_effects {
             let identity = GeminiClientIdentity::new(
                 &target,
                 client_der.clone(),
-                client.key_pair.serialize_der(),
+                client.signing_key.serialize_der(),
             )
             .unwrap();
             let body_length = body.len();

@@ -498,7 +498,7 @@ reason = "held by rand 0.9.5, rand_chacha 0.9.0; gone when its holders move to r
 
 [[bans.skip]]
 crate = "rcgen@0.13.2"
-reason = "held by gemot-site-host 0.0.1, mere-fetch 0.0.1, mere-resident 0.0.2, misfin 0.0.4; moves when the holding crates (git/ws) move to rcgen 0.14.10"
+reason = "held by gemot-site-host 0.0.1 (gemot) and misfin 0.0.4 (errand); gone when those move to rcgen 0.14.10"
 
 [[bans.skip]]
 crate = "redb@2.6.4"

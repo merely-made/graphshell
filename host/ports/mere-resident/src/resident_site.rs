@@ -896,7 +896,7 @@ pub(super) fn persistent_gemini_identity(
         let identity = GeminiIdentityV1 {
             version: 1,
             certificate_der: cert.cert.der().as_ref().to_vec(),
-            private_key_der: cert.key_pair.serialize_der(),
+            private_key_der: cert.signing_key.serialize_der(),
         };
         save_json_atomic(&path, &identity)?;
         identity

@@ -177,7 +177,7 @@ serde = { version = "1", features = ["derive"] }
 # `lock.toml`, the per-device lock settings a person edits (vault lock ruling 77).
 toml = "1"
 serde_json.workspace = true
-rcgen = "0.13.2"
+rcgen = "0.14"
 # `--enroll-passphrase` reads the passphrase from the terminal, never the
 # environment (vault lock rulings 7 and 39). Already in the lock (minisign).
 rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"] }

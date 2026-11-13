@@ -39,7 +39,7 @@ script-witgen = { version = "0.0.1", path = "crates/script-witgen" }
 tinct = { version = "0.2.0", path = "crates/tinct" }
 vector-sheet = { version = "0.0.1", path = "crates/vector-sheet" }
 
-base64 = "0.22"
+base64 = "0.23"
 blake3 = "1"
 ipc-channel = "0.23.1"
 serde = { version = "1", features = ["derive"] }

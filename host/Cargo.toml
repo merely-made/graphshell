@@ -151,7 +151,7 @@ distillery = { version = "0.0.1", git = "https://github.com/merely-made/distille
 moot = { package = "mere-moot", version = "0.0.1", path = "ports/moot" }
 athanor = { package = "mere-athanor", version = "0.0.1", git = "https://github.com/merely-made/distillery.git", branch = "main" }
 # Shared pins the graphshell crates inherit.
-base64 = "0.22"
+base64 = "0.23"
 blake3 = "1"
 # One upstream ipc-channel across the family (capability door D10); never
 # force-inprocess outside an application root.
