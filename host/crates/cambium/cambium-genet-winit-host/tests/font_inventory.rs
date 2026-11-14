@@ -9,7 +9,7 @@ fn family_inventory_uses_registered_metadata_and_rejects_invalid_bytes() {
     let family = "TabardInventorySyntheticFace";
     let font = HostFont {
         family: Some(family.into()),
-        bytes: include_bytes!("../../examples/genet_web_smoke/assets/Roboto-Regular.ttf").to_vec(),
+        bytes: include_bytes!("../../../../testing/assets/fonts/Roboto-Regular.ttf").to_vec(),
     };
     assert!(
         !available_font_families(&[])

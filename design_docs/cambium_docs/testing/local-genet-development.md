@@ -6,8 +6,9 @@ manifests now name the Genet seam crates through mere's root
 whole repository — not crates.io, and not a relative path into a sibling
 checkout. The current standalone Graphshell web host restates these pins and
 the engine's vendored patches; update it in the same change. The separately
-qualified legacy `genet_web_smoke` example retains its older pin until an explicit
-requalification of that fixture; it is outside the current-family adoption.
+qualified legacy `genet_web_smoke` example, which kept an older pin, was removed
+on 2026-11-13; git keeps it. Its Roboto face now lives at
+`host/testing/assets/fonts/Roboto-Regular.ttf`.
 
 To test unpublished Genet seam changes, redirect that git source to a local
 Genet checkout in the uncommitted `.cargo/config.local.toml` at Mere's root;

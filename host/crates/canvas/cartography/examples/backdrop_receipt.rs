@@ -25,7 +25,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .join("backdrops")
         });
     let font =
-        include_bytes!("../../../cambium/examples/genet_web_smoke/assets/Roboto-Regular.ttf");
+        include_bytes!("../../../../testing/assets/fonts/Roboto-Regular.ttf");
     let mut receipt = Vec::new();
     let mut samples = vec![
         ("metre", "line-1"),

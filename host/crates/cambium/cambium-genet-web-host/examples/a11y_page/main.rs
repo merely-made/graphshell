@@ -49,7 +49,7 @@ pub async fn start(canvas_id: String) -> Result<(), JsValue> {
             fonts: vec![HostFont {
                 family: None,
                 bytes: include_bytes!(
-                    "../../../examples/genet_web_smoke/assets/Roboto-Regular.ttf"
+                    "../../../../../testing/assets/fonts/Roboto-Regular.ttf"
                 )
                 .to_vec(),
             }],

@@ -508,7 +508,7 @@ fn later_text_fragments_contribute_beyond_short_formatting_lines() {
 fn host_generic_faces_reach_actual_paint_and_refuse_invalid_font_bytes() {
     use paint_list_api::PaintList;
     let bytes =
-        include_bytes!("../../../examples/genet_web_smoke/assets/Roboto-Regular.ttf").to_vec();
+        include_bytes!("../../../../../testing/assets/fonts/Roboto-Regular.ttf").to_vec();
     let mut dom = ScriptedDom::from_serialized_document(
         "<html><body><p style='font-family:sans-serif'>Sans</p><p style='font-family:serif'>Serif</p><p style='font-family:monospace'>Mono</p><p style='font-family:system-ui'>System</p><p style=\"font-family:'sans-serif'\">Quoted alias</p></body></html>",
     );

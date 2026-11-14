@@ -417,8 +417,8 @@ adopts already-landed text-boundary and diagnostics dependencies: it adds
 `mere-apparatus` plus Mesquite's dependency on it. There is no other
 package/version/source drift. Package/source classification
 is recorded under `Code/testing/cambium/generated-names`. Older Knot-owned Genet
-identities and the separately qualified legacy `genet_web_smoke` manifest remain
-unchanged. A native-adapter/Mesquite fixture checks generated names and attribute
+identities remain unchanged. (The separately qualified legacy `genet_web_smoke`
+manifest was removed on 2026-11-13; git keeps it.) A native-adapter/Mesquite fixture checks generated names and attribute
 updates; this is automated coverage, not human screen-reader acceptance. The
 [testing receipt](../testing/local-genet-development.md#2026-09-29-generated-name-adoption)
 records exact commands and the archived ignored standalone lock.

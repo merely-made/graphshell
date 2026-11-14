@@ -196,7 +196,7 @@ fn radial_graph_labels_stay_disjoint_inside_retained_layout_after_emphasis() {
     let mut runner = GenetAppRunner::<_, _, _, ()>::new(dom.clone(), radial_view, State::default());
     let fonts = [crate::HostFont {
         family: Some("sans-serif".into()),
-        bytes: include_bytes!("../../../examples/genet_web_smoke/assets/Roboto-Regular.ttf")
+        bytes: include_bytes!("../../../../../testing/assets/fonts/Roboto-Regular.ttf")
             .to_vec(),
     }];
     let mut layout = OwnedLayout::new(

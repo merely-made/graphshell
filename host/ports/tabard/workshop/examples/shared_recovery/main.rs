@@ -236,7 +236,7 @@ fn generic_fonts() -> Vec<(String, Vec<u8>)> {
     // bundled face is intentionally selected for all four requested roles;
     // this gate does not claim serif or fixed-width typography fidelity.
     let bytes = include_bytes!(
-        "../../../../../crates/cambium/examples/genet_web_smoke/assets/Roboto-Regular.ttf"
+        "../../../../../testing/assets/fonts/Roboto-Regular.ttf"
     );
     ["sans-serif", "system-ui", "serif", "monospace"]
         .into_iter()

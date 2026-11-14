@@ -98,7 +98,7 @@ pub async fn mount_page(canvas_id: String, choice: String) -> Result<u32, JsValu
             fonts: vec![HostFont {
                 family: None,
                 bytes: include_bytes!(
-                    "../../../examples/genet_web_smoke/assets/Roboto-Regular.ttf"
+                    "../../../../../testing/assets/fonts/Roboto-Regular.ttf"
                 )
                 .to_vec(),
             }],
