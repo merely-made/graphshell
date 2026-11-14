@@ -327,7 +327,7 @@ misfin = { version = "0.0.4", features = ["ring"] }
 # supercrate 2026-07-26 (it was `murm-replication`, but Murm, Mesh, Moot, and
 # transport all consume it). Domains keep their own operation grammar,
 # addressing, authorization, and materialization.
-stickleback = { version = "0.3", git = "https://github.com/merely-made/eidetic.git", branch = "main" }
+stickleback = { version = "0.4", git = "https://github.com/merely-made/eidetic.git", branch = "main" }
 # Murm at fb6360c12b (main: the merge of 3d9e799f, the browser initiator's
 # callback-lifetime fix, and 38e9c9b8, `TransportKind::InProcess`, so Djinn's
 # local doors hand admission an `AcceptedSession`; lift plan pass (b)).
