@@ -517,6 +517,19 @@ muniment = { git = "https://github.com/merely-made/eidetic.git", branch = "main"
 # by reducing unit stage partitions after register partitions reach one.
 # Remove when upstream selection admits the same bounded packed-weight rows.
 cubek-matmul = { path = "support/patches/cubek-matmul" }
+# house patches --from https://github.com/merely-made/mere.git
+# Written by `house patches` (eidetic, crates/house) from the upstream's [patch.crates-io]; `house patches --check` fails when they drift.
+oxjsonld = { git = "https://github.com/mark-ik/oxigraph", branch = "mark-ik/0.5" }
+oxrdf = { git = "https://github.com/mark-ik/oxigraph", branch = "mark-ik/0.5" }
+oxrdfio = { git = "https://github.com/mark-ik/oxigraph", branch = "mark-ik/0.5" }
+oxrdfxml = { git = "https://github.com/mark-ik/oxigraph", branch = "mark-ik/0.5" }
+oxsdatatypes = { git = "https://github.com/mark-ik/oxigraph", branch = "mark-ik/0.5" }
+oxttl = { git = "https://github.com/mark-ik/oxigraph", branch = "mark-ik/0.5" }
+sparesults = { git = "https://github.com/mark-ik/oxigraph", branch = "mark-ik/0.5" }
+spareval = { git = "https://github.com/mark-ik/oxigraph", branch = "mark-ik/0.5" }
+spargebra = { git = "https://github.com/mark-ik/oxigraph", branch = "mark-ik/0.5" }
+sparopt = { git = "https://github.com/mark-ik/oxigraph", branch = "mark-ik/0.5" }
+# end house patches
 # Livery/Buckram select published genet-taffy 0.16 directly. No Git patch is
 # needed; the registry source remains independent of the Genet checkout.
 # No parley/fontique patch rows: as of genet 5ae30cad the forks are published as

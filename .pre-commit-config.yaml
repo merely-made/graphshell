@@ -1,4 +1,4 @@
-# house hooks --deny-args '--manifest-path host/Cargo.toml' --clippy '--all-targets --manifest-path host/Cargo.toml' --clippy '--all-targets --manifest-path host/Cargo.toml -p mere-view --features mere-view/query'
+# house hooks --deny-args '--manifest-path host/Cargo.toml' --patches --clippy '--all-targets --manifest-path host/Cargo.toml' --clippy '--all-targets --manifest-path host/Cargo.toml -p mere-view --features mere-view/query'
 # Written by `house hooks` (eidetic, crates/house); `house hooks --check` fails when this file drifts from it.
 # `house` is on the PATH: cargo install --git https://github.com/merely-made/eidetic house
 fail_fast: true
@@ -42,6 +42,12 @@ repos:
       - id: dependency-bans
         name: dependency bans
         entry: cargo deny --manifest-path host/Cargo.toml check bans
+        language: system
+        pass_filenames: false
+        always_run: true
+      - id: house-patches
+        name: house patches
+        entry: house patches --check
         language: system
         pass_filenames: false
         always_run: true
