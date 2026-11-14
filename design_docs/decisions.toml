@@ -215,6 +215,26 @@ title = "The physics profile is Lattice for now (Mark, 2026-11-14)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
 summary = "The physics profile that held the name Crystal is renamed Lattice, as a stand-in."
 
+[decisions."primitive-representations D16"]
+title = "Mark choices live on the recipe, and rules override (Mark, 2026-11-14)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
+summary = "A recipe names default marks and contexts; presentation rules override them per occurrence."
+
+[decisions."primitive-representations D17"]
+title = "Context triggers (Mark, 2026-11-14)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
+summary = "A context scene may be triggered by hover, focus, selection or a context request."
+
+[decisions."primitive-representations D18"]
+title = "Table is the first missing projection (Mark, 2026-11-14)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
+summary = "Of the projections with nothing in code, table is planned first."
+
+[decisions."primitive-representations D19"]
+title = "The document projection is Knot's (Mark, 2026-11-14)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
+summary = "Narrative documents are Knot's surface with scenes embedded; the scene stack has no flow layout of its own."
+
 [decisions."resident-split D1"]
 title = "Device conditions go to mesh-host (Mark, 2026-11-05)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-05_resident_split_plan.md"

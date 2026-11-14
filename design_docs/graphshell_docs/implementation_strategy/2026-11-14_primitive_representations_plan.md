@@ -2,8 +2,8 @@
 
 **Status:** 2026-11-14: plan. Cut from `2026-06-23_node_body_face_model_plan.md`, archived
 whole in `archive_docs/2026-11-14/` with B0 to B2 landed. Nothing here is started. Phases M1
-to M6 wait on fork F4 of the scene composition brief (F1 to F3 were answered 2026-11-14,
-D5 to D12); B3 and B4 are carried open.
+to M6 no longer wait on a fork of the scene composition brief (F1 to F3 were answered 2026-11-14,
+D5 to D16); B3 and B4 are carried open.
 
 **For:** how the three graph primitives (node, relation, field) are drawn becomes a set of
 independent choices on a scene recipe, so a person can assemble a scene in Graphshell's
@@ -12,7 +12,8 @@ projection editor instead of picking a finished family. The frame and the reason
 carries its cost items 1 to 6 and the open work of the body and face plan, where a node's
 body and face are now two properties of one mark kind, the physical tile.
 Not here: the missing projections themselves (outline, calendar, chart, document, record,
-table's wider encoding), which wait on the brief's forks F5 to F8 and get their own plan;
+table's wider encoding), which get their own plan, table first (D18), with the document
+left to Knot (D19) and forks F6 and F7 still open;
 props, backdrops, linked swatches and primitive editor writes (scenograph editor plan); the
 recipe's dynamics slot and field regions (dynamics grammar plan); derived marks, scales and
 guides (projection grammar plan, A5); theme and typography (appearance plan).
@@ -57,7 +58,7 @@ The recipe names a node mark, a relation form and a field form.
 - Done when: a recipe that names a node mark compiles to a scene whose items ask for it; a
   presentation rule can still override it per occurrence, with the trace showing which won; a
   recipe written before the slots existed compiles to the same scene as before.
-- Needs: M1; fork F4 (default on the recipe, or rules only).
+- Needs: M1. The recipe names the default and rules override it (D16).
 
 ### M3. Relation form is read
 `RelationForm` has no reader outside `presentation.rs` today.
@@ -113,7 +114,7 @@ section 3.7).
   is Partition with a card mark.
 
 ### X. Context scenes
-What appears for a subject on hover, focus, selection or pin is a scene with its own recipe
+What appears for a subject on hover, focus, selection or a context request is a scene with its own recipe
 (D13; brief section 3.9). Nothing about its content is fixed: linked nodes, a resource, or
 commands.
 - Done when: a recipe declares contexts, each with a trigger, a subject kind, a recipe and a
@@ -126,8 +127,11 @@ commands.
   person's edits to what a context shows (which commands, order, labels, shortcuts) are data
   that round-trips through save and reopen; an action emitted by a Wasm guest through WIT
   appears and runs from a context like a host command.
-- Needs: M2; fork F4, since a context is a second mark choice on a subject; the trigger
-  vocabulary put as a question before code; the format proposal in brief section 3.9
+- Also done when (D16, D17): a context is declared on the recipe and a rule can override it;
+  each of hover, focus, selection and context request (right-click, long-press, menu key)
+  can trigger one; a recipe whose only trigger is hover is flagged in the editor, since hover
+  has no touch equivalent.
+- Needs: M2; the format proposal in brief section 3.9
   confirmed; a check of whether a guest can advertise commands, which the WIT read on
   2026-11-14 did not show.
 
@@ -160,9 +164,9 @@ face.
 
 ## Open questions
 
-- Forks F2 and F4 of the scene composition brief gate M1 and M2: F2 is answered (D11, D12), F4 is open.
-- Which triggers does a context take? Hover, focus, selection and pin are named in D13 and
-  section 3.9; the full set and its touch and keyboard equivalents are not ruled.
+- Forks F2 and F4 of the scene composition brief gate M1 and M2 and are answered (D11, D12, D16).
+- Forks F6 (how a recipe carries many fields per item) and F7 (feed as a projection or a
+  table preset) are open and belong to the table plan, not yet cut.
 - Does the format proposal for commands (TOML authored, JSON interchange, WIT across
   components) stand? Mark asked "You tell me"; it is proposed, not ruled.
 - Which plan owns the `node:<id>` facet pane, the per-object widget surface and label
@@ -323,6 +327,37 @@ face.
 
   *Refines D10.*
 
+- **D16. Mark choices live on the recipe, and rules override (Mark, 2026-11-14):** "Recipe
+  default, rules override". The recipe names a default node mark, relation form, field form
+  and contexts; presentation rules change them for particular occurrences or conditions.
+
+  Links: summary A recipe names default marks and contexts; presentation rules override them per occurrence.
+
+  *New.*
+
+- **D17. Context triggers (Mark, 2026-11-14):** all four offered: "Hover, Focus, Selection,
+  Context request". A context request is a right-click, a long-press or the menu key.
+
+  Links: summary A context scene may be triggered by hover, focus, selection or a context request.
+
+  *New.*
+
+- **D18. Table is the first missing projection (Mark, 2026-11-14):** "Table", over outline,
+  calendar and chart.
+
+  Links: summary Of the projections with nothing in code, table is planned first.
+
+  *New.*
+
+- **D19. The document projection is Knot's (Mark, 2026-11-14):** "Knot's, embedding
+  scenes". Narrative text in reading order is Knot's surface, with scenes inside it as
+  blocks; the scene stack gains no flow layout. Document graphs, nodes drawn as cards, stay
+  a scene recipe (D12).
+
+  Links: summary Narrative documents are Knot's surface with scenes embedded; the scene stack has no flow layout of its own.
+
+  *New.*
+
 ## Findings
 
 - 2026-11-14 (at `b957d819`): `RelationForm` is defined at
@@ -367,3 +402,4 @@ face.
 - 2026-11-14: the arrangement named Crystal (D10); F2 answered (D11, D12).
 - 2026-11-14: context scenes ruled (D13); phase X added.
 - 2026-11-14: commands as a dataset (D14); the physics profile is Lattice for now (D15).
+- 2026-11-14: forks F4, F5 and F8 and the trigger set answered (D16 to D19).

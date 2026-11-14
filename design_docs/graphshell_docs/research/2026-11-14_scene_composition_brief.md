@@ -292,7 +292,7 @@ its own recipe, shown for a subject when something happens to it. Four parts, ea
 
 | Part | Chooses | Examples |
 | --- | --- | --- |
-| Trigger | What brings it up | Hover, focus, selection, pin |
+| Trigger | What brings it up | Hover, focus, selection, context request (D17) |
 | Subject | What it is about | A node, a relation, a field, a selection |
 | Recipe | What is shown, by any of the slots above | Linked nodes as tiles; a resource as a live pane or snapshot; commands as a list |
 | Placement | Where | Beside the subject, in an overlay, in place of the subject, in a pane |
@@ -372,14 +372,16 @@ These are Mark's. Each returns as a question before any code that depends on it.
 - **F3. Answered 2026-11-14 (D6): relation-driven, in Crystal only; Mosaic
   keeps group and order.** The question was: relation-driven adjacency as best effort with an unmet report; or
   adjacency by group and order only, which is what Mosaic does now.
-- **F4. Where a mark choice lives.** A default on the recipe with rules overriding it; or
+- **F4. Answered 2026-11-14 (D16): a default on the recipe, rules override.** The question
+  was where a mark choice lives. A default on the recipe with rules overriding it; or
   rules only, with a default rule. The role defaults of the dynamics grammar (F22) took the
   first shape.
-- **F5. Which missing projection first.** Table, outline, calendar, chart.
+- **F5. Answered 2026-11-14 (D18): table first.** The candidates were: Table, outline, calendar, chart.
 - **F6. Encoding width.** Table and record need many fields per item. A list of columns on the
   encoding, or a separate "fields" slot.
 - **F7. Feed.** A projection of its own, or a table preset.
-- **F8. Document.** A flow arrangement in the scene stack, or Knot's projection that embeds
+- **F8. Answered 2026-11-14 (D19): the document is Knot's, embedding scenes.** The question
+  was: A flow arrangement in the scene stack, or Knot's projection that embeds
   scenes. This crosses into Knot and is not decided from here.
 - **F12. Answered 2026-11-14 (D14): a dataset.** The question was: a recipe reads the commands available on a subject as a
   dataset, so a menu is a list projection like any other; or commands stay a separate channel
