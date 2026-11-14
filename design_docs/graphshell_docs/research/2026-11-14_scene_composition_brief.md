@@ -69,7 +69,9 @@ when a facet has no home.
 | Authored position | Canvas |
 | One entity | Record |
 
-Feed (rank or recency) is a possible eleventh; it may be a one-column table (fork F7). Board
+Feed is not an eleventh projection. It is a reading (D21): "an updating log of n length
+where the entities are ordered and a bounded range of them are shown", and most of the ten
+can show it; a one-column table of cards is one valid way. Board
 and gallery are tables grouped by a category or led by an image. Matrix is the dense form of
 graph. History is a mode on every projection, the time of the data and not time in the data,
 and scenotime already carries it.
@@ -316,12 +318,34 @@ explanation, payload schema, input form and effect (`crates/chirograph/src/lib.r
 WIT `actions` interface carries an emission as a name and a JSON payload
 (`crates/graphshell-endpoint/wit/world.wit:146`).
 
-Format, proposed under the workspace's data-format rule and not ruled: what a person authors
+Format, ruled (D22) under the workspace's data-format rule: what a person authors
 or edits (which commands a context shows, their order, labels, shortcuts) is TOML; the
 dataset a recipe reads at run time is typed in memory and JSON where it is interchange; a
 command crossing a component boundary is a WIT record. A Wasm guest can emit an action
 through WIT today. A guest advertising commands of its own was not found in the WIT read
 here and is not claimed. WASI adds nothing to this: it is data over WIT.
+
+### 3.10 Fields
+
+A recipe gains an ordered list of fields, separate from the encoding (D20). Table reads it as
+columns, record as rows, outline as trailing columns. The encoding stays about which field
+drives which visual channel.
+
+Mark asked what the standards say. Three bear on it, and all three keep "which properties,
+in what order, shown how" apart from the data and from visual encoding. This is from
+knowledge of the specifications, not a fresh reading of them:
+
+- **SHACL** (W3C Recommendation, 2017). A property shape names a path into the data
+  (`sh:path`) and carries display terms meant for building forms and views: `sh:name`,
+  `sh:description`, `sh:order` and `sh:group`.
+- **CSV on the Web** (W3C Recommendations, 2015). A table schema is an ordered list of
+  columns, each with a name, titles, a datatype and the property it maps to.
+- **Fresnel** (a display vocabulary for RDF, 2006; not a W3C standard). A lens says which
+  properties to show and in what order; a format says how each is shown.
+
+So a field is: a path into the data, a label, an order, an optional group, and how it is
+shown. Using SHACL's terms for the first four keeps the list exchangeable with tools that
+read shapes. In the stack, Mere's design docs mention SHACL in twelve files; a tracked-file search found no shape reader in code, in Mere, Graphshell or Knot.
 
 ## 4. The person in the editor
 
@@ -377,9 +401,11 @@ These are Mark's. Each returns as a question before any code that depends on it.
   rules only, with a default rule. The role defaults of the dynamics grammar (F22) took the
   first shape.
 - **F5. Answered 2026-11-14 (D18): table first.** The candidates were: Table, outline, calendar, chart.
-- **F6. Encoding width.** Table and record need many fields per item. A list of columns on the
+- **F6. Answered 2026-11-14 (D20): an ordered fields list, shaped by the standards.** The
+  question was encoding width. Table and record need many fields per item. A list of columns on the
   encoding, or a separate "fields" slot.
-- **F7. Feed.** A projection of its own, or a table preset.
+- **F7. Answered 2026-11-14 (D21): feed is a reading, not a projection.** The question
+  was: A projection of its own, or a table preset.
 - **F8. Answered 2026-11-14 (D19): the document is Knot's, embedding scenes.** The question
   was: A flow arrangement in the scene stack, or Knot's projection that embeds
   scenes. This crosses into Knot and is not decided from here.

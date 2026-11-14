@@ -13,7 +13,7 @@ carries its cost items 1 to 6 and the open work of the body and face plan, where
 body and face are now two properties of one mark kind, the physical tile.
 Not here: the missing projections themselves (outline, calendar, chart, document, record,
 table's wider encoding), which get their own plan, table first (D18), with the document
-left to Knot (D19) and forks F6 and F7 still open;
+left to Knot (D19), fields as an ordered list (D20) and feed as a reading (D21);
 props, backdrops, linked swatches and primitive editor writes (scenograph editor plan); the
 recipe's dynamics slot and field regions (dynamics grammar plan); derived marks, scales and
 guides (projection grammar plan, A5); theme and typography (appearance plan).
@@ -131,8 +131,7 @@ commands.
   each of hover, focus, selection and context request (right-click, long-press, menu key)
   can trigger one; a recipe whose only trigger is hover is flagged in the editor, since hover
   has no touch equivalent.
-- Needs: M2; the format proposal in brief section 3.9
-  confirmed; a check of whether a guest can advertise commands, which the WIT read on
+- Needs: M2; a check of whether a guest can advertise commands, which the WIT read on
   2026-11-14 did not show.
 
 ### B3. The body designer
@@ -165,10 +164,9 @@ face.
 ## Open questions
 
 - Forks F2 and F4 of the scene composition brief gate M1 and M2 and are answered (D11, D12, D16).
-- Forks F6 (how a recipe carries many fields per item) and F7 (feed as a projection or a
-  table preset) are open and belong to the table plan, not yet cut.
-- Does the format proposal for commands (TOML authored, JSON interchange, WIT across
-  components) stand? Mark asked "You tell me"; it is proposed, not ruled.
+- Does the fields list take SHACL's terms as its own vocabulary, or only map onto them?
+  D20 asks that the standards be considered; brief section 3.10 proposes the terms and this
+  is not ruled. It belongs to the table plan, not yet cut.
 - Which plan owns the `node:<id>` facet pane, the per-object widget surface and label
   density's settings page? Both former owners are archived (raised 2026-10-06, still open).
   Options: this plan; a Turnstone plan; a canvas plan.
@@ -358,6 +356,36 @@ face.
 
   *New.*
 
+- **D20. Fields are an ordered list, with the standards considered (Mark, 2026-11-14):**
+  asked how a recipe carries many fields per item: "Hmm. If the standards have anything to
+  say about this, might be useful to consider. 1 otherwise." Option 1 was a separate slot on
+  the recipe: an ordered list of fields, each with a label and how it is shown. The
+  standards (SHACL property shapes, CSV on the Web table schemas, Fresnel lenses) point the
+  same way; brief section 3.10.
+
+  Links: summary A recipe carries an ordered list of fields, separate from the encoding, shaped with the linked-data display standards in view.
+
+  *New.*
+
+- **D21. A feed is a reading (Mark, 2026-11-14):** "A feed... should be able to be
+  represented as most of these. I don't think these two options are the only way to
+  represent a feed, but 1 is valid. A feed is an updating log of n length where the entities
+  are ordered and a bounded range of them are shown." Reading, mine: feed is not a
+  projection; it is an ordered, updating reading with a bounded window, which table,
+  timeline, graph and the others can each show. A one-column table of cards is one preset.
+
+  Links: summary A feed is an ordered, updating reading with a bounded window, shown by any projection; it is not a projection of its own.
+
+  *New.*
+
+- **D22. Command format (Mark, 2026-11-14):** "TOML authored, JSON carried, WIT across".
+  What a person or app author writes is TOML; the live list a recipe reads is typed in
+  memory and JSON where exchanged; across a Wasm component boundary it is a WIT record.
+
+  Links: summary Commands as data are TOML where authored, JSON where exchanged and WIT records across components.
+
+  *Applies the workspace data-format rule.*
+
 ## Findings
 
 - 2026-11-14 (at `b957d819`): `RelationForm` is defined at
@@ -403,3 +431,5 @@ face.
 - 2026-11-14: context scenes ruled (D13); phase X added.
 - 2026-11-14: commands as a dataset (D14); the physics profile is Lattice for now (D15).
 - 2026-11-14: forks F4, F5 and F8 and the trigger set answered (D16 to D19).
+- 2026-11-14: forks F6 and F7 and the command format answered (D20 to D22). Every fork of
+  the brief is answered.
