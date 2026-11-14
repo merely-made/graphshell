@@ -140,10 +140,80 @@ source = "design_docs/graphshell_docs/implementation_strategy/2026-11-06_key_lan
 summary = "GraphKeyGroup and key_paired_devices move with mere-resident to Graphshell; the lane adoption is unchanged."
 plans = ["engine-split"]
 
-[decisions."node-body-face-model D1"]
-title = "Per-node overrides key by member, pruned (Mark, 2026-10-25)"
-source = "design_docs/graphshell_docs/implementation_strategy/2026-06-23_node_body_face_model_plan.md"
-summary = "Per-node overrides key by member Uuid and are pruned when the member leaves; a reused slot starts clean."
+[decisions."primitive-representations D1"]
+title = "The brief's scope (Mark, 2026-11-13)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
+summary = "The scene composition brief covers the slot model and the ten projections together."
+
+[decisions."primitive-representations D2"]
+title = "Body and face plan (Mark, 2026-11-13)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
+summary = "The body and face plan is archived; its open work continues in the primitive representations plan."
+
+[decisions."primitive-representations D3"]
+title = "The promotion gate does not hold this scope back (Mark, 2026-11-13)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
+summary = "The forcing-proof and second-consumer gate does not apply to the scene slots or the ten projections; the stack's applications are the consumers."
+
+[decisions."primitive-representations D4"]
+title = "The first scene designer (Mark, 2026-11-13)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
+summary = "Scene design is built first for a person in the projection editor; the shipped-recipe path follows from the saved format."
+
+[decisions."primitive-representations D5"]
+title = "Mosaic and Partition stay distinct (Mark, 2026-11-14)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
+summary = "Mosaic keeps its name and steady behaviour; Partition is the viewport subdivision whose zoom reallocates cells along containment; the edge-adjacent layout is a separate arrangement."
+
+[decisions."primitive-representations D6"]
+title = "Pinning nucleates adjacency; other links show on selection (Mark, 2026-11-14)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
+summary = "In Crystal a pinned tile is the point its linked tiles pack against; links that are not borders are drawn on selection only."
+
+[decisions."primitive-representations D7"]
+title = "Dragging in Crystal (Mark, 2026-11-14)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
+summary = "Unpinned tiles stay where dropped; a tile against a nucleus may take any position on its border and the rest repack."
+
+[decisions."primitive-representations D8"]
+title = "Packing goes one step (Mark, 2026-11-14)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
+summary = "In Crystal a pin packs only its own linked tiles; the structure grows by pinning more."
+
+[decisions."primitive-representations D9"]
+title = "A crowded nucleus leaves the overflow loose (Mark, 2026-11-14)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
+summary = "Linked tiles that do not fit on a nucleus's border stay loose; the nucleus does not grow to hold them."
+
+[decisions."primitive-representations D10"]
+title = "The arrangement is Crystal (Mark, 2026-11-14)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
+summary = "The pin-nucleated adjacency arrangement is named Crystal; the physics profile that held the name is renamed."
+
+[decisions."primitive-representations D11"]
+title = "Why \"a card is not a node\" (Mark, 2026-11-14)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
+summary = "A card is not the default look of a node: marks follow what the data is, and not all data is documents."
+
+[decisions."primitive-representations D12"]
+title = "Nodes can be cards, but not every node is a card (Mark, 2026-11-14)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
+summary = "A card is a form that may be a node's own mark or a companion beside or over a node; which is a choice of the presentation, and document graphs draw nodes as cards."
+
+[decisions."primitive-representations D13"]
+title = "Context is a scene, and is not prefigured (Mark, 2026-11-14)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
+summary = "What shows for a subject on hover or focus is a scene with its own recipe; its content (nodes, resources, commands) is a choice, never built in."
+
+[decisions."primitive-representations D14"]
+title = "Commands are a dataset (Mark, 2026-11-14)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
+summary = "The commands available on a subject are a dataset a recipe reads; a menu is a list projection, and a person's changes to it are data."
+
+[decisions."primitive-representations D15"]
+title = "The physics profile is Lattice for now (Mark, 2026-11-14)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
+summary = "The physics profile that held the name Crystal is renamed Lattice, as a stand-in."
 
 [decisions."resident-split D1"]
 title = "Device conditions go to mesh-host (Mark, 2026-11-05)"

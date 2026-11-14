@@ -30,7 +30,7 @@ representation slot's recognized core, `RoutedRelation`, `Region`, `Space`,
 hit overrides, `score::Arrangement`),
 [swatch_primitive_design](../design/2026-06-27_swatch_primitive_design.md)
 (the pipeline these decks parameterize; the cells-as-edges ruling),
-[node_body_face_model_plan](../implementation_strategy/2026-06-23_node_body_face_model_plan.md)
+[node_body_face_model_plan](../../archive_docs/2026-11-14/2026-06-23_node_body_face_model_plan.md)
 (Body and Face as orthogonal node axes),
 sited_device_identity_brief (`mere/design_docs/mere_docs/research/2026-08-10_sited_device_identity_brief.md`)
 (Atlas as the geographic arrangement's consumer).

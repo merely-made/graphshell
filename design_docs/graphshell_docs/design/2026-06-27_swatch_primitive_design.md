@@ -12,7 +12,7 @@ not a build plan; the current tree has only fragments, each owned by a sibling p
 as the Navigator; this realizes it),
 [scope model reconciliation](2026-06-27_scope_model_reconciliation.md),
 [subgraph derivation from selection](2026-06-13_subgraph_derivation_from_selection.md),
-[node body & face model plan](../implementation_strategy/2026-06-23_node_body_face_model_plan.md)
+[node body & face model plan](../../archive_docs/2026-11-14/2026-06-23_node_body_face_model_plan.md)
 (owns the node-body-editor swatch, B3),
 object card plan (`mere/design_docs/archive_docs/2026-09-02_retired_plans/2026-06-21_object_card_plan.md`)
 (owns the focus-card-slot card),
@@ -258,7 +258,7 @@ Fragments exist, each owned by a sibling plan; the unifying primitive does not.
   designer), concrete over `SettingsPanesView`. It is template #1 (locked,
   parametric) in all but name, and it has only ever rendered one node's hull in the
   facet pane. Owned by
-  [node body & face model plan](../implementation_strategy/2026-06-23_node_body_face_model_plan.md)
+  [node body & face model plan](../../archive_docs/2026-11-14/2026-06-23_node_body_face_model_plan.md)
   B3.
 - **The gloss minimap** is a separate Scene-based, host-drawn path
   (`render/paint.rs`, via `Orrery::gloss_geometry`). It does not use `swatch.rs`.

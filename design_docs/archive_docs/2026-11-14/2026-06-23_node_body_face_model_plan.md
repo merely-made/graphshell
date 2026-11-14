@@ -1,6 +1,9 @@
 # Node Body & Face Model — decoupling shape from texture, authoring physical bodies
 
 **Date**: 2026-06-23
+**Archived 2026-11-14 (`primitive-representations D2`):** B0 to B2 landed; B3, B4 and the
+follow-ons continue in `graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md`.
+The text below is as it stood, relative links included.
 **Status (2026-10-06):** in progress. B0 (the hull decoupled from the face), B1
 (`Face { Favicon, Derived, Sprite, Bare }`) and B2 (per-node material over
 `seiche::NodeMaterial`) landed in pictograph's canvas and seiche (first in the checkpoint
