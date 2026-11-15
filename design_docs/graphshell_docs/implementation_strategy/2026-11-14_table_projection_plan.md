@@ -261,17 +261,20 @@ content hash, and the widget layer composites textures. Nothing puts an image in
 
   *Applies D16.*
 
-- **D19. No release is needed to develop (Mark, 2026-11-15):** "what I would like is to
-  raise a floor at the end of fixing breaking change, not to do a ceremony every time I make
-  any change on the front end, because most of the time the changes are fine and I'm
-  developing it, not other people. There's no team, there are no consumers. This is a
-  prototype, these are prototypes." The release chain is dropped as a condition for T1:
-  Distillery takes Graphshell's crates from Graphshell's git, and a change that breaks a
-  sibling is landed and the sibling fixed after.
+- **D19. Pins were the problem, not publishing (Mark, 2026-11-15):** "the publishing chain
+  was not the problem and in fact it's good to publish, but the other problems were a
+  result of a practice i banned anyway (pinning is a problem when the pins change, and
+  that's what they do when you're developing prerelease software, so as a strategy, pins
+  and locks were never gonna make sense for this stage)". And on how changes land: "what I
+  would like is to raise a floor at the end of fixing breaking change, not to do a ceremony
+  every time I make any change on the front end ... There's no team, there are no
+  consumers. This is a prototype, these are prototypes." A change lands, what it breaks is
+  fixed after, and the floor is raised then. Publishing stays welcome. T1 did not wait for
+  a release: Distillery takes Graphshell's crates from Graphshell's git.
 
-  Links: summary A development change lands and its breakage is fixed after; a crates.io release is not a precondition.
+  Links: summary Exact-version rows caused the release chain's cost, not publishing; a change lands, its breakage is fixed after, and the floor is raised then.
 
-  *Contradicts D16, which it replaces.*
+  *Refines D16 and D17.*
 
 - **D20. A family row names a floor only (Mark, 2026-11-15):** "why pick one version and
   call out that one version as the one to use, as opposed to just being like anything above
@@ -379,3 +382,8 @@ content hash, and the widget layer composites textures. Nothing puts an image in
   sceno-backdrops 0.0.1 before the chain was dropped; scenograph 0.0.7 and scenomise 0.0.8
   are the versions on main and are not published. Tests: scenograph 70 with
   `--features toml`, scenomise 202.
+- 2026-11-15: D19 corrected. It first read as "no release is needed to develop"; Mark's
+  point was that the pins were the fault and publishing is good. Every stop in the chain
+  (the eidetic bump breaking four repositories, Inker, the five-repository sweep) was an
+  exact 0.0.x row changing under a consumer. scenograph 0.0.7 and scenomise 0.0.8 are on
+  main and can be published when he says.

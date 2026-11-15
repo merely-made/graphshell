@@ -496,9 +496,9 @@ source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_p
 summary = "The release chain waits on Eidetic's ruling about the version stamp in its stored records."
 
 [decisions."table-projection D19"]
-title = "No release is needed to develop (Mark, 2026-11-15)"
+title = "Pins were the problem, not publishing (Mark, 2026-11-15)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
-summary = "A development change lands and its breakage is fixed after; a crates.io release is not a precondition."
+summary = "Exact-version rows caused the release chain's cost, not publishing; a change lands, its breakage is fixed after, and the floor is raised then."
 
 [decisions."table-projection D20"]
 title = "A family row names a floor only (Mark, 2026-11-15)"
