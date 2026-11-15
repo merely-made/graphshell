@@ -315,6 +315,21 @@ title = "`set_node_rule_faces` is renamed with the mark change (Mark, 2026-11-14
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
 summary = "The canvas call that sets detail rungs stops being called faces when the mark type lands."
 
+[decisions."primitive-representations D36"]
+title = "The class registry moves to scenograph (Mark, 2026-11-15)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
+summary = "The representation registry lives in scenograph, where the compiler and the canvas both read it."
+
+[decisions."primitive-representations D37"]
+title = "An old \"Sprite\" reads as the open rung (Mark, 2026-11-15)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
+summary = "A saved Sprite rung decodes as the open rung named sprite; old data keeps reading."
+
+[decisions."primitive-representations D38"]
+title = "The canvas draws all five silhouettes (Mark, 2026-11-15)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
+summary = "The canvas draws square, rounded square, circle, diamond and hexagon from one silhouette list."
+
 [decisions."resident-split D1"]
 title = "Device conditions go to mesh-host (Mark, 2026-11-05)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-05_resident_split_plan.md"
@@ -414,6 +429,31 @@ summary = "A field's path holds the dataset's key; the IRI is made when the shap
 title = "Scenograph reads and writes TOML behind a feature (Mark, 2026-11-14)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
 summary = "The recipe crate reads and writes TOML itself, behind a feature that hosts turn on."
+
+[decisions."table-projection D14"]
+title = "List position is a field's order (Mark, 2026-11-14)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "A field's order is its position in the list; SHACL's order is written on export and read on import."
+
+[decisions."table-projection D15"]
+title = "Viewer IRIs (Mark, 2026-11-14)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "Our field viewers export as IRIs under https://mere.computer/ns/viewer#."
+
+[decisions."table-projection D16"]
+title = "The recipe slot reaches Distillery by a crates.io release (Mark, 2026-11-15)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "The fields slot reaches Distillery through a published scenograph; T1 waits on the release chain."
+
+[decisions."table-projection D17"]
+title = "Family git rows take a lower bound before a bump (Mark, 2026-11-15)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "A family git row names a lower bound, so an upstream patch release does not break its consumers."
+
+[decisions."table-projection D18"]
+title = "The eidetic version stamp goes to an Eidetic session (Mark, 2026-11-15)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "The release chain waits on Eidetic's ruling about the version stamp in its stored records."
 
 [decisions."uxtree-spine D1"]
 title = "The spine is federated (Mark, 2026-11-11)"

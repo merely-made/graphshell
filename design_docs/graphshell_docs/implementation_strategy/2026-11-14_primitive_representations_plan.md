@@ -512,6 +512,33 @@ face.
 
   *Applies D28.*
 
+- **D36. The class registry moves to scenograph (Mark, 2026-11-15):** "Move the registry to
+  scenograph". The recipe compiler is in scenomise and cannot call cartography's registry
+  without a cycle; the registry goes beside the mark type and cartography re-exports it.
+
+  Links: summary The representation registry lives in scenograph, where the compiler and the canvas both read it.
+
+  *Applies D28 and D30.*
+
+- **D37. An old "Sprite" reads as the open rung (Mark, 2026-11-15):** "Old \"Sprite\" reads
+  as the open rung". A decode alias reads a saved `Sprite` as `Open { kind: "sprite" }`, so
+  the fixture `scenomise/fixtures/coastal_map.json` keeps reading; Isocosm, which builds
+  `Representation::Sprite` (`isocosm-views/src/projection.rs:41`), moves off it in its own
+  lane.
+
+  Links: summary A saved Sprite rung decodes as the open rung named sprite; old data keeps reading.
+
+  *Refines D34.*
+
+- **D38. The canvas draws all five silhouettes (Mark, 2026-11-15):** "Canvas draws all
+  five". `NodeShape` merges into the one silhouette list now, and the canvas draws diamond
+  and hexagon as hull colliders with their own style classes, as Mer3ly does. A visible
+  change, so it takes a headed check.
+
+  Links: summary The canvas draws square, rounded square, circle, diamond and hexagon from one silhouette list.
+
+  *Applies D33.*
+
 ## Findings
 
 - 2026-11-14 (at `b957d819`): `RelationForm` is defined at
@@ -634,3 +661,10 @@ face.
   recorded in Findings; the content catalog and the card summoning design reworded to the mark
   vocabulary. No code landed.
 - 2026-11-14: M1's eight forks ruled (D28 to D35).
+- 2026-11-15: on the lane's branch `m1-mark-vocabulary`, unpushed: the mark type
+  (`NodeMark`, a proposed name), paint, silhouettes and body in scenograph; each family's
+  imposed extent and the compile refusal; cartography on the shared paint and silhouette
+  types; `set_node_rule_faces` renamed. Three of the lane's six new forks ruled (D36 to
+  D38). Open: a `classes` field on a dataset row, which breaks struct literals in
+  Cleromancy, Knot, Mer3ly and Woodshed; where a body's material comes from; whether an
+  open paint survives a save; the mark type's name.

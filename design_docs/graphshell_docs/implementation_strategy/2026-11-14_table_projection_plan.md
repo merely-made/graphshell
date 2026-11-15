@@ -217,7 +217,77 @@ content hash, and the widget layer composites textures. Nothing puts an image in
 
   *New.*
 
+- **D14. List position is a field's order (Mark, 2026-11-14):** "List position; `order`
+  written on export". A field carries no order number in the recipe; export writes its
+  position as `sh:order` and import sorts by it, so imported gaps (10, 20, 30) become 0, 1,
+  2.
+
+  Links: summary A field's order is its position in the list; SHACL's order is written on export and read on import.
+
+  *Refines D2.*
+
+- **D15. Viewer IRIs (Mark, 2026-11-14):** "https://mere.computer/ns/viewer#". Our viewers
+  export under that namespace, beside the relation IRIs at `ns/rel#`; a viewer DASH already
+  names exports as DASH's; an id that is already an IRI exports as itself.
+
+  Links: summary Our field viewers export as IRIs under https://mere.computer/ns/viewer#.
+
+  *Refines D11.*
+
+- **D16. The recipe slot reaches Distillery by a crates.io release (Mark, 2026-11-15):**
+  put four times as the cost grew, and answered each time for publishing: "Distillery
+  first, by me", "Publish scenograph 0.0.7, bump Distillery", "Publish the whole chain",
+  "Publish the chain first, T1 waits". On the first publish: "Yes, and carry on down the
+  chain", stopping on a failure or a surprise. T1 stays unpushed until the chain is done.
+
+  Links: summary The fields slot reaches Distillery through a published scenograph; T1 waits on the release chain.
+
+  *New.*
+
+- **D17. Family git rows take a lower bound before a bump (Mark, 2026-11-15):** "Loosen the
+  rows first, then bump and publish". A row saying `version = "0.0.3"` on a git source
+  means exactly 0.0.3, so a patch release upstream breaks every consumer; rows become
+  `>=0.0.x, <0.1` first, and then the upstream bumps with no red window.
+
+  Links: summary A family git row names a lower bound, so an upstream patch release does not break its consumers.
+
+  *New.*
+
+- **D18. The eidetic version stamp goes to an Eidetic session (Mark, 2026-11-15):** "Hand
+  the stamp question to an Eidetic session, chain waits". The release chain is paused at its
+  first crate until that is ruled in Eidetic.
+
+  Links: summary The release chain waits on Eidetic's ruling about the version stamp in its stored records.
+
+  *Applies D16.*
+
 ## Findings
+
+- 2026-11-15: adding a slot to a recipe type breaks every repository that builds one as a
+  struct literal. Distillery has one site (`crates/distillery/src/chronicle_recipe.rs:34`),
+  and Graphshell's own full build pulls Distillery, so T1's commit hook fails; Turnstone has
+  nine sites; Knot none. `Default` for `ProjectionDefinition` and
+  `AuthoredProjectionDefinition` is on main (`f0e974d4`) so a caller can write
+  `..Default::default()`.
+- 2026-11-15: Distillery takes scenograph 0.0.6 and scenomise 0.0.7 from crates.io;
+  Graphshell's build patches them to its own copies. So Distillery's recipe must compile
+  against the published crate and the working copy at once.
+- 2026-11-15: the release chain, traced from `cargo metadata` over the 41 crates scenograph
+  and scenomise reach from outside crates.io, compared with the crates.io index by version
+  and feature. Six need a release, in this order: eidetic (0.0.3 published without the
+  `product` feature catchment needs; Eidetic), catchment 0.1.0 (never published; Mere),
+  incipit 0.2.3 (0.2.1 published), sceno-backdrops 0.0.1 (never published), scenograph
+  0.0.7, scenomise 0.0.8. Not checked: whether a crate's code drifted from a published
+  version of the same number (sceno last changed 2026-11-06, after its 0.0.7 bump on
+  2026-10-31). A dry run cannot verify a crate until the one below it is on crates.io.
+- 2026-11-15: rows loosened to `>=0.0.x, <0.1` on main (D17): Mere `6eeef0408` (five
+  eidetic rows), Turnstone (eidetic, scenograph, scenomise), Knot `281fc99` (the same
+  three), Distillery `477c5f7` (two eidetic rows), Graphshell `9cf676de` (one).
+- 2026-11-15: the chain stopped at eidetic. At 0.0.4, two tests in
+  `eidetic-core/tests/capture_golden.rs` fail, because eidetic stamps its crate version into
+  the content-addressed schema records it stores (`tooling: "eidetic/0.0.3"`). Nothing was
+  published and nothing was pushed to Eidetic. The brief for the Eidetic session is at
+  `Code/testing/eidetic_version_stamp_brief.md`.
 
 - 2026-11-14: TOML is parsed in one place today, the mod loader
   (`host/crates/script/document-host/src/mod_loader/loader/free_fns.rs:114`), for
@@ -263,3 +333,7 @@ content hash, and the widget layer composites textures. Nothing puts an image in
 - 2026-11-14: smooth defined and the added term named `viewer` (D8, D9); the gate machine
   ruled (D10).
 - 2026-11-14: T1's forks ruled (D11 to D13).
+- 2026-11-15: T1 is written and its tests pass (scenograph 57 with `--features toml`,
+  scenomise 200) on branch `t1-fields`, unpushed: it waits on the release chain (D16),
+  which waits on Eidetic (D18). Field order and viewer IRIs ruled (D14, D15); recipe
+  defaults landed; family rows loosened in five repositories (D17).
