@@ -285,6 +285,26 @@ title = "Plan adopting the separate key-agreement lane (Mark, 2026-11-05)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-05_resident_split_plan.md"
 summary = "Key agreement moves onto Eidetic's GroupKeyLane and Murm's GroupKeySync under its own plan; roster reconciliation stays in Mere."
 
+[decisions."table-projection D1"]
+title = "Rows are instances, cells are addressed (Mark, 2026-11-14)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "In a table each row is one instance and a cell is addressed as row plus field."
+
+[decisions."table-projection D2"]
+title = "Fields use SHACL's terms, plus one (Mark, 2026-11-14)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "A field is a SHACL property shape with one added display term; fields lists exchange as shapes."
+
+[decisions."table-projection D3"]
+title = "Field types for the first table (Mark, 2026-11-14)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "The first table handles reference, date and time, list and media fields beside text, number and boolean."
+
+[decisions."table-projection D4"]
+title = "Read first, writes later (Mark, 2026-11-14)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "The first table plan reads, sorts, filters, groups and windows; editing is a later phase."
+
 [decisions."uxtree-spine D1"]
 title = "The spine is federated (Mark, 2026-11-11)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-11_uxtree_spine_plan.md"

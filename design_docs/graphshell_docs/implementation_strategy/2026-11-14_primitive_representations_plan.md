@@ -164,9 +164,8 @@ face.
 ## Open questions
 
 - Forks F2 and F4 of the scene composition brief gate M1 and M2 and are answered (D11, D12, D16).
-- Does the fields list take SHACL's terms as its own vocabulary, or only map onto them?
-  D20 asks that the standards be considered; brief section 3.10 proposes the terms and this
-  is not ruled. It belongs to the table plan, not yet cut.
+- The fields list takes SHACL's terms with one added (`table-projection D2`); the
+  [table projection plan](2026-11-14_table_projection_plan.md) carries it.
 - Which plan owns the `node:<id>` facet pane, the per-object widget surface and label
   density's settings page? Both former owners are archived (raised 2026-10-06, still open).
   Options: this plan; a Turnstone plan; a canvas plan.
@@ -448,3 +447,4 @@ face.
   the brief is answered.
 - 2026-11-14: Crystal probe 1 run (a ceiling on three document graphs); the guest-command
   finding corrected. Nothing landed in code.
+- 2026-11-14: the table projection plan cut (D18).
