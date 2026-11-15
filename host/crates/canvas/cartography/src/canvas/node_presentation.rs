@@ -3,7 +3,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 // SPDX-License-Identifier: MPL-2.0
-//! Face-only override over the existing resolved body footprint.
+//! Rule-chosen detail rungs over the existing resolved body footprint.
 use super::*;
 impl Canvas {
     /// Local replacement epoch; never a source/session identity.
@@ -44,40 +44,40 @@ impl Canvas {
             NodeShape::Circle => half,
         }
     }
-    /// Replace this view's rule face layer atomically. No geometry/physics edits.
-    pub fn set_node_rule_faces(
+    /// Replace this view's rule-chosen detail rungs atomically. No geometry/physics edits.
+    pub fn set_node_rule_representations(
         &mut self,
         epoch: u64,
-        faces: HashMap<uuid::Uuid, sceno::Representation>,
+        rungs: HashMap<uuid::Uuid, sceno::Representation>,
     ) -> Result<bool, String> {
         if epoch != self.graph_view_epoch {
-            return Err("Node face view was replaced".into());
+            return Err("Node representation view was replaced".into());
         }
-        for (member, face) in &faces {
+        for (member, rung) in &rungs {
             if self.graph.get_node_by_id(*member).is_none() {
                 return Err(format!("Access {member} is absent"));
             }
             if !matches!(
-                face,
+                rung,
                 sceno::Representation::Glyph | sceno::Representation::Card
             ) {
-                return Err("Only Glyph/Card face treatments are supported".into());
+                return Err("Only Glyph and Card rule representations are supported".into());
             }
         }
-        if self.node_rule_faces == faces {
+        if self.node_rule_representations == rungs {
             return Ok(false);
         }
-        self.node_rule_faces = faces;
+        self.node_rule_representations = rungs;
         Ok(true)
     }
     pub fn node_rule_representation(&self, member: uuid::Uuid) -> Option<&sceno::Representation> {
-        self.node_rule_faces.get(&member)
+        self.node_rule_representations.get(&member)
     }
     pub(crate) fn node_representation_class(&self, key: NodeKey) -> &'static str {
         let requested = self
             .graph
             .get_node(key)
-            .and_then(|node| self.node_rule_faces.get(&node.id))
+            .and_then(|node| self.node_rule_representations.get(&node.id))
             .or_else(|| self.projection_representation(key));
         match requested {
             Some(sceno::Representation::Glyph) => " gnode-representation-glyph",

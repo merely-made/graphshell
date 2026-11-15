@@ -50,7 +50,7 @@ fn top_down_node_pick_uses_visible_square_and_rounded_billboards() {
 
     canvas.set_node_shapes(HashMap::from([(id, NodeShape::Square)]));
     canvas
-        .set_node_rule_faces(
+        .set_node_rule_representations(
             canvas.graph_view_epoch(),
             HashMap::from([(id, sceno::Representation::Glyph)]),
         )

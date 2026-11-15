@@ -208,7 +208,7 @@ fn node_face_override_round_trips_through_cartography() {
 
     for face in [Face::Favicon, Face::Derived, Face::Sprite, Face::Bare] {
         // Every existing arm plus Derived remains an explicit override in the sidecar.
-        canvas.set_node_face(id, face);
+        canvas.set_node_face(id, face.clone());
         let geom = canvas.cartography_geometry();
         let faces: std::collections::HashMap<_, _> = geom.face_iter().collect();
         assert_eq!(faces.get(&id), Some(&face.as_code()));

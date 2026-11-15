@@ -215,7 +215,7 @@ fn rule_face_result_cannot_reuse_epoch_after_same_uuid_recreation() {
     });
     assert!(
         canvas
-            .set_node_rule_faces(epoch, HashMap::from([(id, sceno::Representation::Glyph)]))
+            .set_node_rule_representations(epoch, HashMap::from([(id, sceno::Representation::Glyph)]))
             .is_err()
     );
     assert!(canvas.node_rule_representation(id).is_none());

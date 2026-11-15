@@ -49,7 +49,7 @@ impl Canvas {
         .with_faces(
             self.node_faces
                 .iter()
-                .map(|(&id, &face)| (id, face.as_code().to_string())),
+                .map(|(&id, face)| (id, face.as_code().to_string())),
         )
         // The graph grammar's saved seed and the arrangement's regions
         // (`scene_state.rs`).
@@ -94,7 +94,7 @@ impl Canvas {
     /// (Node body & face — the Face axis.)
     pub fn node_face(&self, key: NodeKey) -> Face {
         let explicit = self.member_of(key).and_then(|id| self.node_faces.get(&id));
-        explicit.copied().unwrap_or_else(|| {
+        explicit.cloned().unwrap_or_else(|| {
             self.graph.get_node(key).map_or(Face::default(), |node| {
                 if node.favicon().is_some() {
                     Face::Favicon

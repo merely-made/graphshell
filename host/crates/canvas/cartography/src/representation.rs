@@ -18,16 +18,9 @@ use serde::{Deserialize, Serialize};
 /// Stable schema for the built-in graph representation registry.
 pub const GRAPH_REPRESENTATION_REGISTRY_SCHEMA: &str = "mere.graph-representation-registry/v2";
 
-/// A portable silhouette. The body and hard collider use the same geometry.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum PrimitiveBody {
-    Square,
-    RoundedSquare,
-    Circle,
-    Diamond,
-    Hexagon,
-}
+/// A portable silhouette: scenograph's merged silhouette list (D33). The body and hard
+/// collider use the same geometry.
+pub use scenograph::presentation::Silhouette as PrimitiveBody;
 
 /// One named primitive a renderer can realize in its own paint system.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]

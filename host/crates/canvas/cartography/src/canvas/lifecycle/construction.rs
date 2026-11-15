@@ -131,7 +131,7 @@ impl Canvas {
         self.requested_images.clear();
         self.projection_score = None;
         self.projection_representations.clear();
-        self.node_rule_faces.clear();
+        self.node_rule_representations.clear();
         self.graph_view_epoch = self
             .graph_view_epoch
             .checked_add(1)
@@ -324,7 +324,7 @@ impl Canvas {
             projection_score: None,
             projection_representations: HashMap::new(),
             graph_view_epoch: 0,
-            node_rule_faces: HashMap::new(),
+            node_rule_representations: HashMap::new(),
             roles: Default::default(),
             physics_law: crate::canvas::PhysicsLaw::Springs,
             physics_overlays: Vec::new(),

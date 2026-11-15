@@ -809,7 +809,7 @@ pub struct Canvas {
     /// (Projection proofs — P3b renderer consumption.)
     projection_representations: HashMap<NodeKey, sceno::Representation>,
     graph_view_epoch: u64,
-    node_rule_faces: HashMap<uuid::Uuid, sceno::Representation>,
+    node_rule_representations: HashMap<uuid::Uuid, sceno::Representation>,
     /// The roles the active arrangement's positions play once physics runs
     /// (seeded, anchored, pinned), the anchored return's stiffness, and the
     /// latest settle. (Dynamics grammar plan, G7.)

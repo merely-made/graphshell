@@ -148,56 +148,9 @@ pub enum NodeShape {
     Circle,
 }
 
-/// What is painted on a node's **face**: one of the two presentation axes (the other is the
-/// **body** shape, the node's collider geometry). The face is independent of the body, so a
-/// node with a custom hull body can still show its favicon, and a sprite face can sit on the
-/// default silhouette body. Independent of the node's truth (content, identity, edges stay
-/// authoritative in the kernel). The host pushes per-node overrides via
-/// [`Canvas::set_node_face`]; a node without an override uses [`Derived`](Face::Derived) until it
-/// has a favicon source, then [`Favicon`](Face::Favicon).
-/// The card preview is a *separate* layer over the node, not a face, so it is absent here.
-/// (Node body & face model — the Face axis.)
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-pub enum Face {
-    /// The fetched favicon textured on the face, with the caption beside it (the bare state
-    /// color shows through until a favicon arrives). The default: a standard "tile" node wears
-    /// this face over the content-type silhouette body.
-    #[default]
-    Favicon,
-    /// A deterministic vector face derived from the node's canonical address. Its fills name
-    /// palette slots, so the current theme recolors it without changing or storing the face bytes.
-    /// This is the content-sensitive default while a node has no favicon source.
-    Derived,
-    /// A custom imported sprite image, cover-fit over the whole face — the "alive graph" form.
-    /// The host stores the per-node image (a PNG data-URI) via [`Canvas::set_node_sprite`],
-    /// which sets this face. The body (silhouette or a sprite-traced hull) is a separate axis.
-    /// (Node body & face — sprite face.)
-    Sprite,
-    /// No texture: the bare content-typed state color alone, no favicon or caption. Minimal and
-    /// cheap, for a dense graph or a node with nothing to texture. (Formerly `Shape`.)
-    Bare,
-}
-
-impl Face {
-    /// The persisted string code for the cartography sidecar (kept seiche/canvas-free downstream).
-    /// (Node body & face — face persistence.)
-    pub fn as_code(self) -> &'static str {
-        match self {
-            Face::Favicon => "favicon",
-            Face::Derived => "derived",
-            Face::Sprite => "sprite",
-            Face::Bare => "bare",
-        }
-    }
-
-    /// Parse a persisted code, defaulting to [`Favicon`](Face::Favicon) for an unknown string.
-    /// (Node body & face — face persistence.)
-    pub fn from_code(code: &str) -> Self {
-        match code {
-            "derived" => Face::Derived,
-            "sprite" => Face::Sprite,
-            "bare" => Face::Bare,
-            _ => Face::Favicon,
-        }
-    }
-}
+/// The paint part of a node's mark (primitive representations plan, M1, D32): scenograph's
+/// [`Paint`](scenograph::presentation::Paint), named `Face` on the canvas. The host pushes
+/// per-node overrides via [`Canvas::set_node_face`]; a node without one is
+/// [`Derived`](Face::Derived) until it has a favicon source, then [`Favicon`](Face::Favicon).
+/// The canvas draws the four core paints; an open paint draws bare.
+pub use scenograph::presentation::Paint as Face;

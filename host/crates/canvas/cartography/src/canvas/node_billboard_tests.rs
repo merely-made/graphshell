@@ -139,7 +139,7 @@ fn canvas_billboard_resolves_grammar_shape_and_projection_once() {
     canvas.set_node_shapes(HashMap::from([(id, NodeShape::Rounded)]));
     let epoch = canvas.graph_view_epoch();
     canvas
-        .set_node_rule_faces(epoch, HashMap::from([(id, sceno::Representation::Glyph)]))
+        .set_node_rule_representations(epoch, HashMap::from([(id, sceno::Representation::Glyph)]))
         .unwrap();
     assert_eq!(canvas.node_billboard(key).unwrap().corner_radius, 18.0);
 

@@ -109,7 +109,6 @@ canvas = [
     # `pictograph::symbols::SymbolImage` for the hosts that draw the canvas.
     "pictograph/livery",
     "dep:sceno-backdrops",
-    "dep:scenograph",
     # The arrangement transitions `canvas::physics_controls` schedules
     # (Graphshell stack lift plan, P2 and L5).
     "dep:scenotime",
@@ -149,7 +148,9 @@ paint_list_render = { workspace = true, optional = true }
 petgraph = { version = "0.8.3", optional = true }
 pictograph = { workspace = true, optional = true }
 sceno-backdrops = { workspace = true, optional = true }
-scenograph = { workspace = true, optional = true }
+# The node mark (paint, silhouette) the registry and canvas name; already in the graph
+# through scenomise.
+scenograph = { workspace = true }
 scenotime = { workspace = true, optional = true }
 seiche = { workspace = true, optional = true }
 serde_json = { version = "1", optional = true }

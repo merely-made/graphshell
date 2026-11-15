@@ -149,7 +149,7 @@ impl Canvas {
         self.node_sprites.retain(|id, _| !members.contains(id));
         self.node_sprite_hulls.retain(|id, _| !members.contains(id));
         self.node_materials.retain(|id, _| !members.contains(id));
-        self.node_rule_faces.retain(|id, _| !members.contains(id));
+        self.node_rule_representations.retain(|id, _| !members.contains(id));
         if let Some(affinity) = &mut self.content_affinity {
             let before = affinity.len();
             affinity.retain(|(a, b, _)| keep(a) && keep(b));

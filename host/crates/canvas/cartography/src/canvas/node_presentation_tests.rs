@@ -5,7 +5,7 @@
 // SPDX-License-Identifier: MPL-2.0
 use super::*;
 #[test]
-fn rule_faces_preserve_source_pose_selection_pins_and_footprint() {
+fn rule_representations_preserve_source_pose_selection_pins_and_footprint() {
     let mut canvas = Canvas::with_sample_graph();
     let id = canvas.graph.nodes().next().unwrap().1.id;
     let key = canvas.graph.get_node_key_by_id(id).unwrap();
@@ -18,7 +18,7 @@ fn rule_faces_preserve_source_pose_selection_pins_and_footprint() {
     let paused = canvas.physics_paused();
     let epoch = canvas.graph_view_epoch();
     canvas
-        .set_node_rule_faces(epoch, HashMap::from([(id, sceno::Representation::Glyph)]))
+        .set_node_rule_representations(epoch, HashMap::from([(id, sceno::Representation::Glyph)]))
         .unwrap();
     assert_eq!(
         canvas.node_representation_class(key),
@@ -33,7 +33,7 @@ fn rule_faces_preserve_source_pose_selection_pins_and_footprint() {
         serde_json::to_value(canvas.graph.to_snapshot()).unwrap(),
         source
     );
-    canvas.set_node_rule_faces(epoch, HashMap::new()).unwrap();
+    canvas.set_node_rule_representations(epoch, HashMap::new()).unwrap();
     assert_eq!(
         canvas.node_representation_class(key),
         " gnode-representation-card"
@@ -45,11 +45,11 @@ fn unsupported_face_and_missing_member_refuse_without_partial_replacement() {
     let id = canvas.graph.nodes().next().unwrap().1.id;
     let epoch = canvas.graph_view_epoch();
     canvas
-        .set_node_rule_faces(epoch, HashMap::from([(id, sceno::Representation::Glyph)]))
+        .set_node_rule_representations(epoch, HashMap::from([(id, sceno::Representation::Glyph)]))
         .unwrap();
     assert!(
         canvas
-            .set_node_rule_faces(
+            .set_node_rule_representations(
                 epoch,
                 HashMap::from([(id, sceno::Representation::Snapshot)])
             )
@@ -61,7 +61,7 @@ fn unsupported_face_and_missing_member_refuse_without_partial_replacement() {
     );
     assert!(
         canvas
-            .set_node_rule_faces(
+            .set_node_rule_representations(
                 epoch,
                 HashMap::from([(uuid::Uuid::from_u128(999), sceno::Representation::Card)])
             )
@@ -74,10 +74,10 @@ fn graph_replacement_clears_faces_and_refuses_old_epoch() {
     let id = canvas.graph.nodes().next().unwrap().1.id;
     let epoch = canvas.graph_view_epoch();
     canvas
-        .set_node_rule_faces(epoch, HashMap::from([(id, sceno::Representation::Glyph)]))
+        .set_node_rule_representations(epoch, HashMap::from([(id, sceno::Representation::Glyph)]))
         .unwrap();
     canvas.set_graph(Graph::new());
     assert!(canvas.node_rule_representation(id).is_none());
     assert_ne!(canvas.graph_view_epoch(), epoch);
-    assert!(canvas.set_node_rule_faces(epoch, HashMap::new()).is_err());
+    assert!(canvas.set_node_rule_representations(epoch, HashMap::new()).is_err());
 }
