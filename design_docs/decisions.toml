@@ -330,6 +330,26 @@ title = "The canvas draws all five silhouettes (Mark, 2026-11-15)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
 summary = "The canvas draws square, rounded square, circle, diamond and hexagon from one silhouette list."
 
+[decisions."primitive-representations D39"]
+title = "M1 lands, and Isocosm's line is fixed with it (Mark, 2026-11-15)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
+summary = "M1 lands on main once Isocosm's one use of the Sprite rung is changed."
+
+[decisions."primitive-representations D40"]
+title = "A constructor before a new row field (Mark, 2026-11-15)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
+summary = "A dataset row gets a constructor first, so adding its classes field breaks no repository."
+
+[decisions."primitive-representations D41"]
+title = "The four further pin moves are accepted (Mark, 2026-11-15)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
+summary = "Unclassed nodes draw as glyphs; the spiral score pins move and positions do not."
+
+[decisions."primitive-representations D42"]
+title = "The mark type is `NodeMark` (Mark, 2026-11-15)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
+summary = "The node mark type is named NodeMark."
+
 [decisions."resident-split D1"]
 title = "Device conditions go to mesh-host (Mark, 2026-11-05)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-05_resident_split_plan.md"

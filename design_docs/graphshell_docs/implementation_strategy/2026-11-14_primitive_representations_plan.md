@@ -539,6 +539,37 @@ face.
 
   *Applies D33.*
 
+- **D39. M1 lands, and Isocosm's line is fixed with it (Mark, 2026-11-15):** "You can fix
+  it and land it". Isocosm's tile board asks for the open rung named sprite first, which
+  builds against Graphshell before and after, and then M1 goes to main.
+
+  Links: summary M1 lands on main once Isocosm's one use of the Sprite rung is changed.
+
+  *Applies D34 and D37.*
+
+- **D40. A constructor before a new row field (Mark, 2026-11-15):** "Constructor first,
+  then the field". `ProjectionOccurrence::new` lands now and breaks no one; Cleromancy,
+  Knot, Mer3ly and Woodshed move to it in their own lanes; `classes` is added after.
+
+  Links: summary A dataset row gets a constructor first, so adding its classes field breaks no repository.
+
+  *Applies D30.*
+
+- **D41. The four further pin moves are accepted (Mark, 2026-11-15):** "Accept the moves".
+  A node with no class draws as a glyph. The spiral fixtures are tagged `document` so they
+  still exercise the Card rung, the registry test reads the document profile, and four
+  Spiral score hashes in the arrangement goldens change; every position hash is unchanged.
+
+  Links: summary Unclassed nodes draw as glyphs; the spiral score pins move and positions do not.
+
+  *Applies D11 and D30.*
+
+- **D42. The mark type is `NodeMark` (Mark, 2026-11-15):** "NodeMark".
+
+  Links: summary The node mark type is named NodeMark.
+
+  *Applies D28.*
+
 ## Findings
 
 - 2026-11-14 (at `b957d819`): `RelationForm` is defined at
@@ -702,3 +733,9 @@ face.
 - 2026-11-15: on the lane branch, the registry moved to scenograph and resolves a mark from a
   node's classes (G1); the Sprite rung retired with a decode alias (G3); diamond and hexagon
   drawn on the canvas (G4). The non-document ladder waits on a ruling for four further pins.
+- 2026-11-15: M1 landed on main except row classes: the non-document ladder is in (D41),
+  `ProjectionOccurrence::new` is in (D40), the name is `NodeMark` (D42). Still open: the
+  `classes` field once the four repositories use the constructor; material (G5); open
+  paints in the sidecar (G6); what a registry mark accepts (G7); picking and edge
+  attachment for diamond and hexagon, which still use the square box (G8). No host calls
+  `set_node_shapes`, so no running app shows a node shape yet and M1 has no picture.

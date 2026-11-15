@@ -73,6 +73,22 @@ pub struct ProjectionOccurrence {
     pub values: BTreeMap<String, ProjectionValue>,
 }
 
+impl ProjectionOccurrence {
+    /// Build a row without naming every field, so a field added later does
+    /// not break the caller.
+    pub fn new(
+        occurrence_id: impl Into<String>,
+        source: SourceRef,
+        values: BTreeMap<String, ProjectionValue>,
+    ) -> Self {
+        Self {
+            occurrence_id: occurrence_id.into(),
+            source,
+            values,
+        }
+    }
+}
+
 /// A product-resolved dataset, supplied to the compiler without a product
 /// dependency.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
