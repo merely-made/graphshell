@@ -21,8 +21,8 @@ Receipts from this plan's runs go to `archive_docs/receipts/`, never into this p
 
 - One row is one entity occurrence. A cell is addressed as a row and a field; it is not an
   instance of its own (D1).
-- A field is described in SHACL's terms: path, name, description, order, group. One term of
-  ours says how it is shown. No validator is implied (D2).
+- A field is described in SHACL's terms: path, name, description, order, group. One added term,
+  `viewer`, taken from DASH, says how it is shown (D9). No validator is implied (D2).
 - A fields list is authored as TOML and exchanged as JSON (workspace data-format rule).
 - Sorting, filtering, grouping and the window are reading parameters. They never change the
   source (catalog, section 7).
@@ -34,8 +34,8 @@ Receipts from this plan's runs go to `archive_docs/receipts/`, never into this p
 
 ### T1. Fields on the recipe
 - Done when: a recipe carries an ordered list of fields, each with a path, name,
-  description, order, group and how it is shown (the plain default for its type, a chip, a
-  bar in the cell or a check mark, D6); a recipe without one compiles to the same
+  description, order, group and a viewer, which says how it is shown (the plain default for
+  its type, a chip, a bar in the cell or a check mark, D6, D9); a recipe without one compiles to the same
   scene as before; a field naming a path the dataset does not disclose is refused at compile
   with the field named; a fields list round-trips through TOML and through a SHACL node
   shape with no loss of the five SHACL terms.
@@ -61,8 +61,9 @@ list are added (D3); media is phase T8.
   built from the fields' names and only the visible rows drawn; column order follows the
   fields' order; clicking a header sorts and the sort is saved on the recipe as one undo
   step; keyboard reaches every cell and header; the frozen form is a table with a caption
-  and one column header per field; scrolling, sorting and filtering stay smooth at 10,000
-  rows, with the same measured and reported at 100,000 (D5); a headed check shows it in
+  and one column header per field; at 10,000 rows scrolling holds a 16.7 ms frame at the
+  95th percentile and a sort or a filter shows its result within 100 ms (D8), with the same
+  measured and reported at 100,000 (D5); a headed check shows it in
   Chrome and Firefox.
 - Needs: T1, T3.
 
@@ -100,10 +101,10 @@ content hash, and the widget layer composites textures. Nothing puts an image in
 
 ## Open questions
 
-- What is "smooth"? D5 sets the row counts; the frame time or response time that counts as
-  smooth is not ruled, and is to be offered as a choice of values before T4's acceptance.
-- What is the added term called in the fields list? Its values are ruled (D6); its name is
-  not.
+- Which machine is the gate measured on? D8 sets the times; the laptop is the primary
+  machine and the iMacs are slower. To be put before T4's acceptance.
+- Which of our viewer values map onto DASH's own viewers, and which are ours alone? To be
+  read from DASH before T1 lands.
 
 ## Decisions
 
@@ -165,6 +166,22 @@ content hash, and the widget layer composites textures. Nothing puts an image in
 
   *New.*
 
+- **D8. What smooth means (Mark, 2026-11-14):** "Scroll 16.7 ms, sort/filter 100 ms".
+  Scrolling holds 60 frames a second, taken at the 95th percentile frame; a sort or a filter
+  shows its result within 100 ms. Nothing is measured yet.
+
+  Links: summary Smooth is a 16.7 ms frame while scrolling and a sort or filter result within 100 ms.
+
+  *Refines D5.*
+
+- **D9. The added term is `viewer` (Mark, 2026-11-14):** "viewer". It is DASH's term, the
+  vocabulary used beside SHACL, and DASH's `editor` is there for the writing side when D4's
+  later writes arrive. The values are D6's.
+
+  Links: summary The fields list's added term for how a field is shown is DASH's viewer.
+
+  *Refines D2.*
+
 ## Findings
 
 - 2026-11-14 (at `a0469fc1`): the data grid exists. `cambium::data_grid` is a sticky header
@@ -195,3 +212,4 @@ content hash, and the widget layer composites textures. Nothing puts an image in
 - 2026-11-14: plan written with Mark; nothing landed.
 - 2026-11-14: row budget, ways of showing a field and the group and section names ruled (D5
   to D7).
+- 2026-11-14: smooth defined and the added term named `viewer` (D8, D9).

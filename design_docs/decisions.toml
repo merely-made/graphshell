@@ -255,6 +255,16 @@ title = "In Crystal, unlinked tiles never touch (Mark, 2026-11-14)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
 summary = "In Crystal a shared border always means a link; tiles that are not linked keep apart."
 
+[decisions."primitive-representations D24"]
+title = "Crystal's smallest tile side is a recipe setting, 32 px by default (Mark, 2026-11-14)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
+summary = "Crystal's smallest tile side is set on the recipe and defaults to 32 px."
+
+[decisions."primitive-representations D25"]
+title = "A border counts at half the smallest side (Mark, 2026-11-14)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
+summary = "In Crystal a shared border shows a link when it is at least half the smallest tile side long."
+
 [decisions."resident-split D1"]
 title = "Device conditions go to mesh-host (Mark, 2026-11-05)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-05_resident_split_plan.md"
@@ -324,6 +334,16 @@ summary = "A field is shown as its type's default, a chip, a bar in the cell or 
 title = "Group and section (Mark, 2026-11-14)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
 summary = "In the editor a group is a grouping of rows and a section is a set of columns."
+
+[decisions."table-projection D8"]
+title = "What smooth means (Mark, 2026-11-14)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "Smooth is a 16.7 ms frame while scrolling and a sort or filter result within 100 ms."
+
+[decisions."table-projection D9"]
+title = "The added term is `viewer` (Mark, 2026-11-14)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "The fields list's added term for how a field is shown is DASH's viewer."
 
 [decisions."uxtree-spine D1"]
 title = "The spine is federated (Mark, 2026-11-11)"

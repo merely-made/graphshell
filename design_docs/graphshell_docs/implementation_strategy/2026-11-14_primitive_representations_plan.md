@@ -97,8 +97,9 @@ section 3.7).
   is selected; pinning a tile packs its linked tiles against it, resized to fit; a tile
   against a nucleus can be slid along its border and the rest repack; every link is reported
   as a border or as unmet; unpinning leaves the tiles where they are.
-- Needs: the smallest tile side and the shortest border that counts offered as choices of
-  values, since they set how many places a nucleus has; M3 for the report. Unlinked tiles
+- Needs: M3 for the report. The smallest tile side is a recipe setting, 32 px by default
+  (D24), and a border counts at half that side or longer (D25), so the done-condition adds:
+  a recipe can set the smallest side and the packing honours it. Unlinked tiles
   never touch (D23), so the done-condition adds: no two tiles share a border unless they are
   linked; the physics profile `crystal` renamed first (D10), which
   reaches Turnstone's `src/arrange_pane/tests.rs` (five uses). Packing goes one step (D8) and overflow
@@ -394,6 +395,24 @@ face.
 
   *New.*
 
+- **D24. Crystal's smallest tile side is a recipe setting, 32 px by default (Mark,
+  2026-11-14):** "4, default 32px", to the option "A recipe setting, default 48". The
+  scene's author chooses how far a linked tile may shrink; a recipe that says nothing gets
+  32 px, which gives a 160 by 100 tile 16 places. Probe 1's ceiling at 32 px with everything
+  pinned: Graphshell 100%, Turnstone 100%, Mere 86%. Probe 2 did not run at 32 px.
+
+  Links: summary Crystal's smallest tile side is set on the recipe and defaults to 32 px.
+
+  *New.*
+
+- **D25. A border counts at half the smallest side (Mark, 2026-11-14):** "Half the smallest
+  side". 16 px at the default; a tile may overhang a corner. This is the rule probe 2 used
+  (24 px at 48), under which a star held 9 of 10 places against 6 with a full-side rule.
+
+  Links: summary In Crystal a shared border shows a link when it is at least half the smallest tile side long.
+
+  *New.*
+
 ## Findings
 
 - 2026-11-14 (at `b957d819`): `RelationForm` is defined at
@@ -467,3 +486,4 @@ face.
 - 2026-11-14: the table projection plan cut (D18).
 - 2026-11-14: Crystal probe 2 run (a greedy packer). Nothing landed in code.
 - 2026-11-14: unlinked tiles never touch (D23).
+- 2026-11-14: Crystal's smallest tile side and shortest border ruled (D24, D25).

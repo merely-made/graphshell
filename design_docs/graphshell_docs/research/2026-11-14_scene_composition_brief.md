@@ -289,6 +289,11 @@ Mere's; after ten pins, 19%, 23% and 2%. No unlinked tiles touched. The shortfal
 geometry (a packed tile that is later pinned is small and hemmed in) and partly the greedy
 rule, which a better solver would beat; the probe does not separate the two.
 
+The smallest tile side is a setting on the recipe, 32 px unless the recipe says otherwise,
+and a border counts when it is at least half that side long (`primitive-representations
+D24`, `D25`). At 32 px a 160 by 100 tile has 16 places and the first probe's ceiling with
+everything pinned is 100%, 100% and 86%. The second probe ran at 48 and 64 px, not at 32.
+
 ### 3.8 Partition zoom
 
 Ruled (D5): zooming a Partition does not scale the picture. It changes how much of the
