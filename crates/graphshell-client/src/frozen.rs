@@ -76,7 +76,7 @@ impl FrozenRole {
     fn of(representation: &Representation) -> Self {
         match representation {
             Representation::Glyph => Self::Symbol,
-            Representation::Card | Representation::Sprite | Representation::Snapshot => {
+            Representation::Card | Representation::Snapshot => {
                 Self::Object
             },
             Representation::LivePane => Self::LiveContent,

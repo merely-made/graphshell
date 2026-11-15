@@ -91,20 +91,48 @@ pub struct Space {
 /// The representation slot an item asks its host to fill. Recognized core
 /// is the LOD ladder; the open tail carries anything a host recognizes by
 /// name. The scene never carries rendered content.
+///
+/// A saved `"Sprite"` rung reads as `Open { kind: "sprite" }`: sprite is a
+/// paint, not a rung (Graphshell primitive representations plan, D34).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(from = "RepresentationWire")]
 pub enum Representation {
     /// Smallest rung: a themed dot/icon.
     Glyph,
     /// A compact summary card.
     Card,
-    /// An image/sprite face.
-    Sprite,
     /// A static capture of live content.
     Snapshot,
     /// Live, interactive content (a web session, an editor).
     LivePane,
     /// Open tail: host-recognized representation by name.
     Open { kind: String },
+}
+
+/// Everything a saved representation may say, the retired rung included.
+#[derive(Deserialize)]
+enum RepresentationWire {
+    Glyph,
+    Card,
+    Sprite,
+    Snapshot,
+    LivePane,
+    Open { kind: String },
+}
+
+impl From<RepresentationWire> for Representation {
+    fn from(wire: RepresentationWire) -> Self {
+        match wire {
+            RepresentationWire::Glyph => Self::Glyph,
+            RepresentationWire::Card => Self::Card,
+            RepresentationWire::Sprite => Self::Open {
+                kind: "sprite".into(),
+            },
+            RepresentationWire::Snapshot => Self::Snapshot,
+            RepresentationWire::LivePane => Self::LivePane,
+            RepresentationWire::Open { kind } => Self::Open { kind },
+        }
+    }
 }
 
 /// One placed instance.
@@ -332,6 +360,23 @@ impl Scene {
 mod tests {
     use super::*;
     use crate::geometry::Vec2;
+
+    #[test]
+    fn a_saved_sprite_rung_reads_as_the_open_rung() {
+        let sprite = Representation::Open {
+            kind: "sprite".into(),
+        };
+        let old: Representation = serde_json::from_str(r#""Sprite""#).unwrap();
+        assert_eq!(old, sprite);
+        let json = serde_json::to_string(&sprite).unwrap();
+        assert_eq!(json, r#"{"Open":{"kind":"sprite"}}"#);
+        assert_eq!(serde_json::from_str::<Representation>(&json).unwrap(), sprite);
+        for core in ["Glyph", "Card", "Snapshot", "LivePane"] {
+            let quoted = format!("{core:?}");
+            let read: Representation = serde_json::from_str(&quoted).unwrap();
+            assert_eq!(serde_json::to_string(&read).unwrap(), quoted);
+        }
+    }
 
     #[test]
     fn one_source_many_instances() {

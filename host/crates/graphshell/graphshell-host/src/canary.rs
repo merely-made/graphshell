@@ -122,7 +122,9 @@ impl FixtureEndpoint {
             footprint: Footprint::Rect {
                 size: Size2::new(248.0, 168.0),
             },
-            representation: Representation::Sprite,
+            representation: Representation::Open {
+                kind: "sprite".into(),
+            },
             layer: 0,
             visible: true,
             hit: None,

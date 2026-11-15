@@ -352,7 +352,7 @@ fn scripted(id: &str, priority: i32, source: &str, representation: Representatio
 fn a_script_condition_wins_by_the_same_precedence_as_any_other() {
     let set = rules(vec![
         rule("base", 0, Condition::Always, Representation::Card),
-        scripted("by-script", 5, "yes", Representation::Sprite),
+        scripted("by-script", 5, "yes", Representation::Snapshot),
         scripted("quiet", 9, "no", Representation::Glyph),
     ]);
     let mut engine = Scripted::default();
@@ -470,7 +470,7 @@ fn scripts_compose_inside_all_any_and_not() {
 fn without_an_engine_a_set_with_a_script_is_refused() {
     let set = rules(vec![
         rule("base", 0, Condition::Always, Representation::Card),
-        scripted("s", 1, "yes", Representation::Sprite),
+        scripted("s", 1, "yes", Representation::Snapshot),
     ]);
     let issues = set.resolve(&context("a")).unwrap_err();
     assert_eq!(issues[0].field, "rules[1].condition");
