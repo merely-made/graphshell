@@ -35,7 +35,7 @@ fn top_down_node_pick_uses_visible_square_and_rounded_billboards() {
         "a visible square corner is selectable even outside the physics view's circle pick"
     );
 
-    canvas.set_node_shapes(HashMap::from([(id, NodeShape::Rounded)]));
+    canvas.set_node_shapes(HashMap::from([(id, NodeShape::RoundedSquare)]));
     let rounded = canvas.node_billboard(target).unwrap();
     assert_eq!(
         canvas.pick_at((rounded.center.x + 17.0, rounded.center.y + 7.0)),

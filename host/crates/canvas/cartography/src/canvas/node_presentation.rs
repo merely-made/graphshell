@@ -40,8 +40,10 @@ impl Canvas {
         }
         match self.node_shape(key) {
             NodeShape::Square => 0.0,
-            NodeShape::Rounded => 9.0_f32.min(half),
+            NodeShape::RoundedSquare => 9.0_f32.min(half),
             NodeShape::Circle => half,
+            // Clipped to their outline, so no rounding.
+            NodeShape::Diamond | NodeShape::Hexagon => 0.0,
         }
     }
     /// Replace this view's rule-chosen detail rungs atomically. No geometry/physics edits.

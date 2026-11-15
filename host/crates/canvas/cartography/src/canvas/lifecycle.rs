@@ -273,13 +273,22 @@ impl Canvas {
                 fallback: half,
             };
         }
-        match self.node_shape(key) {
+        let shape = self.node_shape(key);
+        if let Some(outline) = shape.outline() {
+            return seiche::NodeCollider::Hull {
+                points: outline.iter().map(|&(x, y)| (x * size, y * size)).collect(),
+                fallback: half,
+            };
+        }
+        match shape {
             NodeShape::Circle => seiche::NodeCollider::Ball { radius: half },
             NodeShape::Square => seiche::NodeCollider::Square { half },
-            NodeShape::Rounded => seiche::NodeCollider::RoundedSquare {
+            NodeShape::RoundedSquare => seiche::NodeCollider::RoundedSquare {
                 half,
                 border: half * 0.3,
             },
+            // Polygonal silhouettes returned their hull above.
+            NodeShape::Diamond | NodeShape::Hexagon => seiche::NodeCollider::Square { half },
         }
     }
 

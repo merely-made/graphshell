@@ -68,7 +68,7 @@ fn configure_bundle(canvas: &mut Canvas, ids: [Uuid; 4]) -> LinkKey {
     canvas.set_link_path_response(response);
     canvas.set_node_shapes(
         ids.into_iter()
-            .map(|id| (id, NodeShape::Rounded))
+            .map(|id| (id, NodeShape::RoundedSquare))
             .collect::<HashMap<_, _>>(),
     );
     key
@@ -264,7 +264,7 @@ fn rounded_circle_and_suggestion_scaled_billboards_share_attachment_clip_geometr
     let facts = source_facts(&baseline.paths);
     configure_bundle(&mut canvas, ids);
 
-    for shape in [NodeShape::Rounded, NodeShape::Circle] {
+    for shape in [NodeShape::RoundedSquare, NodeShape::Circle] {
         canvas.set_node_shapes(ids.into_iter().map(|id| (id, shape)).collect());
         let report = canvas.link_path_response_report();
         assert_paths_clear_of_billboards(&canvas, &report);

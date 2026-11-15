@@ -90,6 +90,26 @@ pub enum Silhouette {
     Hexagon,
 }
 
+impl Silhouette {
+    /// The outline of a polygonal silhouette in a unit box centred on the
+    /// origin, so a collider and a style clip share one shape. `None` for the
+    /// square, rounded square and circle, which draw by corner radius.
+    pub fn outline(self) -> Option<&'static [(f32, f32)]> {
+        match self {
+            Self::Diamond => Some(&[(0.0, -0.5), (0.5, 0.0), (0.0, 0.5), (-0.5, 0.0)]),
+            Self::Hexagon => Some(&[
+                (0.0, -0.5),
+                (0.5, -0.25),
+                (0.5, 0.25),
+                (0.0, 0.5),
+                (-0.5, 0.25),
+                (-0.5, -0.25),
+            ]),
+            Self::Square | Self::RoundedSquare | Self::Circle => None,
+        }
+    }
+}
+
 /// A mark's part in physics. An authored hull is per node, kept by the host.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -184,6 +204,16 @@ mod tests {
             serde_json::to_value(Body::Silhouette(Silhouette::RoundedSquare)).unwrap(),
             serde_json::json!({ "silhouette": "rounded_square" })
         );
+    }
+
+    #[test]
+    fn polygonal_silhouettes_fit_the_unit_box() {
+        for shape in [Silhouette::Diamond, Silhouette::Hexagon] {
+            let outline = shape.outline().unwrap();
+            assert!(outline.len() >= 4);
+            assert!(outline.iter().all(|(x, y)| x.abs() <= 0.5 && y.abs() <= 0.5));
+        }
+        assert!(Silhouette::Circle.outline().is_none());
     }
 
     #[test]

@@ -133,7 +133,7 @@ fn set_node_shapes_resolves_uuids_to_keys() {
 
     // An unknown node id is filtered out (no panic, no stale entry).
     let mut other = HashMap::new();
-    other.insert(uuid::Uuid::from_u128(0xdead_beef), NodeShape::Rounded);
+    other.insert(uuid::Uuid::from_u128(0xdead_beef), NodeShape::RoundedSquare);
     canvas.set_node_shapes(other);
     assert!(
         canvas.node_shapes.is_empty(),

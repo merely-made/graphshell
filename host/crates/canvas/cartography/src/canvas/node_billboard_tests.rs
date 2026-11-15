@@ -105,7 +105,7 @@ fn canvas_billboard_resolves_grammar_shape_and_projection_once() {
     let key = canvas.graph.nodes().next().unwrap().0;
     let id = canvas.graph.get_node(key).unwrap().id;
     canvas.view.set_position(key, PortablePoint::new(5.0, 7.0));
-    canvas.set_node_shapes(HashMap::from([(id, NodeShape::Rounded)]));
+    canvas.set_node_shapes(HashMap::from([(id, NodeShape::RoundedSquare)]));
     canvas.set_viewport(Viewport {
         offset: (100.0, 200.0),
         zoom: 2.0,
@@ -136,7 +136,7 @@ fn canvas_billboard_resolves_grammar_shape_and_projection_once() {
     canvas.set_node_shapes(HashMap::from([(id, NodeShape::Square)]));
     assert_eq!(canvas.node_billboard(key).unwrap().corner_radius, 0.0);
 
-    canvas.set_node_shapes(HashMap::from([(id, NodeShape::Rounded)]));
+    canvas.set_node_shapes(HashMap::from([(id, NodeShape::RoundedSquare)]));
     let epoch = canvas.graph_view_epoch();
     canvas
         .set_node_rule_representations(epoch, HashMap::from([(id, sceno::Representation::Glyph)]))
@@ -322,4 +322,33 @@ fn subpixel_but_real_circle_intrusion_still_counts_as_crossing() {
     let from = Point2D::new(220.0, y);
     let to = Point2D::new(320.0, y);
     assert!(billboard.segment_crosses_interior(from, to));
+}
+
+#[test]
+fn diamond_and_hexagon_collide_and_draw_at_one_outline() {
+    let mut canvas = Canvas::with_sample_graph();
+    let key = canvas.graph.nodes().next().unwrap().0;
+    let id = canvas.graph.get_node(key).unwrap().id;
+    let side = canvas.node_size(key);
+    for (shape, class) in [
+        (NodeShape::Diamond, "gnode-diamond"),
+        (NodeShape::Hexagon, "gnode-hexagon"),
+    ] {
+        canvas.set_node_shapes(HashMap::from([(id, shape)]));
+        let outline = shape.outline().unwrap();
+        match canvas.node_collider(key) {
+            seiche::NodeCollider::Hull { points, fallback } => {
+                assert_eq!(points.len(), outline.len());
+                assert_eq!(points[0], (outline[0].0 * side, outline[0].1 * side));
+                assert_eq!(fallback, side / 2.0);
+            },
+            other => panic!("{shape:?} collides as {other:?}"),
+        }
+        assert_eq!(canvas.node_billboard(key).unwrap().corner_radius, 0.0);
+        let rule = crate::canvas::build::NODE_SHEET
+            .iter()
+            .find(|rule| rule.starts_with(&format!(".{class} ")))
+            .unwrap_or_else(|| panic!("no rule for {class}"));
+        assert!(rule.contains("clip-path: polygon("), "{rule}");
+    }
 }

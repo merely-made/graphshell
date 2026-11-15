@@ -270,11 +270,14 @@ impl Canvas {
                     _ => "gnode-idle",
                 }
             };
-            // Shape rides as a second class (border-radius only) so it merges with
-            // the color class; square is the default (no shape class).
+            // Shape rides as a second class so it merges with the color class:
+            // rounded and circle are border-radius, diamond and hexagon a clip;
+            // square is the default (no shape class).
             let shape_class = match self.node_shapes.get(&key) {
-                Some(NodeShape::Rounded) => " gnode-rounded",
+                Some(NodeShape::RoundedSquare) => " gnode-rounded",
                 Some(NodeShape::Circle) => " gnode-circle",
+                Some(NodeShape::Diamond) => " gnode-diamond",
+                Some(NodeShape::Hexagon) => " gnode-hexagon",
                 _ => "",
             };
             // The representation rung changes how the same measured footprint

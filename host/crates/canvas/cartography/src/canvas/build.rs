@@ -33,6 +33,7 @@ use crate::signals::{BridgeNodes, ClusterSet};
 use genet_scripted_dom::{NodeId as DomNodeId, ScriptedDom};
 
 use crate::canvas::palette;
+use crate::canvas::NodeShape;
 
 /// The geometry every `.gnode` color class repeats; only the fill/label differ.
 /// The frame's `translate(anchor - half) scale(zoom)` scales about the top-left;
@@ -120,6 +121,18 @@ fn build_node_sheet() -> Vec<String> {
             background-color: var(--node-selected-bg); color: var(--node-selected-fg); }"
             .to_string(),
     ];
+    // Polygonal silhouettes clip the body to the outline their hull collides at.
+    for (class, shape) in [
+        ("gnode-diamond", NodeShape::Diamond),
+        ("gnode-hexagon", NodeShape::Hexagon),
+    ] {
+        let outline = shape.outline().expect("a polygonal silhouette");
+        let points: Vec<String> = outline
+            .iter()
+            .map(|(x, y)| format!("{}% {}%", (x + 0.5) * 100.0, (y + 0.5) * 100.0))
+            .collect();
+        sheet.push(format!(".{class} {{ clip-path: polygon({}); }}", points.join(", ")));
+    }
     sheet.extend(CATEGORY_PALETTE.iter().enumerate().map(|(i, (r, g, b))| {
         format!(
             ".gnode-cat-{i} {{ background-color: rgb({}, {}, {}); }}",
