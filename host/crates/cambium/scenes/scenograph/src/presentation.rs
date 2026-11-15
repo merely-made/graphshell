@@ -557,6 +557,19 @@ fn issue(issues: &mut Vec<Issue>, field: &str, message: &str) {
 #[path = "presentation/mark.rs"]
 mod mark;
 pub use mark::{Body, Extent, NodeMark, Paint, Silhouette};
+#[path = "presentation/ladder.rs"]
+mod ladder;
+pub use ladder::{
+    ConditionOperation, RepresentationCondition, RepresentationLadder, RepresentationMeasure,
+    RepresentationRung, RepresentationState, default_representation_ladder, non_document_ladder,
+};
+#[path = "presentation/registry.rs"]
+mod registry;
+pub use registry::{
+    BehaviorBinding, GRAPH_REPRESENTATION_REGISTRY_SCHEMA, GraphRepresentationRegistry,
+    HostBehavior, HostGesture, PrimitiveProfile, RepresentationProfile,
+    default_graph_representation_registry,
+};
 
 #[cfg(test)]
 #[path = "presentation/tests.rs"]
