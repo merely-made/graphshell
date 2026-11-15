@@ -554,6 +554,10 @@ fn issue(issues: &mut Vec<Issue>, field: &str, message: &str) {
     });
 }
 
+#[path = "presentation/mark.rs"]
+mod mark;
+pub use mark::{Body, Extent, NodeMark, Paint, Silhouette};
+
 #[cfg(test)]
 #[path = "presentation/tests.rs"]
 mod tests;
