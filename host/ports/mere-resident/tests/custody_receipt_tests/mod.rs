@@ -101,6 +101,7 @@ fn profile_roundtrip_fences_a_stale_payload_write() {
     use dramatis::intents::SwitchProfileIntentV1;
     let host = TestCustodian::start("profile fence fixture", &[("work", [0x31; 32]), ("home", [0x32; 32])], manage_grants());
     let persona = PersonaId::new();
+    castellan::custody::os_kek::install_memory_os_kek(&host.data_root);
     castellan::custody::wallet::ensure_wallet_state(&host.data_root, persona, "profile fence fixture").unwrap();
     let remote = host.remote();
     remote.unlock_with_passphrase(b"profile fence fixture").unwrap();

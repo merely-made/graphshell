@@ -53,6 +53,8 @@ pub(super) fn retained_custody(
     let fresh = !dir.exists();
     let storage = SealedProfileStorage::open_with_key(dir.join("vault"), [0x63; 32]);
     if fresh {
+        // A reopen is in this process, so the store installed here serves it.
+        castellan::custody::os_kek::install_memory_os_kek(&dir);
         castellan::custody::wallet::ensure_wallet_state(&dir, wallet, "Retained fixture")
             .unwrap();
         storage.enroll_passphrase(VAULT_PASSPHRASE).unwrap();

@@ -28,6 +28,7 @@ use std::{sync::Arc, time::Duration};
 async fn private_payloads_use_bound_custody_and_survive_epoch_rotation() {
     let root = tempfile::tempdir().unwrap();
     let persona = PersonaId::new();
+    castellan::custody::os_kek::install_memory_os_kek(root.path());
     castellan::custody::wallet::ensure_wallet_state(root.path(), persona, "Retained fixture")
         .unwrap();
     let profile = Profile::new(
@@ -324,6 +325,10 @@ async fn private_payloads_use_bound_custody_and_survive_epoch_rotation() {
     server.abort();
 }
 
+/// The retained fixture wallet's padlock passphrase: public, synthetic, test-only.
+#[cfg(unix)]
+const RETAINED_WALLET_TEST_PASSPHRASE: &str = "public synthetic retained wallet padlock (test only)";
+
 /// Explicit process fixture only. The caller owns this marked disposable root.
 #[cfg(unix)]
 #[test]
@@ -370,12 +375,16 @@ fn retained_custody_receipt_host() {
         ]), consent: "deny", mechanism: None, agent: false,
     }, create).unwrap();
     let persona = PersonaId::from_uuid(uuid::Uuid::from_u128(0xe1de_2026_1019));
+    // Each run is its own process, so the wallet's root sits under a
+    // passphrase padlock, not an in-memory store (custody D5, D9).
     if create {
+        castellan::custody::wallet::create_wallet_padlock_with_passphrase(&fixture.data_root, RETAINED_WALLET_TEST_PASSPHRASE).unwrap();
         castellan::custody::wallet::ensure_wallet_state(&fixture.data_root, persona, "Retained process fixture").unwrap();
         std::fs::write(state.join("initialized"), b"receipt-fixture-v1\n").unwrap();
     } else {
         use sporran::wallet_store as store;
         let data = &fixture.data_root;
+        assert!(castellan::custody::wallet::unlock_wallet_with_passphrase(data, RETAINED_WALLET_TEST_PASSPHRASE).unwrap(), "missing wallet padlock");
         assert!(castellan::custody::wallet::load_identity_seed_read_only(data).unwrap().is_some(), "missing wallet seed");
         let identity = store::load_identity_wallet(data).unwrap().expect("missing identity wallet");
         assert_eq!(identity.personas.len(), 1);

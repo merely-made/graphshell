@@ -48,6 +48,7 @@ mod commissioning {
         let directory = tempfile::tempdir().unwrap();
         let carry_root = directory.path().join("wallet-root");
         let persona = PersonaId::new();
+        castellan::custody::os_kek::install_memory_os_kek(&carry_root);
         ensure_wallet_state(&carry_root, persona, "Graphshell workstation").unwrap();
 
         // Pair a device carrying one private epoch. The pairing path is the
@@ -190,6 +191,7 @@ mod retraction {
         let directory = tempfile::tempdir().unwrap();
         let carry_root = directory.path().join("wallet-root");
         let persona = PersonaId::new();
+        castellan::custody::os_kek::install_memory_os_kek(&carry_root);
         ensure_wallet_state(&carry_root, persona, "Graphshell workstation").unwrap();
 
         let device_id = DeviceId::new();

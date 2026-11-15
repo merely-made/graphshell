@@ -1777,6 +1777,13 @@ async fn serve_trained_model_for_headed_turnstone() {
                 "retained-embedding-20261020\n"
             );
             let persona = pandect::PersonaId::from_uuid(uuid::Uuid::from_u128(0xe1de_2026_1020));
+            // Each cold process opens the wallet again, so its root sits under
+            // a passphrase padlock, not an in-memory store (custody D5, D9).
+            const PADLOCK: &str = "public synthetic retained recall wallet padlock (test only)";
+            if !castellan::custody::wallet::unlock_wallet_with_passphrase(&root, PADLOCK).unwrap() {
+                castellan::custody::wallet::create_wallet_padlock_with_passphrase(&root, PADLOCK)
+                    .unwrap();
+            }
             castellan::custody::wallet::ensure_wallet_state(
                 &root,
                 persona,

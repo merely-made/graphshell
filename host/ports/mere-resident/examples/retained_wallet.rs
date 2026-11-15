@@ -9,6 +9,12 @@
 fn main() {
     let root = std::path::PathBuf::from(std::env::args().nth(1).expect("data root"));
     let persona: uuid::Uuid = std::env::args().nth(2).expect("persona uuid").parse().expect("a uuid");
+    // The resident opens this wallet in its own process through the OS slot.
+    // Examples build with castellan's `test-support`, which has no implicit
+    // DPAPI, so the slot is named here. Elsewhere the store is the platform's
+    // installed one, or the wallet is refused (custody D5).
+    #[cfg(windows)]
+    castellan::custody::os_kek::install_os_kek_store(&root, std::sync::Arc::new(castellan::custody::os_kek::Dpapi));
     castellan::custody::wallet::ensure_wallet_state(&root, personae::PersonaId::from_uuid(persona), "Retained receipt")
         .expect("the wallet is staged");
     println!("staged");

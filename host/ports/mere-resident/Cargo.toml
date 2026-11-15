@@ -22,7 +22,8 @@ personal-sync = []
 # `resident_mere::fixture`: a live mere over a reservoir and one shared app door,
 # public for consumers that drive the route from outside (Knot's overlay tests).
 # Pulls the in-process custody the fixture's vault stands on; tests only.
-test-fixtures = ["in-process-custody", "dep:tempfile"]
+# The fixture's wallet keys under an in-memory store (castellan `test-support`).
+test-fixtures = ["in-process-custody", "dep:tempfile", "castellan/test-support"]
 moot-site = ["site-model/publication", "dep:gemot", "dep:errand", "dep:pollster", "dep:scroll-protocol", "dep:url"]
 moot-site-nomadnet = ["moot-site", "dep:retinue"]
 # Knot sites over NomadNet. Off by default: it links Reticulum-licensed retinue
@@ -302,6 +303,9 @@ esp.workspace = true
 # This package with `passphrase-fd`, so the binary the tests spawn reads the
 # harness's passphrase (ruling 65).
 mere-resident = { path = ".", default-features = false, features = ["passphrase-fd", "in-process-custody"] }
+# The in-memory wallet store a test installs for its data root (custody D5):
+# test builds have no implicit OS store. Never a binary's feature.
+castellan = { workspace = true, features = ["keeper", "os-presence", "test-support"] }
 # The shared resident harness (djinn test harness plan): path only, unpublished,
 # so packaging drops it.
 djinn-testkit = { path = "../../crates/system/djinn-testkit" }

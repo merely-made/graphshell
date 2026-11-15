@@ -257,6 +257,7 @@ async fn the_wallets_persona_index_is_the_custodians_to_disclose_and_djinn_never
         // A root that holds no wallet: only the custodian's own is read.
         Arc::new(CustodyPersonas { custody: host, wallet_root: custodian.dir.path().join("djinns-data-root-has-no-wallet") })
     };
+    castellan::custody::os_kek::install_memory_os_kek(&custodian.data_root);
     let nothing = remote.wallet_public(custodian.dir.path()).unwrap();
     assert!(nothing.personas.is_empty() && nothing.roster.is_none());
     assert!(resolve_persona(index(Arc::clone(&remote)), None).await.unwrap_err().contains("no persona wallet"));
@@ -303,6 +304,7 @@ fn real_custodian_fences_private_payload_to_authoritative_generation() {
     use castellan_client::custody_payload::{PayloadBytes, PayloadOperation, PayloadRequest, PayloadResult};
     let custodian = TestCustodian::start(PASSPHRASE, &[("work", WORK)], manage_grants());
     let persona = personae::PersonaId::new();
+    castellan::custody::os_kek::install_memory_os_kek(&custodian.data_root);
     castellan::custody::wallet::ensure_wallet_state(&custodian.data_root, persona, "isolated fixture").unwrap();
     let remote = unlocked(&custodian);
     let original = remote.custody_epoch().unwrap().expect("custodian exposes an epoch");
@@ -340,6 +342,7 @@ async fn real_custodian_generation_reaches_the_app_payload_route() {
 
     let custodian = TestCustodian::start(PASSPHRASE, &[("work", WORK)], manage_grants());
     let persona = personae::PersonaId::new();
+    castellan::custody::os_kek::install_memory_os_kek(&custodian.data_root);
     castellan::custody::wallet::ensure_wallet_state(&custodian.data_root, persona, "isolated route fixture").unwrap();
     let remote = unlocked(&custodian);
     let keeper = Arc::new(Keeper::new(remote.clone()));

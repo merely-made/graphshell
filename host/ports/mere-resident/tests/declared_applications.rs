@@ -180,6 +180,7 @@ fn vault_offering(route: AppRouteId, label: impl Into<String>) -> AppDeclaration
 #[tokio::test(flavor = "multi_thread")]
 async fn a_vault_application_receives_its_declared_custody_within_the_default_grant() {
     let wallet = tempfile::tempdir().unwrap();
+    castellan::custody::os_kek::install_memory_os_kek(wallet.path());
     castellan::custody::wallet::ensure_wallet_state(wallet.path(), persona(), DEVICE).unwrap();
     let endpoint = serve(wallet.path(), Vec::new(), AppEndpointCatalog::default()).await;
     let declared = vault_declaration();
@@ -234,6 +235,7 @@ async fn a_vault_application_receives_its_declared_custody_within_the_default_gr
 #[tokio::test(flavor = "multi_thread")]
 async fn a_declared_request_beyond_the_owner_grant_is_refused_as_not_granted() {
     let wallet = tempfile::tempdir().unwrap();
+    castellan::custody::os_kek::install_memory_os_kek(wallet.path());
     castellan::custody::wallet::ensure_wallet_state(wallet.path(), persona(), DEVICE).unwrap();
     let mut narrow = AppGrant::new(AppId::new("fixture-app"));
     narrow.routes = vec![NamePattern::exact("custody")];

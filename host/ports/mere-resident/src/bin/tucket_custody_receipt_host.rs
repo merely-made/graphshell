@@ -9,7 +9,7 @@ use castellan::{
     authority::PersonaeHost,
     custody::{
         IdentityStorage, IdentityVault, Profile, SealedProfileStorage,
-        wallet::bootstrap_wallet_state,
+        wallet::{bootstrap_wallet_state, create_wallet_padlock_with_passphrase},
     },
 };
 use mere_resident::door::app_broker::AppEndpointCatalog;
@@ -21,6 +21,9 @@ use castellan_client::custody_client::CustodyClient;
 use dramatis::view::VaultProtectionView;
 use personae::{Ed25519Keypair, PersonaId, ProfileId};
 use std::{path::PathBuf, sync::Arc, time::Duration};
+
+/// The synthetic wallet's padlock passphrase: public, test-only, never a user's.
+const FIXTURE_WALLET_TEST_PASSPHRASE: &str = "Tucket synthetic custody receipt wallet (test only)";
 
 #[tokio::main]
 async fn main() {
@@ -56,6 +59,9 @@ async fn main() {
     let wallet_root = root.join("wallet");
     let has_wallet = args[2] != "no-wallet";
     if has_wallet {
+        // The wallet lives only in this process: a passphrase padlock, held
+        // open for it, keys it on every platform (custody D5, D9).
+        create_wallet_padlock_with_passphrase(&wallet_root, FIXTURE_WALLET_TEST_PASSPHRASE).unwrap();
         bootstrap_wallet_state(&wallet_root, PersonaId::new(), "Tucket custody fixture").unwrap();
     }
     let host = Arc::new(PersonaeHost::new(

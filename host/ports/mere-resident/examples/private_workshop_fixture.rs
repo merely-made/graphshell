@@ -77,6 +77,8 @@ use djinn::door::local_endpoint::LocalListener;
                 agent: false,
             },
         )?;
+        // Only this process opens the wallet, so an in-memory store serves it.
+        castellan::custody::os_kek::install_memory_os_kek(&custodian.data_root);
         castellan::custody::wallet::ensure_wallet_state(
             &custodian.data_root,
             PersonaId::from_uuid(uuid::Uuid::from_u128(PERSONA)),
