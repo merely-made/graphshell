@@ -89,6 +89,7 @@ pub fn relationship_recipe(
     let label = label.into();
     RelationshipRecipe {
         definition: AuthoredProjectionDefinition {
+            fields: Vec::new(),
             dynamics: None,
         version: PROJECTION_DEFINITION_VERSION, id: id.into(), label: label.clone(), sources,
             reading: Reading { kind: "nodes".into(), key: "occurrence_id".into(), value: None },

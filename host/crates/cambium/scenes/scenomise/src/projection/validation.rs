@@ -40,6 +40,7 @@ pub(super) fn validation_issues(
                 reading: definition.reading.clone(),
                 encoding: definition.encoding.clone(),
                 arrangement: definition.arrangement.clone(),
+                fields: definition.fields.clone(),
                 interaction: definition.interaction.clone(),
                 appearance: definition.appearance.clone(),
                 provenance: definition.provenance.clone(),
@@ -153,6 +154,7 @@ pub(super) fn validation_issues(
             ));
         }
     }
+    issues.extend(super::fields::field_issues(compiler, definition, dataset));
     issues.extend(occurrence_identity_issues(dataset));
     validate_occurrences(&mut issues, definition, dataset, target.as_ref());
     issues

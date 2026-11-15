@@ -556,7 +556,7 @@ fn issue(issues: &mut Vec<Issue>, field: &str, message: &str) {
 
 #[path = "presentation/mark.rs"]
 mod mark;
-pub use mark::{Body, Extent, NodeMark, Paint, Silhouette};
+pub use mark::{Body, Extent, Material, NodeMark, Paint, Silhouette};
 #[path = "presentation/ladder.rs"]
 mod ladder;
 pub use ladder::{

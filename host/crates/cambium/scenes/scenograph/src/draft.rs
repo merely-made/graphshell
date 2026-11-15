@@ -12,6 +12,7 @@ impl Default for ProjectionDefinition {
     fn default() -> Self {
         let draft = ProjectionDraft::new();
         Self {
+            fields: draft.fields.clone(),
             dynamics: draft.dynamics,
             version: draft.version,
             id: draft.id,
@@ -32,6 +33,7 @@ impl Default for AuthoredProjectionDefinition {
     fn default() -> Self {
         let draft = ProjectionDraft::new();
         Self {
+            fields: draft.fields.clone(),
             dynamics: draft.dynamics,
             version: draft.version,
             id: draft.id,
@@ -58,6 +60,7 @@ impl ProjectionDraft {
             reading: Reading::default(),
             encoding: Encoding::default(),
             arrangement: Arrangement::default(),
+            fields: Vec::new(),
             dynamics: None,
             interaction: Interaction::default(),
             appearance: Appearance::default(),
@@ -77,6 +80,7 @@ impl ProjectionDraft {
             reading: self.reading.clone(),
             encoding: self.encoding.clone(),
             arrangement: self.arrangement.clone(),
+            fields: self.fields.clone(),
             interaction: self.interaction.clone(),
             appearance: self.appearance.clone(),
             provenance: self.provenance.clone(),
@@ -140,6 +144,7 @@ impl ProjectionDraft {
         }
         channel_required(&mut issues, "encoding.x", &self.encoding.x);
         channel_required(&mut issues, "encoding.y", &self.encoding.y);
+        fields::validate_fields(&mut issues, &self.fields);
         required(
             &mut issues,
             "arrangement.kind",

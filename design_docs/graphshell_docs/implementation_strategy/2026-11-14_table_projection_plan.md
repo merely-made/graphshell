@@ -261,6 +261,27 @@ content hash, and the widget layer composites textures. Nothing puts an image in
 
   *Applies D16.*
 
+- **D19. No release is needed to develop (Mark, 2026-11-15):** "what I would like is to
+  raise a floor at the end of fixing breaking change, not to do a ceremony every time I make
+  any change on the front end, because most of the time the changes are fine and I'm
+  developing it, not other people. There's no team, there are no consumers. This is a
+  prototype, these are prototypes." The release chain is dropped as a condition for T1:
+  Distillery takes Graphshell's crates from Graphshell's git, and a change that breaks a
+  sibling is landed and the sibling fixed after.
+
+  Links: summary A development change lands and its breakage is fixed after; a crates.io release is not a precondition.
+
+  *Contradicts D16, which it replaces.*
+
+- **D20. A family row names a floor only (Mark, 2026-11-15):** "why pick one version and
+  call out that one version as the one to use, as opposed to just being like anything above
+  this baseline version will be fine?" Rows read `>=0.0.x` with no cap; the floor is raised
+  when a break has been fixed.
+
+  Links: summary A family git row names a floor with no cap, raised after a break is fixed.
+
+  *Refines D17.*
+
 ## Findings
 
 - 2026-11-15: adding a slot to a recipe type breaks every repository that builds one as a
@@ -289,6 +310,9 @@ content hash, and the widget layer composites textures. Nothing puts an image in
   published and nothing was pushed to Eidetic. The brief for the Eidetic session is at
   `Code/testing/eidetic_version_stamp_brief.md`.
 
+- 2026-11-14 (T1): today's recipe survives TOML with no special handling; an absent
+  optional value is left out on writing and read back as absent
+  (`scenograph/src/toml_io.rs`, test `a_recipe_written_by_hand_reads_and_round_trips`).
 - 2026-11-14: TOML is parsed in one place today, the mod loader
   (`host/crates/script/document-host/src/mod_loader/loader/free_fns.rs:114`), for
   `.mod.toml` and `.wasm.toml` manifests. It carries no recipe or projection contribution,
@@ -333,7 +357,25 @@ content hash, and the widget layer composites textures. Nothing puts an image in
 - 2026-11-14: smooth defined and the added term named `viewer` (D8, D9); the gate machine
   ruled (D10).
 - 2026-11-14: T1's forks ruled (D11 to D13).
+- 2026-11-14: T1 written (branch `t1-fields`, unpushed, D16). A recipe carries `fields` (`scenograph::FieldSpec`: path, name,
+  description, group, viewer), absent from the saved form when empty, so earlier recipes
+  read and write unchanged. The compiler refuses a path the dataset does not disclose and a
+  viewer the host does not declare, naming the field (`scenomise/src/projection/fields.rs`);
+  `ViewerCatalog` holds default, chip, bar and check and a host adds to it with
+  `ProjectionCompiler::with_viewers`. `fields::to_shape` and `from_shape` carry the list as
+  a SHACL node shape in JSON-LD; `to_toml` and `from_toml` sit behind the `toml` feature.
+  Not in T1: an editor action for the fields list, and a recipe contribution in the pack
+  loader. Tests: scenograph 57 passed with `--features toml`, scenomise 200 passed.
 - 2026-11-15: T1 is written and its tests pass (scenograph 57 with `--features toml`,
   scenomise 200) on branch `t1-fields`, unpushed: it waits on the release chain (D16),
   which waits on Eidetic (D18). Field order and viewer IRIs ruled (D14, D15); recipe
   defaults landed; family rows loosened in five repositories (D17).
+- 2026-11-15: T1 landed on main, merged with M1 (the compiler checks both the mark's extent
+  and the fields). Distillery takes sceno, scenotime, scenograph, scenomise, incipit,
+  chirograph, graphshell-endpoint, cambium, hest and mere-surface-api from Graphshell's git
+  and its recipe defaults later slots (`cf8b9e4` and the commit before it); Graphshell
+  patches those to its local copies. Floor-only rows are on main in thirteen repositories
+  (D20). Another session published eidetic 0.0.4, catchment 0.1.0, incipit 0.2.3 and
+  sceno-backdrops 0.0.1 before the chain was dropped; scenograph 0.0.7 and scenomise 0.0.8
+  are the versions on main and are not published. Tests: scenograph 70 with
+  `--features toml`, scenomise 202.

@@ -20,6 +20,8 @@ use serde::{Deserialize, Serialize};
 pub mod attention;
 pub mod dataset;
 pub mod dynamics;
+pub mod fields;
+pub use fields::{FieldSpec, ViewerCatalog};
 pub use dynamics::{DYNAMICS_SLOT_VERSION, DynamicsSlot, DynamicsVariant};
 pub mod link;
 pub mod options;
@@ -28,6 +30,8 @@ pub mod relationship;
 pub mod seed;
 pub mod suggestion;
 pub mod swatch;
+#[cfg(feature = "toml")]
+mod toml_io;
 
 /// The stable schema version for authored projection definitions.
 pub const PROJECTION_DEFINITION_VERSION: u16 = 1;
@@ -244,6 +248,9 @@ pub struct ProjectionDraft {
     pub reading: Reading,
     pub encoding: Encoding,
     pub arrangement: Arrangement,
+    /// The ordered fields a tabular reading shows; empty for other recipes.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub fields: Vec<FieldSpec>,
     /// Optional motion; the binding host validates its opaque specification.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub dynamics: Option<DynamicsSlot>,
@@ -262,6 +269,9 @@ pub struct ProjectionDefinition {
     pub reading: Reading,
     pub encoding: Encoding,
     pub arrangement: Arrangement,
+    /// The ordered fields a tabular reading shows; empty for other recipes.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub fields: Vec<FieldSpec>,
     /// Optional motion; the binding host validates its opaque specification.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub dynamics: Option<DynamicsSlot>,
@@ -361,6 +371,9 @@ pub struct AuthoredProjectionDefinition {
     pub reading: Reading,
     pub encoding: Encoding,
     pub arrangement: Arrangement,
+    /// The ordered fields a tabular reading shows; empty for other recipes.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub fields: Vec<FieldSpec>,
     /// Optional motion; the binding host validates its opaque specification.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub dynamics: Option<DynamicsSlot>,

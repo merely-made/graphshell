@@ -350,6 +350,26 @@ title = "The mark type is `NodeMark` (Mark, 2026-11-15)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
 summary = "The node mark type is named NodeMark."
 
+[decisions."primitive-representations D43"]
+title = "A body is authored from a silhouette (Mark, 2026-11-15)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
+summary = "A node's body is authored by picking and adjusting a silhouette, with image tracing as a starting point."
+
+[decisions."primitive-representations D44"]
+title = "Material is three numbers on the mark (Mark, 2026-11-15)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
+summary = "A mark's material is restitution, friction and density, held in scenograph."
+
+[decisions."primitive-representations D45"]
+title = "An open paint survives a save (Mark, 2026-11-15)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
+summary = "A saved paint code the canvas does not know reads back as the open paint."
+
+[decisions."primitive-representations D46"]
+title = "Registry marks accept measured and assigned (Mark, 2026-11-15)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
+summary = "Every mark resolved from the registry accepts a measured or an assigned extent."
+
 [decisions."resident-split D1"]
 title = "Device conditions go to mesh-host (Mark, 2026-11-05)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-05_resident_split_plan.md"
@@ -474,6 +494,16 @@ summary = "A family git row names a lower bound, so an upstream patch release do
 title = "The eidetic version stamp goes to an Eidetic session (Mark, 2026-11-15)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
 summary = "The release chain waits on Eidetic's ruling about the version stamp in its stored records."
+
+[decisions."table-projection D19"]
+title = "No release is needed to develop (Mark, 2026-11-15)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "A development change lands and its breakage is fixed after; a crates.io release is not a precondition."
+
+[decisions."table-projection D20"]
+title = "A family row names a floor only (Mark, 2026-11-15)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "A family git row names a floor with no cap, raised after a break is fixed."
 
 [decisions."uxtree-spine D1"]
 title = "The spine is federated (Mark, 2026-11-11)"

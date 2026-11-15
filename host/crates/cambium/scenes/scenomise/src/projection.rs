@@ -140,6 +140,7 @@ pub struct ProjectionCompiler {
     sizes: ItemSizes,
     registry: SolverRegistry,
     mark: NodeMark,
+    viewers: scenograph::ViewerCatalog,
 }
 
 impl ProjectionCompiler {
@@ -153,12 +154,19 @@ impl ProjectionCompiler {
             sizes,
             registry,
             mark: NodeMark::card(),
+            viewers: scenograph::ViewerCatalog::built_in(),
         }
     }
 
     /// Draw items as `mark`; a card unless set.
     pub fn with_mark(mut self, mark: NodeMark) -> Self {
         self.mark = mark;
+        self
+    }
+
+    /// Declare the field viewers this host can realize.
+    pub fn with_viewers(mut self, viewers: scenograph::ViewerCatalog) -> Self {
+        self.viewers = viewers;
         self
     }
 
@@ -359,6 +367,9 @@ use validation::number;
 
 #[path = "projection/compilation.rs"]
 mod compilation;
+
+#[path = "projection/fields.rs"]
+mod fields;
 
 use compilation::compile_inner;
 

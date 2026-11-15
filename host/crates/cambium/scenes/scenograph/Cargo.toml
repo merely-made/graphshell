@@ -1,7 +1,7 @@
 [package]
 rust-version = "1.97.1"
 name = "scenograph"
-version = "0.0.6"
+version = "0.0.7"
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
@@ -24,6 +24,9 @@ serde_json = "1.0.140"
 # SE92). The engine behind it is the host's choice; scenograph links none.
 # Optional (SE98): a git dependency would block a crates.io release.
 script-engine-api = { workspace = true, optional = true }
+# Authored recipes as TOML (table projection plan, T1). Optional: a guest or an
+# endpoint that only carries JSON links no parser.
+toml = { version = "1", optional = true }
 
 [features]
 # Draft/history ownership is unnecessary for hosts that only resolve rules.
@@ -31,6 +34,8 @@ editor = ["dep:backstep"]
 # Run `Condition::Script` (`RuleSet::resolve_with_scripts`). Off by default: the
 # condition is data and always present, and `resolve` refuses a set carrying one.
 scripts = ["dep:script-engine-api"]
+# `to_toml` and `from_toml` on the recipe types.
+toml = ["dep:toml"]
 
 [dev-dependencies]
 # The rule runner on a real engine: a consumer test of script-rhai, kept here

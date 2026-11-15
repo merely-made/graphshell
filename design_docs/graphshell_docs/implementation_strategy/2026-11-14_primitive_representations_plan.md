@@ -146,8 +146,11 @@ commands.
 ### B3. The body designer
 Carried from the archived plan. A hull can be set only through `set_node_sprite_hull` today,
 so an authored body still enters by the sprite path.
-- Done when: a person authors a node's hull from scratch, picks a primitive, and sets its
-  material in an editor, with collider and physics updating live. The stored hull is the
+- Done when (D43): a person picks a silhouette and adjusts it by a few numbers (sides,
+  corner radius, aspect), can trace an image to suggest the nearest silhouette or a
+  polygon, and sets the material, with collider and physics updating live; dragging
+  vertices is an escape hatch, not the way in; picking and edge attachment follow the
+  outline. The stored hull is the
   edited polygon while the collider is reconvexified, so a concave edit must either be
   constrained to convex or lowered as a compound collider.
 - Needs: the surface is the scenograph editor's (D27); the scenograph editor plan owns it
@@ -570,6 +573,37 @@ face.
 
   *Applies D28.*
 
+- **D43. A body is authored from a silhouette (Mark, 2026-11-15):** "the previous editor
+  for the hulls of nodes was not necessarily the most efficient way to do that. It was just
+  like a bunch of contours essentially around whatever the shape of the thing was. There's
+  probably an easier, better way to do that", and then: "Pick a silhouette and adjust it;
+  trace as a starting point".
+
+  Links: summary A node's body is authored by picking and adjusting a silhouette, with image tracing as a starting point.
+
+  *Refines D33.*
+
+- **D44. Material is three numbers on the mark (Mark, 2026-11-15):** "Three numbers in
+  scenograph". Restitution, friction and density; the canvas maps them to its engine.
+
+  Links: summary A mark's material is restitution, friction and density, held in scenograph.
+
+  *Applies D33.*
+
+- **D45. An open paint survives a save (Mark, 2026-11-15):** "Unknown codes read back as
+  the open paint". A saved code the canvas does not know is kept and drawn bare.
+
+  Links: summary A saved paint code the canvas does not know reads back as the open paint.
+
+  *Refines D32.*
+
+- **D46. Registry marks accept measured and assigned (Mark, 2026-11-15):** "All accept
+  measured and assigned".
+
+  Links: summary Every mark resolved from the registry accepts a measured or an assigned extent.
+
+  *Applies D29.*
+
 ## Findings
 
 - 2026-11-14 (at `b957d819`): `RelationForm` is defined at
@@ -739,3 +773,6 @@ face.
   paints in the sidecar (G6); what a registry mark accepts (G7); picking and edge
   attachment for diamond and hexagon, which still use the square box (G8). No host calls
   `set_node_shapes`, so no running app shows a node shape yet and M1 has no picture.
+- 2026-11-15: M1's tails landed: `Material` on the mark and
+  `Canvas::set_node_mark_material` (D44); an unknown paint code reads as the open paint
+  (D45). Body authoring ruled for B3 (D43); registry marks keep both extents (D46).

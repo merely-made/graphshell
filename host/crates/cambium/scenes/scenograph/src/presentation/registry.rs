@@ -127,6 +127,7 @@ impl RepresentationProfile {
     /// This profile's mark at the rung its ladder picks.
     pub fn mark(&self, state: RepresentationState, previous: Option<&Representation>) -> NodeMark {
         NodeMark {
+            material: None,
             detail: self.ladder.select(state, previous),
             paint: Paint::default(),
             body: Body::Silhouette(self.primitive.body),

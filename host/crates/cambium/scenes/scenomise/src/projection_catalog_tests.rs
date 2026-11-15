@@ -61,6 +61,7 @@ fn dataset() -> ProjectionDataset {
 fn definition(kind: &str, x: &str) -> ProjectionDefinition {
     let data = dataset();
     ProjectionDefinition {
+        fields: Vec::new(),
         dynamics: None,
         version: 1,
         id: "catalog".into(),
@@ -376,4 +377,46 @@ fn a_degenerate_card_is_a_typed_issue() {
             .compile(&definition("grid", "x"), &dataset())
             .is_ok()
     );
+}
+
+#[test]
+fn a_recipe_with_fields_compiles_to_the_same_scene_and_bad_fields_are_named() {
+    use scenograph::{FieldSpec, ViewerCatalog};
+
+    let compiler = ProjectionCompiler::new(sizes(40.0, 20.0));
+    let plain = definition("grid", "x");
+    let scene = |definition: &ProjectionDefinition| {
+        compiler
+            .compile(definition, &dataset())
+            .expect("compiles")
+            .scene
+    };
+    let mut listed = plain.clone();
+    listed.fields = vec![
+        FieldSpec::new("label", "Label"),
+        FieldSpec {
+            viewer: Some("chip".into()),
+            ..FieldSpec::new("lane", "Lane")
+        },
+    ];
+    assert_eq!(scene(&plain), scene(&listed));
+
+    let mut bad = plain.clone();
+    bad.fields = vec![
+        FieldSpec::new("label", "Label"),
+        FieldSpec::new("owner", "Owner"),
+        FieldSpec {
+            viewer: Some("sparkline".into()),
+            ..FieldSpec::new("layer", "Layer")
+        },
+    ];
+    let issues = compiler.compile(&bad, &dataset()).expect_err("refused");
+    assert_eq!(fields(&issues), ["fields[1].path", "fields[2].viewer"]);
+    assert!(issues[0].message.contains("\"Owner\"") && issues[0].message.contains("\"owner\""));
+
+    // A host that declares the viewer takes the same recipe.
+    let wider = ProjectionCompiler::new(sizes(40.0, 20.0))
+        .with_viewers(ViewerCatalog::built_in().with("sparkline"));
+    bad.fields.remove(1);
+    assert!(wider.compile(&bad, &dataset()).is_ok());
 }

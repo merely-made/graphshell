@@ -69,6 +69,23 @@ impl Canvas {
     /// the default is stored too (an explicit override), so the facet shows it as set. Keyed by
     /// node UUID; a no-op for an unknown id. Persisted in the cartography sidecar. (Node body
     /// & face — material.)
+    /// Set a node's material from a mark's portable numbers (M1, D44).
+    pub fn set_node_mark_material(
+        &mut self,
+        id: uuid::Uuid,
+        material: scenograph::presentation::Material,
+    ) {
+        self.set_node_material(
+            id,
+            seiche::NodeMaterial {
+                restitution: material.restitution,
+                friction: material.friction,
+                density: material.density,
+                ..Default::default()
+            },
+        );
+    }
+
     pub fn set_node_material(&mut self, id: uuid::Uuid, material: seiche::NodeMaterial) {
         if let Some(key) = self.graph.get_node_key_by_id(id) {
             self.node_materials.insert(id, material);

@@ -66,14 +66,16 @@ impl Paint {
         }
     }
 
-    /// Parse a persisted code; an unknown code reads as [`Paint::Favicon`],
-    /// as the sidecar always has.
+    /// Parse a persisted code. A code this build does not know is kept as
+    /// the open paint, so a host's own paint survives a save and reopen; an
+    /// empty code is the default.
     pub fn from_code(code: &str) -> Self {
         match code {
+            "" | "favicon" => Self::Favicon,
             "derived" => Self::Derived,
             "sprite" => Self::Sprite,
             "bare" => Self::Bare,
-            _ => Self::Favicon,
+            kind => Self::Open { kind: kind.into() },
         }
     }
 }
@@ -121,14 +123,26 @@ pub enum Body {
     Hull,
 }
 
+/// How a body behaves in physics. Plain numbers, so a recipe can state a
+/// material without a physics dependency; the canvas maps it to its engine.
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Material {
+    pub restitution: f32,
+    pub friction: f32,
+    pub density: f32,
+}
+
 /// How a node is drawn, described once.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct NodeMark {
     pub detail: Representation,
     #[serde(default)]
     pub paint: Paint,
     #[serde(default)]
     pub body: Body,
+    /// Absent means the engine's default material.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub material: Option<Material>,
     pub accepts: BTreeSet<Extent>,
 }
 
@@ -138,6 +152,7 @@ impl NodeMark {
             detail,
             paint: Paint::default(),
             body: Body::default(),
+            material: None,
             accepts: accepts.into_iter().collect(),
         }
     }
@@ -175,7 +190,11 @@ mod tests {
             assert_eq!(paint.as_code(), code);
             assert_eq!(Paint::from_code(code), paint);
         }
-        assert_eq!(Paint::from_code("nonsense"), Paint::Favicon);
+        // A host's own paint is kept, not turned into a favicon.
+        let own = Paint::from_code("portrait");
+        assert_eq!(own, Paint::Open { kind: "portrait".into() });
+        assert_eq!(own.as_code(), "portrait");
+        assert_eq!(Paint::from_code(""), Paint::Favicon);
     }
 
     #[test]
@@ -191,6 +210,7 @@ mod tests {
     #[test]
     fn a_mark_round_trips() {
         let mark = NodeMark {
+            material: None,
             detail: Representation::Card,
             paint: Paint::Open {
                 kind: "meter".into(),

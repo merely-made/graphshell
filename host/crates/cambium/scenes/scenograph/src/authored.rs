@@ -226,6 +226,7 @@ impl AuthoredProjectionDefinition {
             reading: self.reading.clone(),
             encoding: self.encoding.clone(),
             arrangement,
+            fields: self.fields.clone(),
             interaction: self.interaction.clone(),
             appearance: self.appearance.clone(),
             provenance: Provenance {
