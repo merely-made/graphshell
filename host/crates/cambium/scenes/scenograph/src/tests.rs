@@ -329,3 +329,20 @@ fn variant_for_another_definition_is_refused() {
         ))
     );
 }
+
+#[test]
+fn the_default_recipes_are_the_empty_draft_at_the_current_version() {
+    let draft = ProjectionDraft::new();
+    let bound = ProjectionDefinition::default();
+    let authored = AuthoredProjectionDefinition::default();
+    assert_eq!(bound.version, PROJECTION_DEFINITION_VERSION);
+    assert_eq!(authored.version, PROJECTION_DEFINITION_VERSION);
+    assert_eq!((&bound.reading, &bound.arrangement), (&draft.reading, &draft.arrangement));
+    assert!(authored.sources.is_empty());
+    // A caller names only what it sets.
+    let named = AuthoredProjectionDefinition {
+        id: "notes".into(),
+        ..Default::default()
+    };
+    assert_eq!(named.encoding, draft.encoding);
+}

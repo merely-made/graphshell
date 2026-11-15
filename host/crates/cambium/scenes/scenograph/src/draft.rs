@@ -6,6 +6,47 @@
 
 use super::*;
 
+/// The empty recipe, so a caller names only the parts it sets and a slot added
+/// later does not break it. Not valid until filled in.
+impl Default for ProjectionDefinition {
+    fn default() -> Self {
+        let draft = ProjectionDraft::new();
+        Self {
+            dynamics: draft.dynamics,
+            version: draft.version,
+            id: draft.id,
+            label: draft.label,
+            source: draft.source,
+            reading: draft.reading,
+            encoding: draft.encoding,
+            arrangement: draft.arrangement,
+            interaction: draft.interaction,
+            appearance: draft.appearance,
+            provenance: draft.provenance,
+        }
+    }
+}
+
+/// As [`ProjectionDefinition::default`], with no sources declared.
+impl Default for AuthoredProjectionDefinition {
+    fn default() -> Self {
+        let draft = ProjectionDraft::new();
+        Self {
+            dynamics: draft.dynamics,
+            version: draft.version,
+            id: draft.id,
+            label: draft.label,
+            sources: BTreeMap::new(),
+            reading: draft.reading,
+            encoding: draft.encoding,
+            arrangement: draft.arrangement,
+            interaction: draft.interaction,
+            appearance: draft.appearance,
+            provenance: draft.provenance,
+        }
+    }
+}
+
 impl ProjectionDraft {
     /// Start an empty draft with safe enum and layout defaults.
     pub fn new() -> Self {
