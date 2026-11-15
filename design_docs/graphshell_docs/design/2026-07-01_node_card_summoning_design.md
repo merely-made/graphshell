@@ -28,6 +28,8 @@ Two conflations to refuse, separately:
 
 (The 2026-07-01 session briefly misread the browser-lane plan as an anti-card thesis; it is an anti-conflation thesis. Recorded so it is not re-derived wrong.)
 
+*Refined 2026-11-14 by D11 and D12 of the [primitive representations plan](../implementation_strategy/2026-11-14_primitive_representations_plan.md): "nodes can be cards, but not every node is a card." A card may be a node's own mark or a companion beside or over a node, and which is a choice of the presentation. What this section refuses is drawing every node as a card, "because not all data is documents".*
+
 **Where the conflation came from: the code's own names.** The orrery's per-node DOM squares were built by `node_card_view` (`window_view/views.rs`), snapshotted as `OrreryCard`, classed `.node-card`. Calling the node's rendering a "card" is like calling a desktop shortcut an app (Mark, 2026-07-01); the name alone kept re-seeding the bad inference in every new session. **Renamed 2026-07-02** (§6): the node's rendered body is now a **gnode** everywhere it appears, in the chrome DOM and in the orrery crate's own in-scene Scene layer alike — one primitive, two render tiers, never a card. "Card" is reserved for the summonable family in §2, matching `focus_card_view`, which is a card and kept its name.
 
 ## 2. The card family

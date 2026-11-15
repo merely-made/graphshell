@@ -485,6 +485,48 @@ face.
 - 2026-11-14: in this repository "lattice" is an ordinary word in one test and one comment,
   not a name. Other repositories and registries were not checked.
 
+- 2026-11-14 (M1 entry, at `96eb1b8c`): the extent rule each of the fourteen catalog families
+  uses today, read from the code. Only Partition and Mosaic write an item's footprint
+  (`scenomise/src/families/mod.rs:57-64`, `solve.rs:119-122`); every other family keeps the
+  host's measured footprint and takes its pitch from the largest item
+  (`scenomise/src/catalog/families.rs:378-511`). No family encodes an extent from a channel.
+
+  | Family | Extent | Where |
+  | --- | --- | --- |
+  | Spiral | Measured; spacing at least 1.6 times the largest side | `solve.rs:52-60` |
+  | Grid | Measured; cell is the largest item | `catalog/families.rs:389-396` |
+  | Geographic | Measured; footprint not read, coordinates scaled by spacing | `catalog/families.rs:398-402` |
+  | Hulls | Measured; cells are regions, not item footprints | `solve.rs:141-147,240` |
+  | Stack | Measured; gaps from the largest item | `catalog/families.rs:413-417` |
+  | Penrose | Measured; tile scale from the item pitch | `catalog/families.rs:418-435` |
+  | L-system | Measured; path size from the item pitch | `catalog/families.rs:436-447` |
+  | Timeline | Measured; axis and rows from the item pitch | `catalog/families.rs:448-456` |
+  | Kanban | Measured; gaps from the largest item | `catalog/families.rs:457-463` |
+  | Embedded | Measured; footprint not read, scale from spacing | `catalog/families.rs:464-473` |
+  | Radial | Measured; ring spacing from the item pitch | `catalog/families.rs:474-488` |
+  | Partition | Assigned; a tile rect or a ring sector, its area the item's weight share | `families/partition.rs:119,191` |
+  | Sets | Measured; regions only, no footprints written | `families/setscape.rs:104-130` |
+  | Mosaic | Assigned; a tile rect, its area weight times `unit_area` | `families/mosaic.rs:85` |
+
+- 2026-11-14 (M1 entry): a card is the default look in four places. The recipe compiler
+  stamps every item `Representation::Card` at the host's one measured size, `ItemSizes.card`
+  (`scenomise/src/projection/compilation.rs:51-52,83-89`; `projection.rs:128-131`); the
+  opened-link scene does the same (`scenomise/src/opened_link.rs:243`); cartography's physics
+  scene falls back to Card (`cartography/src/canvas/physics_controls.rs:917-920`) and its node
+  class falls back to the card class (`canvas/node_presentation.rs:82-86`). The representation
+  registry picks a profile by content class (`cartography/src/representation.rs:217-240`, used
+  at `spiral_score.rs:116-117`), but every profile, the "unknown" fallback included, takes the
+  same ladder with a Card rung (`representation.rs:245-283,376`). A dataset occurrence carries
+  field values only, nothing that marks it a document (`scenograph/src/dataset.rs:70-83`).
+- 2026-11-14 (M1 entry): the registry holds two of a mark's four parts: detail, as
+  `RepresentationProfile.ladder`, and body, as `PrimitiveProfile.body`, a silhouette
+  (`representation.rs:24-38,198-205`). Paint is pushed per node into the canvas as `Face`
+  (`cartography/src/canvas/types.rs:160-179`); extent is not named anywhere. Cartography also
+  calls a `Representation` a face: `Canvas::set_node_rule_faces` takes
+  `HashMap<Uuid, sceno::Representation>` and accepts only Glyph and Card
+  (`canvas/node_presentation.rs:48-73`). `Representation::Sprite` (`sceno/src/scene.rs:101`)
+  and `Face::Sprite` (`types.rs:175`) name the same picture as a rung and as a paint.
+
 ## Progress
 
 - 2026-11-14: cut from `2026-06-23_node_body_face_model_plan.md` with the scene composition
@@ -506,3 +548,6 @@ face.
 - 2026-11-14: Crystal's smallest tile side and shortest border ruled (D24, D25).
 - 2026-11-14: the physics profile `crystal` renamed `lattice` in cartography (D26); the
   body designer's home ruled (D27).
+- 2026-11-14: M1 entry assessed: the fourteen families' extent rules and the card defaults
+  recorded in Findings; the content catalog and the card summoning design reworded to the mark
+  vocabulary. No code landed.

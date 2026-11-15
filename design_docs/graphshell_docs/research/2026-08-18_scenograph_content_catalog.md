@@ -242,9 +242,12 @@ ones that must.
 
 ## 4. Node representations
 
-The contract's representation slot. Recognized core first, open tail after.
-Body and Face stay orthogonal beneath all of these: any body can wear any
-face, and a sprite seeds a body without owning it.
+Candidates for a node's mark. A mark has four parts: a detail rung (the
+contract's representation slot), a paint (today's `Face`), an optional body
+and an extent rule (primitive representations plan, M1). Entries 1 to 5 are
+detail rungs, the recognized core; the rest are open-tail candidates, and 7 to
+9 name a paint or a body, not a rung. Body and paint stay independent: any
+body can wear any paint, and a sprite seeds a body without owning it.
 
 1. **Glyph** (core): dot or icon, the dense-LOD workhorse; the whole graph at
    a glance.
