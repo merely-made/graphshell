@@ -636,22 +636,29 @@ face.
   (`canvas/node_presentation.rs:48-73`). `Representation::Sprite` (`sceno/src/scene.rs:101`)
   and `Face::Sprite` (`types.rs:175`) name the same picture as a rung and as a paint.
 
-- 2026-11-15 (M1 code): the compiler cannot reach the canvas's registry. Cartography depends
-  on scenomise (`cartography/Cargo.toml`), so scenomise cannot call
-  `GraphRepresentationRegistry` (`cartography/src/representation.rs`) without a cycle.
+- 2026-11-15 (M1 code): the compiler could not reach the canvas's registry, since cartography
+  depends on scenomise; the registry now lives in scenograph (`presentation/registry.rs`,
+  `presentation/ladder.rs`) and cartography re-exports it.
 - 2026-11-15 (M1 code): `ProjectionOccurrence` is built by struct literal in seven Graphshell
   files and in Cleromancy (`src/ambient_scene.rs`), Knot (`apps/desktop/src/composition/recipe.rs`,
   `crates/knot-composition/tests/support/recipe.rs`), Mer3ly (`src/host_dataset.rs`,
   `src/host_history.rs`, `src/spec_roadmap.rs`) and Woodshed
   (`crates/woodshed-core/examples/stage_projection_export.rs`); a new field breaks each.
 - 2026-11-15 (M1 code): a saved `"representation": "Sprite"` exists in
-  `scenomise/fixtures/coastal_map.json:15`, and Isocosm builds `Representation::Sprite`
-  (`isocosm/crates/isocosm-views/src/projection.rs:41`). Removing the variant without a
-  decode alias makes that data unreadable and Isocosm fail to build.
-- 2026-11-15 (M1 code): the canvas draws three silhouettes. `NodeShape` has a collider
-  (`canvas/lifecycle.rs:277-279`), corner radius (`canvas/node_presentation.rs:42-44`) and CSS
-  class (`canvas/frame/render_loop.rs:275-279`) for Square, Rounded and Circle only; Diamond
-  and Hexagon have none. Mer3ly draws them as hull colliders (`mer3ly/crates/repo-graph/src/physics.rs:62-82`).
+  `scenomise/fixtures/coastal_map.json:15`; it now reads as `Open { kind: "sprite" }`
+  (`sceno/src/scene.rs`, `RepresentationWire`). Isocosm builds `Representation::Sprite` at
+  `isocosm/crates/isocosm-views/src/projection.rs:41`, its only use; that line becomes
+  `Representation::Open { kind: "sprite".into() }` in Isocosm's lane.
+- 2026-11-15 (M1 code): the canvas drew three silhouettes; diamond and hexagon now collide at
+  `Silhouette::outline` scaled to the node and draw clipped to it (`.gnode-diamond`,
+  `.gnode-hexagon`). Edge attachment and picking still follow the square's box. No host
+  calls `Canvas::set_node_shapes` (no caller in any repository outside tests), so no
+  running application shows either shape yet.
+- 2026-11-15 (M1 code): giving non-document profiles the ladder without its Card rung moves
+  four pins beyond the three D30 named: the spiral score tests' untagged fixtures, the
+  registry's serialization test (it reads the Card rung from the first profile), and four
+  arrangement golden score hashes for Spiral (position hashes unchanged). The three named
+  card-class pins hold.
 - 2026-11-15 (M1 code): a node's material is `seiche::NodeMaterial` (restitution, friction,
   density; `cartography/src/canvas/cartography/appearance.rs:61-76`); scenograph does not
   depend on seiche, so the mark's body carries no material yet.
@@ -692,3 +699,6 @@ face.
   in scenograph; each family's imposed extent and the compile refusal; cartography's `Face`
   and `PrimitiveBody` are scenograph's types; `set_node_rule_faces` renamed. Row classes, the
   registry's reach, the Sprite rung, the canvas silhouettes and material wait on forks.
+- 2026-11-15: on the lane branch, the registry moved to scenograph and resolves a mark from a
+  node's classes (G1); the Sprite rung retired with a decode alias (G3); diamond and hexagon
+  drawn on the canvas (G4). The non-document ladder waits on a ruling for four further pins.
