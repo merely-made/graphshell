@@ -265,6 +265,16 @@ title = "A border counts at half the smallest side (Mark, 2026-11-14)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
 summary = "In Crystal a shared border shows a link when it is at least half the smallest tile side long."
 
+[decisions."primitive-representations D26"]
+title = "The profile is renamed now (Mark, 2026-11-14)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
+summary = "The physics profile crystal is renamed lattice in Graphshell now; Turnstone follows through its integration lane."
+
+[decisions."primitive-representations D27"]
+title = "The body designer lives in the scenograph editor (Mark, 2026-11-14)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
+summary = "A node's body is designed in the scenograph editor, not in the node's facet pane."
+
 [decisions."resident-split D1"]
 title = "Device conditions go to mesh-host (Mark, 2026-11-05)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-05_resident_split_plan.md"
@@ -344,6 +354,26 @@ summary = "Smooth is a 16.7 ms frame while scrolling and a sort or filter result
 title = "The added term is `viewer` (Mark, 2026-11-14)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
 summary = "The fields list's added term for how a field is shown is DASH's viewer."
+
+[decisions."table-projection D10"]
+title = "Where the gate is measured (Mark, 2026-11-14)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "The table's speed gate is measured on the Windows laptop; other machines are measured, not gated."
+
+[decisions."table-projection D11"]
+title = "A viewer is a registered id (Mark, 2026-11-14)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "A field's viewer is a registered id checked against a declared catalog, not a closed list."
+
+[decisions."table-projection D12"]
+title = "A field's path is the dataset key (Mark, 2026-11-14)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "A field's path holds the dataset's key; the IRI is made when the shape is exported."
+
+[decisions."table-projection D13"]
+title = "Scenograph reads and writes TOML behind a feature (Mark, 2026-11-14)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "The recipe crate reads and writes TOML itself, behind a feature that hosts turn on."
 
 [decisions."uxtree-spine D1"]
 title = "The spine is federated (Mark, 2026-11-11)"

@@ -101,8 +101,8 @@ section 3.7).
   (D24), and a border counts at half that side or longer (D25), so the done-condition adds:
   a recipe can set the smallest side and the packing honours it. Unlinked tiles
   never touch (D23), so the done-condition adds: no two tiles share a border unless they are
-  linked; the physics profile `crystal` renamed first (D10), which
-  reaches Turnstone's `src/arrange_pane/tests.rs` (five uses). Packing goes one step (D8) and overflow
+  linked. The physics profile `crystal` is renamed `lattice` in this repository (D26);
+  Turnstone's `src/arrange_pane/tests.rs` (five uses) follows through its integration lane. Packing goes one step (D8) and overflow
   stays loose (D9), so the done-condition adds: pinning a tile moves only its own linked
   tiles, and linked tiles that do not fit on its border stay where they are.
 
@@ -143,7 +143,8 @@ so an authored body still enters by the sprite path.
   material in an editor, with collider and physics updating live. The stored hull is the
   edited polygon while the collider is reconvexified, so a concave edit must either be
   constrained to convex or lowered as a compound collider.
-- Needs: an owner for the editor surface (open question below).
+- Needs: the surface is the scenograph editor's (D27); the scenograph editor plan owns it
+  and this phase supplies the hull, primitive and material it edits.
 
 ### B4. Form parity
 Carried from the archived plan, unverified against the current tree: its citations name
@@ -171,8 +172,6 @@ face.
 - Which plan owns the `node:<id>` facet pane, the per-object widget surface and label
   density's settings page? Both former owners are archived (raised 2026-10-06, still open).
   Options: this plan; a Turnstone plan; a canvas plan.
-- Does the body designer (B3) belong in the projection editor beside the swatch axes, or in
-  the node's own facet pane?
 
 ## Decisions
 
@@ -413,6 +412,24 @@ face.
 
   *New.*
 
+- **D26. The profile is renamed now (Mark, 2026-11-14):** "Now but message the graphshell
+  -> turnstone integration agent". The physics profile's id and label become `lattice` and
+  Lattice in this repository at once; Turnstone's five test uses are the integration
+  session's to change, and it is told.
+
+  Links: summary The physics profile crystal is renamed lattice in Graphshell now; Turnstone follows through its integration lane.
+
+  *Applies D10 and D15.*
+
+- **D27. The body designer lives in the scenograph editor (Mark, 2026-11-14):** "In the
+  scenograph editor". A mark is designed where scenes are designed; the node's facet pane
+  shows and picks marks and does not design them. The scenograph editor plan owns the
+  surface.
+
+  Links: summary A node's body is designed in the scenograph editor, not in the node's facet pane.
+
+  *Applies D4.*
+
 ## Findings
 
 - 2026-11-14 (at `b957d819`): `RelationForm` is defined at
@@ -487,3 +504,5 @@ face.
 - 2026-11-14: Crystal probe 2 run (a greedy packer). Nothing landed in code.
 - 2026-11-14: unlinked tiles never touch (D23).
 - 2026-11-14: Crystal's smallest tile side and shortest border ruled (D24, D25).
+- 2026-11-14: the physics profile `crystal` renamed `lattice` in cartography (D26); the
+  body designer's home ruled (D27).

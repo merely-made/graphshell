@@ -39,7 +39,7 @@ fn every_profile_applies_and_names_itself_back() {
             "solid",
             "archipelago",
             "constellation",
-            "crystal",
+            "lattice",
             "tide",
             "sediment",
             "magnet",

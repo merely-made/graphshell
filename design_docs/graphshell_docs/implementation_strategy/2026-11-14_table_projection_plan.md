@@ -38,7 +38,9 @@ Receipts from this plan's runs go to `archive_docs/receipts/`, never into this p
   its type, a chip, a bar in the cell or a check mark, D6, D9); a recipe without one compiles to the same
   scene as before; a field naming a path the dataset does not disclose is refused at compile
   with the field named; a fields list round-trips through TOML and through a SHACL node
-  shape with no loss of the five SHACL terms.
+  shape with no loss of the five SHACL terms; a viewer is a registered id and an unknown one
+  is refused at compile with the field named (D11); a path is the dataset's key for the
+  field (D12); the recipe crate reads and writes TOML behind a `toml` feature (D13).
 - Needs: nothing. This is the slot outline and record will also read.
 
 ### T2. Field types
@@ -62,8 +64,9 @@ list are added (D3); media is phase T8.
   fields' order; clicking a header sorts and the sort is saved on the recipe as one undo
   step; keyboard reaches every cell and header; the frozen form is a table with a caption
   and one column header per field; at 10,000 rows scrolling holds a 16.7 ms frame at the
-  95th percentile and a sort or a filter shows its result within 100 ms (D8), with the same
-  measured and reported at 100,000 (D5); a headed check shows it in
+  95th percentile and a sort or a filter shows its result within 100 ms (D8), gated on the
+  Windows laptop and measured and reported on the iMacs and the Linux machines (D10), with
+  the same measured and reported at 100,000 (D5); a headed check shows it in
   Chrome and Firefox.
 - Needs: T1, T3.
 
@@ -101,10 +104,6 @@ content hash, and the widget layer composites textures. Nothing puts an image in
 
 ## Open questions
 
-- Which machine is the gate measured on? D8 sets the times; the laptop is the primary
-  machine and the iMacs are slower. To be put before T4's acceptance.
-- Which of our viewer values map onto DASH's own viewers, and which are ours alone? To be
-  read from DASH before T1 lands.
 
 ## Decisions
 
@@ -182,7 +181,56 @@ content hash, and the widget layer composites textures. Nothing puts an image in
 
   *Refines D2.*
 
+- **D10. Where the gate is measured (Mark, 2026-11-14):** "Laptop gated, others measured".
+  Acceptance is the Windows laptop; the two iMacs and the Fedora and Mint machines are
+  measured and reported and do not block.
+
+  Links: summary The table's speed gate is measured on the Windows laptop; other machines are measured, not gated.
+
+  *Refines D8.*
+
+- **D11. A viewer is a registered id (Mark, 2026-11-14):** "Registered id, like
+  arrangements". `viewer = "chip"` is a string checked at compile against a declared
+  catalog, so a host or a guest can add viewers; an unknown id is refused with the field
+  named. A viewer exports as DASH's IRI where one matches and as our own otherwise.
+
+  Links: summary A field's viewer is a registered id checked against a declared catalog, not a closed list.
+
+  *Refines D6 and D9.*
+
+- **D12. A field's path is the dataset key (Mark, 2026-11-14):** "The dataset key; IRI made
+  on export". `path = "title"` names the dataset's field; the SHACL shape writes it as an
+  IRI under the source's namespace, and the round trip keeps the key.
+
+  Links: summary A field's path holds the dataset's key; the IRI is made when the shape is exported.
+
+  *Refines D2.*
+
+- **D13. Scenograph reads and writes TOML behind a feature (Mark, 2026-11-14):** first
+  "Test-only dependency", then ":? Isn't toml the pack format?" and "Maybe scenograph does
+  need toml, idk", and on the question put back: "In scenograph, behind a feature". The
+  recipe crate gains `from_toml` and `to_toml` beside `to_json_bytes`, under a `toml`
+  feature a host turns on, so Graphshell, Turnstone, Knot and the editor's save share one
+  tested reader. Recipes stay authored as TOML (`primitive-representations D22`).
+
+  Links: summary The recipe crate reads and writes TOML itself, behind a feature that hosts turn on.
+
+  *New.*
+
 ## Findings
+
+- 2026-11-14: TOML is parsed in one place today, the mod loader
+  (`host/crates/script/document-host/src/mod_loader/loader/free_fns.rs:114`), for
+  `.mod.toml` and `.wasm.toml` manifests. It carries no recipe or projection contribution,
+  so a recipe shipped in a pack is not built anywhere. Scenograph writes its own JSON
+  (`to_json_bytes` on three recipe types) and has optional fields with no skip rule, which
+  TOML cannot write as empty; whether today's recipe survives TOML is unchecked.
+- 2026-11-14: DASH's form document (datashapes.org/forms.html, marked work in progress as of
+  June 2019) defines ten viewers: BlankNodeViewer, DetailsViewer, HTMLViewer,
+  HyperlinkViewer, ImageViewer, LabelViewer, LangStringViewer, LiteralViewer, URIViewer and
+  ValueTableViewer. None is a chip, a bar or a check mark, and there is no viewer for true
+  or false. `dash:ImageViewer` draws an image and says nothing of thumbnails. A property
+  shape names its viewer with `dash:viewer`.
 
 - 2026-11-14 (at `a0469fc1`): the data grid exists. `cambium::data_grid` is a sticky header
   over virtualized, absolutely placed rows with header clicks for sorting
@@ -212,4 +260,6 @@ content hash, and the widget layer composites textures. Nothing puts an image in
 - 2026-11-14: plan written with Mark; nothing landed.
 - 2026-11-14: row budget, ways of showing a field and the group and section names ruled (D5
   to D7).
-- 2026-11-14: smooth defined and the added term named `viewer` (D8, D9).
+- 2026-11-14: smooth defined and the added term named `viewer` (D8, D9); the gate machine
+  ruled (D10).
+- 2026-11-14: T1's forks ruled (D11 to D13).

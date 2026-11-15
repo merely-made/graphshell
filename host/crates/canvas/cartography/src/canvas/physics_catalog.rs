@@ -184,8 +184,8 @@ pub const CANVAS_PHYSICS_PROFILES: &[PhysicsProfile] = &[
         overlays: &[PhysicsOverlay::DegreeRepulsion, PhysicsOverlay::HubGravity],
     },
     PhysicsProfile {
-        id: "crystal",
-        label: "Crystal",
+        id: "lattice",
+        label: "Lattice",
         law: PhysicsLaw::Stress,
         overlays: &[PhysicsOverlay::GridSnap],
     },
