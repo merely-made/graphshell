@@ -34,7 +34,8 @@ Receipts from this plan's runs go to `archive_docs/receipts/`, never into this p
 
 ### T1. Fields on the recipe
 - Done when: a recipe carries an ordered list of fields, each with a path, name,
-  description, order, group and how it is shown; a recipe without one compiles to the same
+  description, order, group and how it is shown (the plain default for its type, a chip, a
+  bar in the cell or a check mark, D6); a recipe without one compiles to the same
   scene as before; a field naming a path the dataset does not disclose is refused at compile
   with the field named; a fields list round-trips through TOML and through a SHACL node
   shape with no loss of the five SHACL terms.
@@ -60,12 +61,15 @@ list are added (D3); media is phase T8.
   built from the fields' names and only the visible rows drawn; column order follows the
   fields' order; clicking a header sorts and the sort is saved on the recipe as one undo
   step; keyboard reaches every cell and header; the frozen form is a table with a caption
-  and one column header per field; a headed check shows it in Chrome and Firefox.
+  and one column header per field; scrolling, sorting and filtering stay smooth at 10,000
+  rows, with the same measured and reported at 100,000 (D5); a headed check shows it in
+  Chrome and Firefox.
 - Needs: T1, T3.
 
 ### T5. Sort, filter and group
 - Done when: a recipe's reading carries a sort (several keys), a filter and a grouping; a
-  group draws a heading row with its count; each change is one undo step and round-trips
+  group draws a heading row with its count; the editor calls grouping rows a group and a set
+  of columns a section, and SHACL's `group` appears only in the exchanged shape (D7); each change is one undo step and round-trips
   through save and reopen; the same parameters drive the frozen form.
 - Needs: T4.
 
@@ -87,7 +91,8 @@ them are shown" (`primitive-representations D21`).
 ### T8. Media cells
 The pieces for one image per item exist: a presentation offer can be an image fetched by
 content hash, and the widget layer composites textures. Nothing puts an image in a cell.
-- Done when: a media field shows a thumbnail in its cell at the row's height, fetched by
+- Done when: a media field can be shown as a thumbnail (the fourth way of showing a field,
+  held to this phase by D6) in its cell at the row's height, fetched by
   content hash through the existing resource path; a missing or oversized image shows a
   stated placeholder; the gallery preset (image-led rows) ships.
 - Needs: a check first of whether the widget layer can lay out and decode an image element
@@ -95,12 +100,10 @@ content hash, and the widget layer composites textures. Nothing puts an image in
 
 ## Open questions
 
-- How many rows must stay smooth? The practice proof compiled 10,000 occurrences; that is
-  not an interactive budget. To be offered as a choice of values before T4's acceptance.
-- Does grouping rows share anything with a field's SHACL `group`, which groups columns? They
-  are different things; the names need keeping apart in the editor.
-- Which term of ours says how a field is shown, and what values it takes (text, number
-  format, chip, thumbnail)? To be put before T1.
+- What is "smooth"? D5 sets the row counts; the frame time or response time that counts as
+  smooth is not ruled, and is to be offered as a choice of values before T4's acceptance.
+- What is the added term called in the fields list? Its values are ruled (D6); its name is
+  not.
 
 ## Decisions
 
@@ -139,6 +142,29 @@ content hash, and the widget layer composites textures. Nothing puts an image in
 
   *New.*
 
+- **D5. Row budget (Mark, 2026-11-14):** "10,000 gated, 100,000 measured". Acceptance
+  requires smooth use at 10,000 rows; 100,000 is measured and reported and does not block.
+
+  Links: summary The first table must stay smooth at 10,000 rows; 100,000 is measured, not gated.
+
+  *New.*
+
+- **D6. Ways of showing a field (Mark, 2026-11-14):** "Chip, Bar in cell, Check mark,
+  Thumbnail after media?". The first table has the plain default for each type plus chip,
+  bar in cell and check mark. Thumbnail arrives with media cells, in T8.
+
+  Links: summary A field is shown as its type's default, a chip, a bar in the cell or a check mark; thumbnail follows media cells.
+
+  *Refines D2.*
+
+- **D7. Group and section (Mark, 2026-11-14):** "Group for rows, Section for columns".
+  Grouping rows is a group; a set of columns is a section; SHACL's `group` keeps its name in
+  the exchanged shape only.
+
+  Links: summary In the editor a group is a grouping of rows and a section is a set of columns.
+
+  *New.*
+
 ## Findings
 
 - 2026-11-14 (at `a0469fc1`): the data grid exists. `cambium::data_grid` is a sticky header
@@ -167,3 +193,5 @@ content hash, and the widget layer composites textures. Nothing puts an image in
 ## Progress
 
 - 2026-11-14: plan written with Mark; nothing landed.
+- 2026-11-14: row budget, ways of showing a field and the group and section names ruled (D5
+  to D7).

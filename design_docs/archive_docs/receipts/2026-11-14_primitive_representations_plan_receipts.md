@@ -37,3 +37,41 @@ With the index file kept, Graphshell's graph is 82 nodes and 198 links with one 
 links, and the all-pinned figure at 10 places falls to 65%.
 
 Read at Graphshell `a0469fc1`; Mere and Turnstone at their local checkouts' working trees.
+
+## 2026-11-14: Crystal probe 2 (greedy packer, real rectangles)
+
+A throwaway script, not in the repository. Same graphs, index files left out, and the same
+breadth-first pin order as probe 1. Rules: a pinned tile does not move; pinning packs its
+linked tiles against its border at one common size, the largest of 160 by 100, 128 by 80,
+96 by 60, 80 by 48 and 48 by 48 that lets the most of them touch it; a border counts when it
+is at least half the smallest side long (24 px at 48), 16 px between other linked tiles;
+tiles that are not linked stay 8 px apart; an unpinned tile already packed elsewhere moves
+only to a place touching more of its linked tiles; a linked tile with no place stays loose.
+Simplifications: loose tiles are not obstacles; a nucleus never packed is dropped clear of
+the structure; candidate places are tried every 16 px; the search is greedy.
+
+Controls, same run: a star of 30 leaves gives 9 borders against a ceiling of 10, none
+false; a path of 20 gives 19 of 19; a triangle 3 of 3. Every run asserted no overlaps.
+
+Share of all links shown as borders, with probe 1's ceiling in brackets:
+
+| Graph | Smallest side | Pinned tile | 1 pin | 5 | 10 | 25 | 50 | All | Unlinked tiles touching |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Graphshell docs (70, 118) | 48 | keeps size | 10% (8) | 17% (23) | 19% (31) | 38% (58) | 53% (89) | 64% (100) | 0 |
+| | 48 | grows back | 10% (8) | 18% (23) | 19% (31) | 40% (58) | 55% (89) | 65% (100) | 0 |
+| | 64 | keeps size | 10% (7) | 16% (21) | 18% (29) | 41% (54) | 57% (86) | 67% (97) | 0 |
+| | 64 | grows back | 10% (7) | 16% (21) | 18% (29) | 40% (54) | 56% (86) | 66% (97) | 0 |
+| Turnstone docs (74, 134) | 48 | keeps size | 10% (7) | 15% (31) | 19% (46) | 31% (62) | 42% (88) | 47% (94) | 0 |
+| | 48 | grows back | 10% (7) | 18% (31) | 23% (46) | 37% (62) | 46% (88) | 51% (94) | 0 |
+| | 64 | keeps size | 8% (6) | 14% (26) | 20% (41) | 32% (57) | 43% (82) | 49% (88) | 0 |
+| | 64 | grows back | 8% (6) | 16% (26) | 23% (41) | 34% (57) | 46% (82) | 51% (88) | 0 |
+| Mere docs (437, 1468) | 48 | keeps size | 1% (1) | 2% (3) | 2% (6) | 8% (14) | 14% (24) | 31% (73) | 0 |
+| | 48 | grows back | 1% (1) | 2% (3) | 2% (6) | 8% (14) | 14% (24) | 31% (73) | 0 |
+| | 64 | keeps size | 1% (1) | 2% (2) | 3% (4) | 9% (11) | 14% (20) | 32% (65) | 0 |
+| | 64 | grows back | 1% (1) | 2% (2) | 3% (4) | 9% (11) | 15% (20) | 33% (65) | 0 |
+
+A single pin can beat probe 1's ceiling by a point or two because the ceiling counted places
+as perimeter over smallest side and the packer lets a tile overhang a corner.
+
+Each run took about a second. Read at Graphshell `1b1a181c`; Mere and Turnstone at their
+local checkouts' working trees.

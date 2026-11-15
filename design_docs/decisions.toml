@@ -250,6 +250,11 @@ title = "Command format (Mark, 2026-11-14)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
 summary = "Commands as data are TOML where authored, JSON where exchanged and WIT records across components."
 
+[decisions."primitive-representations D23"]
+title = "In Crystal, unlinked tiles never touch (Mark, 2026-11-14)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
+summary = "In Crystal a shared border always means a link; tiles that are not linked keep apart."
+
 [decisions."resident-split D1"]
 title = "Device conditions go to mesh-host (Mark, 2026-11-05)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-05_resident_split_plan.md"
@@ -304,6 +309,21 @@ summary = "The first table handles reference, date and time, list and media fiel
 title = "Read first, writes later (Mark, 2026-11-14)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
 summary = "The first table plan reads, sorts, filters, groups and windows; editing is a later phase."
+
+[decisions."table-projection D5"]
+title = "Row budget (Mark, 2026-11-14)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "The first table must stay smooth at 10,000 rows; 100,000 is measured, not gated."
+
+[decisions."table-projection D6"]
+title = "Ways of showing a field (Mark, 2026-11-14)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "A field is shown as its type's default, a chip, a bar in the cell or a check mark; thumbnail follows media cells."
+
+[decisions."table-projection D7"]
+title = "Group and section (Mark, 2026-11-14)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "In the editor a group is a grouping of rows and a section is a set of columns."
 
 [decisions."uxtree-spine D1"]
 title = "The spine is federated (Mark, 2026-11-11)"

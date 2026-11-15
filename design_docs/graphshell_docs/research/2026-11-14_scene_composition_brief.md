@@ -279,8 +279,15 @@ document has more links than places, pinning 10 documents can make 31% and 46% o
 borders, and pinning everything 100% and 94%. On Mere's docs (437 documents, 6.7 links
 each, one with 116) a sixth of the documents overflow and pinning everything reaches 73% at
 most. So Crystal reads as a local tool, for the neighbourhoods a person pins, and the
-smallest tile side is the setting that decides how much a nucleus can hold. How far real
-packing falls below these ceilings is the next probe.
+smallest tile side is the setting that decides how much a nucleus can hold.
+
+A second probe (2026-11-14) packed real rectangles with a greedy rule: neighbours shrink to
+one size so as many fit as possible, and tiles that are not linked keep 8 px apart, so a
+shared border always means a link. It reached about half to two thirds of the ceilings:
+with everything pinned, 65% of links on Graphshell's docs, 51% on Turnstone's and 31% on
+Mere's; after ten pins, 19%, 23% and 2%. No unlinked tiles touched. The shortfall is partly
+geometry (a packed tile that is later pinned is small and hemmed in) and partly the greedy
+rule, which a better solver would beat; the probe does not separate the two.
 
 ### 3.8 Partition zoom
 

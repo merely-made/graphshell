@@ -97,9 +97,10 @@ section 3.7).
   is selected; pinning a tile packs its linked tiles against it, resized to fit; a tile
   against a nucleus can be slid along its border and the rest repack; every link is reported
   as a border or as unmet; unpinning leaves the tiles where they are.
-- Needs: the second probe, a packer on the same graphs, to measure how far real packing
-  falls below the first probe's ceilings (Findings); the smallest tile side offered as a
-  choice of values, since it sets how many places a nucleus has; M3 for the report; the physics profile `crystal` renamed first (D10), which
+- Needs: the smallest tile side and the shortest border that counts offered as choices of
+  values, since they set how many places a nucleus has; M3 for the report. Unlinked tiles
+  never touch (D23), so the done-condition adds: no two tiles share a border unless they are
+  linked; the physics profile `crystal` renamed first (D10), which
   reaches Turnstone's `src/arrange_pane/tests.rs` (five uses). Packing goes one step (D8) and overflow
   stays loose (D9), so the done-condition adds: pinning a tile moves only its own linked
   tiles, and linked tiles that do not fit on its border stay where they are.
@@ -385,6 +386,14 @@ face.
 
   *Applies the workspace data-format rule.*
 
+- **D23. In Crystal, unlinked tiles never touch (Mark, 2026-11-14):** "Never touch". A
+  shared border always means a link. The second probe kept unlinked tiles 8 px apart and a
+  full-size tile then held 9 linked tiles against a ceiling of 10.
+
+  Links: summary In Crystal a shared border always means a link; tiles that are not linked keep apart.
+
+  *New.*
+
 ## Findings
 
 - 2026-11-14 (at `b957d819`): `RelationForm` is defined at
@@ -417,6 +426,14 @@ face.
   mount (`crates/graphshell-endpoint/wit/world.wit:284,315`), and a projection provider
   returns snapshots carrying `AdvertisedAction`s and receives `intent` calls
   (`world.wit:174`; `crates/chirograph/src/lib.rs:197`). That makes four command shapes.
+- 2026-11-14, Crystal probe 2 (a greedy packer on real rectangles; controls on a star, a
+  path and a triangle passed in the same run; no overlaps and no unlinked tiles touching in
+  any run). Same graphs and pin order as probe 1, smallest side 48 px, a border at least 24
+  px long, unlinked tiles 8 px apart, a pinned tile allowed to grow back. Links shown as
+  borders with everything pinned, against probe 1's ceiling: Graphshell 65% of 100%,
+  Turnstone 51% of 94%, Mere 31% of 73%. After ten pins: 19% of 31%, 23% of 46%, 2% of 6%.
+  Letting a pinned tile grow back is worth 0 to 4 points. The packer is greedy, so these
+  are what one simple rule reaches, not what Crystal can reach. Receipts as below.
 - 2026-11-14, Crystal probe 1 (a ceiling; no geometry solved; controls on a star and a path
   passed in the same run). Document link graphs without their index files, 10 places per
   nucleus (160 by 100 tile, 48 px smallest side), pins taken breadth-first from the
@@ -448,3 +465,5 @@ face.
 - 2026-11-14: Crystal probe 1 run (a ceiling on three document graphs); the guest-command
   finding corrected. Nothing landed in code.
 - 2026-11-14: the table projection plan cut (D18).
+- 2026-11-14: Crystal probe 2 run (a greedy packer). Nothing landed in code.
+- 2026-11-14: unlinked tiles never touch (D23).
