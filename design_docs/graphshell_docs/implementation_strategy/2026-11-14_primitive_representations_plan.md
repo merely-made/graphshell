@@ -636,6 +636,26 @@ face.
   (`canvas/node_presentation.rs:48-73`). `Representation::Sprite` (`sceno/src/scene.rs:101`)
   and `Face::Sprite` (`types.rs:175`) name the same picture as a rung and as a paint.
 
+- 2026-11-15 (M1 code): the compiler cannot reach the canvas's registry. Cartography depends
+  on scenomise (`cartography/Cargo.toml`), so scenomise cannot call
+  `GraphRepresentationRegistry` (`cartography/src/representation.rs`) without a cycle.
+- 2026-11-15 (M1 code): `ProjectionOccurrence` is built by struct literal in seven Graphshell
+  files and in Cleromancy (`src/ambient_scene.rs`), Knot (`apps/desktop/src/composition/recipe.rs`,
+  `crates/knot-composition/tests/support/recipe.rs`), Mer3ly (`src/host_dataset.rs`,
+  `src/host_history.rs`, `src/spec_roadmap.rs`) and Woodshed
+  (`crates/woodshed-core/examples/stage_projection_export.rs`); a new field breaks each.
+- 2026-11-15 (M1 code): a saved `"representation": "Sprite"` exists in
+  `scenomise/fixtures/coastal_map.json:15`, and Isocosm builds `Representation::Sprite`
+  (`isocosm/crates/isocosm-views/src/projection.rs:41`). Removing the variant without a
+  decode alias makes that data unreadable and Isocosm fail to build.
+- 2026-11-15 (M1 code): the canvas draws three silhouettes. `NodeShape` has a collider
+  (`canvas/lifecycle.rs:277-279`), corner radius (`canvas/node_presentation.rs:42-44`) and CSS
+  class (`canvas/frame/render_loop.rs:275-279`) for Square, Rounded and Circle only; Diamond
+  and Hexagon have none. Mer3ly draws them as hull colliders (`mer3ly/crates/repo-graph/src/physics.rs:62-82`).
+- 2026-11-15 (M1 code): a node's material is `seiche::NodeMaterial` (restitution, friction,
+  density; `cartography/src/canvas/cartography/appearance.rs:61-76`); scenograph does not
+  depend on seiche, so the mark's body carries no material yet.
+
 ## Progress
 
 - 2026-11-14: cut from `2026-06-23_node_body_face_model_plan.md` with the scene composition
@@ -668,3 +688,7 @@ face.
   D38). Open: a `classes` field on a dataset row, which breaks struct literals in
   Cleromancy, Knot, Mer3ly and Woodshed; where a body's material comes from; whether an
   open paint survives a save; the mark type's name.
+- 2026-11-15: M1 in part, on the lane branch: the node mark, paint, silhouette and body types
+  in scenograph; each family's imposed extent and the compile refusal; cartography's `Face`
+  and `PrimitiveBody` are scenograph's types; `set_node_rule_faces` renamed. Row classes, the
+  registry's reach, the Sprite rung, the canvas silhouettes and material wait on forks.

@@ -243,16 +243,19 @@ ones that must.
 ## 4. Node representations
 
 Candidates for a node's mark. A mark has four parts: a detail rung (the
-contract's representation slot), a paint (today's `Face`), an optional body
-and an extent rule (primitive representations plan, M1). Entries 1 to 5 are
-detail rungs, the recognized core; the rest are open-tail candidates, and 7 to
-9 name a paint or a body, not a rung. Body and paint stay independent: any
-body can wear any paint, and a sprite seeds a body without owning it.
+contract's representation slot), a paint (scenograph's `Paint`, `Face` on the
+canvas), an optional body and the extents it accepts (primitive
+representations plan, M1). Entries 1, 2, 4 and 5 are detail rungs, the
+recognized core; Sprite (3) is a paint, its rung retired to the open tail
+(D34). Badge glyph (6) is a paint on the Glyph rung, Portrait (7) and Meter
+(8) are paints, Shape (9) is a body and Label (10) is an open-tail rung. Body
+and paint stay independent: any body can wear any paint, and a sprite seeds a
+body without owning it.
 
 1. **Glyph** (core): dot or icon, the dense-LOD workhorse; the whole graph at
    a glance.
 2. **Card** (core): title plus a facet summary; the readable middle LOD.
-3. **Sprite** (core): an authored image face; tokens, album art, portraits by
+3. **Sprite** (paint): an image drawn for the subject; tokens, album art, portraits by
    hand.
 4. **Snapshot** (core): a rendered thumbnail of the node's content; the
    browser's memory of a page.

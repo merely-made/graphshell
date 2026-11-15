@@ -11,6 +11,11 @@
 //! named host interactions it may bind. Endpoint-authored domain actions remain
 //! Graphshell presentation offers; these bindings cover graph-host mechanics
 //! such as inspect, follow, recenter, and pin.
+//!
+//! A profile carries two of the four parts of a node's mark
+//! (`scenograph::presentation::NodeMark`): its detail, as the ladder that picks
+//! a rung, and its body, as a silhouette. Paint is pushed per node to the
+//! canvas as `Face`; the extent a mark takes is imposed by the arrangement.
 
 use sceno::Representation;
 use serde::{Deserialize, Serialize};
