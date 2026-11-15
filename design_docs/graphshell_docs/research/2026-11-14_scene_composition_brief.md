@@ -270,7 +270,17 @@ grows the structure by pinning more; when a nucleus has more linked tiles than i
 holds, the ones that do not fit stay loose. Mark pictured the nucleus growing instead, and
 chose pinning outward as the way to build: "pin a node, pin some adjacent nodes, then some
 of their adjacent nodes". Touching rectangles can show every link only for a planar graph,
-so some links will always fall to the selection-only fallback. None of this is probed.
+so some links will always fall to the selection-only fallback.
+
+A first probe (2026-11-14) counted the ceiling on three real document link graphs, with no
+geometry solved. A 160 by 100 tile whose neighbours may shrink to 48 px a side has 10 places
+on its border. On the two small graphs (70 and 74 documents, about 3.5 links each) almost no
+document has more links than places, pinning 10 documents can make 31% and 46% of all links
+borders, and pinning everything 100% and 94%. On Mere's docs (437 documents, 6.7 links
+each, one with 116) a sixth of the documents overflow and pinning everything reaches 73% at
+most. So Crystal reads as a local tool, for the neighbourhoods a person pins, and the
+smallest tile side is the setting that decides how much a nucleus can hold. How far real
+packing falls below these ceilings is the next probe.
 
 ### 3.8 Partition zoom
 
@@ -322,8 +332,11 @@ Format, ruled (D22) under the workspace's data-format rule: what a person author
 or edits (which commands a context shows, their order, labels, shortcuts) is TOML; the
 dataset a recipe reads at run time is typed in memory and JSON where it is interchange; a
 command crossing a component boundary is a WIT record. A Wasm guest can emit an action
-through WIT today. A guest advertising commands of its own was not found in the WIT read
-here and is not claimed. WASI adds nothing to this: it is data over WIT.
+through WIT today, and already advertises commands of its own in two ways: a block guest's
+`claim` lists its `commands` at mount (`world.wit:284,315`), and a projection provider,
+native or component, returns snapshots that carry advertised actions and takes `intent`
+calls back (`world.wit:174`). So there are four command shapes to bring into one dataset,
+not three. WASI adds nothing to this: it is data over WIT.
 
 ### 3.10 Fields
 
@@ -425,6 +438,6 @@ These are Mark's. Each returns as a question before any code that depends on it.
 ## 7. What this brief does not claim
 
 - That any combination has been built or measured. Section 3 is a proposed shape.
-- That relation-driven adjacency is tractable at size. It needs a probe before F3 is put.
+- That Crystal's packing is solved. The probe in section 3.7 is a ceiling, not a layout.
 - That the gate in the projection grammar plan is lifted anywhere but this scope. The engine
   composition ledger (C3, C4, the ledger rows) is untouched by D3.

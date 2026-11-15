@@ -66,8 +66,7 @@ The recipe names a node mark, a relation form and a field form.
   relations; a placed form (containment, order) reaches the arrangement as a constraint; each
   placed relation is reported honoured or unmet in the scene; a form an arrangement did not
   declare is refused at compile.
-- Needs: M2; fork F3 for adjacency, with a probe of relation-driven adjacency at size before
-  the fork is put.
+- Needs: M2. Adjacency driven by relations is Crystal's (D6); Mosaic keeps group and order.
 
 ### M4. Frame as a slot
 Bounded, unbounded, nested and flow frames are chosen on the recipe and passed to the
@@ -98,8 +97,9 @@ section 3.7).
   is selected; pinning a tile packs its linked tiles against it, resized to fit; a tile
   against a nucleus can be slid along its border and the rest repack; every link is reported
   as a border or as unmet; unpinning leaves the tiles where they are.
-- Needs: a probe first, on a real graph, of how many links become borders and what a crowded
-  nucleus does; M3 for the report; the physics profile `crystal` renamed first (D10), which
+- Needs: the second probe, a packer on the same graphs, to measure how far real packing
+  falls below the first probe's ceilings (Findings); the smallest tile side offered as a
+  choice of values, since it sets how many places a nucleus has; M3 for the report; the physics profile `crystal` renamed first (D10), which
   reaches Turnstone's `src/arrange_pane/tests.rs` (five uses). Packing goes one step (D8) and overflow
   stays loose (D9), so the done-condition adds: pinning a tile moves only its own linked
   tiles, and linked tiles that do not fit on its border stay where they are.
@@ -131,8 +131,8 @@ commands.
   each of hover, focus, selection and context request (right-click, long-press, menu key)
   can trigger one; a recipe whose only trigger is hover is flagged in the editor, since hover
   has no touch equivalent.
-- Needs: M2; a check of whether a guest can advertise commands, which the WIT read on
-  2026-11-14 did not show.
+- Needs: M2; one command dataset drawn from the four shapes that exist (Findings), guest
+  commands included.
 
 ### B3. The body designer
 Carried from the archived plan. A hull can be set only through `set_node_sprite_hull` today,
@@ -413,6 +413,19 @@ face.
   (`src/arrange_pane/tests.rs`, five times); Mere, Knot, Woodshed and Isocosm do not name
   the profile (tracked files, `git grep`; Isocosm's one hit is an unrelated item key).
 
+- 2026-11-14, correcting the entry below: a Wasm guest does advertise commands. A block
+  guest's `claim` carries `commands: list<command>` (id, label, kind, argument field) at
+  mount (`crates/graphshell-endpoint/wit/world.wit:284,315`), and a projection provider
+  returns snapshots carrying `AdvertisedAction`s and receives `intent` calls
+  (`world.wit:174`; `crates/chirograph/src/lib.rs:197`). That makes four command shapes.
+- 2026-11-14, Crystal probe 1 (a ceiling; no geometry solved; controls on a star and a path
+  passed in the same run). Document link graphs without their index files, 10 places per
+  nucleus (160 by 100 tile, 48 px smallest side), pins taken breadth-first from the
+  best-connected document. Graphshell docs, 70 nodes and 118 links: 0% of nodes overflow, 10
+  pins make 31% of links borders, all pins 100%. Turnstone docs, 74 and 134: 2.7% overflow,
+  46%, 94%. Mere docs, 437 and 1468, one node with 116 links: 16% overflow, 6%, 73%, and
+  the planar limit alone is 89%. An index file that links to everything held 80 of
+  Graphshell's 198 links. Receipts: `archive_docs/receipts/2026-11-14_primitive_representations_plan_receipts.md`.
 - 2026-11-14: commands are data in three places: `hest::menu::Command` and `CommandChoices`
   (`crates/hest/src/menu/mod.rs:26,83`), `chirograph::AdvertisedAction`
   (`crates/chirograph/src/lib.rs:141`), and the WIT `actions` interface's `action-envelope`
@@ -433,3 +446,5 @@ face.
 - 2026-11-14: forks F4, F5 and F8 and the trigger set answered (D16 to D19).
 - 2026-11-14: forks F6 and F7 and the command format answered (D20 to D22). Every fork of
   the brief is answered.
+- 2026-11-14: Crystal probe 1 run (a ceiling on three document graphs); the guest-command
+  finding corrected. Nothing landed in code.
