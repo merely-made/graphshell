@@ -275,6 +275,46 @@ title = "The body designer lives in the scenograph editor (Mark, 2026-11-14)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
 summary = "A node's body is designed in the scenograph editor, not in the node's facet pane."
 
+[decisions."primitive-representations D28"]
+title = "The mark type lives in scenograph (Mark, 2026-11-14)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
+summary = "The node mark type is defined in scenograph, where the recipe and the families can name it."
+
+[decisions."primitive-representations D29"]
+title = "A mark accepts extents, an arrangement imposes one (Mark, 2026-11-14)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
+summary = "A mark declares the extents it accepts and an arrangement the one it imposes; a mismatch is refused at compile."
+
+[decisions."primitive-representations D30"]
+title = "Each row discloses its classes (Mark, 2026-11-14)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
+summary = "A dataset occurrence discloses its classes, and the mark is resolved from them."
+
+[decisions."primitive-representations D31"]
+title = "The companion card is a context (Mark, 2026-11-14)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
+summary = "A card shown beside or over a node is a context scene; M1 only makes the card a node's own mark."
+
+[decisions."primitive-representations D32"]
+title = "Paint is a type in scenograph (Mark, 2026-11-14)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
+summary = "Paint is a scenograph type with an open tail; cartography's Face becomes it."
+
+[decisions."primitive-representations D33"]
+title = "What a body is (Mark, 2026-11-14)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
+summary = "A mark's body is none, a silhouette or an authored hull, with a material."
+
+[decisions."primitive-representations D34"]
+title = "Sprite is a paint; the Sprite rung is retired (Mark, 2026-11-14)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
+summary = "Sprite names a paint, an image drawn for a subject, as in Isocosm; the Sprite detail rung is retired to the open tail."
+
+[decisions."primitive-representations D35"]
+title = "`set_node_rule_faces` is renamed with the mark change (Mark, 2026-11-14)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
+summary = "The canvas call that sets detail rungs stops being called faces when the mark type lands."
+
 [decisions."resident-split D1"]
 title = "Device conditions go to mesh-host (Mark, 2026-11-05)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-05_resident_split_plan.md"

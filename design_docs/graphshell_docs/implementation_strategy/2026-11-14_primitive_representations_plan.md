@@ -49,9 +49,16 @@ and an extent rule: measured, assigned or encoded.
 - Also done when (D11): no mark is the default for every node; the registry picks a mark
   from what the node's data discloses, and a node whose data is not a document is not drawn
   as a card by default.
-- Also done when (D12): a card can be chosen as a node's own mark, or as a companion to a
-  node drawn another way, placed beside it or in an overlay; the placement is a choice on the
-  recipe, and a document graph with card nodes is expressible.
+- Also done when (D12, D31): a card can be chosen as a node's own mark, and a document graph
+  with card nodes is expressible. A card as a companion to a node drawn another way is a
+  context scene, placed beside or over the node in phase X.
+- Also done when (D28 to D30, D32 to D35): the mark type is in scenograph and holds detail,
+  a paint (Favicon, Derived, Sprite, Bare and an open tail), a body (none, a silhouette or
+  an authored hull, with material) and the extents it accepts; each arrangement declares the
+  extent it imposes and a mismatch is refused at compile with both named; an occurrence
+  discloses its classes and the registry resolves the mark from them; the Sprite rung is
+  retired to the open tail; `set_node_rule_faces` is renamed in the same change, with
+  callers across the family checked.
 
 ### M2. Mark slots on the recipe
 The recipe names a node mark, a relation form and a field form.
@@ -430,6 +437,81 @@ face.
 
   *Applies D4.*
 
+- **D28. The mark type lives in scenograph (Mark, 2026-11-14):** "Scenograph". Beside
+  `PrimitiveKind` and `RelationForm`, so the recipe, the families and the canvas can name
+  it; the scene wire format does not change.
+
+  Links: summary The node mark type is defined in scenograph, where the recipe and the families can name it.
+
+  *New.*
+
+- **D29. A mark accepts extents, an arrangement imposes one (Mark, 2026-11-14):** "Mark
+  accepts, arrangement imposes". A mark declares which of measured, assigned and encoded it
+  can take; an arrangement declares the one it imposes; compile refuses a mismatch. A card
+  is one mark in Spiral and in Mosaic.
+
+  Links: summary A mark declares the extents it accepts and an arrangement the one it imposes; a mismatch is refused at compile.
+
+  *New.*
+
+- **D30. Each row discloses its classes (Mark, 2026-11-14):** "Each row discloses its
+  classes". An occurrence carries a list of classes, resolved through the registry the
+  canvas already uses. Documents keep the card; other data gets the ladder without the Card
+  rung. Three card-class test pins move under this ruling.
+
+  Links: summary A dataset occurrence discloses its classes, and the mark is resolved from them.
+
+  *Applies D11.*
+
+- **D31. The companion card is a context (Mark, 2026-11-14):** "M1 does card-as-mark;
+  companion is a context". M1 delivers the card as a node's own mark. A card beside or over
+  a node drawn another way is a context scene, placed in phase X.
+
+  Links: summary A card shown beside or over a node is a context scene; M1 only makes the card a node's own mark.
+
+  *Refines D12; applies D13.*
+
+- **D32. Paint is a type in scenograph (Mark, 2026-11-14):** "A paint type in scenograph".
+  Favicon, Derived, Sprite and Bare with an open tail for paints a host adds; cartography's
+  `Face` becomes that type and its saved codes stay.
+
+  Links: summary Paint is a scenograph type with an open tail; cartography's Face becomes it.
+
+  *New.*
+
+- **D33. What a body is (Mark, 2026-11-14):** "None, a silhouette or an authored hull, with
+  material". `NodeShape` and `PrimitiveBody` merge into one list of silhouettes; hull
+  overrides stay keyed by node; the body designer (B3) edits the hull.
+
+  Links: summary A mark's body is none, a silhouette or an authored hull, with a material.
+
+  *New.*
+
+- **D34. Sprite is a paint; the Sprite rung is retired (Mark, 2026-11-14):** "2 or 1
+  depending on which has better resonance/sets up with isocosm's sense of sprite too. Gotta
+  reconcile that one as well; be nice if 1 or 2 had a common thread. If not, meh, isocosm
+  can keep sprite and we'll do 2". Reading, mine: Isocosm's sprite is a held image of a
+  subject, placed at the subject each draw in place of rendering it live
+  (`isocosm/shared/isometer/src/hybrid/sprites.rs:36-56`). That is what is drawn, not how
+  much detail is shown, so the thread is with the paint: a sprite is an image drawn for a
+  subject. Option 2 follows: `Representation::Sprite` moves to the open tail and only the
+  paint is called Sprite. Isocosm's baked stand-in for a live body is nearer the Snapshot
+  rung, which is noted and not acted on. The rung has four uses in this repository and none
+  in Turnstone's `src` or Knot.
+
+  Links: summary Sprite names a paint, an image drawn for a subject, as in Isocosm; the Sprite detail rung is retired to the open tail.
+
+  *New.*
+
+- **D35. `set_node_rule_faces` is renamed with the mark change (Mark, 2026-11-14):**
+  "Rename with the mark change". It takes detail rungs and calls them faces; it is renamed
+  in the change that brings the mark type to the canvas, with callers across the family
+  checked then.
+
+  Links: summary The canvas call that sets detail rungs stops being called faces when the mark type lands.
+
+  *Applies D28.*
+
 ## Findings
 
 - 2026-11-14 (at `b957d819`): `RelationForm` is defined at
@@ -551,3 +633,4 @@ face.
 - 2026-11-14: M1 entry assessed: the fourteen families' extent rules and the card defaults
   recorded in Findings; the content catalog and the card summoning design reworded to the mark
   vocabulary. No code landed.
+- 2026-11-14: M1's eight forks ruled (D28 to D35).
