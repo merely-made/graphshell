@@ -217,16 +217,19 @@ mod tests {
     use kernel::graph::apply::add_node;
     use uuid::Uuid;
 
+    /// Document nodes, so the ladder can reach its Card rung (D30).
     fn fixture(ids: std::ops::RangeInclusive<u128>) -> (Graph, Vec<NodeKey>) {
         let mut graph = Graph::new();
         let keys = ids
             .map(|id| {
-                add_node(
+                let key = add_node(
                     &mut graph,
                     Some(Uuid::from_u128(id)),
                     format!("fixture://{id}"),
                     PortablePoint::zero(),
-                )
+                );
+                graph.insert_node_tags(key, vec!["document".into()]);
+                key
             })
             .collect();
         (graph, keys)

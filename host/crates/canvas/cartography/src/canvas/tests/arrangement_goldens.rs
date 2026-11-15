@@ -325,8 +325,8 @@ fn arrangement_projections(
 /// 500 Radial ones move, by at most two ulps (0.0002 px).
 #[rustfmt::skip]
 const GOLDENS: &[(&str, &str, u64, u64)] = &[
-    ("topic", "phyllotaxis.default recent_first true", 0x11d4ed56b1ecd0da, 0x4b58e36d54859225),
-    ("topic", "phyllotaxis.default recent_first false", 0xb8309ba62e9f1b4a, 0x5969b7597f373d27),
+    ("topic", "phyllotaxis.default recent_first true", 0x11d4ed56b1ecd0da, 0xdbfc8872bcb0fe19),
+    ("topic", "phyllotaxis.default recent_first false", 0xb8309ba62e9f1b4a, 0x2b5c6b3cfc82c467),
     ("topic", "grid.default recent_first true", 0x43ad04ce7ccbfeca, 0x0000000000000000),
     ("topic", "spectral.default recent_first true", 0x4dd47e18a22025f5, 0x0000000000000000),
     ("topic", "penrose.default recent_first true", 0x3cdc98d37bf9b14a, 0x0000000000000000),
@@ -340,8 +340,8 @@ const GOLDENS: &[(&str, &str, u64, u64)] = &[
     ("topic", "mosaic.default recent_first true", 0xe0769c647b4b4079, 0x0000000000000000),
     ("topic", "radial.default focus 0", 0x7b86498e83ab96e0, 0x0000000000000000),
     ("topic", "radial weighted focus 0", 0x143223deca19b751, 0x0000000000000000),
-    ("generated 500", "phyllotaxis.default recent_first true", 0xbc5c195c1e3ba247, 0xbf7d39e9cb5455cd),
-    ("generated 500", "phyllotaxis.default recent_first false", 0x327bd615bc120833, 0x18f34e3ca4421cfd),
+    ("generated 500", "phyllotaxis.default recent_first true", 0xbc5c195c1e3ba247, 0x7e81012620972157),
+    ("generated 500", "phyllotaxis.default recent_first false", 0x327bd615bc120833, 0xa23806b7cda67fb5),
     ("generated 500", "grid.default recent_first true", 0x2c8eb12fa9da7098, 0x0000000000000000),
     ("generated 500", "spectral.default recent_first true", 0xd0d787a1609d27d1, 0x0000000000000000),
     ("generated 500", "penrose.default recent_first true", 0x6c7bd7d4d9651718, 0x0000000000000000),

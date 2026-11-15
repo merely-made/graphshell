@@ -16,7 +16,7 @@
 use sceno::Representation;
 use serde::{Deserialize, Serialize};
 
-use super::ladder::{RepresentationLadder, RepresentationState, default_representation_ladder};
+use super::ladder::{RepresentationLadder, RepresentationState, default_representation_ladder, non_document_ladder};
 use super::mark::{Body, Extent, NodeMark, Paint, Silhouette};
 
 /// Stable schema for the built-in graph representation registry.
@@ -135,6 +135,9 @@ impl RepresentationProfile {
     }
 }
 
+/// Classes whose data is a document, and so keep the Card rung (D11, D30).
+const DOCUMENT_PROFILE: &str = "document";
+
 /// Mere's renderer-neutral baseline registry.
 pub fn default_graph_representation_registry() -> GraphRepresentationRegistry {
     let inspect = BehaviorBinding {
@@ -226,7 +229,11 @@ fn profile(
             body,
         },
         behaviors: behaviors.to_vec(),
-        ladder: default_representation_ladder(),
+        ladder: if id == DOCUMENT_PROFILE {
+            default_representation_ladder()
+        } else {
+            non_document_ladder()
+        },
     }
 }
 
@@ -266,7 +273,7 @@ mod tests {
             "inspect"
         );
         assert_eq!(
-            encoded["profiles"][0]["ladder"]["rungs"][1]["conditions"][2]["measure"],
+            encoded["profiles"][2]["ladder"]["rungs"][1]["conditions"][2]["measure"],
             "zoom_level"
         );
         assert_eq!(
@@ -286,7 +293,7 @@ mod tests {
     }
 
     #[test]
-    fn a_nodes_classes_resolve_its_mark() {
+    fn only_document_classes_resolve_to_a_card() {
         let registry = default_graph_representation_registry();
         let near = RepresentationState {
             screen_width: 128.0,
@@ -298,11 +305,15 @@ mod tests {
         let document = registry.mark(["note"], near, None);
         assert_eq!(document.detail, Representation::Card);
         assert_eq!(document.body, Body::Silhouette(Silhouette::Square));
-        let event = registry.mark(["event"], near, None);
-        assert_eq!(event.body, Body::Silhouette(Silhouette::Diamond));
-        assert!(event.accepts(Extent::Measured) && event.accepts(Extent::Assigned));
-        let unknown = registry.mark(std::iter::empty(), near, None);
-        assert_eq!(unknown.body, Body::Silhouette(Silhouette::Circle));
+        for classes in [&["event"][..], &["person"], &["software"], &["future-class"], &[]] {
+            let mark = registry.mark(classes.iter().copied(), near, None);
+            assert_eq!(mark.detail, Representation::Glyph, "{classes:?}");
+            assert!(mark.accepts(Extent::Measured) && mark.accepts(Extent::Assigned));
+        }
+        assert_eq!(
+            registry.mark(["event"], near, None).body,
+            Body::Silhouette(Silhouette::Diamond)
+        );
     }
 
     #[test]
