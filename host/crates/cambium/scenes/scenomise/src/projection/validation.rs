@@ -137,6 +137,22 @@ pub(super) fn validation_issues(
         ));
     }
     validate_arrangement(&mut issues, compiler, definition, dataset, target.as_ref());
+    if let Some(target) = target.as_ref() {
+        let imposed = target.extent();
+        if !compiler.mark.accepts(imposed) {
+            let accepted: Vec<_> = compiler.mark.accepts.iter().map(|e| e.id()).collect();
+            issues.push(CompileIssue::new(
+                "arrangement.kind",
+                format!(
+                    "{} imposes the {} extent; the {} mark accepts {}",
+                    definition.arrangement.kind,
+                    imposed.id(),
+                    compiler.mark.label(),
+                    accepted.join(", ")
+                ),
+            ));
+        }
+    }
     issues.extend(occurrence_identity_issues(dataset));
     validate_occurrences(&mut issues, definition, dataset, target.as_ref());
     issues

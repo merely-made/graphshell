@@ -16,7 +16,7 @@
 use std::collections::{BTreeMap, HashMap, HashSet};
 
 use sceno::{
-    Arrangement as ScenoArrangement, AxisValue, Footprint, InstanceId, Placement, Representation,
+    Arrangement as ScenoArrangement, AxisValue, Footprint, InstanceId, Placement,
     Score, ScoreItem, Size2, SourceRef, Vec2,
 };
 use serde::{Deserialize, Serialize};
@@ -107,6 +107,7 @@ mod relationship_tests;
 #[path = "projection_catalog_tests.rs"]
 mod catalog_tests;
 
+use scenograph::presentation::{Extent, NodeMark};
 use scenograph::{Channel, ProjectionDefinition, PublicSourceRevision, SourceBinding};
 
 /// Arrangement ids saved recipes carry. The [`catalog`](crate::catalog) reads
@@ -138,6 +139,7 @@ pub struct ItemSizes {
 pub struct ProjectionCompiler {
     sizes: ItemSizes,
     registry: SolverRegistry,
+    mark: NodeMark,
 }
 
 impl ProjectionCompiler {
@@ -147,11 +149,25 @@ impl ProjectionCompiler {
     }
 
     pub fn with_registry(sizes: ItemSizes, registry: SolverRegistry) -> Self {
-        Self { sizes, registry }
+        Self {
+            sizes,
+            registry,
+            mark: NodeMark::card(),
+        }
+    }
+
+    /// Draw items as `mark`; a card unless set.
+    pub fn with_mark(mut self, mark: NodeMark) -> Self {
+        self.mark = mark;
+        self
     }
 
     pub fn sizes(&self) -> ItemSizes {
         self.sizes
+    }
+
+    pub fn mark(&self) -> &NodeMark {
+        &self.mark
     }
 
     pub fn registry(&self) -> &SolverRegistry {
@@ -270,6 +286,15 @@ impl Target {
         match self {
             Self::Builtin(family) => Some(family.channels()),
             Self::Custom(_) => None,
+        }
+    }
+
+    /// The extent the arrangement imposes. A custom solver returns positions
+    /// only, so its items keep their measured size.
+    fn extent(&self) -> Extent {
+        match self {
+            Self::Builtin(family) => family.extent(),
+            Self::Custom(_) => Extent::Measured,
         }
     }
 }

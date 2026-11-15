@@ -29,6 +29,7 @@ use sceno::{
 };
 use scenograph::dataset::ProjectionFieldType;
 use scenograph::options::{OptionDefault, OptionKind, OptionSpec};
+use scenograph::presentation::Extent;
 
 use crate::projection::{GRID_ARRANGEMENT_ID, SCATTER_ARRANGEMENT_ID};
 use crate::registry::{Disclosure, SolverCapability};
@@ -454,6 +455,26 @@ mod option_tests {
             Family::LSystem.resolved_defaults(&measure())["depth"],
             "auto"
         );
+    }
+
+    /// A family imposes an assigned extent exactly when it writes footprints.
+    #[test]
+    fn every_family_imposes_the_extent_its_solver_uses() {
+        let owned: Vec<_> = (0..4).map(crate::families::tests::card).collect();
+        let items = crate::families::tests::items(&owned);
+        for family in FAMILIES {
+            let arrangement = family.arrangement(&BTreeMap::new(), &measure()).unwrap();
+            let sizes = crate::families::shape(&arrangement, &items)
+                .is_some_and(|shape| shape.footprints.iter().any(Option::is_some));
+            let expected = if sizes {
+                Extent::Assigned
+            } else {
+                Extent::Measured
+            };
+            assert_eq!(family.extent(), expected, "{}", family.id());
+        }
+        assert_eq!(Family::Partition.extent(), Extent::Assigned);
+        assert_eq!(Family::Mosaic.extent(), Extent::Assigned);
     }
 
     #[test]

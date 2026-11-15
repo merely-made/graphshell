@@ -86,7 +86,7 @@ pub(super) fn compile_inner(
             footprint: Footprint::Rect {
                 size: compiler.sizes.card,
             },
-            representation: Representation::Card,
+            representation: compiler.mark.detail.clone(),
             placement: Placement::Ordinal,
             layer: 0,
             visible: true,

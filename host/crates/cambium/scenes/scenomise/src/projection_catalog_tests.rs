@@ -136,6 +136,38 @@ fn every_catalog_family_compiles_from_a_recipe() {
 }
 
 #[test]
+fn an_assigned_extent_is_refused_for_a_mark_that_does_not_accept_it() {
+    let glyph = NodeMark::new(sceno::Representation::Glyph, [Extent::Measured]);
+    let compiler = ProjectionCompiler::new(sizes(164.0, 68.0)).with_mark(glyph);
+    for family in FAMILIES {
+        let result = compiler.compile(&definition(family.id(), x_for(family)), &dataset());
+        match family.extent() {
+            Extent::Measured => {
+                let compiled = result.unwrap_or_else(|i| panic!("{}: {i:?}", family.id()));
+                assert!(
+                    compiled
+                        .scene
+                        .items
+                        .iter()
+                        .all(|item| item.representation == sceno::Representation::Glyph)
+                );
+            },
+            _ => {
+                let issues = result.unwrap_err();
+                assert_eq!(fields(&issues), ["arrangement.kind"], "{}", family.id());
+                assert_eq!(
+                    issues[0].message,
+                    format!(
+                        "{} imposes the assigned extent; the glyph mark accepts measured",
+                        family.id()
+                    )
+                );
+            },
+        }
+    }
+}
+
+#[test]
 fn ids_and_aliases_resolve_to_their_families() {
     for family in FAMILIES {
         assert_eq!(Family::resolve(family.id()), Some(family));

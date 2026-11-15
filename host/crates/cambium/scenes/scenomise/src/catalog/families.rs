@@ -56,6 +56,15 @@ impl Family {
         }
     }
 
+    /// The extent this family imposes on every item (primitive
+    /// representations plan, M1): Partition and Mosaic write the footprint.
+    pub fn extent(self) -> Extent {
+        match self {
+            Self::Partition | Self::Mosaic => Extent::Assigned,
+            _ => Extent::Measured,
+        }
+    }
+
     /// The options this family reads, declared as data: one declaration for
     /// refusal and for an editor's rows (Scenograph editor plan, ruling B, SE7).
     pub fn options(self) -> Vec<OptionSpec> {
