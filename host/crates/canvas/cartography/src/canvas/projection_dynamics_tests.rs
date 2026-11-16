@@ -26,18 +26,18 @@ fn fixture() -> (ProjectionDefinition, CompiledRelationshipProjection) {
     let occurrences = ["a", "b", "repeat"]
         .into_iter()
         .enumerate()
-        .map(|(index, id)| ProjectionOccurrence {
-            occurrence_id: id.into(),
-            source: sceno::SourceRef::new(
+        .map(|(index, id)| ProjectionOccurrence::new(
+            id,
+            sceno::SourceRef::new(
                 "knot.document",
                 if id == "b" { "other" } else { "same" },
             ),
-            values: BTreeMap::from([
+            BTreeMap::from([
                 ("occurrence_id".into(), ProjectionValue::Text(id.into())),
                 ("label".into(), ProjectionValue::Text(id.into())),
                 ("order".into(), ProjectionValue::Number(index as f64)),
             ]),
-        })
+        ))
         .collect();
     let dataset = RelationshipDataset {
         dataset: ProjectionDataset {

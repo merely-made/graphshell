@@ -75,11 +75,7 @@ pub(crate) fn site_dataset(
                     ProjectionValue::Text(text(node, "pushed_at")),
                 ),
             ]);
-            ProjectionOccurrence {
-                occurrence_id: id.clone(),
-                source: SourceRef::new(SITE_REPOSITORY_ADAPTER, id),
-                values,
-            }
+            ProjectionOccurrence::new(id.clone(), SourceRef::new(SITE_REPOSITORY_ADAPTER, id), values)
         })
         .collect();
     let relationships = graph["edges"]

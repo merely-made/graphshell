@@ -71,6 +71,9 @@ pub struct ProjectionOccurrence {
     pub occurrence_id: String,
     pub source: SourceRef,
     pub values: BTreeMap<String, ProjectionValue>,
+    /// The class labels the source discloses for this occurrence.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub classes: Vec<String>,
 }
 
 impl ProjectionOccurrence {
@@ -85,7 +88,13 @@ impl ProjectionOccurrence {
             occurrence_id: occurrence_id.into(),
             source,
             values,
+            classes: Vec::new(),
         }
+    }
+
+    pub fn with_classes(mut self, classes: impl IntoIterator<Item = impl Into<String>>) -> Self {
+        self.classes = classes.into_iter().map(Into::into).collect();
+        self
     }
 }
 

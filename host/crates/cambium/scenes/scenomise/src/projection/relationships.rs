@@ -362,9 +362,15 @@ pub(super) fn relationship_bounds(
         if occurrence.values.len() > limits.max_fields {
             return Err(fail("limits.fields"));
         }
+        if occurrence.classes.len() > limits.max_fields {
+            return Err(fail("limits.classes"));
+        }
         check(&occurrence.occurrence_id)?;
         check(&occurrence.source.adapter)?;
         check(&occurrence.source.id)?;
+        for class in &occurrence.classes {
+            check(class)?;
+        }
         for (name, value) in &occurrence.values {
             check(name)?;
             match value {

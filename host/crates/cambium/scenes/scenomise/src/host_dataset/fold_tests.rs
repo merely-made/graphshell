@@ -34,14 +34,14 @@ fn fixture() -> (ProjectionDataset, Vec<DisclosedRelationship>) {
             "unrelated",
         ]
         .into_iter()
-        .map(|id| ProjectionOccurrence {
-            occurrence_id: id.into(),
-            source: SourceRef::new("example", id),
-            values: BTreeMap::from([
+        .map(|id| ProjectionOccurrence::new(
+            id,
+            SourceRef::new("example", id),
+            BTreeMap::from([
                 ("occurrence_id".into(), ProjectionValue::Text(id.into())),
                 ("label".into(), ProjectionValue::Text(id.into())),
             ]),
-        })
+        ))
         .collect(),
     };
     let relationships = [

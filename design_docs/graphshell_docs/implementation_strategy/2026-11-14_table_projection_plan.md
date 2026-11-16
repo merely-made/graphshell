@@ -387,3 +387,7 @@ content hash, and the widget layer composites textures. Nothing puts an image in
   (the eidetic bump breaking four repositories, Inker, the five-repository sweep) was an
   exact 0.0.x row changing under a consumer. scenograph 0.0.7 and scenomise 0.0.8 are on
   main and can be published when he says.
+- 2026-11-16: Turnstone `63affcef` took the new fields slot at all nine sites and raised
+  its two Git dependency floors. The definition-to-draft conversion preserves the ordered
+  fields through edit, save and reopen. Three projection tests and the Windows check
+  with authoring enabled passed against Graphshell `1bdb2ce3`.

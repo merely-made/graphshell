@@ -133,10 +133,10 @@ pub fn run(input: &str) -> Result<String, String> {
     let occurrences: Vec<_> = case
         .occurrences
         .iter()
-        .map(|occurrence| ProjectionOccurrence {
-            occurrence_id: occurrence.occurrence_id.clone(),
-            source: sceno::SourceRef::new(&case.source.adapter, &occurrence.source_id),
-            values: BTreeMap::from([
+        .map(|occurrence| ProjectionOccurrence::new(
+            occurrence.occurrence_id.clone(),
+            sceno::SourceRef::new(&case.source.adapter, &occurrence.source_id),
+            BTreeMap::from([
                 (
                     "occurrence_id".into(),
                     ProjectionValue::Text(occurrence.occurrence_id.clone()),
@@ -147,7 +147,7 @@ pub fn run(input: &str) -> Result<String, String> {
                 ),
                 ("order".into(), ProjectionValue::Number(occurrence.order)),
             ]),
-        })
+        ))
         .collect();
     let occurrence_ids: BTreeSet<_> = occurrences
         .iter()

@@ -79,14 +79,23 @@ pub(super) fn compile_inner(
     });
     let mut score = Score::new(arrangement);
     score.generation = stable_generation(dataset);
+    // Compile the portable scene at its reference size, before live view state.
+    let representation_state = compiler.sizes.representation_state();
     for (ordinal, occurrence) in occurrences.iter().enumerate() {
+        let representation = match &compiler.class_registry {
+            Some(registry) => registry
+                .resolve_classes(occurrence.classes.iter().map(String::as_str))
+                .ladder
+                .select(representation_state, None),
+            None => compiler.mark.detail.clone(),
+        };
         let mut item = ScoreItem {
             source: occurrence.source.clone(),
             ordinal: ordinal as u32,
             footprint: Footprint::Rect {
                 size: compiler.sizes.card,
             },
-            representation: compiler.mark.detail.clone(),
+            representation,
             placement: Placement::Ordinal,
             layer: 0,
             visible: true,

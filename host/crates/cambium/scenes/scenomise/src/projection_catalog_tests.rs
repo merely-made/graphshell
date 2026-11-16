@@ -21,12 +21,44 @@ fn sizes(w: f32, h: f32) -> ItemSizes {
     }
 }
 
+#[test]
+fn disclosed_classes_round_trip_and_set_detail_per_occurrence() {
+    use sceno::Representation;
+
+    let mut dataset = dataset();
+    let legacy = serde_json::to_value(&dataset.occurrences[0]).unwrap();
+    assert!(legacy.get("classes").is_none());
+    let row: ProjectionOccurrence = serde_json::from_value(legacy).unwrap();
+    assert!(row.classes.is_empty());
+    dataset.occurrences[0] = row.with_classes(["document"]);
+    dataset.occurrences[1].classes.push("event".into());
+    let disclosed = serde_json::to_vec(&dataset).unwrap();
+    let dataset: ProjectionDataset = serde_json::from_slice(&disclosed).unwrap();
+    assert_eq!(dataset.occurrences[0].classes, ["document"]);
+
+    let compiler = ProjectionCompiler::new(sizes(40.0, 20.0));
+    let definition = definition("grid", "x");
+    let compiled = compiler.compile(&definition, &dataset).unwrap();
+    let detail = |projection: &CompiledProjection, occurrence: &str| {
+        let index = projection.instance_by_occurrence[occurrence].0 as usize;
+        projection.score.items[index].representation.clone()
+    };
+    assert_eq!(detail(&compiled, "c"), Representation::Card);
+    assert_eq!(detail(&compiled, "a"), Representation::Glyph);
+    assert_eq!(detail(&compiled, "b"), Representation::Glyph);
+
+    let mut updated = dataset;
+    updated.occurrences[2].classes.push("note".into());
+    let refreshed = compiler.refresh(&compiled, &definition, &updated).unwrap();
+    assert_eq!(detail(&refreshed, "b"), Representation::Card);
+}
+
 /// Three occurrences carrying every kind of value a family might read.
 fn dataset() -> ProjectionDataset {
-    let occurrence = |id: &str, x: f64, y: f64, lane: &str, layer: f64| ProjectionOccurrence {
-        occurrence_id: id.into(),
-        source: SourceRef::new("fixture", id),
-        values: BTreeMap::from([
+    let occurrence = |id: &str, x: f64, y: f64, lane: &str, layer: f64| ProjectionOccurrence::new(
+        id,
+        SourceRef::new("fixture", id),
+        BTreeMap::from([
             ("occurrence_id".into(), ProjectionValue::Text(id.into())),
             ("label".into(), ProjectionValue::Text(format!("Label {id}"))),
             ("x".into(), ProjectionValue::Number(x)),
@@ -34,7 +66,7 @@ fn dataset() -> ProjectionDataset {
             ("lane".into(), ProjectionValue::Text(lane.into())),
             ("layer".into(), ProjectionValue::Number(layer)),
         ]),
-    };
+    );
     ProjectionDataset {
         source: SourceBinding {
             authority: "fixture.local".into(),

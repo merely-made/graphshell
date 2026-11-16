@@ -107,7 +107,10 @@ mod relationship_tests;
 #[path = "projection_catalog_tests.rs"]
 mod catalog_tests;
 
-use scenograph::presentation::{Extent, NodeMark};
+use scenograph::presentation::{
+    Extent, GraphRepresentationRegistry, NodeMark, RepresentationState,
+    default_graph_representation_registry,
+};
 use scenograph::{Channel, ProjectionDefinition, PublicSourceRevision, SourceBinding};
 
 /// Arrangement ids saved recipes carry. The [`catalog`](crate::catalog) reads
@@ -127,8 +130,20 @@ pub use scenograph::dataset::{
 /// will draw, and writes in no size of its own.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct ItemSizes {
-    /// The footprint of one card.
+    /// The reference item footprint used by the solver.
     pub card: Size2,
+}
+
+impl ItemSizes {
+    fn representation_state(self) -> RepresentationState {
+        RepresentationState {
+            screen_width: self.card.w,
+            screen_height: self.card.h,
+            zoom_level: 1.0,
+            recency: 1.0,
+            focused: false,
+        }
+    }
 }
 
 /// One host's compiler: its measured item sizes and the solvers it registered.
@@ -140,6 +155,7 @@ pub struct ProjectionCompiler {
     sizes: ItemSizes,
     registry: SolverRegistry,
     mark: NodeMark,
+    class_registry: Option<GraphRepresentationRegistry>,
     viewers: scenograph::ViewerCatalog,
 }
 
@@ -150,17 +166,20 @@ impl ProjectionCompiler {
     }
 
     pub fn with_registry(sizes: ItemSizes, registry: SolverRegistry) -> Self {
+        let class_registry = default_graph_representation_registry();
         Self {
             sizes,
             registry,
-            mark: NodeMark::card(),
+            mark: class_registry.fallback.mark(sizes.representation_state(), None),
+            class_registry: Some(class_registry),
             viewers: scenograph::ViewerCatalog::built_in(),
         }
     }
 
-    /// Draw items as `mark`; a card unless set.
+    /// Override the class-based mark for all items.
     pub fn with_mark(mut self, mark: NodeMark) -> Self {
         self.mark = mark;
+        self.class_registry = None;
         self
     }
 
@@ -174,6 +193,7 @@ impl ProjectionCompiler {
         self.sizes
     }
 
+    /// The explicit override or the mark for an unclassed occurrence.
     pub fn mark(&self) -> &NodeMark {
         &self.mark
     }

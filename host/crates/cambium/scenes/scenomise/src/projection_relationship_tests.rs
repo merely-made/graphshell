@@ -24,15 +24,15 @@ fn disclosed(owner: &str, kind: &str) -> RelationshipDataset {
         resource: "selection:1".into(),
     };
     let revision: PublicSourceRevision = format!("{owner}-r1").into();
-    let occurrence = |id: &str, order: f64, original: &str| ProjectionOccurrence {
-        occurrence_id: id.into(),
-        source: SourceRef::new(owner, original),
-        values: BTreeMap::from([
+    let occurrence = |id: &str, order: f64, original: &str| ProjectionOccurrence::new(
+        id,
+        SourceRef::new(owner, original),
+        BTreeMap::from([
             ("occurrence_id".into(), ProjectionValue::Text(id.into())),
             ("label".into(), ProjectionValue::Text(format!("Label {id}"))),
             ("order".into(), ProjectionValue::Number(order)),
         ]),
-    };
+    );
     RelationshipDataset {
         dataset: ProjectionDataset { source: source.clone(), revision: revision.clone(),
             fields: BTreeMap::from([("occurrence_id".into(), ProjectionFieldType::Text), ("label".into(), ProjectionFieldType::Text), ("order".into(), ProjectionFieldType::Number)]),

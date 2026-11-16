@@ -776,3 +776,9 @@ face.
 - 2026-11-15: M1's tails landed: `Material` on the mark and
   `Canvas::set_node_mark_material` (D44); an unknown paint code reads as the open paint
   (D45). Body authoring ruled for B3 (D43); registry marks keep both extents (D46).
+- 2026-11-16: Projection occurrences disclose class labels (D30, D40). Older datasets read
+  with an empty class list. The compiler selects the detail rung through the shared registry
+  at the reference item size (D41). Document rows can use Card, and unclassed rows use Glyph.
+  An explicit host mark still overrides the registry. Class labels count toward existing
+  relationship disclosure limits. This projects the detail rung into the score. Body and
+  paint still belong to the mark slots work in M2.
