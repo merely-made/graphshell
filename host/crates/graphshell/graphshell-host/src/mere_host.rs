@@ -1375,6 +1375,7 @@ impl<B: Backend> MereHost<B> {
             let from_position = layout.positions[(from.0 - offset) as usize].1;
             let to_position = layout.positions[(to.0 - offset) as usize].1;
             scene.relations.push(RoutedRelation {
+                form: Default::default(),
                 from,
                 to,
                 space: Scene::WORLD,

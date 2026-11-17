@@ -284,6 +284,7 @@ fn missing_base_and_wrong_epoch_request_resynchronization() {
 fn dangling_relations_reject_the_whole_diff() {
     let mut state = snapshot();
     state.tables.relations.push(Some(RoutedRelation {
+        form: Default::default(),
         from: InstanceId(0),
         to: InstanceId(0),
         space: Scene::WORLD,
@@ -418,4 +419,51 @@ fn deterministic_random_diff_run_matches_full_rebuild_oracle() {
     rebuilt.tables.item_order = oracle_order;
     rebuilt.revision = Revision(97);
     assert_eq!(state, rebuilt);
+}
+
+#[test]
+fn placed_relation_outcomes_and_order_survive_snapshot_and_diff() {
+    let mut scene = Scene::new();
+    let source = scene.intern_source(SourceRef::new("fixture", "one"));
+    scene.items.push(sceno::ProjectedItem {
+        source,
+        space: Scene::WORLD,
+        transform: sceno::Transform2::IDENTITY,
+        footprint: sceno::Footprint::Point,
+        representation: sceno::Representation::Glyph,
+        layer: 0,
+        visible: true,
+        channels: Vec::new(),
+        hit: Default::default(),
+    });
+    let report = sceno::RelationConstraintReport {
+        constraint: sceno::RelationConstraint {
+            id: "unmet".into(),
+            from: InstanceId(0),
+            to: InstanceId(0),
+            form: sceno::RelationForm::Order,
+        },
+        honored: false,
+        reason: "self order cannot be honored".into(),
+    };
+    scene.relation_constraints.push(report.clone());
+    scene.arrangement_order.push(InstanceId(0));
+    let mut snapshot = SceneSnapshot::from_dense(SceneEpoch(1), Revision(1), scene).unwrap();
+    let decoded: SceneSnapshot =
+        serde_json::from_str(&serde_json::to_string(&snapshot).unwrap()).unwrap();
+    assert_eq!(decoded.tables.relation_constraints, vec![report]);
+    assert_eq!(decoded.tables.arrangement_order, vec![InstanceId(0)]);
+    snapshot
+        .apply_diff(&SceneDiff {
+            epoch: SceneEpoch(1),
+            base: Revision(1),
+            revision: Revision(2),
+            operations: vec![SceneOp::SetRelationConstraints {
+                reports: Vec::new(),
+                order: Vec::new(),
+            }],
+        })
+        .unwrap();
+    assert!(snapshot.tables.relation_constraints.is_empty());
+    assert!(snapshot.tables.arrangement_order.is_empty());
 }

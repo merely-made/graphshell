@@ -183,14 +183,7 @@ pub enum Condition {
     },
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum RelationForm {
-    Stroke,
-    Containment,
-    Adjacency,
-    MatrixCell,
-}
+pub use sceno::RelationForm;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]

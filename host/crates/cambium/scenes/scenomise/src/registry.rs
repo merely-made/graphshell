@@ -75,6 +75,9 @@ pub struct SolverCapability {
     /// solving; a solver that declares none takes none (SE8).
     #[serde(default)]
     pub options: Vec<OptionSpec>,
+    /// Placed relation forms accepted by the arrangement pass.
+    #[serde(default)]
+    pub placed_forms: Vec<sceno::RelationForm>,
 }
 
 impl SolverCapability {
@@ -89,6 +92,7 @@ impl SolverCapability {
             recommended_max_items: None,
             tags: Vec::new(),
             options: Vec::new(),
+            placed_forms: Vec::new(),
         }
     }
 }

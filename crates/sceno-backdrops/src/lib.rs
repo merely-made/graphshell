@@ -443,6 +443,7 @@ fn relation(
 ) {
     let index = out.scene.relations.len();
     out.scene.relations.push(RoutedRelation {
+        form: Default::default(),
         from,
         to,
         space: Scene::WORLD,

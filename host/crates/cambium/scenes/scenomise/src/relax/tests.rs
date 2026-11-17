@@ -266,6 +266,7 @@ fn an_anchored_arrangement_holds_its_shape() {
 fn related_items_are_drawn_toward_the_rest_length() {
     let mut scene = scene_with(&[(0.0, 0.0), (400.0, 0.0)]);
     scene.relations.push(RoutedRelation {
+        form: Default::default(),
         from: InstanceId(0),
         to: InstanceId(1),
         space: Scene::WORLD,

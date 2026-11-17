@@ -109,6 +109,7 @@ fn folds(
                 && instances.contains_key(&relation.to_occurrence)
         })
         .map(|relation| sceno::RoutedRelation {
+            form: Default::default(),
             from: instances[&relation.from_occurrence],
             to: instances[&relation.to_occurrence],
             space: Scene::WORLD,

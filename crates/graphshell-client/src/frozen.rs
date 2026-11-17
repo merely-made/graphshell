@@ -910,6 +910,7 @@ mod tests {
             });
             if index > 0 {
                 scene.relations.push(RoutedRelation {
+                    form: Default::default(),
                     from: InstanceId(0),
                     to: InstanceId(index as u32),
                     space: Scene::WORLD,
@@ -1028,6 +1029,7 @@ mod tests {
             });
         }
         scene.relations.push(RoutedRelation {
+            form: Default::default(),
             from: InstanceId(0),
             to: InstanceId(1),
             space: Scene::WORLD,

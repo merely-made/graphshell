@@ -130,3 +130,12 @@ its new root, and the E1a consumer/version wording follows the current source.
 The primary checkout's concurrent work remains preserved. Required normal
 commit and push hook output, selected dependency identities and source hashes
 are retained in the raw packet; the P1 worktree stays until integration.
+
+## 2026-11-17: P1 main integration
+
+The P1 candidate `5e7bf7cbc9b037f282adf4fca68405c8c8a4fae4` was combined
+with Graphshell main `f49826cefd60dba7cf2dfa181d95f782e70ce346` without
+conflicts. The combined tree passes the same 74 supplier tests. Integration
+receipts are retained separately under `Code/testing/graphshell/uxtree-p1/`
+as `merge-tests.log`, `merge-hooks.log` and `merge-push.log`. Original P1
+qualification receipts remain unchanged.

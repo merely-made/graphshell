@@ -155,3 +155,98 @@ above.
 Both repositories passed their configured pre-commit checks. Turnstone's root
 and browser resolved locks record the shared Git sources; the integration uses
 the existing floor-only manifest rows.
+
+
+## 2026-11-17 M3 relation form readers
+
+Scope: effective recipe/rule relation forms through Scenomise compilation,
+arrangement, portable scene metadata, rendering and motion refresh. Adjacency
+remains the Crystal phase; field-form realization and B4 recipe channel parity
+remain open. Retained evidence is this compact receipt, below the 100 MB budget.
+
+Implementation:
+- Sceno owns the wire form and placement reports; Scenograph re-exports
+  RelationForm. Default Stroke and empty report/order vectors preserve the old
+  JSON shape.
+- Both host-dataset and explained-relationship compilation resolve relation
+  marks, retaining the default and winning rule trace. Matched unsupported
+  forms are rejected before a custom solver is called.
+- Grid, Spiral and Mosaic declare Order. Stable occurrence/source identities
+  survive reordering. Mosaic retains its groups and weighted bisection.
+  Partition Tiles declares Containment, subdividing a parent with the existing
+  squarifier. Sibling weights already disclosed in a Score retain their ratios.
+  Source group boundaries and pins remain binding. Cycles, competing parents,
+  extent conflicts and pins produce explicit unmet outcomes.
+- MatrixCell is a directed grid beside the node layout, with occurrence row
+  and column headings. Sparse matrices retain empty axes in their bounds.
+  Matrix routing does not create source occurrences. Stroke keeps the existing
+  line path; cells use closed, filled paths.
+- Refresh starts form changes from the unconstrained scene. Motion refresh
+  retains cells and recomputes containment outcomes without moving items home.
+  Scenotime snapshots and transactional diffs retain reports and slot order.
+
+Shared checks on T-PC, reusing ~/Code/targets/graphshell:
+- cargo test --manifest-path host/Cargo.toml -p scenograph -p scenomise
+  -p sceno -p scenotime --all-features --offline: Scenograph 81 library and
+  9 integration tests; Scenomise 235 library, 4 integration and 3 doc tests;
+  Sceno 39 library and 6 doc tests; Scenotime 44 library and 2 doc tests passed.
+- After adding pre-placement rule capability validation, the full Scenomise
+  suite above passed again.
+- cargo test --manifest-path host/Cargo.toml -p mere-cartography --lib
+  --features canvas,physics-engine --offline -- --test-threads=1:
+  763 passed, 18 ignored. Includes the open-stroke versus closed-filled-cell
+  paint-command assertion. This is automated renderer evidence; no headed M3
+  interaction is claimed.
+
+The clean T-PC main checkout was used. The Windows Graphshell and Turnstone
+primary checkouts carry concurrent work and were preserved.
+
+- Review added an explicit configured-group-order Mosaic regression. Order
+  reports now read the realized group regions, including configured group
+  order; tile area remains proportional to disclosed weights with zero gutters.
+
+- Final matrix checks put row labels outside the first cell and centre each
+  column label over its column. A fully pinned Mosaic regression checks an
+  already-satisfied order against configured group order, including the
+  fallback path. Scenomise's full suite now passes 237 library, 4 integration
+  and 3 doc tests.
+
+
+### Consumer integration and final main checks
+
+The shared M3 code ends at 00c3d89. Every consumer's recorded shared Git source
+is that commit, with existing floor-only manifest rows retained.
+
+| Consumer | Change | Validation |
+| --- | --- | --- |
+| Turnstone f7d21cd7 | Directed filled matrix controls and headings; placed forms do not draw a stroke; motion routes retain their form; spoken relation descriptions include constraint outcomes | 278 web-library tests passed, 6 ignored; all configured pre-commit checks passed; final shared revision passed all-target Graphshell Clippy with query-views and the full product CPU-physics Wasm profile |
+| Mer3ly dd6dc45 | Portable relation literals explicitly use the default Stroke | All configured checks passed; repo-graph all-target Clippy passed against final shared Git sources |
+| Knot 12b3552 | Rosette relation literals explicitly use the default Stroke | All configured checks passed against final shared Git sources |
+| Woodshed fd3b60d4 | Nine hand-built stage and overview relations explicitly use Stroke | All-target Clippy, bans and patch consistency passed against final shared Git sources |
+| Cleromancy 4b7dcf1 | Default Stroke on hand-built relations; PartialEq on AmbientView, AmbientContext and ConsultationAction because saved mark material includes floats | All-target Clippy, bans and patch consistency passed against final shared Git sources |
+
+The Turnstone library command was cargo test -p graphshell --no-default-features
+--features web,physics-engine --lib --offline --locked. The browser command was
+cargo check --manifest-path ports/graphshell/web/Cargo.toml
+--target wasm32-unknown-unknown --no-default-features
+--features product,remote,image-decode,presentation-webgpu,presentation-webgl2,physics-engine
+--offline --locked.
+
+Before pushing, origin advanced with Graphshell uxtree P0 (2581ba6) and
+Turnstone Vano engine work (b270652c). These were merged without conflicts as
+3f80f27 and d91d1ffb. Their recorded dependency resolutions were retained, with
+the Turnstone shared source advanced to 00c3d89. The merged Graphshell and
+Turnstone branches passed all configured pre-commit checks, and the browser
+profile above passed again. Resolved locks are recorded on the commits under
+refs/notes/resolved.
+
+Woodshed needed its recorded Wavicle Git dependency and platform crates
+downloaded on T-PC. Cleromancy's guest metadata check also needed cached
+dependencies fetched. These were cache misses; the completed bans and patch
+checks passed.
+
+Reusable build caches remain in ~/Code/targets/{graphshell,turnstone,mer3ly,
+knot-editor,woodshed,cleromancy}, owned by their corresponding repositories.
+The seven Graphshell guest fixture aliases continue to use
+~/Code/targets/graphshell/guests. The task used primary T-PC checkouts, including
+a new primary Mer3ly checkout; Windows concurrent work was preserved.

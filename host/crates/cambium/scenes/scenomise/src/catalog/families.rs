@@ -42,6 +42,18 @@ impl Family {
             .find(|family| family.id() == id || family.aliases().contains(&id))
     }
 
+    /// Placed forms this family can realize from disclosed relationships.
+    pub fn placed_forms(self, options: &BTreeMap<String, String>) -> Vec<sceno::RelationForm> {
+        use sceno::RelationForm;
+        match self {
+            Self::Grid | Self::Spiral | Self::Mosaic => vec![RelationForm::Order],
+            Self::Partition if options.get("form").is_none_or(|form| form == "tiles") => {
+                vec![RelationForm::Containment]
+            },
+            _ => Vec::new(),
+        }
+    }
+
     pub fn channels(self) -> ChannelUse {
         match self {
             Self::Grid => ChannelUse::Cells,

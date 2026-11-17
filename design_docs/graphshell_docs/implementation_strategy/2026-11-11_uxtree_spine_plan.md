@@ -2,8 +2,8 @@
 
 **Status:** 2026-11-17: P0 merged after qualification against current main. The mixed-source gate, all
 three broken controls and the supplier suites pass on the combined tree; the source-manifest family
-cycle check also passed for P0. P1's production metadata and adapted P0 gate are locally qualified in
-a review worktree based on the published P0 merge `2581ba61`.
+cycle check also passed for P0. P1 is merged after its production metadata and adapted P0 gate passed
+qualification against current main. P2 is next.
 The slice 4 cutover is present:
 uxtree, Cambium and the E1a bench live under Graphshell's `host/`. Nine rulings are recorded (D1 to D9,
 Mark, 2026-11-11). P0 remains a gate: if it fails, D1 goes back to Mark as a question. P2 to P11 remain open.
@@ -554,3 +554,5 @@ Each is a question for a later round, with its evidence. None is answered here.
   documentation and the adapted E1a gate. The supplier suites pass 74 tests including the new
   unit and documentation tests; source mutation controls and native/wasm all-feature library checks
   pass. Production publishers, generation maps, lint and human AT remain later phases.
+- 2026-11-17: Mark authorized the P1 merge and continuation to P2. The P1 candidate was combined
+  with main `f49826ce` without conflicts; all 74 supplier tests pass again on the combined tree.

@@ -121,6 +121,11 @@ pub enum SceneOp {
     TombstoneFold {
         index: FoldId,
     },
+    /// Replace placed-relation outcomes and arrangement slot order together.
+    SetRelationConstraints {
+        reports: Vec<sceno::RelationConstraintReport>,
+        order: Vec<InstanceId>,
+    },
     SetBounds {
         bounds: Rect,
     },
@@ -265,6 +270,11 @@ impl SceneSnapshot {
                 Ok(())
             },
             SceneOp::TombstoneFold { index } => tombstone(&mut tables.folds, index.0, "fold"),
+            SceneOp::SetRelationConstraints { reports, order } => {
+                self.tables.relation_constraints = reports.clone();
+                self.tables.arrangement_order = order.clone();
+                Ok(())
+            },
             SceneOp::SetBounds { bounds } => {
                 tables.bounds = *bounds;
                 Ok(())
