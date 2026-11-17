@@ -156,3 +156,103 @@ fn rule_marks_are_checked_against_the_arrangements_extent() {
             .any(|issue| issue.field == "occurrences[a].mark")
     );
 }
+
+#[test]
+fn assigned_marks_use_the_same_cells_as_tiles() {
+    let compiler = ProjectionCompiler::new(sizes(40.0, 20.0));
+    let dataset = dataset();
+    for (kind, form) in [
+        ("mosaic", None),
+        ("partition", Some("tiles")),
+        ("partition", Some("rings")),
+    ] {
+        let mut recipe = definition(kind, "lane");
+        if let Some(form) = form {
+            recipe
+                .arrangement
+                .options
+                .insert("form".into(), form.into());
+        }
+        let legacy = compiler.compile(&recipe, &dataset).unwrap();
+        let tile = NodeMark {
+            body: Body::Silhouette(Silhouette::Square),
+            paint: Paint::Bare,
+            ..NodeMark::new(Representation::Glyph, [Extent::Assigned])
+        };
+        let mut reference = legacy.scene;
+        for (index, mark) in [
+            tile,
+            NodeMark::card(),
+            NodeMark::new(Representation::Snapshot, [Extent::Assigned]),
+            NodeMark::new(
+                Representation::Open {
+                    kind: "host portrait".into(),
+                },
+                [Extent::Assigned],
+            ),
+        ]
+        .into_iter()
+        .enumerate()
+        {
+            recipe.marks.node = Some(mark.clone());
+            let compiled = compiler.compile(&recipe, &dataset).unwrap();
+            assert_eq!(compiled.score.items.len(), reference.items.len());
+            for item in &mut reference.items {
+                item.representation = mark.detail.clone();
+            }
+            // Only detail changes. In particular, the representation cannot
+            // change the subdivision, grouping, contours or occurrence order.
+            assert_eq!(compiled.scene, reference, "{kind} {form:?} mark {index}");
+            assert!(
+                compiled
+                    .node_marks
+                    .values()
+                    .all(|resolved| resolved.marks.node.as_ref() == Some(&mark))
+            );
+        }
+    }
+}
+
+#[test]
+fn a_winning_assigned_mark_can_replace_a_measured_default() {
+    let mut recipe = definition("partition", "lane");
+    recipe.marks.node = Some(NodeMark::new(Representation::Glyph, [Extent::Measured]));
+    let card = NodeMark::card();
+    let mut presentation = rules(vec![Effect::NodeMark {
+        value: card.clone(),
+    }]);
+    let mut data = dataset();
+    let compiler =
+        ProjectionCompiler::new(sizes(40.0, 20.0)).with_presentation(presentation.clone());
+    let issues = compiler.compile(&recipe, &data).unwrap_err();
+    assert!(
+        issues
+            .iter()
+            .all(|issue| issue.field != "occurrences[a].mark")
+    );
+    assert_eq!(issues.len(), 2);
+    presentation.rules[0].target.ids.clear();
+    let compiler = ProjectionCompiler::new(sizes(40.0, 20.0)).with_presentation(presentation);
+    let compiled = compiler.compile(&recipe, &data).unwrap();
+    assert!(
+        compiled
+            .scene
+            .items
+            .iter()
+            .all(|item| item.representation == Representation::Card)
+    );
+    assert!(
+        compiled
+            .node_marks
+            .values()
+            .all(|resolved| resolved.marks.node.as_ref() == Some(&card))
+    );
+    data.occurrences.clear();
+    assert!(
+        compiler
+            .compile(&recipe, &data)
+            .unwrap_err()
+            .iter()
+            .any(|issue| issue.field == "marks.node")
+    );
+}
