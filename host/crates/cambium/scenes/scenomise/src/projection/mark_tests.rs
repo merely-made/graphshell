@@ -256,3 +256,24 @@ fn a_winning_assigned_mark_can_replace_a_measured_default() {
             .any(|issue| issue.field == "marks.node")
     );
 }
+
+#[test]
+fn switching_subdivision_detail_preserves_an_adjusted_placement() {
+    let compiler = ProjectionCompiler::new(sizes(40.0, 20.0));
+    let data = dataset();
+    for kind in ["mosaic", "partition"] {
+        let mut recipe = definition(kind, "lane");
+        recipe.marks.node = Some(mark(Silhouette::Square));
+        let mut previous = compiler.compile(&recipe, &data).unwrap();
+        previous.scene.items[0].transform.translate.x += 12.0;
+        let card = NodeMark::card();
+        recipe.marks.node = Some(card.clone());
+        let refreshed = compiler.refresh(&previous, &recipe, &data).unwrap();
+        assert!(refreshed.placement_reused, "{kind}");
+        let mut expected = previous.scene;
+        for item in &mut expected.items {
+            item.representation = Representation::Card;
+        }
+        assert_eq!(refreshed.scene, expected, "{kind}");
+    }
+}
