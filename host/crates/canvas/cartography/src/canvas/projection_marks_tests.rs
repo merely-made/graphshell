@@ -210,3 +210,57 @@ fn live_rule_marks_override_recipe_marks_and_clear_atomically() {
     );
     assert_eq!(canvas.node_shape(key), Silhouette::Diamond);
 }
+
+#[test]
+fn explicit_mark_silhouettes_control_rounding_in_both_grammars() {
+    let mut canvas = Canvas::new();
+    let key = canvas.visit("https://silhouette.example");
+    let member = canvas.graph().get_node(key).unwrap().id;
+    for grammar in [false, true] {
+        canvas.set_graph_grammar(grammar);
+        for shape in [
+            Silhouette::Square,
+            Silhouette::RoundedSquare,
+            Silhouette::Circle,
+            Silhouette::Diamond,
+            Silhouette::Hexagon,
+        ] {
+            let mark = NodeMark {
+                body: Body::Silhouette(shape),
+                ..NodeMark::new(sceno::Representation::Glyph, [Extent::Measured])
+            };
+            canvas
+                .set_node_rule_presentation(
+                    canvas.graph_view_epoch(),
+                    HashMap::new(),
+                    HashMap::from([(member, mark)]),
+                )
+                .unwrap();
+            canvas.frame(800, 600);
+            let body = canvas.node_billboard(key).unwrap();
+            let radius = match shape {
+                Silhouette::Square | Silhouette::Diamond | Silhouette::Hexagon => 0.0,
+                Silhouette::RoundedSquare => 9.0_f32.min(body.local_side * 0.5),
+                Silhouette::Circle => body.local_side * 0.5,
+            };
+            assert_eq!(body.corner_radius, radius, "{grammar} {shape:?}");
+            let node = canvas.gnode_of[&key];
+            let style = canvas
+                .node_document
+                .dom()
+                .attribute(node, &Namespace::from(""), &LocalName::from("style"))
+                .unwrap();
+            assert!(
+                style.contains(&format!("border-radius: {radius}px;")),
+                "{style}"
+            );
+            let delta = body.local_side * body.zoom * 0.44;
+            let corner = body.center + euclid::default::Vector2D::new(delta, delta);
+            assert_eq!(
+                body.contains_screen(corner),
+                shape == Silhouette::Square,
+                "{grammar} {shape:?}"
+            );
+        }
+    }
+}

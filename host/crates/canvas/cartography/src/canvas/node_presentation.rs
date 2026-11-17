@@ -24,10 +24,14 @@ impl Canvas {
     pub(crate) fn node_effective_local_corner_radius(&self, key: NodeKey, side: f32) -> f32 {
         let half = side * 0.5;
         let shape = self.node_shape(key);
+        let mark_body = matches!(
+            self.requested_node_mark(key).map(|mark| mark.body),
+            Some(scenograph::presentation::Body::Silhouette(_)),
+        );
         if shape.outline().is_some() {
             return 0.0;
         }
-        if self.graph_grammar {
+        if self.graph_grammar && !mark_body {
             let attention = self
                 .graph
                 .get_node(key)
@@ -38,7 +42,7 @@ impl Canvas {
                 _ => 2.0_f32.min(half), // `.gnode-site { border-radius: 2px }`
             };
         }
-        if self.node_representation_class(key).contains("glyph") {
+        if !mark_body && self.node_representation_class(key).contains("glyph") {
             return half;
         }
         match shape {

@@ -797,6 +797,6 @@ face.
   Binding, draft promotion and editor undo carry the slots. Compilation resolves
   occurrence rules before placement and retains their defaults and winning trace.
   The canvas takes complete compiled marks and live rule marks through atomic
-  replacement. Relation and field forms reach their readers in M3.
+  replacement. Relation-form realization is M3. Field forms are carried as requests.
 
   [M2 receipt](../../archive_docs/receipts/2026-11-14_primitive_representations_plan_receipts.md#2026-11-17-m2-recipe-mark-slots).
