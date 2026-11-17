@@ -39,6 +39,9 @@ use mere_surface_api::{
 use sprigging::{Leaf, LeafRegistry, PaintCx, Size, SizeHint};
 use uxtree::{ActionTarget, Composition, GraftTable, Grafts, graft_node, tree_id_for_path};
 
+#[path = "e1a_spine/mod.rs"]
+mod spine;
+
 const LEAF_KEY: u64 = 0x5753_4642;
 const PANE: (f32, f32) = (200.0, 120.0);
 const A_ORIGIN: (f64, f64) = (0.0, 40.0);
