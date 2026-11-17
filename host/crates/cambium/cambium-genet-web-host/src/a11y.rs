@@ -401,7 +401,7 @@ impl Accessibility for DomAccessibility {
         }
         let projection =
             cambium_rootstock::project_semantics(dom, layout, leaves, producers, focus);
-        let requests = match projection.publication_bindings(owner, dom, leaves, producers) {
+        let requests = match projection.publication_envelopes(owner, dom, leaves, producers) {
             Ok(bindings) => bindings.requests,
             Err(_) => {
                 self.clear_publication();

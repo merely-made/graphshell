@@ -569,6 +569,7 @@ fn what_a_leaf_draws_lowers_to_named_boxes_under_it() {
             name: Some("Remote board".into()),
             children: vec![
                 cambium_rootstock::ProducerNode {
+                    domain_ref: None,
                     key: 10,
                     role: cambium_rootstock::ProducerRole::ListItem,
                     name: "Card 0".into(),
@@ -576,6 +577,7 @@ fn what_a_leaf_draws_lowers_to_named_boxes_under_it() {
                     actions: Vec::new(),
                 },
                 cambium_rootstock::ProducerNode {
+                    domain_ref: None,
                     key: 11,
                     role: cambium_rootstock::ProducerRole::Image,
                     name: "Card 1".into(),
@@ -627,6 +629,7 @@ fn what_a_leaf_draws_lowers_to_named_boxes_under_it() {
 #[test]
 fn a_drawn_nodes_actions_lower_to_buttons_that_name_their_action() {
     let item = |key: u64, name: &str| cambium_rootstock::ProducerNode {
+        domain_ref: None,
         key,
         role: cambium_rootstock::ProducerRole::Group,
         name: name.into(),
@@ -725,6 +728,7 @@ fn flat_tree_tests_mirror_only_the_assigned_producer_and_its_action() {
             role: Some(ProducerRole::Group),
             name: Some("Slotted board".into()),
             children: vec![ProducerNode {
+                domain_ref: None,
                 key: 40,
                 role: ProducerRole::ListItem,
                 name: "Card".into(),
@@ -771,6 +775,7 @@ fn content_origin_tests_mirror_offsets_from_the_padded_content_box_once() {
         &layout,
         ProducerSemantics {
             children: vec![ProducerNode {
+                domain_ref: None,
                 key: 40,
                 role: cambium_rootstock::ProducerRole::ListItem,
                 name: "Card".into(),
@@ -803,6 +808,7 @@ fn identity_tests_browser_mirror_omits_ambiguous_producer_actions() {
         description: "Keep card".into(),
     };
     let child = ProducerNode {
+        domain_ref: None,
         key: 40,
         role: cambium_rootstock::ProducerRole::ListItem,
         name: "Card".into(),

@@ -6,7 +6,7 @@
 
 //! Native ROOT publication namespace. Source IDs never enter native routing.
 use accesskit::{NodeId, TreeId, TreeUpdate};
-use cambium_rootstock::{A11yRequest, PublicationBindings, SemanticNodeIdentity};
+use cambium_rootstock::{A11yRequest, SemanticEnvelope, SemanticNodeIdentity, SemanticPublication};
 use std::collections::{HashMap, HashSet};
 use std::sync::atomic::{AtomicU64, Ordering};
 
@@ -25,6 +25,7 @@ pub(super) struct Prepared {
     pub tree: TreeUpdate,
     pub namespace: NativeIds,
     pub requests: HashMap<NodeId, A11yRequest>,
+    pub envelopes: HashMap<NodeId, SemanticEnvelope>,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -58,7 +59,7 @@ impl NativeIds {
     pub fn prepare(
         &self,
         mut tree: TreeUpdate,
-        mut bindings: PublicationBindings,
+        bindings: SemanticPublication,
     ) -> Result<Prepared, Refusal> {
         if tree.tree_id != TreeId::ROOT || tree.nodes.iter().any(|(_, n)| n.tree_id().is_some()) {
             return Err(Refusal::ForeignTree);
@@ -87,8 +88,9 @@ impl NativeIds {
         let mut entries = HashMap::new();
         for (source, _) in &tree.nodes {
             let identity = bindings
-                .identities
-                .remove(source)
+                .envelopes
+                .get(source)
+                .map(|envelope| envelope.provenance.clone())
                 .ok_or(Refusal::MissingIdentity(*source))?;
             let id = self
                 .entries
@@ -114,10 +116,21 @@ impl NativeIds {
             .into_iter()
             .map(|(id, request)| Ok((map(NodeId(id))?, request)))
             .collect::<Result<HashMap<_, _>, Refusal>>()?;
+        let mut envelopes = HashMap::new();
+        for (source, mut envelope) in bindings.envelopes {
+            // Extra identities without routes were ignored before this change.
+            // The request remap above still refuses every dangling route.
+            if let Some(entry) = entries.get(&source) {
+                envelope.address.local = entry.id;
+                envelope.stability = uxtree::envelope::Stability::Life;
+                envelopes.insert(entry.id, envelope);
+            }
+        }
         Ok(Prepared {
             tree,
             namespace: NativeIds { entries },
             requests,
+            envelopes,
         })
     }
 }

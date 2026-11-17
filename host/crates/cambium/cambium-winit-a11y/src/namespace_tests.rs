@@ -14,6 +14,8 @@ use layout_dom_api::LayoutDomMut;
 use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 
+mod envelope_tests;
+
 struct Fixture {
     dom: ScriptedDom,
     layout: OwnedLayout,
@@ -64,7 +66,7 @@ impl Fixture {
         let mut dom = ScriptedDom::new();
         dom.set_inner_html(
             dom.document(),
-            "<custom-leaf key='7' style='display:block;width:80px;height:30px'></custom-leaf>",
+            "<custom-leaf key='7' data-key='native-slot' id='fallback' style='display:block;width:80px;height:30px'></custom-leaf>",
         );
         let layout = OwnedLayout::new(
             &WindowDom::document(&dom),
@@ -99,7 +101,7 @@ impl Fixture {
     fn prepare(&self, ids: &NativeIds) -> Prepared {
         let projection = self.projection();
         let bindings = projection
-            .publication_bindings(
+            .publication_envelopes(
                 &self.owner(),
                 &WindowDom::document(&self.dom),
                 &self.leaves,
@@ -113,9 +115,11 @@ impl Fixture {
             tree,
             namespace,
             requests,
+            envelopes,
         } = self.prepare(&host.namespace);
         host.namespace = namespace;
         host.requests = requests;
+        host.envelopes = envelopes;
         tree
     }
     fn slot_id(&self, host: &A11yHost) -> A11yNodeId {
@@ -246,6 +250,7 @@ impl TextureProducer for Structural {
         Some(ProducerSemantics {
             children: if self.shown.get() {
                 vec![ProducerNode {
+                    domain_ref: Some(cambium_rootstock::SourceRef::new("fixture", "member")),
                     key: 40,
                     role: ProducerRole::ListItem,
                     name: "Structural".into(),
@@ -360,7 +365,7 @@ fn native_namespace_remaps_relations_selection_root_and_focus_in_one_snapshot() 
         },
     });
     let bindings = projection
-        .publication_bindings(
+        .publication_envelopes(
             &f.owner(),
             &WindowDom::document(&f.dom),
             &f.leaves,
@@ -423,7 +428,7 @@ fn native_namespace_refuses_bad_references_and_foreign_trees_without_changing_cu
     for case in 0..6 {
         let mut projection = f.projection();
         let mut bindings = projection
-            .publication_bindings(
+            .publication_envelopes(
                 &f.owner(),
                 &WindowDom::document(&f.dom),
                 &f.leaves,
@@ -441,7 +446,7 @@ fn native_namespace_refuses_bad_references_and_foreign_trees_without_changing_cu
                 .set_tree_id(accesskit::TreeId::ROOT),
             3 => projection.tree.nodes.push(projection.tree.nodes[0].clone()),
             4 => {
-                bindings.identities.remove(&projection.tree.nodes[0].0);
+                bindings.envelopes.remove(&projection.tree.nodes[0].0);
             },
             _ => projection.tree.nodes[0].1.push_child(first_id),
         }
@@ -480,7 +485,7 @@ fn shared_publication_refuses_route_metadata_with_a_different_authored_target() 
     };
     projection.dom_targets.insert(id, wrong);
     assert!(matches!(
-        projection.publication_bindings(
+        projection.publication_envelopes(
             &f.owner(),
             &WindowDom::document(&f.dom),
             &f.leaves,

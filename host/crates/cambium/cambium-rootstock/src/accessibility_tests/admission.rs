@@ -77,6 +77,7 @@ fn current_producer_action_requires_a_present_slot_and_advertised_action() {
         fn semantics(&self) -> Option<ProducerSemantics> {
             Some(ProducerSemantics {
                 children: vec![ProducerNode {
+                    domain_ref: None,
                     key: 40,
                     role: ProducerRole::ListItem,
                     name: "Card".into(),
@@ -193,6 +194,7 @@ fn identity_tests_current_admission_refuses_ambiguous_producer_action_without_di
             };
             Some(ProducerSemantics {
                 children: vec![ProducerNode {
+                    domain_ref: None,
                     key: 40,
                     role: ProducerRole::ListItem,
                     name: "Card".into(),

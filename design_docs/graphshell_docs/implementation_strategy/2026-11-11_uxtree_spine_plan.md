@@ -3,7 +3,8 @@
 **Status:** 2026-11-17: P0 merged after qualification against current main. The mixed-source gate, all
 three broken controls and the supplier suites pass on the combined tree; the source-manifest family
 cycle check also passed for P0. P1 is merged after its production metadata and adapted P0 gate passed
-qualification against current main. P2 is next.
+qualification against current main. P2 is in progress from published merge `5267dd2d`, in isolated
+Graphshell and Turnstone worktrees because both primary checkouts have concurrent source work.
 The slice 4 cutover is present:
 uxtree, Cambium and the E1a bench live under Graphshell's `host/`. Nine rulings are recorded (D1 to D9,
 Mark, 2026-11-11). P0 remains a gate: if it fails, D1 goes back to Mark as a question. P2 to P11 remain open.
@@ -151,6 +152,22 @@ domain reference; `DescribedKeyRegistry` stays the key owner.
   `PublicationBindings` in non-test source is zero, or what remains is named in this phase and lists only what the
   envelope cannot hold.
 - Needs: P1.
+
+P2 receipt budget: 100 MB total across repositories, under `Code/testing/graphshell/uxtree-p2/`.
+Required receipts: the Rootstock/native publisher baseline and changed suites, a complete published
+tree/envelope walk, actual producer command and canvas member-reference checks, unchanged stale-owner
+refusals with broken controls, family cycles after manifest changes, receiving builds and normal hooks.
+The domain field uses the existing `sceno::SourceRef` contract; it carries the canvas member UUID in
+the source's identity scheme. Native envelopes are finalized only after existing ID remapping, and
+requests keep their captured weak provenance. This phase changes neither publication refusal policy
+nor `DescribedKeyRegistry`'s ownership of canvas keys. `PublicationBindings` is removed from Rust
+source. Its replacement, `SemanticPublication`, holds envelopes plus typed `A11yRequest` input routes;
+the routes retain their publication witness for delivery and are the only remainder the metadata
+envelope cannot represent. DOM authored keys come from `data-key`, falling back to `id`. The
+Rootstock fill lives in `semantics/publication.rs` so composition stays below the line ceiling.
+The complete-tree gate covers semantic submissions. The existing root-only pre-layout window
+bootstrap remains `PendingPresentation`, with no semantic routes or envelopes; it is not a submitted
+application semantic tree. Browser runtime and human/platform acceptance remain later gates.
 
 ### P3. Pelt and graphshell-client fill the envelope
 
@@ -556,3 +573,27 @@ Each is a question for a later round, with its evidence. None is answered here.
   pass. Production publishers, generation maps, lint and human AT remain later phases.
 - 2026-11-17: Mark authorized the P1 merge and continuation to P2. The P1 candidate was combined
   with main `f49826ce` without conflicts; all 74 supplier tests pass again on the combined tree.
+
+- 2026-11-17: P2 baseline: 240 Rootstock tests pass (18 existing ignores). The native
+  publisher freezes metadata with routes, remaps envelope addresses to native IDs and retires
+  both together. The complete native walk passes; the source-manifest cycle check finds no strict
+  or development cycles across 29 repositories. Receiving canvas checks and broken controls remain
+  in progress. The raw packet is `Code/testing/graphshell/uxtree-p2/`, capped at 100 MB total.
+- 2026-11-17: P2 controls: removing native envelopes, leaving source addresses, dropping a
+  producer command or domain reference, and rebinding an old request each fail their runtime
+  assertions. The envelope route rejects a replaced child even while its old marker is retained.
+  An exploratory provenance-only bypass was still refused by the independent producer token check;
+  its log is retained alongside the stronger caught rebind control. Final supplier/receiving gates
+  and the Turnstone fresh resolution remain in progress.
+- 2026-11-17: P2 restored supplier qualification passes 340 tests (19 existing ignores),
+  followed by 10 desktop accessibility tests and the Rootstock/browser host wasm library check.
+  Turnstone receiving qualification and normal candidate hooks remain in progress.
+- 2026-11-17: P2 normal hooks passed all three Clippy checks; dependency bans found
+  `peer-facts` 0.0.1 from the older Dramatis holder alongside Armillary Git 0.0.3. Current
+  Dramatis main already uses the Armillary source. Refreshing that Git holder through Cargo,
+  retaining the before/after resolution receipts, then re-running the affected gates. No skip
+  or manual lock edit is introduced. Turnstone is materializing its fresh Genet source checkout.
+- 2026-11-17: Cargo refreshed the existing Dramatis Git source from `2c779ded` to
+  current main `9185d150`. The 12 family packages moved together and registry `peer-facts`
+  0.0.1 disappeared. Before/after package IDs and locks are retained; manifests, source
+  patches and dependency-ban policy are unchanged. Normal hooks are being retried.

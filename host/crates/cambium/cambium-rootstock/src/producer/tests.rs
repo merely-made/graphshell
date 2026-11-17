@@ -498,6 +498,7 @@ fn gpu_content_origin_tests_semantic_child_sits_on_the_padded_producer_pixels() 
         fn semantics(&self) -> Option<ProducerSemantics> {
             Some(ProducerSemantics {
                 children: vec![ProducerNode {
+                    domain_ref: None,
                     key: 40,
                     role: ProducerRole::Image,
                     name: "Patch".into(),

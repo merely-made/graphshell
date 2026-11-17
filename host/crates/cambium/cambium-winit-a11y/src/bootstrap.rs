@@ -31,6 +31,7 @@ impl A11yHost {
             return;
         };
         self.requests.clear();
+        self.envelopes.clear();
         self.namespace.clear();
         match self.bridge.install(&window, window_root()) {
             Ok(()) => self.installed = true,

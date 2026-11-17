@@ -139,3 +139,66 @@ conflicts. The combined tree passes the same 74 supplier tests. Integration
 receipts are retained separately under `Code/testing/graphshell/uxtree-p1/`
 as `merge-tests.log`, `merge-hooks.log` and `merge-push.log`. Original P1
 qualification receipts remain unchanged.
+
+
+## 2026-11-17: P2 native envelope qualification
+
+Base: Graphshell main merge `5267dd2ddeb866ca43d6dec0de7ea2ac85c177d7`.
+Candidate branch/worktree: `uxtree/p2`, `Code/worktrees/graphshell-uxtree-p2`.
+Receiving candidate: Turnstone `uxtree/p2`, based on
+`d91d1ffb56808ae331487d980a17a5883b6e3579`.
+Raw packet: `Code/testing/graphshell/uxtree-p2/`, 100 MB total across repositories.
+
+`SemanticPublication` replaces `PublicationBindings`: complete uxtree envelopes
+plus typed input-delivery routes, which retain the publication's weak witness.
+The metadata alias uses the existing `A11yOwner`, `SemanticNodeIdentity` and
+`sceno::SourceRef`. Native preparation maps each local address to its final
+native ID; tree, envelopes, namespace and routes advance together. Refusal and
+owner retirement clear the metadata with the routes. Authored DOM keys are
+actual `data-key` or fallback `id`; DOM action kinds create no command IDs.
+Producer action-button envelopes carry the actual command and their child's
+source reference. Structural children carry the reference without an action
+route. Existing native refusal policy is unchanged.
+
+The full submitted semantic-tree walk passes, including every final address,
+Life class, owner/provenance, command, source reference and authored key. The
+new Rootstock test freezes a real envelope route, replaces the child while
+retaining the old marker, and sees `StaleTarget` with no action effect; a fresh
+route dispatches. The pre-layout root-only bootstrap remains
+`PendingPresentation`, not a semantic submission, with no routes or envelopes.
+
+Qualification so far:
+
+- Baseline Rootstock library: 240 passed, 18 existing ignores.
+- Restored supplier run: 340 passed, 19 ignores (including the existing ignored
+  Rootstock doctest). This includes 241 Rootstock library and 75 uxtree/native
+  supplier tests, plus Rootstock integration tests.
+- Desktop accessibility receiving tests: 10 passed.
+- Rootstock and browser host library wasm check: passed with
+  `RUSTFLAGS='--cfg getrandom_backend="wasm_js"'`.
+- Five source controls fail at runtime: omitted envelopes, unremapped source
+  address, omitted command, omitted domain reference, and old-request rebinding.
+  The first exploratory provenance-only bypass still passed because the
+  independent producer child-token check refused it. Its log is retained;
+  `stale_rebind_control.py` demonstrates the stronger defect and fails as expected.
+- Rust-source search: zero `PublicationBindings` / `publication_bindings` hits.
+- Family checker: 29 repositories, no strict or development source cycles;
+  resolved-lock warnings remain separately recorded in the JSON.
+
+Exact commands and output: `qualified-core-tests.log`, `receiving-host-tests.log`,
+`wasm-host-check.log`, `control-*.log`, `control-results.json`,
+`candidate-source-family-cycles.json`, and the control/checker scripts.
+Generated baseline locks are retained, not edited or committed. Turnstone's
+canvas qualification and normal hooks are still in progress at this checkpoint.
+Browser execution and human/platform assistive-technology acceptance remain open.
+
+
+The first offline hook attempt lacked cached `regalloc2` 0.15.3. The online
+retry passed all three Clippy hooks, then found a pre-existing resolution split:
+registry `peer-facts` 0.0.1 through old Dramatis `custody-wire`, alongside Armillary
+Git 0.0.3. Current Dramatis main already uses the Armillary source. Normal
+`cargo update --manifest-path host/Cargo.toml -p custody-wire` refreshed the 12
+Dramatis Git packages from `2c779ded` to `9185d150` and removed registry 0.0.1.
+No manifest, patch, skip or manual lock edit was needed. The before/after locks,
+package IDs and failed hooks are retained in `graphshell-host*.Cargo.lock`,
+`resolution-delta.json`, `refresh-dramatis.log` and `graphshell-commit-hooks*.log`.

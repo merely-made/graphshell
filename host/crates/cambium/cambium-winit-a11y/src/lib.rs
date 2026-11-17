@@ -41,9 +41,9 @@ mod bootstrap;
 #[cfg(test)]
 mod namespace_tests;
 mod publication;
-mod remap;
 #[cfg(test)]
 mod publication_tests;
+mod remap;
 mod synchronization;
 
 /// The screen-reader request vocabulary, re-exported from the neutral seam.
@@ -103,6 +103,7 @@ pub struct A11yHost {
     installed: bool,
     /// Native publication IDs map to the last published contributor bindings.
     requests: HashMap<A11yNodeId, A11yRequest>,
+    envelopes: HashMap<A11yNodeId, cambium_rootstock::SemanticEnvelope>,
     namespace: publication::NativeIds,
 }
 
@@ -116,6 +117,7 @@ impl A11yHost {
             bridge: AccessKitBridge::new(wake),
             installed: false,
             requests: HashMap::new(),
+            envelopes: HashMap::new(),
             namespace: publication::NativeIds::default(),
         }
     }
@@ -123,6 +125,14 @@ impl A11yHost {
     /// Physical adapter installation only; this does not report latest tree publication.
     pub fn status(&self) -> BridgeStatus {
         self.bridge.status()
+    }
+
+    /// Metadata for every node in the active semantic publication. Empty after
+    /// refusal or owner retirement, and during the pre-layout window bootstrap.
+    /// These addresses are finalized native IDs, not semantic source IDs.
+    /// Submission does not certify that assistive technology consumed the tree.
+    pub fn published_envelopes(&self) -> &HashMap<A11yNodeId, cambium_rootstock::SemanticEnvelope> {
+        &self.envelopes
     }
 
     fn adapter_state(&self) -> A11yAdapterState {
@@ -518,6 +528,7 @@ mod dpi_tests {
                     name: Some("Remote board".into()),
                     children: vec![
                         ProducerNode {
+                            domain_ref: None,
                             key: 40,
                             role: ProducerRole::ListItem,
                             name: "Card 0".into(),
@@ -529,6 +540,7 @@ mod dpi_tests {
                             }],
                         },
                         ProducerNode {
+                            domain_ref: None,
                             key: 41,
                             role: ProducerRole::ListItem,
                             name: "Card 1".into(),
@@ -750,6 +762,7 @@ mod dpi_tests {
                     role: Some(ProducerRole::Group),
                     name: Some("Slotted board".into()),
                     children: vec![ProducerNode {
+                        domain_ref: None,
                         key: 40,
                         role: ProducerRole::ListItem,
                         name: "Card".into(),
@@ -850,6 +863,7 @@ mod dpi_tests {
             description: "Keep card".into(),
         };
         let child = ProducerNode {
+            domain_ref: None,
             key: 40,
             role: ProducerRole::ListItem,
             name: "Card".into(),

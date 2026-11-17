@@ -80,6 +80,7 @@ impl TextureProducer for Source {
         Some(ProducerSemantics {
             name: Some(self.pending.as_ref().unwrap_or(&self.label).clone()),
             children: vec![ProducerNode {
+                domain_ref: None,
                 key: 1,
                 role: ProducerRole::GraphicsObject,
                 name: "child".into(),

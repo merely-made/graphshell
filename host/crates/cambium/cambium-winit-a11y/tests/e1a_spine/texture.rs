@@ -54,6 +54,7 @@ impl TextureProducer for Drawing {
             role: Some(ProducerRole::Group),
             name: Some("Drawing".into()),
             children: vec![ProducerNode {
+                domain_ref: None,
                 key: CHILD,
                 role: ProducerRole::GraphicsObject,
                 name: "Item".into(),
@@ -156,7 +157,7 @@ impl Owner for Session {
         assert!(projection.producer_issues.is_empty());
         let owner = A11yOwner::new(&self.live);
         let bindings = projection
-            .publication_bindings(&owner, &WindowDom::document(&dom), &leaves, &self.registry)
+            .publication_envelopes(&owner, &WindowDom::document(&dom), &leaves, &self.registry)
             .unwrap();
         let envelopes = projection
             .tree
@@ -180,7 +181,7 @@ impl Owner for Session {
                         owner: owner.clone(),
                         request: bindings.requests.get(&id.0).cloned(),
                         child: action.map(|_| self.model.borrow().lifetime.token()),
-                        identity: Some(bindings.identities[id].clone()),
+                        identity: Some(bindings.envelopes[id].provenance.clone()),
                     },
                 );
                 envelope.action_ids = action
