@@ -28,10 +28,11 @@
 //!   layout; the projection here is structural only.
 //! - **Event synthesis**: the host owns input. Automation tools build
 //!   on top of this tree but route events through host-specific paths.
-//! - **Host coupling**: this crate depends on `accesskit` and `inker`,
-//!   nothing else. No gpui types here.
+//! - **Host coupling**: the node vocabulary is AccessKit and the portable
+//!   document input is `inker`. [`envelope`] preserves caller-owned metadata
+//!   without importing host types.
 
-#![doc(html_root_url = "https://docs.rs/uxtree/0.0.1")]
+#![doc(html_root_url = "https://docs.rs/uxtree/0.0.2")]
 
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
@@ -39,6 +40,7 @@ use std::hash::{Hash, Hasher};
 use accesskit::{Action, Node, NodeId, Role, TreeId, TreeInfo, TreeUpdate};
 use inker::{Block, EngineDocument, FoldState, InlineSpan, MenuRow, inline_text};
 
+pub mod envelope;
 #[cfg(feature = "frozen")]
 pub mod frozen;
 pub mod graft;

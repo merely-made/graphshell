@@ -75,3 +75,67 @@ Mark authorized the P0 merge and continuation to P1. The P0 branch at
 passes all 67 supplier tests on that combined tree. New raw output is
 `Code/testing/graphshell/uxtree-p0/merge-tests.log`; merge hooks and push output
 are retained separately. Original P0 receipts are preserved.
+
+## 2026-11-17: P1 production metadata
+
+Base: published P0 merge `2581ba615c7cf27d47522779420c08ca333c3bf5`.
+Candidate: branch `uxtree/p1`, worktree `Code/worktrees/graphshell-uxtree-p1`.
+Raw packet: `Code/testing/graphshell/uxtree-p1/`, 100 MB across-repository cap.
+The existing stable target `C:/t/cargo-targets/graphshell` is reused. No isolated
+target or Cargo home is created.
+
+`uxtree::envelope` defines `Address<I>`, `Stability` and `Envelope<I, P, D>`.
+The common instance, provenance and domain types are supplied by the reader's
+owners. Six metadata fields sit beside AccessKit; none duplicates node
+semantics. Constructors explicitly declare Life, Scoped revision/epoch,
+Derived optional owner generation, or Authored lookup key. They allocate no
+lives and authorize no action. Publishing adapters and generation maps remain
+P2 onward. The per-field producer table lives in the module docs.
+
+Accepted commands:
+
+```text
+cargo test --offline --manifest-path host/Cargo.toml -p uxtree -p cambium-a11y -j 4
+cargo check --offline --manifest-path host/Cargo.toml -p uxtree --all-features --lib -j 4
+cargo check --offline --manifest-path host/Cargo.toml -p uxtree --all-features --lib --target wasm32-unknown-unknown -j 4
+python Code/testing/graphshell/uxtree-p1/constructor_controls.py
+python Code/testing/graphshell/uxtree-p1/cycle_gate.py
+```
+
+- Supplier run: 74 passes, zero failures or ignores across six unit,
+  integration and doc-test groups (`supplier-tests.log`). The P0 E1a bench
+  now uses the public metadata and named constructors with the same real
+  source projections and all three original broken controls.
+- Native and wasm all-feature library checks pass. This is compilation,
+  not browser execution or human screen-reader acceptance.
+- Actual source mutations are detected: Scoped returning Life, an Authored
+  constructor dropping its key, and a duplicated AccessKit Role field each
+  fail the focused test at its intended assertion. Full failed outputs and
+  expected failures are recorded in `control-*.log` and
+  `constructor-control-results.json`; the runner restores exact source bytes.
+- The actual Envelope declaration is checked for exactly the six metadata
+  fields and absence of role/name/state/bounds/children/relations. A permanent
+  negative control plants each prohibited field in the schema guard.
+- Uxtree's manifest is byte-for-byte unchanged. The common consumer still has
+  no producer-kind or stability-class branch. `manifest-and-consumer-checks.json`
+  records both searches; the diff and name-search logs are retained.
+- Source-manifest cycle gate: 29 actual family checkouts, with this worktree
+  substituted for Graphshell; no strict/dev cycle or stale allowlist entry.
+  The same accepted P0 checker adapter is reused. Existing resolved-lock
+  warnings at 14 roots remain warnings; strict-lock qualification is not claimed.
+
+The README and crate docs now describe the new metadata. Related stale
+documentation was corrected: stitch concatenates child nodes and hashes only
+its new root, and the E1a consumer/version wording follows the current source.
+The primary checkout's concurrent work remains preserved. Required normal
+commit and push hook output, selected dependency identities and source hashes
+are retained in the raw packet; the P1 worktree stays until integration.
+
+## 2026-11-17: P1 main integration
+
+The P1 candidate `5e7bf7cbc9b037f282adf4fca68405c8c8a4fae4` was combined
+with Graphshell main `f49826cefd60dba7cf2dfa181d95f782e70ce346` without
+conflicts. The combined tree passes the same 74 supplier tests. Integration
+receipts are retained separately under `Code/testing/graphshell/uxtree-p1/`
+as `merge-tests.log`, `merge-hooks.log` and `merge-push.log`. Original P1
+qualification receipts remain unchanged.

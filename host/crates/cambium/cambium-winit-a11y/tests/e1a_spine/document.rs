@@ -94,22 +94,20 @@ impl Owner for Session {
         let envelopes = projection
             .nodes()
             .iter()
-            .map(|node| Envelope {
-                address: Address {
-                    instance: self.instance(),
-                    local: accesskit::NodeId(node.id.get()),
-                },
-                stability: Stability::Scoped(revision),
-                provenance: Provenance {
-                    owner: A11yOwner::new(&self.live),
-                    request: None,
-                    child: None,
-                    identity: None,
-                },
-                action_ids: Vec::new(),
-                domain_ref: None,
-                // The neutral projection does not export authored DOM keys.
-                authored_key: None,
+            .map(|node| {
+                Envelope::scoped(
+                    Address {
+                        instance: self.instance(),
+                        local: accesskit::NodeId(node.id.get()),
+                    },
+                    revision,
+                    Provenance {
+                        owner: A11yOwner::new(&self.live),
+                        request: None,
+                        child: None,
+                        identity: None,
+                    },
+                )
             })
             .collect();
         let mut update = genet_render::accesskit_tree_from_projection(projection);
@@ -121,7 +119,10 @@ impl Owner for Session {
         observation.provenance.owner.is_live()
             && observation.provenance.owner == A11yOwner::new(&self.live)
             && observation.address.instance == self.instance()
-            && observation.stability == Stability::Scoped(self.revision())
+            && observation.stability
+                == (Stability::Scoped {
+                    revision: self.revision(),
+                })
             && self
                 .projection()
                 .nodes()

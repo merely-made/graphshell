@@ -2,8 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-//! uxtree P0: a disposable envelope sketch beside three real projections.
-//! Production types, publication changes and the full lint remain P1 onward.
+//! The uxtree P0 gate, now using P1's production metadata beside three projections.
+//! Publishing-adapter migration and the full lint remain P2 onward.
 
 mod consumer;
 mod document;
@@ -14,22 +14,12 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-use accesskit::{NodeId, TreeId, TreeUpdate};
+use accesskit::{TreeId, TreeUpdate};
 use cambium_rootstock::{A11yOwner, A11yRequest, ProducerChildToken, SemanticNodeIdentity};
 use uxtree::Composition;
+use uxtree::envelope::Stability;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-struct Address {
-    instance: TreeId,
-    local: NodeId,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-enum Stability {
-    Life,
-    Scoped(u64),
-    Derived,
-}
+type Address = uxtree::envelope::Address<TreeId>;
 
 #[derive(Clone, Debug)]
 struct Provenance {
@@ -39,16 +29,7 @@ struct Provenance {
     identity: Option<SemanticNodeIdentity>,
 }
 
-/// Exactly the proposed six fields; AccessKit retains all node semantics.
-#[derive(Clone, Debug)]
-struct Envelope {
-    address: Address,
-    stability: Stability,
-    provenance: Provenance,
-    action_ids: Vec<String>,
-    domain_ref: Option<String>,
-    authored_key: Option<String>,
-}
+type Envelope = uxtree::envelope::Envelope<TreeId, Provenance, String>;
 
 struct Publication {
     update: TreeUpdate,
@@ -131,13 +112,18 @@ fn gate(control: Control) {
     assert_eq!(command.stability, Stability::Life);
     assert_eq!(command.domain_ref.as_deref(), Some("member/40"));
     assert_eq!(command.action_ids, ["pin"]);
-    assert_eq!(field.stability, Stability::Scoped(page.borrow().revision()));
+    assert_eq!(
+        field.stability,
+        Stability::Scoped {
+            revision: page.borrow().revision()
+        }
+    );
     assert!(field.authored_key.is_none());
     assert_eq!(
         first.named("Drawing").authored_key.as_deref(),
         Some("drawing")
     );
-    assert_eq!(menu.stability, Stability::Derived);
+    assert_eq!(menu.stability, Stability::Derived { generation: None });
     // Neither source advertises command IDs. Do not invent them from roles.
     assert!(field.action_ids.is_empty());
     assert!(menu.action_ids.is_empty());

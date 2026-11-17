@@ -21,7 +21,7 @@ use mere_surface_api::SurfaceAvailability;
 use sprigging::LeafRegistry;
 use uxtree::tree_id_for_path;
 
-use super::{Address, Envelope, Owner, Provenance, Publication, Stability};
+use super::{Address, Envelope, Owner, Provenance, Publication};
 
 const SLOT: u64 = 7;
 const CHILD: u64 = 40;
@@ -171,26 +171,26 @@ impl Owner for Session {
                         dom.attribute(*node, &Namespace::default(), &LocalName::from("id"))
                     })
                     .map(str::to_owned);
-                Envelope {
-                    address: Address {
+                let mut envelope = Envelope::life(
+                    Address {
                         instance: self.instance(),
                         local: *id,
                     },
-                    stability: Stability::Life,
-                    provenance: Provenance {
+                    Provenance {
                         owner: owner.clone(),
                         request: bindings.requests.get(&id.0).cloned(),
                         child: action.map(|_| self.model.borrow().lifetime.token()),
                         identity: Some(bindings.identities[id].clone()),
                     },
-                    action_ids: action
-                        .map(|action| vec![action.id.clone()])
-                        .unwrap_or_default(),
-                    domain_ref: action
-                        .filter(|action| action.key == CHILD)
-                        .map(|_| self.model.borrow().member.clone()),
-                    authored_key: key,
-                }
+                );
+                envelope.action_ids = action
+                    .map(|action| vec![action.id.clone()])
+                    .unwrap_or_default();
+                envelope.domain_ref = action
+                    .filter(|action| action.key == CHILD)
+                    .map(|_| self.model.borrow().member.clone());
+                envelope.authored_key = key;
+                envelope
             })
             .collect();
         let mut update = projection.tree;
