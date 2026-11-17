@@ -10,6 +10,9 @@ use std::time::Duration;
 use wgpu_cue::{RenderContext, Rendered, TextureSource};
 use wgpu_cue_netrender::{Scene, SceneRasterizer, WgpuHandles};
 
+type PrepareImages<'a> = dyn FnMut(&netrender::Renderer, &[inker::session_engine::SessionExternalTextureDraw]) -> Result<()>
+    + 'a;
+
 /// Renderer state is separate from retained custody so a placement pool can
 /// lend its current controller without constructing a replacement session.
 pub struct PeltSceneRenderer {
@@ -39,12 +42,28 @@ impl PeltSceneRenderer {
         PeltSceneSource {
             controller,
             renderer: self,
+            prepare_images: None,
+        }
+    }
+
+    /// Bind the document and its host-owned external image source for this
+    /// submission. The callback runs only if a new scene will be rasterized.
+    pub fn bind_with_external_images<'a>(
+        &'a mut self,
+        controller: &'a mut PeltController<Scene>,
+        prepare_images: &'a mut PrepareImages<'a>,
+    ) -> PeltSceneSource<'a> {
+        PeltSceneSource {
+            controller,
+            renderer: self,
+            prepare_images: Some(prepare_images),
         }
     }
 }
 pub struct PeltSceneSource<'a> {
     controller: &'a mut PeltController<Scene>,
     renderer: &'a mut PeltSceneRenderer,
+    prepare_images: Option<&'a mut PrepareImages<'a>>,
 }
 impl Surface for PeltSceneSource<'_> {
     fn scope(&self) -> Scope {
@@ -116,13 +135,20 @@ impl TextureSource for PeltSceneSource<'_> {
             .map_err(Error::Backend)?;
         let revision = self.controller.cue_surface_mut().next_frame_revision()?;
         self.renderer.submitted_scope = Some(self.scope());
-        let rendered = self.renderer.rasterizer.render(
+        let scope = self.scope();
+        let draws = self.controller.session().external_texture_draws();
+        let prepare = &mut self.prepare_images;
+        let rendered = self.renderer.rasterizer.render_with(
             cx,
             &scene,
             FrameStamp {
-                scope: self.scope(),
+                scope,
                 allocation_epoch: 0,
                 content_revision: revision,
+            },
+            |renderer| match prepare {
+                Some(prepare) => prepare(renderer, draws),
+                None => Ok(()),
             },
         )?;
         self.renderer.pending = matches!(rendered, Rendered::Pending);
