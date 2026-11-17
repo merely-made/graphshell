@@ -75,3 +75,22 @@ as perimeter over smallest side and the packer lets a tile overhang a corner.
 
 Each run took about a second. Read at Graphshell `1b1a181c`; Mere and Turnstone at their
 local checkouts' working trees.
+
+## 2026-11-17 G8 polygon picking and link attachment
+
+The full Cartography library suite passed on Windows and on Fedora T-PC with
+`canvas,physics-engine` and `--test-threads=1`. Both runs passed 758 tests with 18 ignored.
+The tested source landed as Graphshell `8624f9f5`.
+
+Turnstone's Windows test `native_canvas_picks_and_attaches_to_polygon_silhouettes`
+passed against that resolved Git revision. The fixture supplies two registry bodies to
+the live canvas through `set_node_shapes`. The native shell pointer route missed the
+clipped corner and selected the center on both the event diamond and the software
+hexagon. Each link tip was within the test's 0.05 px tolerance of its painted outline.
+The 1024 by 600 capture shows both bodies and the connecting link. The diamond clip
+cuts part of the event caption.
+
+The capture and log are in the workspace directory
+`testing/turnstone/receipts/2026-11-17_m1_silhouettes/windows-git/`.
+The SHA-256 of `diamond-and-hexagon.png` is
+`2449f1982d7ea4e0e575def643d1e8417006b4cf54360d85534427e9f27d07bf`.

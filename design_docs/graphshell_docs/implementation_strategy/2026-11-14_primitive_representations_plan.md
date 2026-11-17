@@ -1,7 +1,7 @@
 # Primitive Representations Plan
 
 **Status:** 2026-11-14: plan. Cut from `2026-06-23_node_body_face_model_plan.md`, archived
-whole in `archive_docs/2026-11-14/` with B0 to B2 landed. Nothing here is started. Phases M1
+whole in `archive_docs/2026-11-14/` with B0 to B2 landed. Phases M1
 to M6 no longer wait on a fork of the scene composition brief (F1 to F3 were answered 2026-11-14,
 D5 to D16); B3 and B4 are carried open.
 
@@ -785,3 +785,6 @@ face.
 - 2026-11-17: G8 routes diamond and hexagon picking and link attachment through the
   same polygon vertices as the painted clip and physics hull. Resting paths, responsive
   paths and flat self-links meet the body outline. Raised paths still join the stem foot.
+- 2026-11-17: A native Turnstone fixture shows both polygons and checks their picking and
+  link attachment. Production class-to-body resolution is part of M2.
+  [G8 receipt](../../archive_docs/receipts/2026-11-14_primitive_representations_plan_receipts.md#2026-11-17-g8-polygon-picking-and-link-attachment).
