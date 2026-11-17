@@ -69,6 +69,27 @@ fn same_relations_switch_from_strokes_to_directional_cells_without_new_occurrenc
             assert!(p.y < scene.bounds.origin.y + scene.bounds.size.h);
         }
     }
+    let headings = crate::relation_forms::matrix_headings(&scene);
+    for relation in &scene.relations {
+        let cell = relation.cell_bounds().unwrap();
+        let row = headings
+            .iter()
+            .find(|(id, _, _)| *id == relation.from)
+            .unwrap()
+            .1;
+        let column = headings
+            .iter()
+            .find(|(id, _, _)| *id == relation.to)
+            .unwrap()
+            .2;
+        assert!(
+            row.x + 28.0 < cell.origin.x,
+            "row label stays left of its cell"
+        );
+        assert!(row.y > cell.origin.y && row.y < cell.origin.y + cell.size.h);
+        assert!(column.x > cell.origin.x && column.x < cell.origin.x + cell.size.w);
+        assert!(column.y < cell.origin.y);
+    }
     let mut refreshed = matrix.projection;
     for _ in 0..3 {
         crate::relation_forms::refresh_scene(&mut refreshed.scene);

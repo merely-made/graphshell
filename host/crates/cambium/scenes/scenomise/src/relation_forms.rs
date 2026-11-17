@@ -175,8 +175,11 @@ pub fn matrix_headings(scene: &Scene) -> Vec<(InstanceId, Vec2, Vec2)> {
         .map(|(index, rank)| {
             (
                 InstanceId(index as u32),
-                Vec2::new(origin.x - 8.0, origin.y + rank as f32 * pitch + pitch * 0.5),
-                Vec2::new(origin.x + rank as f32 * pitch, origin.y - 8.0),
+                Vec2::new(
+                    origin.x - pitch * 0.5,
+                    origin.y + rank as f32 * pitch + pitch * 0.5,
+                ),
+                Vec2::new(origin.x + (rank as f32 + 0.5) * pitch, origin.y - 8.0),
             )
         })
         .collect()
