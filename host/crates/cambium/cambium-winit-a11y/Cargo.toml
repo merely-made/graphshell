@@ -49,6 +49,9 @@ cambium = { version = "0.6.1", path = "../cambium" }
 mere-surface-api = { workspace = true }
 uxtree = { workspace = true }
 accesskit_consumer.workspace = true
+# uxtree P0 reads a real document session's revision and owner-side admission.
+genet-documents = { workspace = true, features = ["livery"] }
+netrender.workspace = true
 # Experiment E1b's probe (examples/e1b_two_sessions.rs) publishes joined trees
 # through AccessKit's own winit adapter and checks subtree actions and focus.
 accesskit_winit.workspace = true

@@ -1,10 +1,10 @@
 # uxtree spine plan: a federated tree with one envelope
 
-**Status:** 2026-11-11: plan. Nine rulings are recorded (D1 to D9, Mark, 2026-11-11). No code is written. Code starts
-after the engine split's slice 4 cutover lands uxtree and its neighbours in Graphshell's `host/`
-(`mere:engine-split D102`). Paths in this plan are mere.git's as of the briefs' audit base (mere `217dc2b16`,
-graphshell `d97a69a5`, turnstone `fd57dd3f`, genet `7c6ffc87b`) and move at that cutover. P0 is a gate: if it fails,
-D1 goes back to Mark as a question.
+**Status:** 2026-11-17: P0 is locally qualified in a review candidate: the mixed-source gate and all three
+broken controls pass, as do the supplier suites and source-manifest family cycle check. Required commit
+hooks run before the candidate is recorded. The slice 4 cutover is present:
+uxtree, Cambium and the E1a bench live under Graphshell's `host/`. Nine rulings are recorded (D1 to D9,
+Mark, 2026-11-11). P0 remains a gate: if it fails, D1 goes back to Mark as a question. P1 to P11 remain open.
 
 **For:** carrying out `mere:engine-split D53`, "uxtree grows into the stack's accessibility and automation spine".
 Two briefs read the producers and put the forks to Mark:
@@ -50,10 +50,12 @@ first receipt exists.
 - **Estimates are estimates.** Line figures marked "estimate" come from the briefs' reading of neighbouring code and
   are not measurements.
 
-**Path key** (the evidence file's, paths as of the audit base). `uxtree/` is mere.git `crates/forme/uxtree/`.
-`rootstock/` is mere.git `crates/cambium/cambium-rootstock/src/`. `winit-a11y/` is mere.git
-`crates/cambium/cambium-winit-a11y/src/` (package `cambium-a11y`). `cartography/` is mere.git
-`crates/canvas/cartography/src/`. `gs-port/` is mere.git `ports/graphshell/src/`. `taproot/` is genet.git
+**Path key** (current receiving homes, 2026-11-17). `uxtree/` is graphshell.git `host/crates/forme/uxtree/`.
+`rootstock/` is graphshell.git `host/crates/cambium/cambium-rootstock/src/`. `winit-a11y/` is graphshell.git
+`host/crates/cambium/cambium-winit-a11y/src/` (package `cambium-a11y`). `cartography/` is graphshell.git
+`host/crates/canvas/cartography/src/`. `gs-port/` is turnstone.git `ports/graphshell/src/`;
+`canvas_reader.rs` is present there after the reference app move.
+`taproot/` is genet.git
 `components/taproot/`. `dsa/` is genet.git `components/shared/document-session-api/src/`. `pelt/` is graphshell.git
 `host/ports/pelt/desktop/workspace_viewer/`. `ux-events/` is graphshell.git `host/crates/system/ux-events/`.
 `turnstone/` is turnstone.git `src/`.
@@ -88,7 +90,21 @@ check for a node with no envelope; P7 builds the library.
     consumer for the three producer names returns zero lines).
 - If the consumer needs per-producer branches, the federated form is not holding. D1 then goes back to Mark as a
   question, with the finding. This plan does not decide what replaces it.
-- Needs: the slice 4 cutover (the bench moves to Graphshell's `host/`); the E1a bench as it stands.
+- Needs: the slice 4 cutover and the E1a bench, both present under Graphshell's `host/` as of 2026-11-17.
+
+The prototype lives in the E1a bench's `tests/e1a_spine/` modules. It reads a retained Cambium session
+with a registered `TextureProducer` through Rootstock's `project_semantics` and publication bindings;
+a real `LiverySessionEngine` session through `DocumentSession::accessibility_projection`; and a host
+tree made with uxtree paths and grafts. All three are read through the same address consumer.
+Its command id and domain reference come from the texture model; Genet and host nodes advertise no
+command IDs. The envelope does not invent IDs from their action kinds. P1 still names production types.
+The gate passes without changing D1 or adding a producer-kind branch to the consumer. The
+[receipt](../../archive_docs/receipts/2026-11-11_uxtree_spine_plan_receipts.md) records its controls and limits.
+
+P0 receipt budget: 100 MB retained across repositories, under `Code/testing/graphshell/uxtree-p0/`.
+Required receipts: the complete E1a run including the mixed-producer gate and deliberately broken controls,
+the consumer's producer-name search, selected source/resolution identities and required hook results.
+The prototype's envelope and missing-envelope check remain test-local; production envelope types are P1.
 
 ### P1. The envelope and the stability classes, in uxtree
 
@@ -446,6 +462,26 @@ Each is a question for a later round, with its evidence. None is answered here.
 
 ## Findings
 
+- 2026-11-17: P0 reads 13 joined nodes through `tests/e1a_spine/consumer.rs`, which names no producer
+  kind. Life provenance comes from Rootstock's `SemanticNodeIdentity` and bound `A11yRequest`;
+  Scoped revisions come from the actual Genet document session; Derived ids come from uxtree paths
+  with a retained route-owner life. Missing metadata is checked against the AccessKit consumer's
+  actual traversal, including both grafted trees, rather than against the metadata map alone.
+- 2026-11-17: retiring and replacing a texture guest under the same DOM slot really reuses the
+  generated command `NodeId`. The owner refuses the old publication even when its retired model
+  remains alive. Recapturing today's provenance for that old address is a deliberately broken
+  control and trips the stale-target assertion. Freezing Genet's scope and disabling the missing
+  metadata check also trip their own assertions. These controls are test-local.
+- 2026-11-17: Genet's session produces a semantic projection only after retained layout exists.
+  P0 obtains a real frame before reading it; a value edit advances its revision and Genet itself
+  rejects the old action request. Its neutral projection exports action kinds, but neither command
+  IDs nor authored DOM keys; those optional envelope fields remain empty in this adapter.
+- 2026-11-17: a Rootstock `TextureProducer` contributes semantics through a `custom-leaf` slot.
+  The raw `external-texture` element is not in `owned_layout::custom_leaf_key` and does not take
+  this semantic path. P0 uses the supported slot; it adds no production API or rendering fallback.
+- 2026-11-17: the independent Mere half of P8 is a pushed candidate, Mere `13a084dde`, removing
+  `descriptor_for` and its unused AccessKit support while retaining `SurfaceId`. It is not yet on
+  Mere main; the rest of P8 remains open.
 - 2026-11-11: the semantic model above AccessKit exists four times and the envelope's fields are kept four times
   (second brief §0, E1, E2). The canvas outputs Cambium producer semantics, not AccessKit, and `stitch` concatenates
   subtrees and does not rehash them (second brief §1; it corrects the first). Two subtrees built from one path collide
@@ -479,3 +515,7 @@ Each is a question for a later round, with its evidence. None is answered here.
 ## Progress
 
 - 2026-11-11: plan opened; D1 to D9 recorded from Mark's answers to the two briefs; P0 to P11 laid out; nothing built.
+- 2026-11-17: P0 locally qualified in a review worktree. The mixed-source gate and three deliberately
+  broken controls pass alongside the six existing E1a tests; the accessibility and uxtree supplier
+  suites pass together. The source-manifest cycle check passes with this candidate substituted for
+  the primary Graphshell checkout. No production envelope or platform acceptance is claimed.
