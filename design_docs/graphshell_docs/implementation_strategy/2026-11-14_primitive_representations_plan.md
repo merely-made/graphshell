@@ -782,3 +782,6 @@ face.
   An explicit host mark still overrides the registry. Class labels count toward existing
   relationship disclosure limits. This projects the detail rung into the score. Body and
   paint still belong to the mark slots work in M2.
+- 2026-11-17: G8 routes diamond and hexagon picking and link attachment through the
+  same polygon vertices as the painted clip and physics hull. Resting paths, responsive
+  paths and flat self-links meet the body outline. Raised paths still join the stem foot.

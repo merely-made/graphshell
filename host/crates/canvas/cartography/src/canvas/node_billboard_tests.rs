@@ -16,6 +16,7 @@ fn shape_contains_and_segment_intervals_share_the_rounded_square() {
         local_side: 20.0,
         zoom: 1.0,
         depth: 0.0,
+        silhouette: crate::canvas::NodeShape::Square,
         corner_radius: 5.0,
     };
     assert!(billboard.contains_screen(Point2D::new(10.0, 0.0)));
@@ -43,6 +44,7 @@ fn square_and_circle_are_the_radius_extremes() {
         local_side: 20.0,
         zoom: 1.0,
         depth: 0.0,
+        silhouette: crate::canvas::NodeShape::Square,
         corner_radius: 0.0,
     };
     assert!(billboard.contains_screen(Point2D::new(10.0, 10.0)));
@@ -59,6 +61,7 @@ fn segment_interval_is_reversal_symmetric_and_zoom_aware() {
         local_side: 20.0,
         zoom: 2.0,
         depth: 0.0,
+        silhouette: crate::canvas::NodeShape::Square,
         corner_radius: 5.0,
     };
     let a = Point2D::new(-20.0, -4.0);
@@ -79,6 +82,7 @@ fn boundary_ray_uses_shared_shape_interval_for_circle_and_rounded_body() {
         local_side: 24.0,
         zoom: 1.5,
         depth: 0.0,
+        silhouette: crate::canvas::NodeShape::Square,
         corner_radius: 12.0,
     };
     let point = billboard
@@ -173,6 +177,7 @@ fn invalid_camera_and_nonfinite_segment_inputs_refuse_geometry() {
         local_side: 20.0,
         zoom: 1.0,
         depth: 0.0,
+        silhouette: crate::canvas::NodeShape::Square,
         corner_radius: 10.0,
     };
     assert!(
@@ -208,6 +213,7 @@ fn malformed_public_billboards_fail_shared_validity_before_geometry_queries() {
         local_side: 20.0,
         zoom: 1.0,
         depth: 0.0,
+        silhouette: crate::canvas::NodeShape::Square,
         corner_radius: 5.0,
     };
     let query_a = Point2D::new(-30.0, 0.0);
@@ -258,6 +264,7 @@ fn huge_finite_rounded_billboard_rejects_corner_without_squared_overflow() {
         local_side: f32::MAX,
         zoom: 1.0,
         depth: 0.0,
+        silhouette: crate::canvas::NodeShape::Square,
         corner_radius: f32::MAX * 0.5,
     };
     assert!(billboard.is_valid());
@@ -273,6 +280,7 @@ fn camera_round_trip_at_circle_boundary_is_not_a_strict_crossing() {
         local_side: 36.0,
         zoom: 1.0,
         depth: 0.0,
+        silhouette: crate::canvas::NodeShape::Square,
         corner_radius: 18.0,
     };
     let camera = Camera {
@@ -315,6 +323,7 @@ fn subpixel_but_real_circle_intrusion_still_counts_as_crossing() {
         local_side: 36.0,
         zoom: 1.0,
         depth: 0.0,
+        silhouette: crate::canvas::NodeShape::Square,
         corner_radius: 18.0,
     };
     let penetration = 0.1;
@@ -326,8 +335,14 @@ fn subpixel_but_real_circle_intrusion_still_counts_as_crossing() {
 
 #[test]
 fn diamond_and_hexagon_collide_and_draw_at_one_outline() {
-    let mut canvas = Canvas::with_sample_graph();
-    let key = canvas.graph.nodes().next().unwrap().0;
+    let mut graph = kernel::graph::Graph::new();
+    let key = kernel::graph::apply::add_node(
+        &mut graph,
+        None,
+        "mere://silhouette".into(),
+        PortablePoint::zero(),
+    );
+    let mut canvas = Canvas::with_graph(graph);
     let id = canvas.graph.get_node(key).unwrap().id;
     let side = canvas.node_size(key);
     for (shape, class) in [
@@ -344,11 +359,34 @@ fn diamond_and_hexagon_collide_and_draw_at_one_outline() {
             },
             other => panic!("{shape:?} collides as {other:?}"),
         }
-        assert_eq!(canvas.node_billboard(key).unwrap().corner_radius, 0.0);
+        let billboard = canvas.node_billboard(key).unwrap();
+        assert_eq!(billboard.silhouette, shape);
+        assert_eq!(billboard.corner_radius, 0.0);
+        let side = billboard.local_side * billboard.zoom;
+        let corner = billboard.center + euclid::default::Vector2D::new(0.44 * side, 0.44 * side);
+        assert!(!billboard.contains_screen(corner));
+        assert!(!billboard.segment_crosses_interior(
+            corner,
+            corner + euclid::default::Vector2D::new(side, 0.0),
+        ));
+        let hit = billboard
+            .boundary_point_toward(Point2D::new(1.0, 1.0))
+            .unwrap();
+        let expected = match shape {
+            NodeShape::Diamond => 0.25,
+            _ => 1.0 / 3.0,
+        };
+        assert!((hit.x - billboard.center.x - expected * side).abs() < 0.001);
+        assert!(billboard.signed_distance_screen(hit).unwrap().abs() < 0.001);
         let rule = crate::canvas::build::NODE_SHEET
             .iter()
             .find(|rule| rule.starts_with(&format!(".{class} ")))
             .unwrap_or_else(|| panic!("no rule for {class}"));
         assert!(rule.contains("clip-path: polygon("), "{rule}");
+        assert_eq!(canvas.pick_at((corner.x, corner.y)), None);
+        assert_eq!(
+            canvas.pick_at((billboard.center.x, billboard.center.y)),
+            Some(key),
+        );
     }
 }

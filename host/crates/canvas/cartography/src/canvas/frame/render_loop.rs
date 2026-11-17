@@ -273,11 +273,11 @@ impl Canvas {
             // Shape rides as a second class so it merges with the color class:
             // rounded and circle are border-radius, diamond and hexagon a clip;
             // square is the default (no shape class).
-            let shape_class = match self.node_shapes.get(&key) {
-                Some(NodeShape::RoundedSquare) => " gnode-rounded",
-                Some(NodeShape::Circle) => " gnode-circle",
-                Some(NodeShape::Diamond) => " gnode-diamond",
-                Some(NodeShape::Hexagon) => " gnode-hexagon",
+            let shape_class = match body.silhouette {
+                NodeShape::RoundedSquare if grammar.is_none() => " gnode-rounded",
+                NodeShape::Circle if grammar.is_none() => " gnode-circle",
+                NodeShape::Diamond => " gnode-diamond",
+                NodeShape::Hexagon => " gnode-hexagon",
                 _ => "",
             };
             // The representation rung changes how the same measured footprint
@@ -289,7 +289,9 @@ impl Canvas {
             // (Projection proofs — P3b renderer consumption.)
             let representation_class = self.node_representation_class(key);
             let class = match &grammar {
-                Some(frame) => format!("{}{representation_class}", self.grammar_class(key, frame)),
+                Some(frame) => {
+                    format!("{}{shape_class}{representation_class}", self.grammar_class(key, frame))
+                },
                 None => format!("{state_class}{shape_class}{representation_class}"),
             };
             gnode_updates.push((gnode, style, Some(class)));

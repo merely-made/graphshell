@@ -186,9 +186,7 @@ impl Canvas {
                 &self.hidden_assertions,
                 |key| self.node_size(key),
             );
-            edge_cells::attach_self_link_geometry(&mut segments, &self.camera, |key| {
-                self.node_billboard(key)
-            });
+            geometry::attach_resting_paths(self, &mut segments);
             return segments;
         }
         let (mut segments, readings) = self.link_geometry();
@@ -211,9 +209,7 @@ fn evaluate_canvas(
     readings: &[LinkPairReading],
 ) -> EvaluationOutcome {
     let settings = &canvas.link_path_response;
-    let self_fallbacks = edge_cells::attach_self_link_geometry(segments, &canvas.camera, |key| {
-        canvas.node_billboard(key)
-    });
+    let self_fallbacks = geometry::attach_resting_paths(canvas, segments);
     let mut outcome = EvaluationOutcome {
         state: LinkPathState::Disabled,
         failure: None,

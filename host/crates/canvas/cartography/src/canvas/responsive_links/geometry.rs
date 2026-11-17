@@ -11,7 +11,10 @@ use kernel::geometry::PortablePoint;
 
 use super::super::node_billboard::NodeBillboard;
 use super::super::scene_paint::Camera;
-use super::edge_cells::LinkAppearanceSegment;
+use super::{
+    Canvas,
+    edge_cells::{self, LinkAppearanceSegment},
+};
 
 const CORNER_CUT_PASSES: usize = 2;
 const MAX_EVALUATOR_POINTS: usize = numen::MAX_CONTROL_POINTS;
@@ -20,6 +23,64 @@ const MIN_VISIBLE_LENGTH: f32 = 1.0e-3;
 const OFFSET_TOLERANCE: f32 = 1.0e-3;
 const ANCHOR_TOLERANCE: f32 = 1.0e-2;
 const MIN_TAPER_LENGTH: f32 = 1.0;
+
+/// Attach ordinary paths and responsive fallbacks through the same paint/pick geometry.
+pub(super) fn attach_resting_paths(canvas: &Canvas, segments: &mut [LinkAppearanceSegment]) -> usize {
+    let camera = canvas.camera;
+    let self_fallbacks =
+        edge_cells::attach_self_link_geometry(segments, &camera, |key| canvas.node_billboard(key));
+    if !camera.is_valid()
+        || !canvas.node_shapes.values().any(|shape| shape.outline().is_some())
+    {
+        return self_fallbacks;
+    }
+    for segment in segments {
+        let from = segment.appearance.display_from;
+        let to = segment.appearance.display_to;
+        if from == to
+            || (canvas.node_shape(from).outline().is_none()
+                && canvas.node_shape(to).outline().is_none())
+        {
+            continue;
+        }
+        let (Some(a), Some(b)) = (
+            screen_point(camera, (segment.from.x, segment.from.y)),
+            screen_point(camera, (segment.to.x, segment.to.y)),
+        ) else {
+            continue;
+        };
+        let clip = |key, start, end| {
+            let body = canvas.node_billboard(key)?;
+            body.silhouette.outline()?;
+            if (body.center.y - body.ground_anchor.y).abs() >= 0.5 {
+                return None; // Raised links attach to the stem foot.
+            }
+            body.segment_interior_interval(start, end)
+                .map(|(_, exit)| interpolate(start, end, exit))
+                .or_else(|| body.boundary_point_toward((end - body.center).to_point()))
+        };
+        let start = clip(from, a, b);
+        let end = clip(to, b, a);
+        // Overlapping bodies can leave no exposed interval.
+        let (start, end) = if let (Some(start), Some(end)) = (start, end)
+            && (end - start).dot(b - a) <= 0.0
+        {
+            let midpoint = Some(interpolate(start, end, 0.5));
+            (midpoint, midpoint)
+        } else {
+            (start, end)
+        };
+        for (point, tip) in segment.points.iter_mut().zip([start, end]) {
+            if let Some(p) = tip {
+                let world = camera.to_world((p.x, p.y));
+                if world.x.is_finite() && world.y.is_finite() {
+                    *point = Point2D::new(world.x, world.y);
+                }
+            }
+        }
+    }
+    self_fallbacks
+}
 
 /// Smooth and attach one evaluated polyline to the rendered endpoint bodies.
 /// Evaluator samples and the stratum translation are world-space; smoothing,

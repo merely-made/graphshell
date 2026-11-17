@@ -258,13 +258,18 @@ fn billboard_attachment_tracks_camera_shape_grammar_and_lift_without_source_chan
 }
 
 #[test]
-fn rounded_circle_and_suggestion_scaled_billboards_share_attachment_clip_geometry() {
+fn painted_silhouettes_and_suggestion_scaled_billboards_share_attachment_geometry() {
     let (mut canvas, ids, revision, _) = attached_canvas();
     let baseline = canvas.link_path_response_report();
     let facts = source_facts(&baseline.paths);
     configure_bundle(&mut canvas, ids);
 
-    for shape in [NodeShape::RoundedSquare, NodeShape::Circle] {
+    for shape in [
+        NodeShape::RoundedSquare,
+        NodeShape::Circle,
+        NodeShape::Diamond,
+        NodeShape::Hexagon,
+    ] {
         canvas.set_node_shapes(ids.into_iter().map(|id| (id, shape)).collect());
         let report = canvas.link_path_response_report();
         assert_paths_clear_of_billboards(&canvas, &report);
@@ -274,10 +279,12 @@ fn rounded_circle_and_suggestion_scaled_billboards_share_attachment_clip_geometr
             let key = canvas.graph.get_node_key_by_id(id).unwrap();
             let billboard = canvas.node_billboard(key).unwrap();
             let half = billboard.local_side * 0.5;
-            if shape == NodeShape::Circle {
-                assert!((billboard.corner_radius - half).abs() < 0.01);
-            } else {
-                assert!(billboard.corner_radius > 0.0 && billboard.corner_radius < half);
+            match shape {
+                NodeShape::Circle => assert!((billboard.corner_radius - half).abs() < 0.01),
+                NodeShape::RoundedSquare => {
+                    assert!(billboard.corner_radius > 0.0 && billboard.corner_radius < half);
+                },
+                _ => assert_eq!(billboard.corner_radius, 0.0),
             }
         }
     }
@@ -305,6 +312,30 @@ fn rounded_circle_and_suggestion_scaled_billboards_share_attachment_clip_geometr
         .unwrap();
     assert!(suggested.local_side <= ordinary.local_side);
     assert_eq!(canvas.graph.revision(), revision);
+}
+
+#[test]
+fn resting_links_leave_the_diamond_and_hexagon_at_their_painted_edges() {
+    let (mut canvas, ids, _, _) = attached_canvas();
+    canvas.set_node_shapes(HashMap::from([
+        (ids[0], NodeShape::Diamond),
+        (ids[1], NodeShape::Hexagon),
+    ]));
+    let report = canvas.link_path_response_report();
+    assert_eq!(report.state, LinkPathState::Disabled);
+    let mut seen = std::collections::HashSet::new();
+    for path in &report.paths {
+        if path.displayed_from == path.displayed_to {
+            continue;
+        }
+        for (id, from) in [(path.displayed_from, true), (path.displayed_to, false)] {
+            if ids[..2].contains(&id) {
+                assert!(endpoint_interval_is_clear(&canvas, path, from), "{path:?}");
+                seen.insert(id);
+            }
+        }
+    }
+    assert!(ids[..2].iter().all(|id| seen.contains(id)));
 }
 
 #[test]

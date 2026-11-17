@@ -9,10 +9,12 @@
 //! physics colliders, and custom sprite hulls. `ground_anchor` stays on the
 //! projected graph plane; `center` includes the current visual lift.
 
-use super::Canvas;
+use super::{Canvas, NodeShape};
 use euclid::default::{Box2D, Point2D};
 use kernel::geometry::PortablePoint;
 use kernel::graph::NodeKey;
+
+mod polygon;
 
 /// The current projected silhouette of one painted graph node.
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -27,6 +29,8 @@ pub struct NodeBillboard {
     pub zoom: f32,
     /// Projected ground depth used for painter ordering.
     pub depth: f32,
+    /// The selected silhouette. Polygonal outlines take precedence over corner rounding.
+    pub silhouette: NodeShape,
     /// Effective CSS corner radius in local pixels, clamped to half the side.
     /// Zero is square and half-side is circular.
     pub corner_radius: f32,
@@ -88,12 +92,15 @@ impl NodeBillboard {
         )
     }
 
-    /// Whether a screen point lies within the inclusive rounded-square silhouette.
+    /// Whether a screen point lies within the inclusive painted silhouette.
     pub fn contains_screen(self, point: Point2D<f32>) -> bool {
         if !self.is_valid() || !point.x.is_finite() || !point.y.is_finite() {
             return false;
         }
         let side = self.local_side * self.zoom;
+        if let Some(outline) = self.silhouette.outline() {
+            return polygon::contains(outline, self.center, side, point);
+        }
         let radius = self.corner_radius * self.zoom;
         rounded_square_contains(self.center, side * 0.5, radius, point)
     }
@@ -103,6 +110,9 @@ impl NodeBillboard {
     pub fn signed_distance_screen(self, point: Point2D<f32>) -> Option<f32> {
         if !self.is_valid() || !point.x.is_finite() || !point.y.is_finite() {
             return None;
+        }
+        if let Some(outline) = self.silhouette.outline() {
+            return polygon::signed_distance(outline, self.center, self.local_side * self.zoom, point);
         }
         let half = self.local_side * self.zoom * 0.5;
         let radius = self.corner_radius * self.zoom;
@@ -140,6 +150,9 @@ impl NodeBillboard {
             return None;
         }
         let side = self.local_side * self.zoom;
+        if let Some(outline) = self.silhouette.outline() {
+            return polygon::segment_interval(outline, self.center, side, a, b);
+        }
         let half = side * 0.5;
         let radius = self.corner_radius * self.zoom;
         let local_a = Point2D::new(a.x - self.center.x, a.y - self.center.y);
@@ -157,7 +170,7 @@ impl NodeBillboard {
     /// Whether a screen-space segment enters the painted body by more than the
     /// representable `f32` boundary uncertainty at its coordinates.
     ///
-    /// The exact rounded-square interval identifies the candidate intersection;
+    /// The silhouette interval identifies the candidate intersection;
     /// the interval midpoint's signed distance distinguishes a true crossing
     /// from a tangent or a boundary point shifted inward by camera round-off.
     /// An actual intrusion larger than the local several-ULP allowance remains
@@ -194,7 +207,7 @@ impl NodeBillboard {
 
     /// First silhouette boundary point from the body center along `direction`.
     /// The ray is represented as a finite segment ending beyond the billboard;
-    /// the canonical rounded-square interval supplies the boundary parameter.
+    /// the silhouette interval supplies the boundary parameter.
     pub fn boundary_point_toward(self, direction: Point2D<f32>) -> Option<Point2D<f32>> {
         if !self.is_valid() || !direction.x.is_finite() || !direction.y.is_finite() {
             return None;
@@ -299,6 +312,7 @@ impl Canvas {
             local_side,
             zoom,
             depth,
+            silhouette: self.node_shape(key),
             corner_radius: radius.clamp(0.0, local_side * 0.5),
         };
         billboard.is_valid().then_some(billboard)

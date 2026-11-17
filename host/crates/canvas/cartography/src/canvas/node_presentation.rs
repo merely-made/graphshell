@@ -19,11 +19,14 @@ impl Canvas {
         (size.is_finite() && size >= 0.).then_some(size)
     }
     /// Effective CSS body corner radius in local (pre-camera-zoom) pixels.
-    /// This follows the current stylesheet cascade: grammar body/site/suggestion
-    /// classes are emitted after representation classes and therefore override
-    /// their radius; outside grammar, Glyph's circle rule follows shape rules.
+    /// Polygonal bodies are clipped to their outline. For other bodies, the
+    /// graph grammar and Glyph treatment provide their usual corner radii.
     pub(crate) fn node_effective_local_corner_radius(&self, key: NodeKey, side: f32) -> f32 {
         let half = side * 0.5;
+        let shape = self.node_shape(key);
+        if shape.outline().is_some() {
+            return 0.0;
+        }
         if self.graph_grammar {
             let attention = self
                 .graph
@@ -38,7 +41,7 @@ impl Canvas {
         if self.node_representation_class(key).contains("glyph") {
             return half;
         }
-        match self.node_shape(key) {
+        match shape {
             NodeShape::Square => 0.0,
             NodeShape::RoundedSquare => 9.0_f32.min(half),
             NodeShape::Circle => half,

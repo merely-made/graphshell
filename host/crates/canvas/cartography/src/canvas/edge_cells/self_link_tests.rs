@@ -31,6 +31,7 @@ fn body(center: Point2D<f32>, ground_anchor: Point2D<f32>, radius: f32) -> NodeB
         local_side: 40.0,
         zoom: 1.4,
         depth: 0.0,
+        silhouette: crate::canvas::NodeShape::Square,
         corner_radius: radius.min(20.0),
     }
 }

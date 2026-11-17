@@ -22,6 +22,7 @@ fn billboard(
         local_side,
         zoom,
         depth: 0.0,
+        silhouette: crate::canvas::NodeShape::Square,
         corner_radius,
     }
 }

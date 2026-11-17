@@ -21,6 +21,7 @@ pub(super) fn self_link_points(
         local_side: size,
         zoom: 1.0,
         depth: 0.0,
+        silhouette: crate::canvas::NodeShape::Square,
         corner_radius: 0.0,
     };
     flat_self_link_points(body, stratum).unwrap_or_else(|| vec![center, center])
