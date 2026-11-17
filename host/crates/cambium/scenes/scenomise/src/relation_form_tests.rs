@@ -425,3 +425,78 @@ fn moving_a_nested_child_refreshes_its_report_without_moving_it_back() {
         Vec2::new(10_000.0, 10_000.0)
     );
 }
+
+#[test]
+fn mosaic_keeps_weighted_groups_and_reports_the_configured_group_order() {
+    let (mut data, recipe) = fixture("mosaic", RelationForm::Order);
+    for (occurrence, group) in data
+        .dataset
+        .occurrences
+        .iter_mut()
+        .zip(["left", "right", "left"])
+    {
+        occurrence.values.insert(
+            "label".into(),
+            crate::projection::ProjectionValue::Text(group.into()),
+        );
+    }
+    data.relationships = vec![
+        request(&data, "first", "a", "b"),
+        request(&data, "second", "b", "c"),
+    ];
+    for configured in [false, true] {
+        let mut compiled = compiler().compile(&recipe, &data.dataset).unwrap();
+        let sceno::Arrangement::Mosaic(config) = &mut compiled.score.arrangement else {
+            panic!("mosaic");
+        };
+        config.gap = 0.0;
+        config.header = 0.0;
+        if configured {
+            config.group_order = vec!["right".into(), "left".into()];
+        }
+        let unit_area = config.unit_area;
+        for (item, weight) in compiled.score.items.iter_mut().zip([1.0, 2.0, 3.0]) {
+            item.weight = Some(weight);
+        }
+        compiled.scene = crate::solve_via(&compiled.score, &compiled.relation_registry).unwrap();
+        route_relationships(&mut compiled, &data.dataset, &data.relationships).unwrap();
+        let order: Vec<_> = compiled
+            .scene
+            .arrangement_order
+            .iter()
+            .map(|id| compiled.occurrence_by_instance[id].as_str())
+            .collect();
+        assert_eq!(
+            order,
+            if configured {
+                vec!["b", "a", "c"]
+            } else {
+                vec!["a", "c", "b"]
+            }
+        );
+        assert_eq!(compiled.scene.relation_constraints[0].honored, !configured);
+        assert_eq!(compiled.scene.relation_constraints[1].honored, configured);
+        let left = compiled
+            .scene
+            .regions
+            .iter()
+            .find(|region| region.label.as_deref() == Some("left"))
+            .unwrap();
+        assert_eq!(
+            left.members,
+            vec![
+                compiled.instance_by_occurrence["a"],
+                compiled.instance_by_occurrence["c"]
+            ]
+        );
+        for (item, weight) in compiled.scene.items.iter().zip([1.0, 2.0, 3.0]) {
+            let size = item.footprint.bounds().unwrap().size;
+            assert!(
+                (size.w * size.h - weight * unit_area).abs() < weight * unit_area * 0.00001,
+                "area {}, expected {}",
+                size.w * size.h,
+                weight * unit_area
+            );
+        }
+    }
+}

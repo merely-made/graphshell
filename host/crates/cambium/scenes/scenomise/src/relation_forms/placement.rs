@@ -128,20 +128,13 @@ pub(super) fn order(
             })
             .collect();
         if matches!(score.arrangement, sceno::Arrangement::Mosaic(_)) {
-            let mut groups: Vec<(Option<String>, Vec<usize>)> = Vec::new();
-            for &instance in &ordered {
-                let group = match &score.items[score_indices[instance]].axis {
-                    Some(sceno::AxisValue::Categorical(group)) => Some(group.clone()),
-                    _ => None,
-                };
-                match groups.iter_mut().find(|(key, _)| *key == group) {
-                    Some((_, members)) => members.push(instance),
-                    None => groups.push((group, vec![instance])),
-                }
-            }
-            ordered = groups
-                .into_iter()
-                .flat_map(|(_, members)| members)
+            // The solver's group regions already include configured group
+            // order and the score's member order. Report that realized order.
+            ordered = scene
+                .regions
+                .iter()
+                .filter(|region| region.label.is_some())
+                .flat_map(|region| region.members.iter().map(|id| id.0 as usize))
                 .collect();
         }
     }

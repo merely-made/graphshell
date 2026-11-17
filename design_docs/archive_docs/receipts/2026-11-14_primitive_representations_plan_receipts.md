@@ -200,3 +200,7 @@ Shared checks on T-PC, reusing ~/Code/targets/graphshell:
 
 The clean T-PC main checkout was used. The Windows Graphshell and Turnstone
 primary checkouts carry concurrent work and were preserved.
+
+- Review added an explicit configured-group-order Mosaic regression. Order
+  reports now read the realized group regions, including configured group
+  order; tile area remains proportional to disclosed weights with zero gutters.
