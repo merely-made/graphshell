@@ -16,8 +16,8 @@
 use std::collections::{BTreeMap, HashMap, HashSet};
 
 use sceno::{
-    Arrangement as ScenoArrangement, AxisValue, Footprint, InstanceId, Placement,
-    Score, ScoreItem, Size2, SourceRef, Vec2,
+    Arrangement as ScenoArrangement, AxisValue, Footprint, InstanceId, Placement, Score, ScoreItem,
+    Size2, SourceRef, Vec2,
 };
 use serde::{Deserialize, Serialize};
 
@@ -157,6 +157,7 @@ pub struct ProjectionCompiler {
     mark: NodeMark,
     class_registry: Option<GraphRepresentationRegistry>,
     viewers: scenograph::ViewerCatalog,
+    presentation: scenograph::presentation::RuleSet,
 }
 
 impl ProjectionCompiler {
@@ -170,9 +171,12 @@ impl ProjectionCompiler {
         Self {
             sizes,
             registry,
-            mark: class_registry.fallback.mark(sizes.representation_state(), None),
+            mark: class_registry
+                .fallback
+                .mark(sizes.representation_state(), None),
             class_registry: Some(class_registry),
             viewers: scenograph::ViewerCatalog::built_in(),
+            presentation: scenograph::presentation::RuleSet::default(),
         }
     }
 
@@ -180,6 +184,12 @@ impl ProjectionCompiler {
     pub fn with_mark(mut self, mark: NodeMark) -> Self {
         self.mark = mark;
         self.class_registry = None;
+        self
+    }
+
+    /// Conditional presentation over the recipe defaults at the reference size.
+    pub fn with_presentation(mut self, rules: scenograph::presentation::RuleSet) -> Self {
+        self.presentation = rules;
         self
     }
 
@@ -284,6 +294,8 @@ impl CompileIssue {
 /// The scene and exact reverse mappings a host realization needs.
 #[derive(Debug)]
 pub struct CompiledProjection {
+    pub marks: scenograph::MarkSlots,
+    pub node_marks: HashMap<InstanceId, scenograph::ResolvedMarks>,
     pub score: Score,
     pub scene: sceno::Scene,
     pub labels: HashMap<InstanceId, String>,
@@ -390,6 +402,7 @@ mod compilation;
 
 #[path = "projection/fields.rs"]
 mod fields;
+mod marks;
 
 use compilation::compile_inner;
 

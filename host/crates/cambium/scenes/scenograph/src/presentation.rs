@@ -196,6 +196,8 @@ pub enum RelationForm {
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum Effect {
     Representation { value: Representation },
+    NodeMark { value: NodeMark },
+    FieldForm { value: crate::FieldForm },
     Details { visible: bool },
     RelationForm { value: RelationForm },
     Provenance { visible: bool },
@@ -209,6 +211,7 @@ pub enum Property {
     Representation,
     Details,
     RelationForm,
+    FieldForm,
     Provenance,
     RegionGuides,
     DropPreviews,
@@ -217,7 +220,8 @@ pub enum Property {
 impl Effect {
     pub fn property(&self) -> Property {
         match self {
-            Self::Representation { .. } => Property::Representation,
+            Self::Representation { .. } | Self::NodeMark { .. } => Property::Representation,
+            Self::FieldForm { .. } => Property::FieldForm,
             Self::Details { .. } => Property::Details,
             Self::RelationForm { .. } => Property::RelationForm,
             Self::Provenance { .. } => Property::Provenance,
@@ -227,13 +231,20 @@ impl Effect {
     }
     /// These decisions must be resolved before representation measurement.
     pub fn affects_measurement(&self) -> bool {
-        matches!(self, Self::Representation { .. } | Self::Details { .. })
+        matches!(
+            self,
+            Self::Representation { .. } | Self::NodeMark { .. } | Self::Details { .. }
+        )
     }
     fn target_kind(&self) -> PrimitiveKind {
         match self {
-            Self::Representation { .. } | Self::Details { .. } => PrimitiveKind::Node,
+            Self::Representation { .. } | Self::NodeMark { .. } | Self::Details { .. } => {
+                PrimitiveKind::Node
+            },
             Self::RelationForm { .. } | Self::Provenance { .. } => PrimitiveKind::Relation,
-            Self::RegionGuides { .. } | Self::DropPreviews { .. } => PrimitiveKind::Field,
+            Self::FieldForm { .. } | Self::RegionGuides { .. } | Self::DropPreviews { .. } => {
+                PrimitiveKind::Field
+            },
         }
     }
 }
@@ -314,6 +325,15 @@ pub struct Issue {
     pub message: String,
 }
 
+impl Default for RuleSet {
+    fn default() -> Self {
+        Self {
+            version: PRESENTATION_RULE_VERSION,
+            rules: Vec::new(),
+        }
+    }
+}
+
 impl RuleSet {
     /// Validate atomically, including disabled rules so enabling one is safe.
     pub fn validate(&self) -> Result<(), Vec<Issue>> {
@@ -362,6 +382,15 @@ impl RuleSet {
                 );
             }
             for (effect_index, effect) in rule.effects.iter().enumerate() {
+                if let Effect::NodeMark { value } = effect
+                    && let Err(message) = value.validate()
+                {
+                    issue(
+                        &mut issues,
+                        &format!("rules[{index}].effects[{effect_index}]"),
+                        &message,
+                    );
+                }
                 let effect_path = format!("{path}.effects[{effect_index}]");
                 if effect.target_kind() != rule.target.kind {
                     issue(
@@ -526,24 +555,6 @@ impl RuleSet {
                 .collect();
         }
         Ok(result)
-    }
-}
-
-impl InputAvailability {
-    fn unavailable(&self, condition: &Condition, context: &Context) -> Option<String> {
-        match condition {
-            Condition::State { state } if !self.states.contains(state) => {
-                Some(format!("view state {state:?} is unavailable"))
-            },
-            Condition::ScreenSize { .. } if !self.screen_size || context.screen_size.is_none() => {
-                Some("screen measurement is unavailable".into())
-            },
-            Condition::All { conditions } | Condition::Any { conditions } => conditions
-                .iter()
-                .find_map(|condition| self.unavailable(condition, context)),
-            Condition::Not { condition } => self.unavailable(condition, context),
-            _ => None,
-        }
     }
 }
 

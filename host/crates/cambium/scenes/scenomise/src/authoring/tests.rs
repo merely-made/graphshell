@@ -32,6 +32,8 @@ fn dynamics_is_edited_as_one_undo_step_and_saved_in_the_definition() {
 
 pub(super) fn valid_draft() -> ProjectionDraft {
     ProjectionDraft {
+        marks: Default::default(),
+        fields: Vec::new(),
         dynamics: None,
         version: PROJECTION_DEFINITION_VERSION,
         id: "notes-by-topic".into(),
@@ -277,4 +279,27 @@ fn invalid_draft_never_reaches_sink() {
         .expect_err("invalid draft is refused");
     assert!(matches!(error, SaveError::Invalid(_)));
     assert!(sink.saved.is_empty());
+}
+
+#[test]
+fn mark_slot_edits_are_undoable_and_preserved_in_the_definition() {
+    let mut editor = ProjectionEditor::new(scenograph::ProjectionDraft::new());
+    let marks = scenograph::MarkSlots {
+        node: Some(scenograph::presentation::NodeMark::card()),
+        relation: Some(scenograph::presentation::RelationForm::Stroke),
+        field: Some(scenograph::FieldForm::Guide),
+    };
+    editor.reduce(EditorAction::SetMarks(marks.clone()), 0);
+    assert_eq!(editor.draft().marks, marks);
+    assert!(editor.undo());
+    assert!(editor.draft().marks.is_empty());
+    assert!(editor.redo());
+    assert_eq!(editor.draft().marks, marks);
+    let saved = editor.draft().clone();
+    assert!(
+        editor
+            .edit_field("marks", "invalid", 1000, &SolverRegistry::new())
+            .is_err()
+    );
+    assert_eq!(editor.draft(), &saved);
 }

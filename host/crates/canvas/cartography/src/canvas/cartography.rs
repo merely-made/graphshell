@@ -84,7 +84,14 @@ impl Canvas {
     /// A node's content-type silhouette (square document / rounded menu / circle feed),
     /// for the gnode to shape its face. `Square` (the default) for an unmapped node.
     pub fn node_shape(&self, key: NodeKey) -> NodeShape {
-        self.node_shapes.get(&key).copied().unwrap_or_default()
+        self.node_shapes
+            .get(&key)
+            .copied()
+            .or_else(|| match self.requested_node_mark(key)?.body {
+                scenograph::presentation::Body::Silhouette(shape) => Some(shape),
+                _ => None,
+            })
+            .unwrap_or_default()
     }
 
     /// A node's **face** (the texture on its body): a per-node override if the user set one
@@ -94,15 +101,18 @@ impl Canvas {
     /// (Node body & face — the Face axis.)
     pub fn node_face(&self, key: NodeKey) -> Face {
         let explicit = self.member_of(key).and_then(|id| self.node_faces.get(&id));
-        explicit.cloned().unwrap_or_else(|| {
-            self.graph.get_node(key).map_or(Face::default(), |node| {
-                if node.favicon().is_some() {
-                    Face::Favicon
-                } else {
-                    Face::Derived
-                }
+        explicit
+            .or_else(|| self.requested_node_mark(key).map(|mark| &mark.paint))
+            .cloned()
+            .unwrap_or_else(|| {
+                self.graph.get_node(key).map_or(Face::default(), |node| {
+                    if node.favicon().is_some() {
+                        Face::Favicon
+                    } else {
+                        Face::Derived
+                    }
+                })
             })
-        })
     }
 
     /// The member a slot holds now. Per-node overrides key by member, never by the slot, which

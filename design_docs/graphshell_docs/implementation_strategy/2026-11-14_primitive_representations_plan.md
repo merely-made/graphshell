@@ -788,3 +788,9 @@ face.
 - 2026-11-17: A native Turnstone fixture shows both polygons and checks their picking and
   link attachment. Production class-to-body resolution is part of M2.
   [G8 receipt](../../archive_docs/receipts/2026-11-14_primitive_representations_plan_receipts.md#2026-11-17-g8-polygon-picking-and-link-attachment).
+
+- 2026-11-17: M2 adds optional node, relation and field mark slots to recipes.
+  Binding, draft promotion and editor undo carry the slots. Compilation resolves
+  occurrence rules before placement and retains their defaults and winning trace.
+  The canvas takes complete compiled marks and live rule marks through atomic
+  replacement. Relation and field forms reach their readers in M3.

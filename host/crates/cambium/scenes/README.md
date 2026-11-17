@@ -32,6 +32,17 @@ separate [Chirograph action contract](../../chirograph/src/lib.rs); advertising
 an action does not grant permission to invoke it. Hosts and source owners admit
 commands through their own interfaces.
 
+Recipes may declare `marks.node`, `marks.relation` and `marks.field`.
+Empty slots preserve the existing defaults and are omitted when saving. The node
+slot carries its detail, paint, body, material and accepted extents.
+`ProjectionCompiler::with_presentation` applies occurrence rules over those
+defaults before placement. `CompiledProjection::node_marks` carries the resolved
+marks, defaults and rule traces beside the score and scene.
+`Canvas::set_compiled_projection` rebinds these marks to graph members. A live
+canvas rule update uses `set_node_rule_presentation` for atomic replacement of
+whole marks and detail-only effects. Relation and field forms are carried as
+requests for the host and arrangement readers in M3.
+
 Saved recipes may include authored dynamics; Knot additionally retains authored
 motion roles and normalized placement traces in immutable versions. Those
 portable values remain distinct from live simulation state and execution

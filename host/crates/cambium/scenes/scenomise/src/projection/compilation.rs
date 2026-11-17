@@ -47,6 +47,13 @@ pub(super) fn compile_inner(
         // stable sort keeps occurrence ids as the tiebreak.
         occurrences.sort_by(|left, right| order_cmp(left, right, x_field));
     }
+    let node_marks = super::marks::resolve(
+        compiler,
+        definition,
+        &occurrences,
+        selected_occurrence,
+        target.extent(),
+    )?;
     let measure = Measure {
         largest: compiler.sizes.card,
         count: occurrences.len(),
@@ -79,16 +86,15 @@ pub(super) fn compile_inner(
     });
     let mut score = Score::new(arrangement);
     score.generation = stable_generation(dataset);
-    // Compile the portable scene at its reference size, before live view state.
-    let representation_state = compiler.sizes.representation_state();
+    // Marks are resolved before measurement and placement.
     for (ordinal, occurrence) in occurrences.iter().enumerate() {
-        let representation = match &compiler.class_registry {
-            Some(registry) => registry
-                .resolve_classes(occurrence.classes.iter().map(String::as_str))
-                .ladder
-                .select(representation_state, None),
-            None => compiler.mark.detail.clone(),
-        };
+        let representation = node_marks[&InstanceId(ordinal as u32)]
+            .marks
+            .node
+            .as_ref()
+            .expect("resolved node mark")
+            .detail
+            .clone();
         let mut item = ScoreItem {
             source: occurrence.source.clone(),
             ordinal: ordinal as u32,
@@ -154,6 +160,8 @@ pub(super) fn compile_inner(
     }
     let selected = selected_occurrence.and_then(|id| instance_by_occurrence.get(id).copied());
     Ok(CompiledProjection {
+        marks: definition.marks.clone(),
+        node_marks,
         score,
         scene,
         labels,

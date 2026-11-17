@@ -40,6 +40,7 @@ pub(super) fn validation_issues(
                 reading: definition.reading.clone(),
                 encoding: definition.encoding.clone(),
                 arrangement: definition.arrangement.clone(),
+                marks: definition.marks.clone(),
                 fields: definition.fields.clone(),
                 interaction: definition.interaction.clone(),
                 appearance: definition.appearance.clone(),
@@ -140,15 +141,16 @@ pub(super) fn validation_issues(
     validate_arrangement(&mut issues, compiler, definition, dataset, target.as_ref());
     if let Some(target) = target.as_ref() {
         let imposed = target.extent();
-        if !compiler.mark.accepts(imposed) {
-            let accepted: Vec<_> = compiler.mark.accepts.iter().map(|e| e.id()).collect();
+        let mark = definition.marks.node.as_ref().unwrap_or(&compiler.mark);
+        if !mark.accepts(imposed) {
+            let accepted: Vec<_> = mark.accepts.iter().map(|e| e.id()).collect();
             issues.push(CompileIssue::new(
                 "arrangement.kind",
                 format!(
                     "{} imposes the {} extent; the {} mark accepts {}",
                     definition.arrangement.kind,
                     imposed.id(),
-                    compiler.mark.label(),
+                    mark.label(),
                     accepted.join(", ")
                 ),
             ));

@@ -72,6 +72,7 @@ impl Canvas {
         self.node_states.retain(|key, _| keep(key));
         self.node_shapes.retain(|key, _| keep(key));
         self.projection_representations.retain(|key, _| keep(key));
+        self.projection_marks.retain(|key, _| keep(key));
         self.grammar.retain(keep);
         self.mosaic.retain(keep);
         for positions in [&mut self.strategy_positions, &mut self.paused_positions]
@@ -149,7 +150,9 @@ impl Canvas {
         self.node_sprites.retain(|id, _| !members.contains(id));
         self.node_sprite_hulls.retain(|id, _| !members.contains(id));
         self.node_materials.retain(|id, _| !members.contains(id));
-        self.node_rule_representations.retain(|id, _| !members.contains(id));
+        self.node_rule_representations
+            .retain(|id, _| !members.contains(id));
+        self.node_rule_marks.retain(|id, _| !members.contains(id));
         if let Some(affinity) = &mut self.content_affinity {
             let before = affinity.len();
             affinity.retain(|(a, b, _)| keep(a) && keep(b));

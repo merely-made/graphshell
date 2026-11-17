@@ -206,3 +206,21 @@ pub(super) fn contains_script(condition: &Condition) -> bool {
         _ => false,
     }
 }
+
+impl InputAvailability {
+    pub(super) fn unavailable(&self, condition: &Condition, context: &Context) -> Option<String> {
+        match condition {
+            Condition::State { state } if !self.states.contains(state) => {
+                Some(format!("view state {state:?} is unavailable"))
+            },
+            Condition::ScreenSize { .. } if !self.screen_size || context.screen_size.is_none() => {
+                Some("screen measurement is unavailable".into())
+            },
+            Condition::All { conditions } | Condition::Any { conditions } => conditions
+                .iter()
+                .find_map(|condition| self.unavailable(condition, context)),
+            Condition::Not { condition } => self.unavailable(condition, context),
+            _ => None,
+        }
+    }
+}
