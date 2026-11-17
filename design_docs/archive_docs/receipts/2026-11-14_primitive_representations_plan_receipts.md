@@ -250,3 +250,52 @@ knot-editor,woodshed,cleromancy}, owned by their corresponding repositories.
 The seven Graphshell guest fixture aliases continue to use
 ~/Code/targets/graphshell/guests. The task used primary T-PC checkouts, including
 a new primary Mer3ly checkout; Windows concurrent work was preserved.
+
+
+## 2026-11-17 M4 frame slot
+
+Scope: recipe frame data through editing, binding, placement and portable scene
+state. Retained evidence is this compact receipt plus committed tests, under
+the default 100 MB receipt cap. Work uses the clean T-PC primary checkout and
+the reusable ~/Code/targets/graphshell cache.
+
+- Sceno owns Frame and FrameKind: Unbounded(origin), Bounded(bounds),
+  Nested(local bounds and a Space transform), Flow(origin and page width).
+  Scenograph re-exports the vocabulary. Authored, bound and draft recipes carry
+  an optional frame; binding, promotion and undo preserve it. Missing frames
+  retain existing geometry and remain absent from legacy recipe JSON.
+- Score version 6 carries the slot. Older Scores retain their family geometry
+  and hold semantics. A version-5 reader rejects version 6 rather than silently
+  discard the frame. Legacy family bounds/origin fields remain compatibility
+  inputs; explicit frames supply the effective geometry during placement.
+- Partition and Sets declare bounded frames; Mosaic declares unbounded.
+  Grid also declares Nested and Flow; Hulls declares Bounded and the other
+  built-ins declare Unbounded. Custom solvers declare accepted kinds and
+  implement place_in_frame. Unsupported combinations are refused before
+  placement; a declaration without a reader also refuses.
+- Flow caps ordinal/generated grid columns to page width and grows height.
+  Authored cell coordinates must fit. Nested Grid uses a genuine Space and
+  keeps authored pins in local coordinates. SceneFrame retains the domain and
+  its live Space, so routing and motion refresh follow later Space movement.
+  Snapshots and transactional diffs retain and validate that metadata.
+- With an explicit bounded frame, legacy width/height options are refused so
+  they cannot compete with the rectangle. Changing the frame invalidates
+  placement reuse; unchanged frames retain it.
+
+Shared checks:
+- cargo test --manifest-path host/Cargo.toml -p sceno -p scenograph
+  -p scenomise -p scenotime --all-features --offline: Sceno 41 library and
+  6 doc tests; Scenograph 83 library and 9 integration tests; Scenomise
+  250 library, 4 integration and 3 doc tests; Scenotime 45 library and
+  2 doc tests passed.
+- Full serial Cartography run: 762 passed, 18 ignored, with one expected
+  score-byte golden failure caused by the writer version changing from 5
+  to 6. Every position hash remained unchanged. Only four score-byte hashes
+  were updated. A new migration guard serializes those scores at version 5
+  and matches their preceding hashes, proving the remaining content is
+  unchanged. The targeted arrangement_goldens rerun passed all 3 tests.
+- All configured Graphshell pre-commit checks passed before that golden
+  refresh. The commit hooks repeat the applicable checks on the final files.
+
+These are compiler, scene and automated renderer checks. The combined headed
+frame/primitive picker demonstration remains the M6 acceptance gate.

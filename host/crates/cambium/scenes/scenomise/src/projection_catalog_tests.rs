@@ -93,6 +93,7 @@ fn dataset() -> ProjectionDataset {
 fn definition(kind: &str, x: &str) -> ProjectionDefinition {
     let data = dataset();
     ProjectionDefinition {
+        frame: None,
         marks: Default::default(),
         fields: Vec::new(),
         dynamics: None,
@@ -456,3 +457,6 @@ fn a_recipe_with_fields_compiles_to_the_same_scene_and_bad_fields_are_named() {
 
 #[path = "projection/mark_tests.rs"]
 mod mark_tests;
+
+#[path = "frame_tests.rs"]
+mod frames;

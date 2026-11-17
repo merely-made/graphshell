@@ -250,6 +250,9 @@ pub struct ProjectionDraft {
     pub reading: Reading,
     pub encoding: Encoding,
     pub arrangement: Arrangement,
+    /// Coordinate domain requested from the arrangement. Missing preserves legacy geometry.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub frame: Option<Frame>,
     /// Default forms for the three graph primitives. Rules override these per occurrence.
     #[serde(default, skip_serializing_if = "MarkSlots::is_empty")]
     pub marks: MarkSlots,
@@ -274,6 +277,9 @@ pub struct ProjectionDefinition {
     pub reading: Reading,
     pub encoding: Encoding,
     pub arrangement: Arrangement,
+    /// Coordinate domain requested from the arrangement. Missing preserves legacy geometry.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub frame: Option<Frame>,
     /// Default forms for the three graph primitives. Rules override these per occurrence.
     #[serde(default, skip_serializing_if = "MarkSlots::is_empty")]
     pub marks: MarkSlots,
@@ -379,6 +385,9 @@ pub struct AuthoredProjectionDefinition {
     pub reading: Reading,
     pub encoding: Encoding,
     pub arrangement: Arrangement,
+    /// Coordinate domain requested from the arrangement. Missing preserves legacy geometry.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub frame: Option<Frame>,
     /// Default forms for the three graph primitives. Rules override these per occurrence.
     #[serde(default, skip_serializing_if = "MarkSlots::is_empty")]
     pub marks: MarkSlots,
@@ -530,3 +539,8 @@ mod draft;
 
 #[path = "authored.rs"]
 mod authored;
+
+pub use sceno::{Frame, FrameKind};
+
+#[cfg(test)]
+mod frame_tests;

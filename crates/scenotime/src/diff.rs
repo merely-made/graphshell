@@ -126,6 +126,9 @@ pub enum SceneOp {
         reports: Vec<sceno::RelationConstraintReport>,
         order: Vec<InstanceId>,
     },
+    SetFrame {
+        frame: Option<sceno::SceneFrame>,
+    },
     SetBounds {
         bounds: Rect,
     },
@@ -273,6 +276,10 @@ impl SceneSnapshot {
             SceneOp::SetRelationConstraints { reports, order } => {
                 self.tables.relation_constraints = reports.clone();
                 self.tables.arrangement_order = order.clone();
+                Ok(())
+            },
+            SceneOp::SetFrame { frame } => {
+                self.tables.frame = frame.clone();
                 Ok(())
             },
             SceneOp::SetBounds { bounds } => {

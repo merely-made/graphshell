@@ -86,6 +86,7 @@ pub(super) fn compile_inner(
     });
     let mut score = Score::new(arrangement);
     score.generation = stable_generation(dataset);
+    score.frame = definition.frame.clone();
     // Marks are resolved before measurement and placement.
     for (ordinal, occurrence) in occurrences.iter().enumerate() {
         let representation = node_marks[&InstanceId(ordinal as u32)]
@@ -125,6 +126,7 @@ pub(super) fn compile_inner(
     let reusable = previous.filter(|old| {
         old.score.version == score.version
             && old.score.arrangement == score.arrangement
+            && old.score.frame == score.frame
             && old.score.items == score.items
             && old.score.holds == score.holds
             && occurrences.iter().enumerate().all(|(index, occurrence)| {
@@ -149,7 +151,9 @@ pub(super) fn compile_inner(
         scene
     } else {
         crate::solve_via(&score, &compiler.registry)
-            .map_err(|error| vec![CompileIssue::new("arrangement.kind", error.to_string())])?
+            .map_err(|error| vec![CompileIssue::new(
+                if matches!(&error, crate::SolveError::Unplaceable { reason, .. } if reason.starts_with("frame:")) { "frame" } else { "arrangement.kind" },
+                error.to_string())])?
     };
     let mut labels = HashMap::new();
     let mut occurrence_by_instance = HashMap::new();

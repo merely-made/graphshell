@@ -18,6 +18,10 @@ use crate::{Footprint, Rect, Representation, Size2, SourceRef, Vec2};
 
 /// The persisted-score wire version.
 ///
+/// Version 6 adds an optional explicit frame. A version 5 reader must refuse
+/// it because dropping a frame can change every placement. Scores without a
+/// frame retain their arrangement's legacy bounds/origin.
+///
 /// Version 5 gives the holds their three arrangement roles (dynamics grammar
 /// plan, F25, F44): "Seeded", "Anchored" (returns) and "Pinned". Up to version
 /// 4, "Anchored" meant best effort, which is now `Seeded`, so an older score's
@@ -39,7 +43,7 @@ use crate::{Footprint, Rect, Representation, Size2, SourceRef, Vec2};
 /// score rather than accept it, because the one thing it would drop is an
 /// authored placement someone asked to be honored. A silently dropped pin is
 /// the failure this field exists to prevent.
-pub const SCORE_VERSION: u16 = 5;
+pub const SCORE_VERSION: u16 = 6;
 
 /// The first version whose "Anchored" hold returns (F44).
 const RETURNING_ANCHOR_SINCE: u16 = 5;
@@ -73,6 +77,8 @@ pub struct Score {
     pub version: u16,
     /// The analytic placement family that will realize [`Self::items`].
     pub arrangement: Arrangement,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub frame: Option<crate::Frame>,
     /// Ordered, measured source instances. A source may appear more than
     /// once, which remains distinct from source truth by design.
     pub items: Vec<ScoreItem>,
@@ -94,6 +100,8 @@ pub struct Score {
 struct ScoreWire {
     version: u16,
     arrangement: Arrangement,
+    #[serde(default)]
+    frame: Option<crate::Frame>,
     items: Vec<ScoreItem>,
     #[serde(default)]
     holds: Vec<HeldPlacement>,
@@ -131,6 +139,7 @@ impl Score {
         Ok(Self {
             version: reader,
             arrangement: wire.arrangement,
+            frame: wire.frame,
             items: wire.items,
             holds,
             generation: wire.generation,
@@ -141,6 +150,7 @@ impl Score {
         Self {
             version: SCORE_VERSION,
             arrangement,
+            frame: None,
             items: Vec::new(),
             holds: Vec::new(),
             generation: 0,

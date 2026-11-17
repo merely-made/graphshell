@@ -841,3 +841,20 @@ face.
   their configured checks, and the full product CPU-physics Wasm profile passes.
   The receipt and refs/notes/resolved retain the exact inputs. M4 (the recipe's
   frame), M5, Partition zoom and Crystal remain open.
+
+
+- 2026-11-17: M4 adds an optional typed frame to authored recipes, bound
+  definitions and editable drafts, with an undoable frame edit. Binding and
+  promotion preserve it. Omission retains each family's existing geometry.
+- 2026-11-17: The frame reaches a version-6 Sceno Score. Partition and Sets
+  read a bounded rectangle; Mosaic reads an unbounded origin. Grid also reads
+  flow width and nested local bounds through a Space. Other families and
+  custom solvers declare their accepted frame kinds as data. A mismatch is
+  refused before placement, and a custom declaration requires a frame reader.
+- 2026-11-17: SceneFrame retains the instantiated domain and its Space.
+  Routing, motion refresh, snapshots and transactional diffs preserve it.
+  Legacy family geometry fields remain compatibility inputs when no explicit
+  frame is present. With an explicit bounded frame, legacy width/height
+  options are refused instead of competing with the frame.
+
+  [M4 receipt](../../archive_docs/receipts/2026-11-14_primitive_representations_plan_receipts.md#2026-11-17-m4-frame-slot).

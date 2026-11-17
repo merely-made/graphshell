@@ -324,9 +324,11 @@ fn arrangement_projections(
 /// platform maths it replaced, 71 of the 500 Spiral positions and 8 of the
 /// 500 Radial ones move, by at most two ulps (0.0002 px).
 #[rustfmt::skip]
+// M4 changes only the four score-byte hashes for writer version 6.
+// Every position hash remains the preceding golden.
 const GOLDENS: &[(&str, &str, u64, u64)] = &[
-    ("topic", "phyllotaxis.default recent_first true", 0x11d4ed56b1ecd0da, 0xdbfc8872bcb0fe19),
-    ("topic", "phyllotaxis.default recent_first false", 0xb8309ba62e9f1b4a, 0x2b5c6b3cfc82c467),
+    ("topic", "phyllotaxis.default recent_first true", 0x11d4ed56b1ecd0da, 0xd6430bc1774e60d8),
+    ("topic", "phyllotaxis.default recent_first false", 0xb8309ba62e9f1b4a, 0x561d2a1c2a75bd2a),
     ("topic", "grid.default recent_first true", 0x43ad04ce7ccbfeca, 0x0000000000000000),
     ("topic", "spectral.default recent_first true", 0x4dd47e18a22025f5, 0x0000000000000000),
     ("topic", "penrose.default recent_first true", 0x3cdc98d37bf9b14a, 0x0000000000000000),
@@ -340,8 +342,8 @@ const GOLDENS: &[(&str, &str, u64, u64)] = &[
     ("topic", "mosaic.default recent_first true", 0xe0769c647b4b4079, 0x0000000000000000),
     ("topic", "radial.default focus 0", 0x7b86498e83ab96e0, 0x0000000000000000),
     ("topic", "radial weighted focus 0", 0x143223deca19b751, 0x0000000000000000),
-    ("generated 500", "phyllotaxis.default recent_first true", 0xbc5c195c1e3ba247, 0x7e81012620972157),
-    ("generated 500", "phyllotaxis.default recent_first false", 0x327bd615bc120833, 0xa23806b7cda67fb5),
+    ("generated 500", "phyllotaxis.default recent_first true", 0xbc5c195c1e3ba247, 0xde8954937dc61cce),
+    ("generated 500", "phyllotaxis.default recent_first false", 0x327bd615bc120833, 0x3c114198a80c04d8),
     ("generated 500", "grid.default recent_first true", 0x2c8eb12fa9da7098, 0x0000000000000000),
     ("generated 500", "spectral.default recent_first true", 0xd0d787a1609d27d1, 0x0000000000000000),
     ("generated 500", "penrose.default recent_first true", 0x6c7bd7d4d9651718, 0x0000000000000000),
@@ -442,4 +444,32 @@ fn resource_and_surface_topologies_have_identical_arrangements() {
             );
         }
     }
+}
+
+
+#[test]
+fn legacy_score_content_is_unchanged_apart_from_the_frame_wire_version() {
+    let legacy_scores = [
+        ("topic", "phyllotaxis.default recent_first true", 0xdbfc8872bcb0fe19),
+        ("topic", "phyllotaxis.default recent_first false", 0x2b5c6b3cfc82c467),
+        ("generated 500", "phyllotaxis.default recent_first true", 0x7e81012620972157),
+        ("generated 500", "phyllotaxis.default recent_first false", 0xa23806b7cda67fb5),
+    ];
+    let mut count = 0;
+    for (fixture, (graph, keys)) in [
+        ("topic", topic_fixture_in_store(true)),
+        ("generated 500", generated_fixture_in_store(500, true)),
+    ] {
+        for (name, projection) in arrangement_projections(&graph, &keys) {
+            if let Some(mut score) = projection.score {
+                assert!(score.frame.is_none());
+                assert_eq!(score.version, 6);
+                score.version = 5;
+                let expected = legacy_scores.iter().find(|(f, n, _)| *f == fixture && *n == name).unwrap().2;
+                assert_eq!(score_hash(&score), expected, "{fixture} {name} changed legacy score content");
+                count += 1;
+            }
+        }
+    }
+    assert_eq!(count, legacy_scores.len());
 }

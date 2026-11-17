@@ -12,6 +12,7 @@ impl Default for ProjectionDefinition {
     fn default() -> Self {
         let draft = ProjectionDraft::new();
         Self {
+            frame: draft.frame.clone(),
             marks: draft.marks.clone(),
             fields: draft.fields.clone(),
             dynamics: draft.dynamics,
@@ -34,6 +35,7 @@ impl Default for AuthoredProjectionDefinition {
     fn default() -> Self {
         let draft = ProjectionDraft::new();
         Self {
+            frame: draft.frame.clone(),
             marks: draft.marks.clone(),
             fields: draft.fields.clone(),
             dynamics: draft.dynamics,
@@ -62,6 +64,7 @@ impl ProjectionDraft {
             reading: Reading::default(),
             encoding: Encoding::default(),
             arrangement: Arrangement::default(),
+            frame: None,
             marks: MarkSlots::default(),
             fields: Vec::new(),
             dynamics: None,
@@ -83,6 +86,7 @@ impl ProjectionDraft {
             reading: self.reading.clone(),
             encoding: self.encoding.clone(),
             arrangement: self.arrangement.clone(),
+            frame: self.frame.clone(),
             marks: self.marks.clone(),
             fields: self.fields.clone(),
             interaction: self.interaction.clone(),
@@ -94,6 +98,11 @@ impl ProjectionDraft {
     /// Check all required fields without contacting a host or authority.
     pub fn validate(&self) -> Result<(), Vec<ValidationIssue>> {
         let mut issues = self.marks.validation_issues();
+        if let Some(frame) = &self.frame {
+            if let Err(message) = frame.validate() {
+                issues.push(ValidationIssue::error("frame", message));
+            }
+        }
         if let Some(slot) = &self.dynamics {
             if let Err(message) = slot.validate() {
                 issues.push(ValidationIssue::error("dynamics", &message));

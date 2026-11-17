@@ -128,7 +128,8 @@ pub fn refresh_scene(scene: &mut Scene) {
         report.honored = honored;
         report.reason = reason;
     }
-    if !scene.relation_constraints.is_empty()
+    if scene.frame.is_some()
+        || !scene.relation_constraints.is_empty()
         || scene
             .relations
             .iter()
@@ -247,6 +248,24 @@ fn content_bounds(scene: &Scene) -> Rect {
         for point in rect_points(rect).into_iter().map(|p| transform.apply(p)) {
             let rect = Rect::new(point, Size2::default());
             bounds = Some(bounds.map_or(rect, |old| old.union(rect)));
+        }
+    }
+    if let Some(frame) = scene
+        .frame
+        .as_ref()
+        .and_then(|frame| frame.world_bounds(scene))
+    {
+        bounds = Some(bounds.map_or(frame, |old| old.union(frame)));
+    }
+    if bounds.is_none() {
+        if let Some(sceno::SceneFrame {
+            spec: sceno::Frame::Unbounded { origin },
+            space,
+        }) = &scene.frame
+        {
+            if let Some(world) = scene.to_world(*space) {
+                bounds = Some(Rect::new(world.apply(*origin), Size2::default()));
+            }
         }
     }
     bounds.unwrap_or_default()

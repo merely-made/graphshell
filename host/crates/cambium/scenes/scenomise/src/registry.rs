@@ -78,6 +78,9 @@ pub struct SolverCapability {
     /// Placed relation forms accepted by the arrangement pass.
     #[serde(default)]
     pub placed_forms: Vec<sceno::RelationForm>,
+    /// Explicit frame kinds the solver reads. Empty preserves legacy callers only.
+    #[serde(default)]
+    pub frames: Vec<sceno::FrameKind>,
 }
 
 impl SolverCapability {
@@ -93,6 +96,7 @@ impl SolverCapability {
             tags: Vec::new(),
             options: Vec::new(),
             placed_forms: Vec::new(),
+            frames: Vec::new(),
         }
     }
 }
@@ -115,6 +119,19 @@ pub trait Solver: Send + Sync {
         config: &serde_json::Value,
         items: &[&ScoreItem],
     ) -> Result<Vec<Vec2>, SolveError>;
+
+    /// Read an explicit frame. A declaration without a reader is refused.
+    fn place_in_frame(
+        &self,
+        _config: &serde_json::Value,
+        _items: &[&ScoreItem],
+        _frame: &sceno::Frame,
+    ) -> Result<Vec<Vec2>, SolveError> {
+        Err(SolveError::Unplaceable {
+            id: self.capability().id,
+            reason: "frame: this solver does not implement an explicit frame reader".into(),
+        })
+    }
 }
 
 /// Why a custom arrangement could not be realized.
@@ -260,8 +277,11 @@ pub fn solve_via(
     score: &sceno::Score,
     registry: &SolverRegistry,
 ) -> Result<sceno::Scene, SolveError> {
+    crate::frames::validate_score(score, registry)?;
+    let prepared = crate::frames::prepare(score)?;
+    let score = &*prepared;
     let sceno::Arrangement::Custom { id, config } = &score.arrangement else {
-        return Ok(crate::solve(score));
+        return Ok(crate::solve::solve_configured(score, |_| None));
     };
 
     let solver = registry
@@ -286,20 +306,25 @@ pub fn solve_via(
     }
 
     let mut failure = None;
-    let scene = crate::solve_with(score, |items| match solver.place(config, items) {
-        Ok(positions) if positions.len() == items.len() => Some(positions),
-        Ok(positions) => {
-            failure = Some(SolveError::CountMismatch {
-                id: id.clone(),
-                items: items.len(),
-                positions: positions.len(),
-            });
-            None
-        },
-        Err(error) => {
-            failure = Some(error);
-            None
-        },
+    let scene = crate::solve::solve_configured(score, |items| {
+        match match &score.frame {
+            Some(frame) => solver.place_in_frame(config, items, frame),
+            None => solver.place(config, items),
+        } {
+            Ok(positions) if positions.len() == items.len() => Some(positions),
+            Ok(positions) => {
+                failure = Some(SolveError::CountMismatch {
+                    id: id.clone(),
+                    items: items.len(),
+                    positions: positions.len(),
+                });
+                None
+            },
+            Err(error) => {
+                failure = Some(error);
+                None
+            },
+        }
     });
 
     match failure {

@@ -40,6 +40,7 @@ pub(super) fn validation_issues(
                 reading: definition.reading.clone(),
                 encoding: definition.encoding.clone(),
                 arrangement: definition.arrangement.clone(),
+                frame: definition.frame.clone(),
                 marks: definition.marks.clone(),
                 fields: definition.fields.clone(),
                 interaction: definition.interaction.clone(),
@@ -53,6 +54,7 @@ pub(super) fn validation_issues(
         .map(|issue| CompileIssue::new(issue.field, issue.message))
         .collect();
     issues.extend(card_issue(compiler.sizes));
+    issues.extend(crate::frames::definition_issues(compiler, definition));
 
     source_matches(&mut issues, definition, dataset);
     if definition.reading.value.is_some() {

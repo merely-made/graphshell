@@ -8,6 +8,7 @@ use super::*;
 
 pub(super) fn valid_draft() -> ProjectionDraft {
     ProjectionDraft {
+        frame: None,
         marks: Default::default(),
         fields: Vec::new(),
         dynamics: None,
@@ -74,6 +75,7 @@ fn sources() -> BTreeMap<String, ProjectionInputBinding> {
 pub(super) fn authored() -> AuthoredProjectionDefinition {
     let draft = valid_draft();
     AuthoredProjectionDefinition {
+        frame: None,
         marks: Default::default(),
         fields: Vec::new(),
         dynamics: None,
