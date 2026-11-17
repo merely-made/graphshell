@@ -423,3 +423,45 @@ fn declaring_a_frame_without_implementing_its_reader_never_calls_legacy_placemen
             .any(|issue| issue.field == "frame" && issue.message.contains("frame reader"))
     );
 }
+
+#[test]
+fn relation_rerouting_and_recipe_refresh_keep_a_moved_nested_frame() {
+    let compiler = ProjectionCompiler::new(sizes(40.0, 20.0));
+    let data = dataset();
+    let mut definition = definition("grid", "x");
+    definition.frame = Some(Frame::Nested {
+        bounds: bounds(),
+        transform: Transform2::translation(1000.0, 2000.0),
+    });
+    definition.marks.relation = Some(sceno::RelationForm::MatrixCell);
+    let relationships = vec![DisclosedRelationship {
+        id: "a-b".into(),
+        from_occurrence: "a".into(),
+        to_occurrence: "b".into(),
+        kind: "cites".into(),
+        label: "A cites B".into(),
+        explanation: "Disclosed by the fixture".into(),
+        provenance: RelationshipProvenance {
+            source: data.source.clone(),
+            source_revision: data.revision.clone(),
+            method: "fixture".into(),
+            method_version: 1,
+            provider: "tests".into(),
+            evidence: vec![SourceRef::new("fixture", "a")],
+        },
+    }];
+    let mut compiled = compiler.compile(&definition, &data).unwrap();
+    crate::host_dataset::route_relationships(&mut compiled, &data, &relationships).unwrap();
+    let moved = Vec2::new(3000.0, 4000.0);
+    compiled.scene.spaces[1].transform.translate = moved;
+    crate::relation_forms::refresh_scene(&mut compiled.scene);
+    crate::host_dataset::route_relationships(&mut compiled, &data, &relationships).unwrap();
+    assert_eq!(compiled.scene.spaces[1].transform.translate, moved);
+    definition.label = "Renamed view".into();
+    let mut refreshed = compiler.refresh(&compiled, &definition, &data).unwrap();
+    assert!(refreshed.placement_reused);
+    assert_eq!(refreshed.scene.spaces[1].transform.translate, moved);
+    crate::host_dataset::route_relationships(&mut refreshed, &data, &relationships).unwrap();
+    assert_eq!(refreshed.scene.spaces[1].transform.translate, moved);
+    assert!(refreshed.scene.relations[0].cell_bounds().unwrap().origin.x > 3000.0);
+}

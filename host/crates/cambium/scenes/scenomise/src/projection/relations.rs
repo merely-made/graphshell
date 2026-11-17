@@ -129,6 +129,12 @@ pub(crate) fn route(
     } else {
         projection.scene.clone()
     };
+    if projection.scene.frame.as_ref().is_some_and(|frame| {
+        matches!(frame.spec, sceno::Frame::Nested { .. })
+            && projection.base_scene.frame.as_ref() == Some(frame)
+    }) {
+        scene.spaces.clone_from(&projection.scene.spaces);
+    }
     let base_scene = scene.clone();
     scene.relations = routed;
     let assigned = matches!(
@@ -160,8 +166,15 @@ pub(crate) fn preflight(
     selected: Option<&str>,
 ) -> Result<(), Vec<CompileIssue>> {
     if let Some(form) = definition.marks.relation {
-        let issues = form_issues(form, &placed_forms(compiler, definition), "marks.relation", &definition.arrangement.kind);
-        if !issues.is_empty() { return Err(issues); }
+        let issues = form_issues(
+            form,
+            &placed_forms(compiler, definition),
+            "marks.relation",
+            &definition.arrangement.kind,
+        );
+        if !issues.is_empty() {
+            return Err(issues);
+        }
     }
     resolve_forms(
         &compiler.presentation,

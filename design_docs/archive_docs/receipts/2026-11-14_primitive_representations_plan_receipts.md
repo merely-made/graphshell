@@ -299,3 +299,9 @@ Shared checks:
 
 These are compiler, scene and automated renderer checks. The combined headed
 frame/primitive picker demonstration remains the M6 acceptance gate.
+
+- A combined nested-frame/matrix regression checks direct relation rerouting,
+  metadata-only recipe refresh, and another reroute after moving the live
+  Space. Rebuilding relation placement now preserves that Space pose when
+  the authored frame is unchanged. The full Scenomise suite passes 251
+  library, 4 integration and 3 doc tests after this refinement.

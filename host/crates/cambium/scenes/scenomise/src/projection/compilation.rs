@@ -147,6 +147,12 @@ pub(super) fn compile_inner(
         } else {
             old.scene.clone()
         };
+        if old.scene.frame.as_ref().is_some_and(|frame| {
+            matches!(frame.spec, sceno::Frame::Nested { .. })
+                && old.base_scene.frame.as_ref() == Some(frame)
+        }) {
+            scene.spaces.clone_from(&old.scene.spaces);
+        }
         scene.generation = score.generation;
         scene
     } else {
