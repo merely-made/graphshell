@@ -123,3 +123,15 @@ Commands were `cargo test --manifest-path host/Cargo.toml -p scenograph -p sceno
 `cargo test --manifest-path host/Cargo.toml -p mere-cartography --lib --features canvas,physics-engine -- --test-threads=1`
 and `prek run --hook-stage pre-commit`, with the reusable target at
 `~/Code/targets/graphshell`.
+
+Turnstone integration was checked from its `ef91de16` baseline with the Scenograph,
+Scenomise and Cartography source paths overlaid for this change. The Graphshell
+web-library suite passed 278 tests with 6 ignored. The full product Wasm check
+passed with `product,remote,image-decode,presentation-webgpu,presentation-webgl2,physics-engine`
+and `--no-default-features`. This covers the normal live-rule installer, its
+capability filter and the source-shaped recipe-to-draft copy.
+
+The default GPU-physics Wasm profile failed in registry
+`cubecl-runtime-0.12.0-pre.2` at its import of `crate::tune::sampler::measured`.
+The recorded Turnstone resolution already carried that same registry package.
+The CPU-physics profile above keeps both presentation routes enabled.

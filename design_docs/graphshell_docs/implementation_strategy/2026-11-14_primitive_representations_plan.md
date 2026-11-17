@@ -728,6 +728,10 @@ face.
   density; `cartography/src/canvas/cartography/appearance.rs:61-76`); scenograph does not
   depend on seiche, so the mark's body carries no material yet.
 
+- 2026-11-17 (M2): a mark includes floating-point material values. Recipes,
+  drafts and their relationship wrappers now derive PartialEq. Complete literals
+  need the new marks slot, and source-shaped draft copies must carry it.
+
 ## Progress
 
 - 2026-11-14: cut from `2026-06-23_node_body_face_model_plan.md` with the scene composition
