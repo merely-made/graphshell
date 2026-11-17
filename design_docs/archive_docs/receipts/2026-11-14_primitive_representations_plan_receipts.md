@@ -305,3 +305,48 @@ frame/primitive picker demonstration remains the M6 acceptance gate.
   Space. Rebuilding relation placement now preserves that Space pose when
   the authored frame is unchanged. The full Scenomise suite passes 251
   library, 4 integration and 3 doc tests after this refinement.
+
+
+### Consumer and merged-main qualification
+
+The shared implementation is fbb05e2, with the nested-pose refresh refinement
+in 75e391d. Turnstone 1c31de2d copies an explicit frame into the editable draft.
+Its new workflow regression saves a framed recipe, changes the working frame,
+reopens the snapshot, refreshes the editor and checks that both the frame and
+its placement remain intact.
+
+Turnstone passed all configured pre-commit checks. Its Graphshell library suite
+passed 279 tests with 6 ignored against committed shared revision 75e391d.
+The full product browser check also passed, using:
+cargo check --manifest-path ports/graphshell/web/Cargo.toml
+--target wasm32-unknown-unknown --no-default-features
+--features product,remote,image-decode,presentation-webgpu,presentation-webgl2,physics-engine
+--offline --locked.
+The library command was cargo test -p graphshell --no-default-features
+--features web,physics-engine --lib --offline --locked.
+
+The other consumers passed their configured pre-commit checks against the M4
+API revision fbb05e2 without source edits:
+
+| Consumer | Checked source | Resolution baseline |
+| --- | --- | --- |
+| Mer3ly | dd6dc45 | recorded on the same commit |
+| Knot | 12b3552 | recorded on the same commit |
+| Cleromancy | ba7442a | nearest recorded ancestor 4b7dcf1 |
+| Woodshed | fd3b60d4 | recorded on the same commit |
+
+Their recorded locks were replayed with only the Graphshell Git source
+advanced for qualification. After checking, the original lock bytes were
+restored. Package-name/version/source comparison confirmed that no other
+dependency changed; their source trees and existing resolution notes remain
+unchanged. The later pose refinement changes the nested-frame implementation,
+with its complete Scenomise regression suite recorded above.
+
+While integration ran, uxtree P1 (5267dd2) landed on origin. It was merged
+without source conflicts as b5ac7c2. All configured Graphshell checks passed
+on that combined main. Turnstone's recorded lock notes retain its checked
+shared source revision.
+
+The task reused stable per-repository targets on T-PC. Seven Graphshell guest
+target aliases share the existing ~/Code/targets/graphshell/guests fixtures.
+Windows primary checkouts and concurrent work were preserved.

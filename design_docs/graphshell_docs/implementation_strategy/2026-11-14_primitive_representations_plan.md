@@ -80,6 +80,8 @@ slot order and one honoured/unmet report for each placed request.
 - Needs: M2. Adjacency driven by relations is Crystal's (D6); Mosaic keeps group and order.
 
 ### M4. Frame as a slot
+**Completed 2026-11-17.** Shared and consumer gates are recorded in the M4 receipt.
+
 Bounded, unbounded, nested and flow frames are chosen on the recipe and passed to the
 arrangement.
 - Done when: the recipe names the frame and `Partition`, `Setscape` and `Mosaic` take their
@@ -858,3 +860,12 @@ face.
   options are refused instead of competing with the frame.
 
   [M4 receipt](../../archive_docs/receipts/2026-11-14_primitive_representations_plan_receipts.md#2026-11-17-m4-frame-slot).
+
+
+- 2026-11-17: M4 is complete through fbb05e2 and 75e391d. Turnstone preserves
+  the frame through saved-recipe reopening (1c31de2d); 279 library tests and the
+  full product CPU-physics Wasm check pass. Mer3ly, Knot, Cleromancy and Woodshed
+  pass their configured compatibility checks unchanged. The uxtree P1 update
+  (5267dd2) was merged without conflicts, and the combined main passes its
+  configured checks. M5 (any assigned node mark), M6, Partition zoom and Crystal
+  remain open.
