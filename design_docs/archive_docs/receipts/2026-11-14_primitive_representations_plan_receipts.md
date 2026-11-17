@@ -204,3 +204,9 @@ primary checkouts carry concurrent work and were preserved.
 - Review added an explicit configured-group-order Mosaic regression. Order
   reports now read the realized group regions, including configured group
   order; tile area remains proportional to disclosed weights with zero gutters.
+
+- Final matrix checks put row labels outside the first cell and centre each
+  column label over its column. A fully pinned Mosaic regression checks an
+  already-satisfied order against configured group order, including the
+  fallback path. Scenomise's full suite now passes 237 library, 4 integration
+  and 3 doc tests.

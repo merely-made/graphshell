@@ -25,6 +25,14 @@ pub(super) fn order(
                 .then(a.cmp(&b))
         });
     }
+    if matches!(score.arrangement, sceno::Arrangement::Mosaic(_)) {
+        base = scene
+            .regions
+            .iter()
+            .filter(|region| region.label.is_some())
+            .flat_map(|region| region.members.iter().map(|id| id.0 as usize))
+            .collect();
+    }
     let original_rank: BTreeMap<_, _> = base
         .iter()
         .enumerate()

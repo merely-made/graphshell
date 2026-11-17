@@ -521,3 +521,40 @@ fn mosaic_keeps_weighted_groups_and_reports_the_configured_group_order() {
         }
     }
 }
+
+#[test]
+fn already_satisfied_mosaic_order_stays_honoured_when_every_node_is_pinned() {
+    let (mut data, recipe) = fixture("mosaic", RelationForm::Order);
+    data.relationships = vec![request(&data, "already-satisfied", "b", "a")];
+    let mut compiled = compiler().compile(&recipe, &data.dataset).unwrap();
+    let sceno::Arrangement::Mosaic(config) = &mut compiled.score.arrangement else {
+        panic!("mosaic");
+    };
+    config.group_order = vec!["Beta".into(), "Alpha".into(), "Gamma".into()];
+    compiled.scene = crate::solve_via(&compiled.score, &compiled.relation_registry).unwrap();
+    let positions: Vec<_> = compiled
+        .scene
+        .items
+        .iter()
+        .map(|item| item.transform.translate)
+        .collect();
+    for (item, at) in compiled.score.items.iter().zip(&positions) {
+        compiled
+            .score
+            .holds
+            .push(sceno::HeldPlacement::pinned(item.source.clone(), *at));
+    }
+    compiled.scene = crate::solve_via(&compiled.score, &compiled.relation_registry).unwrap();
+    route_relationships(&mut compiled, &data.dataset, &data.relationships).unwrap();
+    assert!(compiled.scene.relation_constraints[0].honored);
+    assert_eq!(compiled.scene.honored_holds.len(), 3);
+    assert_eq!(
+        compiled
+            .scene
+            .items
+            .iter()
+            .map(|item| item.transform.translate)
+            .collect::<Vec<_>>(),
+        positions
+    );
+}
