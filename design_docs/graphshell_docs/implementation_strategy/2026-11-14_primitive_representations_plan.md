@@ -800,3 +800,7 @@ face.
   replacement. Relation-form realization is M3. Field forms are carried as requests.
 
   [M2 receipt](../../archive_docs/receipts/2026-11-14_primitive_representations_plan_receipts.md#2026-11-17-m2-recipe-mark-slots).
+- 2026-11-17: Turnstone preserves recipe marks when reopening a draft and
+  installs whole-mark live rules (`985a4060`). Explicit silhouettes govern
+  rounding in both canvas grammars (`ac71400`). The M2 receipt records the
+  completed checks and the remaining default GPU-physics Wasm dependency failure.

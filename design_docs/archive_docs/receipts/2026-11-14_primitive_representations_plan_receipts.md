@@ -135,3 +135,23 @@ The default GPU-physics Wasm profile failed in registry
 `cubecl-runtime-0.12.0-pre.2` at its import of `crate::tune::sampler::measured`.
 The recorded Turnstone resolution already carried that same registry package.
 The CPU-physics profile above keeps both presentation routes enabled.
+
+### Final silhouette and consumer checks
+
+Graphshell `ac71400` makes an explicit mark silhouette authoritative over
+detail and attention rounding. The regression checks all five silhouettes with
+both canvas grammars, including the inline radius and corner picking.
+The full serial Cartography suite then passed 762 tests with 18 ignored.
+
+Turnstone integration landed as `985a4060`. Its Graphshell web-library suite
+passed 278 tests with 6 ignored against committed Graphshell Git sources.
+The full product CPU-physics Wasm profile above also passed against committed
+Git sources after bringing the viewer's Cue resolution to `6592694`, the
+revision already qualified by the native root. The older viewer Cue revision
+`10cdfe0` lacked the `SceneRasterizer::render_with` API used by current Pelt.
+The default GPU-physics Wasm failure remains the CubeCL sampler import recorded
+above.
+
+Both repositories passed their configured pre-commit checks. Turnstone's root
+and browser resolved locks record the shared Git sources; the integration uses
+the existing floor-only manifest rows.
