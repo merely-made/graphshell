@@ -68,6 +68,8 @@ The recipe names a node mark, a relation form and a field form.
 - Needs: M1. The recipe names the default and rules override it (D16).
 
 ### M3. Relation form is read
+**Completed 2026-11-17.** The M3 receipt records the shared and consumer gates.
+
 Scenomise reads the effective relation mark, then routes drawn forms and applies
 placed forms declared by the arrangement. Sceno carries the resulting form,
 slot order and one honoured/unmet report for each placed request.
@@ -826,3 +828,16 @@ face.
   scene. Snapshot and diff metadata retain placed outcomes and slot order.
 
   [M3 receipt](../../archive_docs/receipts/2026-11-14_primitive_representations_plan_receipts.md#2026-11-17-m3-relation-form-readers).
+
+
+- 2026-11-17: M3 is complete through shared code 00c3d89. Scenomise passes
+  237 library tests; the serial Cartography suite passes 763 with 18 ignored.
+  Turnstone draws directed matrix cells and retains forms on position refresh.
+  Cleromancy, Knot, Mer3ly and Woodshed keep their existing hand-built relations
+  on Stroke. Cleromancy's retained recipe wrappers use PartialEq with the
+  floating-point mark contract. All configured checks pass.
+- 2026-11-17: Concurrent uxtree P0 and Turnstone Vano changes were merged into
+  the checked main branches without source conflicts. The combined branches pass
+  their configured checks, and the full product CPU-physics Wasm profile passes.
+  The receipt and refs/notes/resolved retain the exact inputs. M4 (the recipe's
+  frame), M5, Partition zoom and Crystal remain open.

@@ -210,3 +210,43 @@ primary checkouts carry concurrent work and were preserved.
   already-satisfied order against configured group order, including the
   fallback path. Scenomise's full suite now passes 237 library, 4 integration
   and 3 doc tests.
+
+
+### Consumer integration and final main checks
+
+The shared M3 code ends at 00c3d89. Every consumer's recorded shared Git source
+is that commit, with existing floor-only manifest rows retained.
+
+| Consumer | Change | Validation |
+| --- | --- | --- |
+| Turnstone f7d21cd7 | Directed filled matrix controls and headings; placed forms do not draw a stroke; motion routes retain their form; spoken relation descriptions include constraint outcomes | 278 web-library tests passed, 6 ignored; all configured pre-commit checks passed; final shared revision passed all-target Graphshell Clippy with query-views and the full product CPU-physics Wasm profile |
+| Mer3ly dd6dc45 | Portable relation literals explicitly use the default Stroke | All configured checks passed; repo-graph all-target Clippy passed against final shared Git sources |
+| Knot 12b3552 | Rosette relation literals explicitly use the default Stroke | All configured checks passed against final shared Git sources |
+| Woodshed fd3b60d4 | Nine hand-built stage and overview relations explicitly use Stroke | All-target Clippy, bans and patch consistency passed against final shared Git sources |
+| Cleromancy 4b7dcf1 | Default Stroke on hand-built relations; PartialEq on AmbientView, AmbientContext and ConsultationAction because saved mark material includes floats | All-target Clippy, bans and patch consistency passed against final shared Git sources |
+
+The Turnstone library command was cargo test -p graphshell --no-default-features
+--features web,physics-engine --lib --offline --locked. The browser command was
+cargo check --manifest-path ports/graphshell/web/Cargo.toml
+--target wasm32-unknown-unknown --no-default-features
+--features product,remote,image-decode,presentation-webgpu,presentation-webgl2,physics-engine
+--offline --locked.
+
+Before pushing, origin advanced with Graphshell uxtree P0 (2581ba6) and
+Turnstone Vano engine work (b270652c). These were merged without conflicts as
+3f80f27 and d91d1ffb. Their recorded dependency resolutions were retained, with
+the Turnstone shared source advanced to 00c3d89. The merged Graphshell and
+Turnstone branches passed all configured pre-commit checks, and the browser
+profile above passed again. Resolved locks are recorded on the commits under
+refs/notes/resolved.
+
+Woodshed needed its recorded Wavicle Git dependency and platform crates
+downloaded on T-PC. Cleromancy's guest metadata check also needed cached
+dependencies fetched. These were cache misses; the completed bans and patch
+checks passed.
+
+Reusable build caches remain in ~/Code/targets/{graphshell,turnstone,mer3ly,
+knot-editor,woodshed,cleromancy}, owned by their corresponding repositories.
+The seven Graphshell guest fixture aliases continue to use
+~/Code/targets/graphshell/guests. The task used primary T-PC checkouts, including
+a new primary Mer3ly checkout; Windows concurrent work was preserved.
