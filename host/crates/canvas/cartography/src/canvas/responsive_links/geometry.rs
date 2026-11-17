@@ -25,12 +25,16 @@ const ANCHOR_TOLERANCE: f32 = 1.0e-2;
 const MIN_TAPER_LENGTH: f32 = 1.0;
 
 /// Attach ordinary paths and responsive fallbacks through the same paint/pick geometry.
-pub(super) fn attach_resting_paths(canvas: &Canvas, segments: &mut [LinkAppearanceSegment]) -> usize {
+pub(super) fn attach_resting_paths(
+    canvas: &Canvas,
+    segments: &mut [LinkAppearanceSegment],
+) -> usize {
     let camera = canvas.camera;
     let self_fallbacks =
         edge_cells::attach_self_link_geometry(segments, &camera, |key| canvas.node_billboard(key));
     if !camera.is_valid()
-        || !canvas.node_shapes.values().any(|shape| shape.outline().is_some())
+        || !(canvas.node_shapes.values().any(|shape| shape.outline().is_some())
+            || canvas.projection_marks.values().chain(canvas.node_rule_marks.values()).any(|mark| matches!(mark.body, scenograph::presentation::Body::Silhouette(shape) if shape.outline().is_some())))
     {
         return self_fallbacks;
     }

@@ -223,6 +223,8 @@ impl Canvas {
     /// Passing `None` drops a stale score when the host selects another
     /// strategy or returns to force physics.
     pub fn set_projection_score(&mut self, score: Option<sceno::Score>) {
+        let had_marks = !self.projection_marks.is_empty();
+        self.projection_marks.clear();
         self.projection_representations.clear();
         if let Some(score) = score.as_ref() {
             for item in &score.items {
@@ -244,6 +246,9 @@ impl Canvas {
             }
         }
         self.projection_score = score;
+        if had_marks {
+            self.refresh_projection_bodies();
+        }
     }
 
     /// The last score supplied by the product adapter, for persistence and

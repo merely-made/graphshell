@@ -21,7 +21,7 @@ pub struct RelationshipRequirements {
     pub min_relationships: u32,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct RelationshipRecipe {
     pub definition: AuthoredProjectionDefinition,
@@ -89,6 +89,7 @@ pub fn relationship_recipe(
     let label = label.into();
     RelationshipRecipe {
         definition: AuthoredProjectionDefinition {
+            marks: Default::default(),
             fields: Vec::new(),
             dynamics: None,
         version: PROJECTION_DEFINITION_VERSION, id: id.into(), label: label.clone(), sources,
@@ -105,7 +106,7 @@ pub fn relationship_recipe(
 }
 
 /// The same incomplete edit state can back native, web, or nonvisual controls.
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct RelationshipRecipeDraft {
     recipe: RelationshipRecipe,
@@ -154,7 +155,7 @@ impl RelationshipRecipeDraft {
 
 /// Saved authored state. A host retains the corresponding bounded disclosure
 /// beside this value, under its own authority, never in a free-form note.
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct RelationshipSnapshot {
     pub recipe: RelationshipRecipe,

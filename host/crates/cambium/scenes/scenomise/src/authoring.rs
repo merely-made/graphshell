@@ -129,7 +129,7 @@ fn projection_editor_workbench() -> Workbench {
 }
 
 /// Typed messages understood by the reducer. Hosts can map these to any UI.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum EditorAction {
     SelectPanel(ProjectionPanel),
     SetId(String),
@@ -137,6 +137,7 @@ pub enum EditorAction {
     SetSource(SourceBinding),
     SetReading(Reading),
     SetEncoding(Encoding),
+    SetMarks(scenograph::MarkSlots),
     SetArrangement(Arrangement),
     SetDynamics(Option<DynamicsSlot>),
     ApplyComparison {
@@ -307,6 +308,10 @@ impl ProjectionEditor {
                 self.draft.encoding = value;
                 ReduceResult::Changed
             },
+            EditorAction::SetMarks(value) => {
+                self.draft.marks = value;
+                ReduceResult::Changed
+            },
             EditorAction::SetArrangement(value) => {
                 self.draft.arrangement = value;
                 ReduceResult::Changed
@@ -417,6 +422,9 @@ impl ProjectionEditor {
     ) -> Result<(), String> {
         let mut draft = self.draft().clone();
         let action = match field {
+            "marks" => EditorAction::SetMarks(
+                serde_json::from_str(value).map_err(|error| error.to_string())?,
+            ),
             "dynamics.spec" => EditorAction::SetDynamics(if value.trim().is_empty() {
                 None
             } else {

@@ -65,3 +65,13 @@ No production uxtree API, OS adapter, wire format, publisher policy or Genet
 source is changed. P1 and later phases, browser/runtime and human screen-reader
 acceptance remain open. The candidate worktree is retained by this P0 lane
 until review and integration; normal hook output is kept in the raw packet.
+
+## 2026-11-17: P0 main integration
+
+Mark authorized the P0 merge and continuation to P1. The P0 branch at
+`985035098b4cf7ee3836f433653cfdf1de5163a5` was combined with main
+`18744fffcb5b84725615a4ea836819b1f5ef6b8d` without conflicts.
+`cargo test --offline --manifest-path host/Cargo.toml -p cambium-a11y -p uxtree -j 4`
+passes all 67 supplier tests on that combined tree. New raw output is
+`Code/testing/graphshell/uxtree-p0/merge-tests.log`; merge hooks and push output
+are retained separately. Original P0 receipts are preserved.

@@ -24,10 +24,14 @@ impl Canvas {
     pub(crate) fn node_effective_local_corner_radius(&self, key: NodeKey, side: f32) -> f32 {
         let half = side * 0.5;
         let shape = self.node_shape(key);
+        let mark_body = matches!(
+            self.requested_node_mark(key).map(|mark| mark.body),
+            Some(scenograph::presentation::Body::Silhouette(_)),
+        );
         if shape.outline().is_some() {
             return 0.0;
         }
-        if self.graph_grammar {
+        if self.graph_grammar && !mark_body {
             let attention = self
                 .graph
                 .get_node(key)
@@ -38,7 +42,7 @@ impl Canvas {
                 _ => 2.0_f32.min(half), // `.gnode-site { border-radius: 2px }`
             };
         }
-        if self.node_representation_class(key).contains("glyph") {
+        if !mark_body && self.node_representation_class(key).contains("glyph") {
             return half;
         }
         match shape {
@@ -55,34 +59,23 @@ impl Canvas {
         epoch: u64,
         rungs: HashMap<uuid::Uuid, sceno::Representation>,
     ) -> Result<bool, String> {
-        if epoch != self.graph_view_epoch {
-            return Err("Node representation view was replaced".into());
-        }
-        for (member, rung) in &rungs {
-            if self.graph.get_node_by_id(*member).is_none() {
-                return Err(format!("Access {member} is absent"));
-            }
-            if !matches!(
-                rung,
-                sceno::Representation::Glyph | sceno::Representation::Card
-            ) {
-                return Err("Only Glyph and Card rule representations are supported".into());
-            }
-        }
-        if self.node_rule_representations == rungs {
-            return Ok(false);
-        }
-        self.node_rule_representations = rungs;
-        Ok(true)
+        self.set_node_rule_presentation(epoch, rungs, HashMap::new())
     }
     pub fn node_rule_representation(&self, member: uuid::Uuid) -> Option<&sceno::Representation> {
-        self.node_rule_representations.get(&member)
+        self.node_rule_representations
+            .get(&member)
+            .or_else(|| self.node_rule_marks.get(&member).map(|mark| &mark.detail))
     }
     pub(crate) fn node_representation_class(&self, key: NodeKey) -> &'static str {
         let requested = self
             .graph
             .get_node(key)
             .and_then(|node| self.node_rule_representations.get(&node.id))
+            .or_else(|| {
+                self.member_of(key)
+                    .and_then(|id| self.node_rule_marks.get(&id))
+                    .map(|mark| &mark.detail)
+            })
             .or_else(|| self.projection_representation(key));
         match requested {
             Some(sceno::Representation::Glyph) => " gnode-representation-glyph",

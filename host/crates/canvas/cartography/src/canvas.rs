@@ -137,10 +137,10 @@ pub mod sprite_hull;
 /// The canvas scene-paint underlay (edges + demoted node rects + overlays).
 pub mod underlay;
 
+pub use crate::MERE_GRAPH_ADAPTER;
 /// The channel registry the free projection functions read their facts from
 /// (dynamics grammar plan, F87).
 pub use crate::signals::ChannelRegistry;
-pub use crate::MERE_GRAPH_ADAPTER;
 pub use cartography_scene::{
     CANVAS_LAYOUT_STRATEGIES, CanvasStrategyProjection, CartographySceneOptions,
     build_projection_request, project_canvas_lens, project_canvas_strategy,
@@ -248,6 +248,7 @@ mod dynamics_inspection;
 mod dynamics_record;
 pub mod node_billboard;
 mod node_presentation;
+mod projection_marks;
 pub mod relationship_topology;
 pub use dynamics_inspection::{
     DynamicsInspection, DynamicsSubject, DynamicsTarget, DynamicsTopologyMode,
@@ -808,8 +809,10 @@ pub struct Canvas {
     /// geometry authority for layout, collision, picking, and paint bounds.
     /// (Projection proofs — P3b renderer consumption.)
     projection_representations: HashMap<NodeKey, sceno::Representation>,
+    projection_marks: HashMap<NodeKey, scenograph::presentation::NodeMark>,
     graph_view_epoch: u64,
     node_rule_representations: HashMap<uuid::Uuid, sceno::Representation>,
+    node_rule_marks: HashMap<uuid::Uuid, scenograph::presentation::NodeMark>,
     /// The roles the active arrangement's positions play once physics runs
     /// (seeded, anchored, pinned), the anchored return's stiffness, and the
     /// latest settle. (Dynamics grammar plan, G7.)

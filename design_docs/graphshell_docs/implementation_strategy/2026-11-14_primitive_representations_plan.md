@@ -728,6 +728,10 @@ face.
   density; `cartography/src/canvas/cartography/appearance.rs:61-76`); scenograph does not
   depend on seiche, so the mark's body carries no material yet.
 
+- 2026-11-17 (M2): a mark includes floating-point material values. Recipes,
+  drafts and their relationship wrappers now derive PartialEq. Complete literals
+  need the new marks slot, and source-shaped draft copies must carry it.
+
 ## Progress
 
 - 2026-11-14: cut from `2026-06-23_node_body_face_model_plan.md` with the scene composition
@@ -788,3 +792,15 @@ face.
 - 2026-11-17: A native Turnstone fixture shows both polygons and checks their picking and
   link attachment. Production class-to-body resolution is part of M2.
   [G8 receipt](../../archive_docs/receipts/2026-11-14_primitive_representations_plan_receipts.md#2026-11-17-g8-polygon-picking-and-link-attachment).
+
+- 2026-11-17: M2 adds optional node, relation and field mark slots to recipes.
+  Binding, draft promotion and editor undo carry the slots. Compilation resolves
+  occurrence rules before placement and retains their defaults and winning trace.
+  The canvas takes complete compiled marks and live rule marks through atomic
+  replacement. Relation-form realization is M3. Field forms are carried as requests.
+
+  [M2 receipt](../../archive_docs/receipts/2026-11-14_primitive_representations_plan_receipts.md#2026-11-17-m2-recipe-mark-slots).
+- 2026-11-17: Turnstone preserves recipe marks when reopening a draft and
+  installs whole-mark live rules (`985a4060`). Explicit silhouettes govern
+  rounding in both canvas grammars (`ac71400`). The M2 receipt records the
+  completed checks and the remaining default GPU-physics Wasm dependency failure.

@@ -301,6 +301,7 @@ fn compiler() -> ProjectionCompiler {
 /// A host's own definition over the envelope's dataset.
 fn definition(data: &HostDatasetV1, kind: &str, x: &str) -> ProjectionDefinition {
     ProjectionDefinition {
+        marks: Default::default(),
         fields: Vec::new(),
         dynamics: None,
         version: 1,

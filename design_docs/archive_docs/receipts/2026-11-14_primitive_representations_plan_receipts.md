@@ -94,3 +94,64 @@ The capture and log are in the workspace directory
 `testing/turnstone/receipts/2026-11-17_m1_silhouettes/windows-git/`.
 The SHA-256 of `diamond-and-hexagon.png` is
 `2449f1982d7ea4e0e575def643d1e8417006b4cf54360d85534427e9f27d07bf`.
+
+## 2026-11-17 M2 recipe mark slots
+
+Shared implementation at Graphshell `411d961`, checked on Fedora T-PC.
+
+- Scenograph and Scenomise passed their all-feature tests and doctests. Library
+  counts were 81 and 224. The rule tests cover whole-mark and detail-only
+  precedence and the winning occurrence trace.
+- Cartography passed 761 library tests with 18 ignored, using
+  `--features canvas,physics-engine -- --test-threads=1`.
+- The pre-commit checks passed, including both workspaces' all-target Clippy
+  checks, the Mere View query feature, dependency bans and patch consistency.
+- JSON and TOML round trips preserve explicit mark slots. Empty slots stay absent
+  from saved legacy recipes. Binding and draft promotion retain all three slots,
+  and the mark edit is undoable.
+- Canvas tests take a compiled recipe through body classes, picking, colliders,
+  paint and material. A malformed replacement retains the active state. Whole
+  live marks replace the recipe mark, and clearing the rule restores it.
+- The live-rule regression exposed a material lookup that still read the recipe
+  after a body override. The lookup now reads the complete winning mark.
+  The same regression checks the native arrangement id `partition.default`
+  against its assigned extent.
+- These runs exercise the compiler and canvas rendering paths. The earlier G8
+  entry holds the native headed capture.
+
+Commands were `cargo test --manifest-path host/Cargo.toml -p scenograph -p scenomise --all-features`,
+`cargo test --manifest-path host/Cargo.toml -p mere-cartography --lib --features canvas,physics-engine -- --test-threads=1`
+and `prek run --hook-stage pre-commit`, with the reusable target at
+`~/Code/targets/graphshell`.
+
+Turnstone integration was checked from its `ef91de16` baseline with the Scenograph,
+Scenomise and Cartography source paths overlaid for this change. The Graphshell
+web-library suite passed 278 tests with 6 ignored. The full product Wasm check
+passed with `product,remote,image-decode,presentation-webgpu,presentation-webgl2,physics-engine`
+and `--no-default-features`. This covers the normal live-rule installer, its
+capability filter and the source-shaped recipe-to-draft copy.
+
+The default GPU-physics Wasm profile failed in registry
+`cubecl-runtime-0.12.0-pre.2` at its import of `crate::tune::sampler::measured`.
+The recorded Turnstone resolution already carried that same registry package.
+The CPU-physics profile above keeps both presentation routes enabled.
+
+### Final silhouette and consumer checks
+
+Graphshell `ac71400` makes an explicit mark silhouette authoritative over
+detail and attention rounding. The regression checks all five silhouettes with
+both canvas grammars, including the inline radius and corner picking.
+The full serial Cartography suite then passed 762 tests with 18 ignored.
+
+Turnstone integration landed as `985a4060`. Its Graphshell web-library suite
+passed 278 tests with 6 ignored against committed Graphshell Git sources.
+The full product CPU-physics Wasm profile above also passed against committed
+Git sources after bringing the viewer's Cue resolution to `6592694`, the
+revision already qualified by the native root. The older viewer Cue revision
+`10cdfe0` lacked the `SceneRasterizer::render_with` API used by current Pelt.
+The default GPU-physics Wasm failure remains the CubeCL sampler import recorded
+above.
+
+Both repositories passed their configured pre-commit checks. Turnstone's root
+and browser resolved locks record the shared Git sources; the integration uses
+the existing floor-only manifest rows.

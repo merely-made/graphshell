@@ -21,8 +21,10 @@ pub mod attention;
 pub mod dataset;
 pub mod dynamics;
 pub mod fields;
-pub use fields::{FieldSpec, ViewerCatalog};
+pub mod marks;
 pub use dynamics::{DYNAMICS_SLOT_VERSION, DynamicsSlot, DynamicsVariant};
+pub use fields::{FieldSpec, ViewerCatalog};
+pub use marks::{FieldForm, MarkSlots, ResolvedMarks};
 pub mod link;
 pub mod options;
 pub mod presentation;
@@ -239,7 +241,7 @@ pub struct Provenance {
 
 /// The editable form, which intentionally retains incomplete values so hosts
 /// can present field-level validation without rejecting keystrokes.
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct ProjectionDraft {
     pub version: u16,
     pub id: String,
@@ -248,6 +250,9 @@ pub struct ProjectionDraft {
     pub reading: Reading,
     pub encoding: Encoding,
     pub arrangement: Arrangement,
+    /// Default forms for the three graph primitives. Rules override these per occurrence.
+    #[serde(default, skip_serializing_if = "MarkSlots::is_empty")]
+    pub marks: MarkSlots,
     /// The ordered fields a tabular reading shows; empty for other recipes.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub fields: Vec<FieldSpec>,
@@ -260,7 +265,7 @@ pub struct ProjectionDraft {
 }
 
 /// The complete, validated, durable projection definition.
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct ProjectionDefinition {
     pub version: u16,
     pub id: String,
@@ -269,6 +274,9 @@ pub struct ProjectionDefinition {
     pub reading: Reading,
     pub encoding: Encoding,
     pub arrangement: Arrangement,
+    /// Default forms for the three graph primitives. Rules override these per occurrence.
+    #[serde(default, skip_serializing_if = "MarkSlots::is_empty")]
+    pub marks: MarkSlots,
     /// The ordered fields a tabular reading shows; empty for other recipes.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub fields: Vec<FieldSpec>,
@@ -360,7 +368,7 @@ impl<W> RuntimeProjectionBinding<W> {
 }
 
 /// A reusable authored projection recipe with its named, checkable sources.
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct AuthoredProjectionDefinition {
     pub version: u16,
     pub id: String,
@@ -371,6 +379,9 @@ pub struct AuthoredProjectionDefinition {
     pub reading: Reading,
     pub encoding: Encoding,
     pub arrangement: Arrangement,
+    /// Default forms for the three graph primitives. Rules override these per occurrence.
+    #[serde(default, skip_serializing_if = "MarkSlots::is_empty")]
+    pub marks: MarkSlots,
     /// The ordered fields a tabular reading shows; empty for other recipes.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub fields: Vec<FieldSpec>,

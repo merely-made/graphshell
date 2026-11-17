@@ -61,6 +61,16 @@ impl Canvas {
     pub fn node_material(&self, key: NodeKey) -> seiche::NodeMaterial {
         self.member_of(key)
             .and_then(|id| self.node_materials.get(&id).copied())
+            .or_else(|| {
+                self.requested_node_mark(key)?
+                    .material
+                    .map(|material| seiche::NodeMaterial {
+                        restitution: material.restitution,
+                        friction: material.friction,
+                        density: material.density,
+                        ..Default::default()
+                    })
+            })
             .unwrap_or_default()
     }
 
@@ -100,7 +110,7 @@ impl Canvas {
             && let Some(key) = self.graph.get_node_key_by_id(id)
         {
             self.physics
-                .set_node_materials(vec![(key, seiche::NodeMaterial::default())]);
+                .set_node_materials(vec![(key, self.node_material(key))]);
         }
     }
 

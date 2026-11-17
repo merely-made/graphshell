@@ -6,8 +6,9 @@
 
 use super::*;
 
-fn valid_draft() -> ProjectionDraft {
+pub(super) fn valid_draft() -> ProjectionDraft {
     ProjectionDraft {
+        marks: Default::default(),
         fields: Vec::new(),
         dynamics: None,
         version: PROJECTION_DEFINITION_VERSION,
@@ -70,9 +71,10 @@ fn sources() -> BTreeMap<String, ProjectionInputBinding> {
     ])
 }
 
-fn authored() -> AuthoredProjectionDefinition {
+pub(super) fn authored() -> AuthoredProjectionDefinition {
     let draft = valid_draft();
     AuthoredProjectionDefinition {
+        marks: Default::default(),
         fields: Vec::new(),
         dynamics: None,
         version: draft.version,
@@ -339,7 +341,10 @@ fn the_default_recipes_are_the_empty_draft_at_the_current_version() {
     let authored = AuthoredProjectionDefinition::default();
     assert_eq!(bound.version, PROJECTION_DEFINITION_VERSION);
     assert_eq!(authored.version, PROJECTION_DEFINITION_VERSION);
-    assert_eq!((&bound.reading, &bound.arrangement), (&draft.reading, &draft.arrangement));
+    assert_eq!(
+        (&bound.reading, &bound.arrangement),
+        (&draft.reading, &draft.arrangement)
+    );
     assert!(authored.sources.is_empty());
     // A caller names only what it sets.
     let named = AuthoredProjectionDefinition {

@@ -1,8 +1,8 @@
 # uxtree spine plan: a federated tree with one envelope
 
-**Status:** 2026-11-17: P0 is locally qualified in a review candidate: the mixed-source gate and all three
-broken controls pass, as do the supplier suites and source-manifest family cycle check. Required commit
-hooks run before the candidate is recorded. The slice 4 cutover is present:
+**Status:** 2026-11-17: P0 merged after qualification against current main. The mixed-source gate, all
+three broken controls and the supplier suites pass on the combined tree; the source-manifest family
+cycle check also passed for P0. P1 is next. The slice 4 cutover is present:
 uxtree, Cambium and the E1a bench live under Graphshell's `host/`. Nine rulings are recorded (D1 to D9,
 Mark, 2026-11-11). P0 remains a gate: if it fails, D1 goes back to Mark as a question. P1 to P11 remain open.
 
@@ -519,3 +519,6 @@ Each is a question for a later round, with its evidence. None is answered here.
   broken controls pass alongside the six existing E1a tests; the accessibility and uxtree supplier
   suites pass together. The source-manifest cycle check passes with this candidate substituted for
   the primary Graphshell checkout. No production envelope or platform acceptance is claimed.
+- 2026-11-17: P0 integrated with Graphshell main `18744fff`; the 67 supplier tests pass again on the
+  combined tree. Mark authorized the merge and continuation to P1. The primary checkout's parallel
+  source work remains untouched; the integration is delivered through the verified worktree.

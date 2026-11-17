@@ -93,6 +93,7 @@ fn dataset() -> ProjectionDataset {
 fn definition(kind: &str, x: &str) -> ProjectionDefinition {
     let data = dataset();
     ProjectionDefinition {
+        marks: Default::default(),
         fields: Vec::new(),
         dynamics: None,
         version: 1,
@@ -452,3 +453,6 @@ fn a_recipe_with_fields_compiles_to_the_same_scene_and_bad_fields_are_named() {
     bad.fields.remove(1);
     assert!(wider.compile(&bad, &dataset()).is_ok());
 }
+
+#[path = "projection/mark_tests.rs"]
+mod mark_tests;

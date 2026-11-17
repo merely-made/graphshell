@@ -157,6 +157,31 @@ impl NodeMark {
         }
     }
 
+    /// Validate authored mark data before it reaches measurement or physics.
+    pub fn validate(&self) -> Result<(), String> {
+        if self.accepts.is_empty() {
+            return Err("a mark must accept at least one extent".into());
+        }
+        if matches!(&self.detail, Representation::Open { kind } if kind.trim().is_empty())
+            || matches!(&self.paint, Paint::Open { kind } if kind.trim().is_empty())
+        {
+            return Err("an open detail or paint needs a kind".into());
+        }
+        if let Some(material) = self.material
+            && (!material.restitution.is_finite()
+                || material.restitution < 0.0
+                || !material.friction.is_finite()
+                || material.friction < 0.0
+                || !material.density.is_finite()
+                || material.density <= 0.0)
+        {
+            return Err(
+                "material values must be finite and nonnegative with positive density".into(),
+            );
+        }
+        Ok(())
+    }
+
     /// A card: measured on a canvas, or filling a cell it is given.
     pub fn card() -> Self {
         Self::new(Representation::Card, [Extent::Measured, Extent::Assigned])
@@ -192,7 +217,12 @@ mod tests {
         }
         // A host's own paint is kept, not turned into a favicon.
         let own = Paint::from_code("portrait");
-        assert_eq!(own, Paint::Open { kind: "portrait".into() });
+        assert_eq!(
+            own,
+            Paint::Open {
+                kind: "portrait".into()
+            }
+        );
         assert_eq!(own.as_code(), "portrait");
         assert_eq!(Paint::from_code(""), Paint::Favicon);
     }
@@ -231,7 +261,11 @@ mod tests {
         for shape in [Silhouette::Diamond, Silhouette::Hexagon] {
             let outline = shape.outline().unwrap();
             assert!(outline.len() >= 4);
-            assert!(outline.iter().all(|(x, y)| x.abs() <= 0.5 && y.abs() <= 0.5));
+            assert!(
+                outline
+                    .iter()
+                    .all(|(x, y)| x.abs() <= 0.5 && y.abs() <= 0.5)
+            );
         }
         assert!(Silhouette::Circle.outline().is_none());
     }
