@@ -68,7 +68,9 @@ The recipe names a node mark, a relation form and a field form.
 - Needs: M1. The recipe names the default and rules override it (D16).
 
 ### M3. Relation form is read
-`RelationForm` has no reader outside `presentation.rs` today.
+Scenomise reads the effective relation mark, then routes drawn forms and applies
+placed forms declared by the arrangement. Sceno carries the resulting form,
+slot order and one honoured/unmet report for each placed request.
 - Done when: a drawn form (stroke, matrix cell) changes what the renderer draws for the same
   relations; a placed form (containment, order) reaches the arrangement as a constraint; each
   placed relation is reported honoured or unmet in the scene; a form an arrangement did not
@@ -804,3 +806,23 @@ face.
   installs whole-mark live rules (`985a4060`). Explicit silhouettes govern
   rounding in both canvas grammars (`ac71400`). The M2 receipt records the
   completed checks and the remaining default GPU-physics Wasm dependency failure.
+
+
+- 2026-11-17: M3 reads relation forms in both disclosed-dataset and explained-relationship
+  compilation. Recipe defaults and matching relation rules are checked against arrangement
+  capabilities before placement. Grid, Spiral and Mosaic declare Order; Partition Tiles
+  declares Containment. Rings and other families refuse these placed forms, and Adjacency
+  remains Crystal's D6 work. Custom solvers declare supported placed forms as data.
+- 2026-11-17: Order rearranges slots while preserving occurrence ids, source references,
+  pins, Mosaic grouping and its weighted bisection. Partition containment uses nested
+  squarification, retaining disclosed sibling weight ratios and source group boundaries.
+  Conflicting requests, cycles, insufficient extents and pins can leave a request unmet;
+  every request carries its own explanation in the scene. Recipe weight-channel parity
+  remains B4 and is not inferred from an unused field.
+- 2026-11-17: Stroke and MatrixCell have separate renderer paths. Cells occupy a directed,
+  labelled matrix beside the node layout, using the existing matrix pitch; no synthetic
+  source occurrence is introduced. Motion refresh reroutes cells and updates containment
+  reports without restoring moved positions. Form changes rebuild from the unconstrained
+  scene. Snapshot and diff metadata retain placed outcomes and slot order.
+
+  [M3 receipt](../../archive_docs/receipts/2026-11-14_primitive_representations_plan_receipts.md#2026-11-17-m3-relation-form-readers).

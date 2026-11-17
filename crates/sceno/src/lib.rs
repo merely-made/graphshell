@@ -58,7 +58,9 @@ pub mod fold;
 pub mod footprint;
 pub mod geometry;
 pub mod link;
+mod relation;
 pub mod scene;
+pub use relation::{RelationConstraint, RelationConstraintReport, RelationForm};
 pub mod score;
 pub mod subdivision;
 
@@ -79,6 +81,4 @@ pub use score::{
     ScoreItem, ScoreVersionError, Spiral, SpiralCurve, Stack, SubdivisionCount, Timeline,
     TimelineFallback, UnusedVertexPolicy,
 };
-pub use subdivision::{
-    Mosaic, Partition, PartitionForm, SET_CORE_WEIGHT, SET_SEPARATOR, Setscape,
-};
+pub use subdivision::{Mosaic, Partition, PartitionForm, SET_CORE_WEIGHT, SET_SEPARATOR, Setscape};

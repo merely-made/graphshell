@@ -212,8 +212,7 @@ impl ProjectionDynamics {
                 let mut found = false;
                 for (index, item) in compiled.scene.items.iter().enumerate() {
                     let source = &compiled.scene.sources[item.source.0 as usize];
-                    if source.adapter == crate::MERE_GRAPH_ADAPTER && &source.id == source_id
-                    {
+                    if source.adapter == crate::MERE_GRAPH_ADAPTER && &source.id == source_id {
                         roles.insert(ids[index].to_string(), *role);
                         found = true;
                     }
@@ -475,15 +474,8 @@ impl ProjectionDynamics {
                 bounds = Some(bounds.map_or(rect, |b| b.union(rect)));
             }
         }
-        for relation in &mut self.scene.relations {
-            relation.points = vec![
-                self.scene.items[relation.from.0 as usize]
-                    .transform
-                    .translate,
-                self.scene.items[relation.to.0 as usize].transform.translate,
-            ];
-        }
         self.scene.bounds = bounds.unwrap_or_default();
+        scenomise::relation_forms::refresh_scene(&mut self.scene);
     }
 }
 

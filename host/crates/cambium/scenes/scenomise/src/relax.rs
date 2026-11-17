@@ -332,6 +332,7 @@ pub fn relax_roles(scene: &mut Scene, settings: &Relaxation, roles: &[(InstanceI
         }
         scene.bounds = bounds;
     }
+    crate::relation_forms::refresh_scene(scene);
 }
 
 #[cfg(test)]

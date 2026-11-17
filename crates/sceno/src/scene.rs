@@ -169,12 +169,14 @@ pub struct ProjectedItem {
     pub channels: Vec<(String, f32)>,
 }
 
-/// A routed relationship between two instances: a visible stroke, a route,
-/// a shared border — the projection decides. Points are a full polyline in
-/// `space` (including endpoints), so routed and straight edges are one
-/// shape.
+/// A relationship between two instances with its requested presentation form.
+/// Stroke points are an open polyline; matrix-cell points are four corners of
+/// a filled rectangle. Placed forms have no stroke: their outcomes are carried
+/// in the scene's relation constraint reports.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct RoutedRelation {
+    #[serde(default, skip_serializing_if = "crate::RelationForm::is_stroke")]
+    pub form: crate::RelationForm,
     pub from: InstanceId,
     pub to: InstanceId,
     pub space: SpaceId,
@@ -238,6 +240,12 @@ pub struct Scene {
     pub backdrops: Vec<Backdrop>,
     pub items: Vec<ProjectedItem>,
     pub relations: Vec<RoutedRelation>,
+    /// Outcomes of the placed relation requests that shaped this scene.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub relation_constraints: Vec<crate::RelationConstraintReport>,
+    /// Instance order in the arrangement's slots after order constraints.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub arrangement_order: Vec<InstanceId>,
     pub regions: Vec<Region>,
     /// Folds over member instances: each draws its members as one stand-in
     /// and, by being here, hides the rest (see [`crate::fold`]). Omitted from
@@ -370,7 +378,10 @@ mod tests {
         assert_eq!(old, sprite);
         let json = serde_json::to_string(&sprite).unwrap();
         assert_eq!(json, r#"{"Open":{"kind":"sprite"}}"#);
-        assert_eq!(serde_json::from_str::<Representation>(&json).unwrap(), sprite);
+        assert_eq!(
+            serde_json::from_str::<Representation>(&json).unwrap(),
+            sprite
+        );
         for core in ["Glyph", "Card", "Snapshot", "LivePane"] {
             let quoted = format!("{core:?}");
             let read: Representation = serde_json::from_str(&quoted).unwrap();
@@ -454,6 +465,7 @@ mod tests {
             channels: Vec::new(),
         });
         scene.relations.push(RoutedRelation {
+            form: Default::default(),
             from: InstanceId(0),
             to: InstanceId(0),
             space: Scene::WORLD,
@@ -473,6 +485,7 @@ mod tests {
     fn routed_link_key_round_trips_and_older_scenes_default_it() {
         let mut scene = Scene::new();
         scene.relations.push(RoutedRelation {
+            form: Default::default(),
             from: InstanceId(0),
             to: InstanceId(1),
             space: Scene::WORLD,
@@ -499,7 +512,10 @@ mod tests {
 
         let mut legacy = value;
         for field in ["link_key", "marks", "strength"] {
-            legacy["relations"][0].as_object_mut().unwrap().remove(field);
+            legacy["relations"][0]
+                .as_object_mut()
+                .unwrap()
+                .remove(field);
         }
         let restored_legacy: Scene = serde_json::from_value(legacy).unwrap();
         assert_eq!(restored_legacy.relations[0].link_key, None);

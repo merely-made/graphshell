@@ -400,3 +400,49 @@ fn ordered_grid_wraps_ranked_occurrences_without_reinterpreting_source_axes() {
         .insert("__recipe_layout_column".into(), ProjectionFieldType::Number);
     refuses(&saved, &spoof, "dataset.fields");
 }
+
+#[test]
+fn selected_relationship_rule_reaches_cells_without_collapsing_repeated_sources() {
+    use scenograph::presentation::{
+        Condition, Effect, PrimitiveKind, RelationForm, Rule, RuleSet, Target, ViewState,
+    };
+    let data = disclosed("sound-adapter", "sound.rhyme");
+    let saved = snapshot(&data);
+    let presentation = RuleSet {
+        version: 1,
+        rules: vec![Rule {
+            id: "selected-relation".into(),
+            label: "Selected relation".into(),
+            enabled: true,
+            priority: 1,
+            target: Target {
+                kind: PrimitiveKind::Relation,
+                ids: Default::default(),
+            },
+            condition: Condition::State {
+                state: ViewState::Selected,
+            },
+            effects: vec![Effect::RelationForm {
+                value: RelationForm::MatrixCell,
+            }],
+        }],
+    };
+    let compiled = compiler()
+        .with_presentation(presentation)
+        .compile_relationship_snapshot(&saved, &data)
+        .unwrap();
+    assert_eq!(compiled.projection.scene.sources.len(), 2);
+    assert_eq!(compiled.projection.scene.items.len(), 3);
+    assert!(
+        compiled.projection.scene.relations[0]
+            .cell_bounds()
+            .is_some()
+    );
+    assert_eq!(compiled.relationships[0].disclosure, data.relationships[0]);
+    assert!(
+        compiled.projection.relation_marks[&data.relationships[0].id]
+            .resolution
+            .traces[0]
+            .matched
+    );
+}

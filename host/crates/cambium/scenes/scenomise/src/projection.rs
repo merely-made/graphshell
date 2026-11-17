@@ -295,6 +295,11 @@ impl CompileIssue {
 #[derive(Debug)]
 pub struct CompiledProjection {
     pub marks: scenograph::MarkSlots,
+    pub relation_marks: BTreeMap<String, scenograph::ResolvedMarks>,
+    pub(crate) base_scene: sceno::Scene,
+    pub(crate) relation_rules: scenograph::presentation::RuleSet,
+    pub(crate) placed_forms: Vec<sceno::RelationForm>,
+    pub(crate) relation_registry: SolverRegistry,
     pub node_marks: HashMap<InstanceId, scenograph::ResolvedMarks>,
     pub score: Score,
     pub scene: sceno::Scene,
@@ -403,10 +408,9 @@ mod compilation;
 #[path = "projection/fields.rs"]
 mod fields;
 mod marks;
+pub(crate) mod relations;
 
 use compilation::compile_inner;
-
-use compilation::disclose;
 
 use compilation::option_issues;
 

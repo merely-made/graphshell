@@ -156,6 +156,14 @@ pub(super) fn validation_issues(
             ));
         }
     }
+    if let Some(form) = definition.marks.relation {
+        issues.extend(super::relations::form_issues(
+            form,
+            &super::relations::placed_forms(compiler, definition),
+            "marks.relation",
+            &definition.arrangement.kind,
+        ));
+    }
     issues.extend(super::fields::field_issues(compiler, definition, dataset));
     issues.extend(occurrence_identity_issues(dataset));
     validate_occurrences(&mut issues, definition, dataset, target.as_ref());

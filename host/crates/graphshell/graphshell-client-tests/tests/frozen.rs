@@ -49,6 +49,7 @@ fn folded_dependencies() -> Scene {
         });
         if index > 0 {
             scene.relations.push(RoutedRelation {
+                form: Default::default(),
                 from: InstanceId(0),
                 to: InstanceId(index as u32),
                 space: Scene::WORLD,
@@ -508,6 +509,7 @@ fn a_screen_reader_traversal_reaches_every_instance_and_relation_by_name() {
     let mut scene = coastal();
     // Give the scene a relation so the traversal has one to find.
     scene.relations.push(sceno::RoutedRelation {
+        form: Default::default(),
         from: InstanceId(1),
         to: InstanceId(2),
         space: Scene::WORLD,

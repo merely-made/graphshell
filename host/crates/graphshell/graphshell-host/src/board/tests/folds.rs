@@ -25,6 +25,7 @@ fn mounted(cards: usize) -> MountedScene {
 fn relate(scene: &mut MountedScene, from: u32, to: u32, kind: &str) {
     let points = vec![Default::default(), Default::default()];
     scene.scene.tables.relations.push(Some(RoutedRelation {
+        form: Default::default(),
         from: InstanceId(from),
         to: InstanceId(to),
         space: Scene::WORLD,

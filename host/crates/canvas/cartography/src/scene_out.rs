@@ -141,6 +141,7 @@ pub fn scene_from_projection(
             continue; // an edge whose endpoint was filtered out of the projection
         };
         scene.relations.push(RoutedRelation {
+            form: Default::default(),
             from,
             to,
             space: Scene::WORLD,

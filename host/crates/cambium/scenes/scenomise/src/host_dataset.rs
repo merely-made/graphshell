@@ -42,7 +42,7 @@ use serde_json::Value;
 
 use crate::projection::{
     CompileIssue, CompiledProjection, CompiledRelationship, DisclosedRelationship,
-    ProjectionCompiler, ProjectionDataset, relationship_disclosure_issues, stable_generation,
+    ProjectionCompiler, ProjectionDataset, relationship_disclosure_issues,
 };
 use scenograph::{ProjectionDefinition, PublicSourceRevision};
 
@@ -262,6 +262,7 @@ impl HostDatasetV1 {
         compiler: &ProjectionCompiler,
         definition: &ProjectionDefinition,
     ) -> Result<HostProjection, Vec<CompileIssue>> {
+        crate::projection::relations::preflight(compiler, definition, &self.relationships, None)?;
         self.routed(compiler.compile(definition, &self.dataset)?)
     }
 
@@ -273,6 +274,7 @@ impl HostDatasetV1 {
         previous: &CompiledProjection,
         definition: &ProjectionDefinition,
     ) -> Result<HostProjection, Vec<CompileIssue>> {
+        crate::projection::relations::preflight(compiler, definition, &self.relationships, None)?;
         self.routed(compiler.refresh(previous, definition, &self.dataset)?)
     }
 
@@ -301,61 +303,7 @@ pub fn route_relationships(
     dataset: &ProjectionDataset,
     relationships: &[DisclosedRelationship],
 ) -> Result<Vec<CompiledRelationship>, Vec<CompileIssue>> {
-    let mut issues = relationship_disclosure_issues(dataset, relationships);
-    if projection.score.generation != stable_generation(dataset) {
-        issues.push(CompileIssue {
-            field: "projection".into(),
-            message: "the projection was compiled from another dataset or revision".into(),
-        });
-    }
-    if !issues.is_empty() {
-        return Err(issues);
-    }
-    let mut ordered: Vec<_> = relationships.iter().collect();
-    ordered.sort_by(|a, b| a.id.cmp(&b.id));
-    let mut routed = Vec::with_capacity(ordered.len());
-    let mut compiled = Vec::with_capacity(ordered.len());
-    for relationship in ordered {
-        let endpoint = |occurrence: &str| {
-            projection
-                .instance_by_occurrence
-                .get(occurrence)
-                .copied()
-                .ok_or_else(|| {
-                    vec![CompileIssue {
-                        field: format!("relationships.{}.endpoints", relationship.id),
-                        message: "the projection does not place this occurrence".into(),
-                    }]
-                })
-        };
-        let (from, to) = (
-            endpoint(&relationship.from_occurrence)?,
-            endpoint(&relationship.to_occurrence)?,
-        );
-        let at = |instance: sceno::InstanceId| {
-            projection.scene.items[instance.0 as usize]
-                .transform
-                .translate
-        };
-        routed.push(sceno::RoutedRelation {
-            from,
-            to,
-            space: sceno::Scene::WORLD,
-            points: vec![at(from), at(to)],
-            kind: Some(relationship.kind.clone()),
-            weight: None,
-            link_key: None,
-            marks: sceno::LinkMarks::default(),
-            strength: None,
-        });
-        compiled.push(CompiledRelationship {
-            disclosure: relationship.clone(),
-            from,
-            to,
-        });
-    }
-    projection.scene.relations = routed;
-    Ok(compiled)
+    crate::projection::relations::route(projection, dataset, relationships, None)
 }
 
 /// A host-supplied history: the source's published revisions, oldest first,

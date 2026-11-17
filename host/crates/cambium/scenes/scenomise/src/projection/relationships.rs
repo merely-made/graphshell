@@ -139,6 +139,13 @@ pub(super) fn relationship_snapshot(
                 format!("binding refused: {error:?}"),
             )]
         })?;
+    let requested: Vec<_> = relationships.iter().map(|r| (*r).clone()).collect();
+    super::relations::preflight(
+        compiler,
+        &bound,
+        &requested,
+        snapshot.selected_relationship.as_deref(),
+    )?;
     // This row is an explicit layout constant, not a claimed domain facet or
     // computed comparison result. Reuse the portable field compiler internally.
     bound.encoding.y = Channel::Field("__recipe_layout_row".into());
@@ -200,32 +207,13 @@ pub(super) fn relationship_snapshot(
         },
         &execution_dataset,
     )?;
-    let mut compiled = Vec::with_capacity(relationships.len());
-    let mut ordered = relationships;
-    ordered.sort_by(|a, b| a.id.cmp(&b.id));
-    for relationship in ordered {
-        let from = projection.instance_by_occurrence[&relationship.from_occurrence];
-        let to = projection.instance_by_occurrence[&relationship.to_occurrence];
-        projection.scene.relations.push(sceno::RoutedRelation {
-            from,
-            to,
-            space: sceno::Scene::WORLD,
-            points: vec![
-                projection.scene.items[from.0 as usize].transform.translate,
-                projection.scene.items[to.0 as usize].transform.translate,
-            ],
-            kind: Some(relationship.kind.clone()),
-            weight: None,
-            link_key: None,
-            marks: sceno::LinkMarks::default(),
-            strength: None,
-        });
-        compiled.push(CompiledRelationship {
-            disclosure: relationship.clone(),
-            from,
-            to,
-        });
-    }
+    let applicable: Vec<_> = relationships.into_iter().cloned().collect();
+    let compiled = super::relations::route(
+        &mut projection,
+        &execution_dataset,
+        &applicable,
+        snapshot.selected_relationship.as_deref(),
+    )?;
     Ok(CompiledRelationshipProjection {
         projection,
         relationships: compiled,

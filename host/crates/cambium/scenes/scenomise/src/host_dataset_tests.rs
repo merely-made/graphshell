@@ -454,3 +454,6 @@ fn refuses_to_route_onto_a_projection_of_another_revision() {
         route_relationships(&mut projection, &data.dataset, &data.relationships).unwrap_err();
     assert_eq!(issues[0].field, "projection");
 }
+
+#[path = "relation_form_tests.rs"]
+mod relation_forms;

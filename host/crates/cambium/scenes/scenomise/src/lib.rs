@@ -47,9 +47,10 @@ pub mod matrix;
 pub mod opened_link;
 pub mod projection;
 pub mod registry;
-pub mod span_edit;
+pub mod relation_forms;
 mod relax;
 mod solve;
+pub mod span_edit;
 
 pub use opened_link::{
     OpenedLinkCompileError, OpenedLinkEntry, OpenedLinkLane, OpenedLinkScene, compile_opened_link,

@@ -285,9 +285,15 @@ impl BackdropSurface {
                     intervals: vec![4.0, 4.0],
                     offset: 0.0,
                 });
+                if relation.form.is_placed() {
+                    continue;
+                }
                 let points: Vec<_> = relation.points.iter().copied().map(point).collect();
-                commands.push(path(&points, false, None, Some(stroke(color, 1.0, dash))));
-                if kind == "same-resource" {
+                let cell = relation.form == sceno::RelationForm::MatrixCell;
+                if let Some(command) = relation_path(relation.form, &points, color, dash) {
+                    commands.push(command);
+                }
+                if kind == "same-resource" && !cell {
                     let shifted: Vec<_> = points
                         .iter()
                         .map(|p| LayoutPoint::new(p.x + 3.0, p.y))
@@ -297,6 +303,23 @@ impl BackdropSurface {
             }
         }
         let mut labels = Vec::new();
+        if self.show_links {
+            for (instance, row, column) in
+                scenomise::relation_forms::matrix_headings(&self.compiled.scene)
+            {
+                let Some(mark) = self.compiled.marks.iter().find(|m| m.instance == instance) else {
+                    continue;
+                };
+                for (axis, position) in [("row", row), ("column", column)] {
+                    let position = point(position);
+                    labels.push((
+                        format!("matrix-{axis}-{}", mark.key),
+                        mark.label.clone(),
+                        BoardRect::new(position.x - 28.0, position.y - 8.0, 56.0, 16.0),
+                    ));
+                }
+            }
+        }
         for mark in &self.compiled.marks {
             let item = &self.compiled.scene.items[mark.instance.0 as usize];
             let at = point(item.transform.translate);
@@ -444,4 +467,25 @@ impl BackdropSurface {
                 .scene,
         )
     }
+}
+
+pub(super) fn relation_path(
+    form: sceno::RelationForm,
+    points: &[LayoutPoint],
+    color: [f32; 4],
+    dash: Option<DashPattern>,
+) -> Option<PaintCmd> {
+    if form.is_placed() || points.len() < 2 {
+        return None;
+    }
+    let cell = form == sceno::RelationForm::MatrixCell;
+    if cell && points.len() != 4 {
+        return None;
+    }
+    Some(path(
+        points,
+        cell,
+        cell.then_some(color),
+        Some(stroke(color, 1.0, if cell { None } else { dash })),
+    ))
 }

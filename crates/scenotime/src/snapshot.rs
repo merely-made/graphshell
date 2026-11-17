@@ -24,6 +24,10 @@ pub struct SceneTables {
     /// Explicit visual order, independent of the stable item slot.
     pub item_order: Vec<Option<i32>>,
     pub relations: Vec<Option<RoutedRelation>>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub relation_constraints: Vec<sceno::RelationConstraintReport>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub arrangement_order: Vec<InstanceId>,
     pub regions: Vec<Option<Region>>,
     /// Folds carried through from [`Scene::folds`]. A tombstone is an unfold.
     /// Omitted from the wire when the table is empty, so a snapshot that never
@@ -80,6 +84,8 @@ impl SceneSnapshot {
                 items: scene.items.into_iter().map(Some).collect(),
                 item_order: (0..item_count).map(|index| Some(index as i32)).collect(),
                 relations: scene.relations.into_iter().map(Some).collect(),
+                relation_constraints: scene.relation_constraints,
+                arrangement_order: scene.arrangement_order,
                 regions: scene.regions.into_iter().map(Some).collect(),
                 folds: scene.folds.into_iter().map(Some).collect(),
                 bounds: scene.bounds,
@@ -211,6 +217,23 @@ impl SceneSnapshot {
             require_active(&tables.items, relation.from.0, "relation start")?;
             require_active(&tables.items, relation.to.0, "relation end")?;
             require_active(&tables.spaces, relation.space.0, "relation space")?;
+        }
+        let mut ordered = std::collections::BTreeSet::new();
+        for instance in &tables.arrangement_order {
+            require_active(&tables.items, instance.0, "arrangement order")?;
+            if !ordered.insert(instance.0) {
+                return invalid("arrangement order repeats an instance");
+            }
+        }
+        if !ordered.is_empty() && ordered.len() != tables.items.iter().flatten().count() {
+            return invalid("arrangement order must name every active instance");
+        }
+        for report in &tables.relation_constraints {
+            require_active(&tables.items, report.constraint.from.0, "constraint start")?;
+            require_active(&tables.items, report.constraint.to.0, "constraint end")?;
+            if !report.constraint.form.is_placed() {
+                return invalid("relation constraint must use a placed form");
+            }
         }
         for region in tables.regions.iter().flatten() {
             require_active(&tables.spaces, region.space.0, "region space")?;

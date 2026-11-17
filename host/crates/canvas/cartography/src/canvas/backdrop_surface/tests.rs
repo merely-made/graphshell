@@ -181,3 +181,37 @@ fn painting_requires_host_fonts_and_valid_viewport() {
             .contains("viewport")
     );
 }
+
+#[test]
+fn relation_form_selects_closed_filled_cell_or_open_stroke() {
+    use sceno::RelationForm;
+    let points = rect(LayoutPoint::new(10.0, 20.0), 8.0, 8.0);
+    let color = [0.5, 0.7, 0.2, 1.0];
+    let PaintCmd::DrawPath(cell) =
+        operations::relation_path(RelationForm::MatrixCell, &points, color, None).unwrap()
+    else {
+        panic!("path");
+    };
+    let PaintCmd::DrawPath(stroke) =
+        operations::relation_path(RelationForm::Stroke, &points[..2], color, None).unwrap()
+    else {
+        panic!("path");
+    };
+    assert!(cell.fill.is_some());
+    assert!(matches!(
+        cell.path.commands.last(),
+        Some(PathCommand::Close)
+    ));
+    assert!(stroke.fill.is_none());
+    assert!(!matches!(
+        stroke.path.commands.last(),
+        Some(PathCommand::Close)
+    ));
+    for placed in [
+        RelationForm::Order,
+        RelationForm::Containment,
+        RelationForm::Adjacency,
+    ] {
+        assert!(operations::relation_path(placed, &points, color, None).is_none());
+    }
+}

@@ -30,6 +30,7 @@ fn cell_scene(adapter: &str, extent: f32, generation: u64) -> Scene {
         });
     }
     scene.relations.push(RoutedRelation {
+        form: Default::default(),
         from: InstanceId(0),
         to: InstanceId(1),
         space: Scene::WORLD,

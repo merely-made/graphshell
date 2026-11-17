@@ -155,3 +155,48 @@ above.
 Both repositories passed their configured pre-commit checks. Turnstone's root
 and browser resolved locks record the shared Git sources; the integration uses
 the existing floor-only manifest rows.
+
+
+## 2026-11-17 M3 relation form readers
+
+Scope: effective recipe/rule relation forms through Scenomise compilation,
+arrangement, portable scene metadata, rendering and motion refresh. Adjacency
+remains the Crystal phase; field-form realization and B4 recipe channel parity
+remain open. Retained evidence is this compact receipt, below the 100 MB budget.
+
+Implementation:
+- Sceno owns the wire form and placement reports; Scenograph re-exports
+  RelationForm. Default Stroke and empty report/order vectors preserve the old
+  JSON shape.
+- Both host-dataset and explained-relationship compilation resolve relation
+  marks, retaining the default and winning rule trace. Matched unsupported
+  forms are rejected before a custom solver is called.
+- Grid, Spiral and Mosaic declare Order. Stable occurrence/source identities
+  survive reordering. Mosaic retains its groups and weighted bisection.
+  Partition Tiles declares Containment, subdividing a parent with the existing
+  squarifier. Sibling weights already disclosed in a Score retain their ratios.
+  Source group boundaries and pins remain binding. Cycles, competing parents,
+  extent conflicts and pins produce explicit unmet outcomes.
+- MatrixCell is a directed grid beside the node layout, with occurrence row
+  and column headings. Sparse matrices retain empty axes in their bounds.
+  Matrix routing does not create source occurrences. Stroke keeps the existing
+  line path; cells use closed, filled paths.
+- Refresh starts form changes from the unconstrained scene. Motion refresh
+  retains cells and recomputes containment outcomes without moving items home.
+  Scenotime snapshots and transactional diffs retain reports and slot order.
+
+Shared checks on T-PC, reusing ~/Code/targets/graphshell:
+- cargo test --manifest-path host/Cargo.toml -p scenograph -p scenomise
+  -p sceno -p scenotime --all-features --offline: Scenograph 81 library and
+  9 integration tests; Scenomise 235 library, 4 integration and 3 doc tests;
+  Sceno 39 library and 6 doc tests; Scenotime 44 library and 2 doc tests passed.
+- After adding pre-placement rule capability validation, the full Scenomise
+  suite above passed again.
+- cargo test --manifest-path host/Cargo.toml -p mere-cartography --lib
+  --features canvas,physics-engine --offline -- --test-threads=1:
+  763 passed, 18 ignored. Includes the open-stroke versus closed-filled-cell
+  paint-command assertion. This is automated renderer evidence; no headed M3
+  interaction is claimed.
+
+The clean T-PC main checkout was used. The Windows Graphshell and Turnstone
+primary checkouts carry concurrent work and were preserved.

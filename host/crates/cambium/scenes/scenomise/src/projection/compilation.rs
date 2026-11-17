@@ -134,7 +134,17 @@ pub(super) fn compile_inner(
     });
     let placement_reused = reusable.is_some();
     let scene = if let Some(old) = reusable {
-        let mut scene = old.scene.clone();
+        let constrained = !old.scene.relation_constraints.is_empty()
+            || old
+                .scene
+                .relations
+                .iter()
+                .any(|r| r.form != sceno::RelationForm::Stroke);
+        let mut scene = if constrained {
+            old.base_scene.clone()
+        } else {
+            old.scene.clone()
+        };
         scene.generation = score.generation;
         scene
     } else {
@@ -160,6 +170,11 @@ pub(super) fn compile_inner(
     }
     let selected = selected_occurrence.and_then(|id| instance_by_occurrence.get(id).copied());
     Ok(CompiledProjection {
+        base_scene: scene.clone(),
+        relation_rules: compiler.presentation.clone(),
+        relation_marks: BTreeMap::new(),
+        placed_forms: super::relations::placed_forms(compiler, definition),
+        relation_registry: compiler.registry.clone(),
         marks: definition.marks.clone(),
         node_marks,
         score,
