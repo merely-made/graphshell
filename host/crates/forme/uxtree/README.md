@@ -2,7 +2,7 @@
 
 Portable accessibility / automation tree for the
 [mere](https://crates.io/crates/mere) browser. Projects portable structural
-elements into [AccessKit](https://accesskit.dev) 0.24 nodes with stable,
+elements into [AccessKit](https://accesskit.dev) nodes with stable,
 deterministic ids.
 
 The same projection feeds screen readers through AccessKit's platform adapters
@@ -14,6 +14,9 @@ that pins to stable identity, and inspector overlays.
 | Item | Role |
 | --- | --- |
 | `UxTree` | `root: NodeId`, `nodes: Vec<(NodeId, Node)>`. The root is pushed last, after all descendants. |
+| `envelope::Envelope<I, P, D>` | Six metadata fields beside a node, preserving caller-owned instance, provenance and domain types. |
+| `envelope::Address<I>` | A producer instance and its local AccessKit ID. |
+| `envelope::Stability` | Explicit Life, Scoped revision, Derived generation or Authored key semantics. |
 | `UxTree::to_tree_update(focus: Option<NodeId>) -> accesskit::TreeUpdate` | Wraps the nodes for a platform adapter. `None` focus defaults to the root. |
 | `node_id_for_path(&str) -> NodeId` | Hashes a domain path to a stable id. |
 | `stitch(root_path: &str, root: Node, subtrees: Vec<UxTree>) -> UxTree` | Merges domain subtrees (workbench, gloss, apparatus, ...) under one application root, overwriting the root's children. |
@@ -27,13 +30,30 @@ that pins to stable identity, and inspector overlays.
 
 ## Joining sessions as subtrees
 
-`stitch` hashes every session's nodes into one id space. `graft` joins them
-as AccessKit 0.24 subtrees instead: each session keeps its own ids, the host
+`stitch` concatenates nodes in one namespace and hashes only its new root;
+callers keep child IDs unique. `graft` joins independent AccessKit subtrees:
+each session keeps its own ids, the host
 tree carries one graft node per session, focus follows the graft chain, bounds
 compose through the graft's transform, and actions arrive addressed by tree.
 This is the stack's join for composed sessions (app composition brief, AC2).
 `tests/e1a_subtrees.rs` is experiment E1a's tree half, run against the
-consumer under each pinned adapter (`accesskit_consumer` 0.35, 0.36 and 0.38).
+shared consumer used by the platform adapters.
+
+## Node metadata
+
+`envelope` carries address, stability, provenance, advertised command IDs,
+an optional domain reference and an optional authored key. AccessKit keeps
+the node semantics. Producers choose the class through `life`, `scoped`,
+`derived` or `authored`; construction allocates no lives or generations and
+authorizes no actions. Owners still check captured targets before dispatch.
+Derived observations without a generation are not action targets. Authored
+keys resolve to a current Life or Scoped target at use.
+
+Instance, provenance and domain types remain caller-owned so existing weak
+publication witnesses and domain references can be retained without host
+dependencies. Producers within one reader agree on those common types. The
+module docs contain the per-field source table. Publishing-adapter migration,
+generation maps and the full lint remain later phases of the spine plan.
 
 ## Stable ids
 

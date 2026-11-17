@@ -62,21 +62,20 @@ impl Owner for Session {
         let envelopes = tree
             .nodes
             .iter()
-            .map(|(id, _)| Envelope {
-                address: Address {
-                    instance: self.instance(),
-                    local: *id,
-                },
-                stability: Stability::Derived,
-                provenance: Provenance {
-                    owner: A11yOwner::new(&self.live),
-                    request: None,
-                    child: None,
-                    identity: None,
-                },
-                action_ids: Vec::new(),
-                domain_ref: None,
-                authored_key: None,
+            .map(|(id, _)| {
+                Envelope::derived(
+                    Address {
+                        instance: self.instance(),
+                        local: *id,
+                    },
+                    None,
+                    Provenance {
+                        owner: A11yOwner::new(&self.live),
+                        request: None,
+                        child: None,
+                        identity: None,
+                    },
+                )
             })
             .collect();
         Publication {
@@ -88,7 +87,7 @@ impl Owner for Session {
     fn current(&self, observation: &Envelope) -> bool {
         observation.provenance.owner.is_live()
             && observation.provenance.owner == A11yOwner::new(&self.live)
-            && observation.stability == Stability::Derived
+            && observation.stability == (Stability::Derived { generation: None })
             && self
                 .publish()
                 .envelopes

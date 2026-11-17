@@ -2,9 +2,11 @@
 
 **Status:** 2026-11-17: P0 merged after qualification against current main. The mixed-source gate, all
 three broken controls and the supplier suites pass on the combined tree; the source-manifest family
-cycle check also passed for P0. P1 is next. The slice 4 cutover is present:
+cycle check also passed for P0. P1's production metadata and adapted P0 gate are locally qualified in
+a review worktree based on the published P0 merge `2581ba61`.
+The slice 4 cutover is present:
 uxtree, Cambium and the E1a bench live under Graphshell's `host/`. Nine rulings are recorded (D1 to D9,
-Mark, 2026-11-11). P0 remains a gate: if it fails, D1 goes back to Mark as a question. P1 to P11 remain open.
+Mark, 2026-11-11). P0 remains a gate: if it fails, D1 goes back to Mark as a question. P2 to P11 remain open.
 
 **For:** carrying out `mere:engine-split D53`, "uxtree grows into the stack's accessibility and automation spine".
 Two briefs read the producers and put the forks to Mark:
@@ -119,6 +121,20 @@ types, and where in the crate the module sits.
   Genet and the family cycle checker passes; the per-field table of which producers fill it (second brief §3.2) is in
   the module docs.
 - Needs: P0 passed.
+
+P1's production module is `uxtree::envelope`. Its names are `Address<I>`, `Stability` and
+`Envelope<I, P, D>`: the instance, provenance and domain-reference types remain caller-owned, so
+hosts can preserve their existing identities and weak admission witnesses without an upward edge.
+The six fields are `address`, `stability`, `provenance`, `action_ids`, `domain_ref`, `authored_key`.
+The producer explicitly chooses Life, Scoped with a revision/epoch, Derived with an optional owner
+generation, or Authored with a key. An absent Derived generation is an observation only; this module
+does not authorize actions or allocate lives, revisions or generations. P5 retains generation-map work.
+The E1a bench now uses these public types and the Life/Scoped/Derived constructors in place of its
+P0 sketch. The per-field producer table is in the module docs. Its manifest is unchanged.
+
+P1 receipt budget: 100 MB across repositories, under `Code/testing/graphshell/uxtree-p1/`.
+Required receipts: unit and adapted P0 supplier runs, deliberately broken constructor/schema controls,
+native and wasm library checks, the unchanged uxtree manifest and family-cycle check, and normal hooks.
 
 ### P2. Cambium's native publisher and the canvas fill the envelope
 
@@ -462,6 +478,18 @@ Each is a question for a later round, with its evidence. None is answered here.
 
 ## Findings
 
+- 2026-11-17: P1 defines the six metadata fields and all four classes without importing any host
+  types or changing uxtree's manifest. Generic instance/provenance/domain payloads preserve a
+  reader's existing common identity and weak witnesses. The mixed-source P0 gate still reads all
+  13 nodes and passes its three controls using the production types. Unit tests read the actual
+  Envelope declaration to guard the six-field boundary and catch planted AccessKit fields.
+- 2026-11-17: actual source mutations verify the P1 tests: making Scoped return Life, dropping an
+  Authored key and adding a Role field each fail at the intended assertion. The control runner
+  restores the exact source bytes after each experiment. Metadata constructors neither infer
+  classes from nodes nor grant action admission; later owners retain their checks.
+- 2026-11-17: the P1 source-manifest cycle check covers 29 actual family checkouts with this
+  worktree substituted for Graphshell, finding no strict/dev cycle or stale allowlist entry.
+  Existing resolved-lock warnings at 14 roots remain distinct from this manifest result.
 - 2026-11-17: P0 reads 13 joined nodes through `tests/e1a_spine/consumer.rs`, which names no producer
   kind. Life provenance comes from Rootstock's `SemanticNodeIdentity` and bound `A11yRequest`;
   Scoped revisions come from the actual Genet document session; Derived ids come from uxtree paths
@@ -522,3 +550,7 @@ Each is a question for a later round, with its evidence. None is answered here.
 - 2026-11-17: P0 integrated with Graphshell main `18744fff`; the 67 supplier tests pass again on the
   combined tree. Mark authorized the merge and continuation to P1. The primary checkout's parallel
   source work remains untouched; the integration is delivered through the verified worktree.
+- 2026-11-17: P1 locally qualified: public envelope types, declared-class constructors, per-field
+  documentation and the adapted E1a gate. The supplier suites pass 74 tests including the new
+  unit and documentation tests; source mutation controls and native/wasm all-feature library checks
+  pass. Production publishers, generation maps, lint and human AT remain later phases.
