@@ -348,3 +348,15 @@ ban gate: `codespan-reporting` selected `unicode-width` 0.1.14. A focused Cargo
 refresh selected the compatible 0.2.3 for the same holder and kept the exact
 Genet source. The policy and manifests are unchanged by this refresh. The
 final receiving test log and resolution delta are retained in the P4 packet.
+
+
+### 2026-11-18: P4 landing
+
+Genet main advanced to `b75face72c9ca054b80d7628633bfb1117a6bdb0`. The
+Graphshell candidate `3b247317` used that same supplier and the recorded final
+package graph. The focused retained-document test passed again once Genet main
+held the tested commit. Its capture, stale replay and fresh action check the
+normal host-to-engine route. Graphshell lands the tested source plus this status
+and receipt update. The original P4 packet stays intact. New landing outputs
+and hashes are in `Code/testing/graphshell/uxtree-p4/landing-*` and
+`LANDING-SHA256SUMS`.

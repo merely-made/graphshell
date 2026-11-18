@@ -1,9 +1,8 @@
 # uxtree spine plan: a federated tree with one envelope
 
-**Status:** 2026-11-17. P0 and P1 landed. P2 landed on Graphshell `7c40580e` and Turnstone
-`7406f9f3`. Turnstone passed its native and wasm checks against published Graphshell main.
-P3 landed at `bf987154`. P4 passed supplier and receiving qualification and awaits
-review. P5 to P11 remain open.
+**Status:** 2026-11-18. P0 to P4 landed. P4's Genet supplier is `b75face72c9` and its
+Graphshell code is `3b247317`. The retained-document action test passed with the supplier on
+Genet main. P5 awaits question 6 below. P6 to P11 remain open.
 The slice 4 cutover moved uxtree, Cambium and E1a to Graphshell's `host/`.
 P0 remains a gate for D1. If it fails, D1 returns to Mark.
 
@@ -673,3 +672,13 @@ Each is a question for a later round, with its evidence. None is answered here.
   the captured revision with the live revision makes the stale-write test fail at runtime.
   Restoring the source passes the suite. The family checker finds no strict or development
   cycles across 29 repositories. The review order is Genet first, then Graphshell.
+
+- 2026-11-18: P4 landed in supplier order. Genet main received the exact tested source
+  `b75face72c9`. The Graphshell lock matched the final qualification records, and the
+  retained-document stale-action test passed again. Both landings use the normal hooks.
+- 2026-11-18: P5 question 6 is still open. Turnstone's current bridge allocates generations
+  per action queue and delegates route equality to the app's document and pane comparators.
+  Proposed boundary: uxtree defines one reusable generation map. Turnstone owns its map instance
+  in P5. Cambium owns the instance when the native bridge moves in P11. Turnstone keeps
+  its route comparators. The same map retains a generation for equal admissions, assigns a
+  fresh one on replacement, and retires it on removal. This proposal awaits a ruling.
