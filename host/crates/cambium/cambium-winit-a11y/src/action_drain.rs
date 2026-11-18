@@ -26,6 +26,7 @@ impl A11yHost {
     ) -> Vec<A11yRequest> {
         if !owner.is_live() {
             self.requests.clear();
+            self.envelopes.clear();
             self.namespace.clear();
             return Vec::new();
         }

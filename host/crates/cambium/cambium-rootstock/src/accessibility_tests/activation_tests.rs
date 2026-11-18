@@ -104,7 +104,7 @@ fn expired_cached_child_token_refuses_raw_bound_queued_and_publication_paths() {
         None,
     );
     assert!(matches!(
-        p.publication_bindings(
+        p.publication_envelopes(
             &crate::A11yOwner::new(&host.s.a11y_owner),
             &view,
             &host.s.shared.leaves,

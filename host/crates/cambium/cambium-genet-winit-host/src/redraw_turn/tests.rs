@@ -74,7 +74,7 @@ impl Accessibility for Adapter {
         let projection =
             cambium_rootstock::project_semantics(dom, layout, leaves, producers, focus);
         let bindings = projection
-            .publication_bindings(owner, dom, leaves, producers)
+            .publication_envelopes(owner, dom, leaves, producers)
             .unwrap();
         let button = projection
             .tree

@@ -220,6 +220,7 @@ fn selector_tests_probe_routes_generated_actions_and_observes_declines() {
         fn semantics(&self) -> Option<ProducerSemantics> {
             Some(ProducerSemantics {
                 children: vec![ProducerNode {
+                    domain_ref: None,
                     key: 41,
                     role: ProducerRole::ListItem,
                     name: "Card".into(),

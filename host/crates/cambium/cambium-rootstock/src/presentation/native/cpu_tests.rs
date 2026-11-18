@@ -91,7 +91,7 @@ impl Accessibility for Adapter {
     ) -> A11ySync {
         let projected = crate::project_semantics(dom, layout, leaves, producers, focus);
         projected
-            .publication_bindings(owner, dom, leaves, producers)
+            .publication_envelopes(owner, dom, leaves, producers)
             .unwrap();
         let field = field(dom);
         let bounds = projected

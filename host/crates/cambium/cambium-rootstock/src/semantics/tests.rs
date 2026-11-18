@@ -104,6 +104,7 @@ fn board() -> ProducerSemantics {
         role: Some(ProducerRole::List),
         name: Some("Board".into()),
         children: vec![ProducerNode {
+            domain_ref: None,
             key: 40,
             role: ProducerRole::ListItem,
             name: "Card".into(),

@@ -19,6 +19,7 @@ impl TextureProducer for GeometryOnly {
             role: Some(ProducerRole::Group),
             name: Some("Geometry".into()),
             children: vec![ProducerNode {
+                domain_ref: None,
                 key: 1,
                 role: ProducerRole::ListItem,
                 name: "Child".into(),
@@ -141,7 +142,7 @@ fn publication_producer_origin_requires_a_current_window_member_with_the_same_ke
         let window = crate::WindowDom::document(&dom);
         assert!(
             projected
-                .publication_bindings(&owner, &window, &leaves, &producers)
+                .publication_envelopes(&owner, &window, &leaves, &producers)
                 .is_ok()
         );
 
@@ -155,7 +156,7 @@ fn publication_producer_origin_requires_a_current_window_member_with_the_same_ke
             dom.set_attribute(slot, cambium::attr_qual("key"), "8");
         }
         let window = crate::WindowDom::document(&dom);
-        let issue = projected.publication_bindings(&owner, &window, &leaves, &producers);
+        let issue = projected.publication_envelopes(&owner, &window, &leaves, &producers);
         assert!(
             matches!(issue,
             Err(PublicationIssue::UnknownNode(id)) if remove && id == child)

@@ -32,6 +32,7 @@ impl A11yHost {
         if !owner.is_live() {
             self.bridge.drain_actions();
             self.requests.clear();
+            self.envelopes.clear();
             self.namespace.clear();
             return A11ySync {
                 requests: Vec::new(),
@@ -57,7 +58,7 @@ impl A11yHost {
         let projection =
             cambium_rootstock::project_semantics(dom, layout, leaves, producers, focus);
         let contribution_issues = projection.producer_issues.len();
-        let bindings = projection.publication_bindings(owner, dom, leaves, producers);
+        let bindings = projection.publication_envelopes(owner, dom, leaves, producers);
         let mut tree = projection.tree;
         scale_tree_to_window(&mut tree, dom, layout_scale);
         let publication = bindings
@@ -76,10 +77,12 @@ impl A11yHost {
             tree,
             namespace,
             requests: next,
+            envelopes,
         } = match publication {
             Ok(candidate) => candidate,
             Err((reason, issue)) => {
                 self.requests.clear();
+                self.envelopes.clear();
                 self.namespace.clear();
                 eprintln!("[cambium-winit] accessibility publication refused: {issue}");
                 // Match install failure: a rejected accessibility tree must not
@@ -101,6 +104,7 @@ impl A11yHost {
                 Ok(()) => {
                     self.installed = true;
                     self.requests = next;
+                    self.envelopes = envelopes;
                     self.namespace = namespace;
                     eprintln!(
                         "[cambium-winit] accessibility {:?}, {node_count} nodes projected",
@@ -109,6 +113,7 @@ impl A11yHost {
                 },
                 Err(e) => {
                     self.requests.clear();
+                    self.envelopes.clear();
                     self.namespace.clear();
                     outcome = A11yPublicationOutcome::Refused {
                         reason: A11yPublicationRefusal::AdapterInstall,
@@ -122,6 +127,7 @@ impl A11yHost {
         } else {
             self.bridge.update(tree);
             self.requests = next;
+            self.envelopes = envelopes;
             self.namespace = namespace;
         }
         A11ySync {

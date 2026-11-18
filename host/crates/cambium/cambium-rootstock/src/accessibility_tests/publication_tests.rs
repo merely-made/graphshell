@@ -8,6 +8,8 @@ use super::*;
 use crate::{A11yDispatch as D, A11yRejection as R, ProducerChildLifetime, TextureProducer};
 use std::cell::Cell;
 
+mod envelope;
+
 fn published(host: &Host<u32, CounterLogic, CounterChild>, request: A11yRequest) -> A11yRequest {
     let runner = host.s.runner.as_ref().unwrap();
     let dom = runner.dom();

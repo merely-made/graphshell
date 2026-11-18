@@ -35,6 +35,7 @@
 pub use document_session_api::DocumentA11yProjection;
 pub use genet_render_host::RasterizeFailure;
 pub use genet_scripted_dom::{NodeId, ScriptedDom};
+pub use sceno::SourceRef;
 pub use sprigging::LeafRegistry;
 
 use genet_render::VisualMovement;
@@ -57,8 +58,8 @@ pub use a11y_publication::{
     A11yPublicationSkip, A11yPublicationSnapshot, A11ySync,
 };
 pub use semantics::{
-    ProducerSemanticIssue, PublicationBindings, PublicationIssue, SemanticProjection,
-    project_semantics,
+    ProducerSemanticIssue, PublicationIssue, SemanticEnvelope, SemanticProjection,
+    SemanticPublication, project_semantics,
 };
 
 mod files;

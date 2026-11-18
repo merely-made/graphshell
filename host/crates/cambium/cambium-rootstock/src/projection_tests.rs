@@ -159,9 +159,9 @@ fn publication_membership_uses_the_existing_window_inventory() {
         let owner = crate::A11yOwner::new(&marker);
         crate::window_dom::take_membership_steps();
         let bindings = projected
-            .publication_bindings(&owner, &window, &leaves, &producers)
+            .publication_envelopes(&owner, &window, &leaves, &producers)
             .unwrap();
-        assert_eq!(bindings.identities.len(), count + 1);
+        assert_eq!(bindings.envelopes.len(), count + 1);
         let steps = crate::window_dom::take_membership_steps();
         eprintln!("{count} publication nodes: {steps} membership ancestor steps");
         assert_eq!(steps, 0, "the window inventory already proves membership");

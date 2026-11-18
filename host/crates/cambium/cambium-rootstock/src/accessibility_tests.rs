@@ -421,6 +421,7 @@ impl crate::TextureProducer for LifetimeBoard {
     fn semantics(&self) -> Option<crate::ProducerSemantics> {
         Some(crate::ProducerSemantics {
             children: vec![crate::ProducerNode {
+                domain_ref: None,
                 key: 40,
                 role: crate::ProducerRole::ListItem,
                 name: format!("Card revision {}", self.revision.get()),

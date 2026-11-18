@@ -270,6 +270,9 @@ pub struct ProducerNode {
     /// reconcile their lifetimes. Ordinary value, order and geometry updates
     /// keep the key. The host cannot infer an unobserved removal from snapshots.
     pub key: u64,
+    /// The source object represented by this child, when supplied by its owner.
+    /// This is metadata, not an action route or a replacement for the child life.
+    pub domain_ref: Option<crate::SourceRef>,
     pub role: ProducerRole,
     pub name: String,
     /// Where it is drawn, `[x, y, width, height]` in the slot's own logical

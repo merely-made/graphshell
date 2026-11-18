@@ -113,6 +113,7 @@ impl TextureProducer for SceneSource {
             role: Some(ProducerRole::Group),
             name: Some("Scene".into()),
             children: vec![ProducerNode {
+                domain_ref: None,
                 key: 40,
                 role: ProducerRole::ListItem,
                 name: "Card".into(),

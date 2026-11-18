@@ -7,7 +7,7 @@
 //! Shared host composition of DOM, Sprigging and producer semantics.
 //! AccessKit remains the existing contributor vocabulary. This copied read is
 //! not a presentation revision, target lease or operation-outcome authority.
-use crate::a11y_provenance::{A11yProvenance, NodeTarget, SemanticNodeIdentity};
+use crate::a11y_provenance::NodeTarget;
 use crate::owned_layout::custom_leaf_key;
 #[cfg(test)]
 use crate::owned_layout::flat_nodes;
@@ -18,7 +18,10 @@ use crate::{
 use accesskit::{Action, NodeId as A11yNodeId, Rect, Role, TreeUpdate};
 use document_session_api::{DocumentA11yProjection, DocumentA11yRole};
 use layout_dom_api::LayoutDom;
+use sceno::SourceRef;
 use std::collections::{HashMap, HashSet};
+mod publication;
+pub use publication::{PublicationIssue, SemanticEnvelope, SemanticPublication};
 
 /// A producer contribution refused by this composition read. These identify
 /// ambiguous declarations, not producer generations or operation outcomes.
@@ -31,7 +34,7 @@ pub enum ProducerSemanticIssue {
 
 pub struct SemanticProjection {
     pub tree: TreeUpdate,
-    produced_nodes: HashMap<A11yNodeId, NodeTarget>,
+    produced_nodes: HashMap<A11yNodeId, ProducedMetadata>,
     pub dom_targets: HashMap<A11yNodeId, NodeId>,
     pub produced_targets: HashMap<A11yNodeId, ProducedAction>,
     pub producer_slots: HashMap<u64, NodeId>,
@@ -39,102 +42,12 @@ pub struct SemanticProjection {
     /// are absent. The underlying DOM observation remains available.
     pub producer_issues: Vec<ProducerSemanticIssue>,
 }
-/// Bindings for a complete publication. They are metadata, not another tree.
-pub struct PublicationBindings {
-    pub identities: HashMap<A11yNodeId, SemanticNodeIdentity>,
-    pub requests: HashMap<u64, crate::A11yRequest>,
-}
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub enum PublicationIssue {
-    OwnerEnded,
-    UnknownNode(A11yNodeId),
-    DuplicateNode(A11yNodeId),
-    RouteMismatch(A11yNodeId),
-    ContributorEnded(A11yNodeId),
+#[derive(Clone)]
+struct ProducedMetadata {
+    target: NodeTarget,
+    domain_ref: Option<SourceRef>,
 }
 impl SemanticProjection {
-    /// Freeze all node identities and action routes from one authored read.
-    /// Unknown/duplicate nodes or inconsistent route metadata refuse publication.
-    pub fn publication_bindings(
-        &self,
-        owner: &crate::A11yOwner,
-        dom: &crate::WindowDom<'_>,
-        leaves: &LeafRegistry<u64>,
-        producers: &ProducerRegistry,
-    ) -> Result<PublicationBindings, PublicationIssue> {
-        if !owner.is_live() {
-            return Err(PublicationIssue::OwnerEnded);
-        }
-        let mut dom_nodes = HashMap::new();
-        let mut members = HashMap::new();
-        for member in dom.members() {
-            dom_nodes.insert(A11yNodeId(dom.opaque_id(member.node())), member);
-            members.insert(member.node(), member);
-        }
-        let mut identities = HashMap::new();
-        for (id, _) in &self.tree.nodes {
-            let target = self
-                .produced_nodes
-                .get(id)
-                .cloned()
-                .or_else(|| {
-                    dom_nodes
-                        .get(id)
-                        .map(|member| NodeTarget::Node(member.node()))
-                })
-                .ok_or(PublicationIssue::UnknownNode(*id))?;
-            let member = match &target {
-                NodeTarget::Node(node) => members.get(node),
-                NodeTarget::Produced { slot, .. } => self
-                    .producer_slots
-                    .get(slot)
-                    .and_then(|node| members.get(node)),
-            }
-            .copied()
-            .ok_or(PublicationIssue::UnknownNode(*id))?;
-            let identity = SemanticNodeIdentity(
-                A11yProvenance::capture_published_member(owner, target, member, leaves, producers)
-                    .ok_or(PublicationIssue::RouteMismatch(*id))?,
-            );
-            if !identity.0.contributors_live() {
-                return Err(PublicationIssue::ContributorEnded(*id));
-            }
-            if identities.insert(*id, identity).is_some() {
-                return Err(PublicationIssue::DuplicateNode(*id));
-            }
-        }
-        let mut requests = HashMap::new();
-        for (id, mut request) in self
-            .dom_targets
-            .iter()
-            .map(|(id, node)| {
-                (
-                    *id,
-                    crate::A11yRequest::node(crate::A11yAction::Focus, *node),
-                )
-            })
-            .chain(self.produced_targets.iter().map(|(id, target)| {
-                (
-                    *id,
-                    crate::A11yRequest::produced(crate::A11yAction::Focus, target.clone()),
-                )
-            }))
-        {
-            let identity = identities
-                .get(&id)
-                .ok_or(PublicationIssue::UnknownNode(id))?;
-            if identity.0.target_matches(&request.target) {
-                request.provenance = Some(identity.0.clone());
-            } else {
-                return Err(PublicationIssue::RouteMismatch(id));
-            }
-            requests.insert(id.0, request);
-        }
-        Ok(PublicationBindings {
-            identities,
-            requests,
-        })
-    }
     /// Actual DOM membership, supplied by composition rather than inferred
     /// from the numeric shape of a generated semantic ID.
     pub fn dom_node(&self, id: u64) -> Option<NodeId> {
@@ -324,7 +237,7 @@ fn add_producer_semantics(
     semantics: ProducerSemantics,
     content_origin: Option<(f64, f64)>,
     produced_map: &mut HashMap<A11yNodeId, ProducedAction>,
-    produced_nodes: &mut HashMap<A11yNodeId, NodeTarget>,
+    produced_nodes: &mut HashMap<A11yNodeId, ProducedMetadata>,
     reserved_ids: &mut HashSet<A11yNodeId>,
 ) -> Result<(), ProducerSemanticIssue> {
     let slot = tree.nodes[index].0;
@@ -352,10 +265,13 @@ fn add_producer_semantics(
         let id = produced_node_id(slot, child.key, None);
         produced_nodes.insert(
             id,
-            NodeTarget::Produced {
-                slot: producer,
-                key: child.key,
-                action: None,
+            ProducedMetadata {
+                target: NodeTarget::Produced {
+                    slot: producer,
+                    key: child.key,
+                    action: None,
+                },
+                domain_ref: child.domain_ref.clone(),
             },
         );
         let mut access = accesskit::Node::new(accesskit_role(child.role));
@@ -384,10 +300,13 @@ fn add_producer_semantics(
             let button_id = produced_node_id(slot, child.key, Some(&action.id));
             produced_nodes.insert(
                 button_id,
-                NodeTarget::Produced {
-                    slot: producer,
-                    key: child.key,
-                    action: Some(action.id.clone()),
+                ProducedMetadata {
+                    target: NodeTarget::Produced {
+                        slot: producer,
+                        key: child.key,
+                        action: Some(action.id.clone()),
+                    },
+                    domain_ref: child.domain_ref.clone(),
                 },
             );
             let mut button = accesskit::Node::new(Role::Button);

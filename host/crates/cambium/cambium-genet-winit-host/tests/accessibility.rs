@@ -317,6 +317,7 @@ fn selector_tests_harness_uses_leaf_roles_and_real_generated_action_admission() 
         fn semantics(&self) -> Option<ProducerSemantics> {
             Some(ProducerSemantics {
                 children: vec![ProducerNode {
+                    domain_ref: None,
                     key: 41,
                     role: ProducerRole::ListItem,
                     name: "Card".into(),

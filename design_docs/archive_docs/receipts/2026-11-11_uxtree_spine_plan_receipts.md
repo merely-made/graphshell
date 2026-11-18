@@ -139,3 +139,136 @@ conflicts. The combined tree passes the same 74 supplier tests. Integration
 receipts are retained separately under `Code/testing/graphshell/uxtree-p1/`
 as `merge-tests.log`, `merge-hooks.log` and `merge-push.log`. Original P1
 qualification receipts remain unchanged.
+
+
+## 2026-11-17: P2 native envelope qualification
+
+Base: Graphshell main merge `5267dd2ddeb866ca43d6dec0de7ea2ac85c177d7`.
+Candidate branch/worktree: `uxtree/p2`, `Code/worktrees/graphshell-uxtree-p2`.
+Receiving candidate: Turnstone `uxtree/p2`, based on
+`d91d1ffb56808ae331487d980a17a5883b6e3579`.
+Raw packet: `Code/testing/graphshell/uxtree-p2/`, 100 MB total across repositories.
+
+`SemanticPublication` replaces `PublicationBindings`: complete uxtree envelopes
+plus typed input-delivery routes, which retain the publication's weak witness.
+The metadata alias uses the existing `A11yOwner`, `SemanticNodeIdentity` and
+`sceno::SourceRef`. Native preparation maps each local address to its final
+native ID; tree, envelopes, namespace and routes advance together. Refusal and
+owner retirement clear the metadata with the routes. Authored DOM keys are
+actual `data-key` or fallback `id`; DOM action kinds create no command IDs.
+Producer action-button envelopes carry the actual command and their child's
+source reference. Structural children carry the reference without an action
+route. Existing native refusal policy is unchanged.
+
+The native semantic publication payload walk passes, including every final address,
+Life class, owner/provenance, command, source reference and authored key. The
+new Rootstock test freezes a real envelope route, replaces the child while
+retaining the old marker, and sees `StaleTarget` with no action effect; a fresh
+route dispatches. The pre-layout root-only bootstrap remains
+`PendingPresentation`, not a semantic submission, with no routes or envelopes.
+
+Qualification so far:
+
+- Baseline Rootstock library: 240 passed, 18 existing ignores.
+- Restored supplier run: 340 passed, 19 ignores (including the existing ignored
+  Rootstock doctest). This includes 241 Rootstock library and 75 uxtree/native
+  supplier tests, plus Rootstock integration tests.
+- Desktop accessibility receiving tests: 10 passed.
+- Rootstock and browser host library wasm check: passed with
+  `RUSTFLAGS='--cfg getrandom_backend="wasm_js"'`.
+- Five source controls fail at runtime: omitted envelopes, unremapped source
+  address, omitted command, omitted domain reference, and old-request rebinding.
+  The first exploratory provenance-only bypass still passed because the
+  independent producer child-token check refused it. Its log is retained;
+  `stale_rebind_control.py` demonstrates the stronger defect and fails as expected.
+- Rust-source search: zero `PublicationBindings` / `publication_bindings` hits.
+- Family checker: 29 repositories, no strict or development source cycles;
+  resolved-lock warnings remain separately recorded in the JSON.
+
+Exact commands and output: `qualified-core-tests.log`, `receiving-host-tests.log`,
+`wasm-host-check.log`, `control-*.log`, `control-results.json`,
+`candidate-source-family-cycles.json`, and the control/checker scripts.
+Generated baseline locks are retained, not edited or committed. Turnstone's
+canvas qualification and normal hooks are still in progress at this checkpoint.
+Browser execution and human/platform assistive-technology acceptance remain open.
+
+
+The first offline hook attempt lacked cached `regalloc2` 0.15.3. The online
+retry passed all three Clippy hooks, then found a pre-existing resolution split:
+registry `peer-facts` 0.0.1 through old Dramatis `custody-wire`, alongside Armillary
+Git 0.0.3. Current Dramatis main already uses the Armillary source. Normal
+`cargo update --manifest-path host/Cargo.toml -p custody-wire` refreshed the 12
+Dramatis Git packages from `2c779ded` to `9185d150` and removed registry 0.0.1.
+No manifest, patch, skip or manual lock edit was needed. The before/after locks,
+package IDs and failed hooks are retained in `graphshell-host*.Cargo.lock`,
+`resolution-delta.json`, `refresh-dramatis.log` and `graphshell-commit-hooks*.log`.
+
+
+### P2 receiving and final review
+
+Turnstone candidate `219c99b1e8168461ae7e214f2ed9e1fae1bd91de` is pushed on
+`uxtree/p2`. The 13 canvas reader tests pass, including 12 actual sample members
+retaining UUID, described key and command IDs through Rootstock. Dropping the
+reference in the real canvas lowering fails the same runtime test; restoring
+its bytes passes all 13 again. The first receiving compile exposed a missing
+`LayoutDom` import in the new test; the corrected and restored logs are retained.
+The no-default-feature `web` library wasm check passes.
+
+Both normal Turnstone Clippy hooks, dependency bans at root/web/relay roots,
+house patch checks, resolved-version recording and push hooks pass. Receiving
+root package IDs are identical before and after those hooks. The native/wasm
+checks and root hooks use Genet `0cd7e985`; the separate web ban resolution uses
+`fe42f351`. The relay has no Genet source. These are separate qualification
+claims, with exact locks and Git IDs in `receiving-hook-sources.json` and
+`receiving-package-ids.json`; the local supplier selection is confined to the
+retained gate Cargo configuration. All six contract packages resolve to the
+Graphshell candidate checkout. Land Graphshell, refresh Turnstone's Graphshell
+Git source with Cargo, then integrate the receiver.
+
+Review removed an assumption that every native number differs from its source
+number. Every envelope must match its final tree node and preserve provenance;
+numeric coincidences between namespaces are valid. The revised native suite
+passes 29 tests, omitting address finalization still fails its runtime assertion,
+and restoring the source passes the 29 again. Production publication code is
+unchanged from supplier `5c390762`; the final supplier commit adds this test fix
+and the completed plan/receipt status.
+
+The native walk uses production `NativeIds::prepare` and commits its output into
+a detached host fixture. It certifies the prepared publication payload and
+lifetime/admission behavior. OS adapter submission, installed binaries, browser
+runtime and human AT are not claimed by these software gates. The existing
+pre-layout bootstrap remains a pending window carrier with no semantic routes.
+
+Raw final evidence: `canvas-restored.log`, `control-canvas-domain.log`,
+`turnstone-wasm-check.log`, `turnstone-commit-hooks.log`, `turnstone-push.log`,
+`native-review-restored.log`, `control-source-address-review.log` and
+`qualified-source-family-cycles.json`. The full raw report and hash inventory
+are `Code/testing/graphshell/uxtree-p2/report.md` and `SHA256SUMS`.
+
+The P2 worktrees remain for review. Automatic approval review rejected the
+normal temporary-home cleanup and the narrower literal junction unlink, stating
+only "blocked by policy". The P2-owned home at
+`C:/t/cargo-homes/turnstone-uxtree-p2` remains with 325,055 bytes of local files
+and two links to shared caches. Its configuration and exact rejection/ownership
+status are recorded in `cleanup.json`. Four cache origins created through that
+home were normalized to persistent global cache paths. Shared source caches
+and reusable Graphshell/Turnstone targets, including the CEF SDK cache, remain.
+
+
+### P2 combined-main snapshot
+
+During the long dependency checks, remote main advanced to Graphshell
+`a9c12694a83b534971b6beeb129ce4adeae5edcb` and Turnstone
+`66716cd5a8a4b0818eb2b425f1c8426d4c718430`. P1's merge remains an ancestor of
+Graphshell main. Both snapshots merge cleanly into the P2 review branches.
+Combined qualification repeats the 340 supplier tests, 10 desktop accessibility
+tests, 13 canvas tests and receiving wasm check successfully. These source
+changes add no manifest edge; the existing source-cycle qualification remains
+applicable. Normal merge hooks also run before these candidates are pushed.
+
+The original report, source records and `SHA256SUMS` are preserved unchanged.
+Final combined heads, source diffs, hook/push output and the exact tested main
+snapshots are recorded separately in `combined-report.md`,
+`combined-candidate-record.json`, `combined-*.log` and `COMBINED-SHA256SUMS` under
+`Code/testing/graphshell/uxtree-p2/`. The cleanup rejection remains recorded;
+the named Cargo home is also reused for these combined receiving checks.
