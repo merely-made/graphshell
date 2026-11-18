@@ -1,8 +1,8 @@
 # uxtree spine plan: a federated tree with one envelope
 
-**Status:** 2026-11-18. P0 to P5 landed. P5 landed in Graphshell at `5a8d2d1e` and in Turnstone at
-`6f45ffc4`. Turnstone passed the receiving tests against that Graphshell main revision.
-P6 is qualified and pushed on `uxtree/p6` in Graphshell and Turnstone. P7 to P11 remain open.
+**Status:** 2026-11-18. P0 to P5 landed. P6 supplier landed on Graphshell main at `2a5a4f07`.
+Turnstone is qualifying the landed supplier with the Crystal update. P7 is under way.
+P8 to P11 remain open.
 The slice 4 cutover moved uxtree, Cambium and E1a to Graphshell's `host/`.
 P0 remains a gate for D1. If it fails, D1 returns to Mark.
 
@@ -256,8 +256,7 @@ missing bounds, an action with no route, a node with no envelope. The structural
 `NativeIds::prepare` (`winit-a11y/publication.rs`), shared and not copied. Findings go to a sink trait. The first sink
 is `mere-registry`'s existing `ux:` channels (`ux:structural_violation`, `ux:contract_warning`,
 `ux:presentation_bounds_missing`, `ux:tree_build`, `ux:tree_snapshot_built`; zero to two new descriptors, estimate).
-A scenario verb runs the lint in Turnstone's `.scn` runner (about 50 lines, estimate). Named in P7: the verb, whether
-the registry sink is a feature or its own crate, and the finding types.
+A scenario verb runs the lint in Turnstone's `.scn` runner (about 50 lines, estimate). P7 uses `lint-a11y` and uxtree's optional `registry-lint` feature. The structural findings retain Cambium's existing refusal mapping. Label, bounds, route and envelope findings are advisory.
 
 - Not here: frame-to-frame stability checks. D7 puts them after stability classes exist in code; they are cut as their
   own phase when P1 and P5 have landed.
@@ -502,9 +501,8 @@ Each is a question for a later round, with its evidence. None is answered here.
 6. **Where does the generation map live?** Settled in D10.
 7. **Is the Derived hash pinned?** `DefaultHasher` is unspecified across Rust releases; the toolchain is pinned today
    (first brief F4). D4 calls Derived an address and not a life; no ruling says whether the hash is specified.
-8. **Does `NativeIds::prepare` call the shared structural core?** The brief estimated -60 lines in `cambium-a11y` if so
-   (first brief, shape C). D7 says the lint does not gate; `prepare` refuses today. Whether its refusals stay as they
-   are is not decided.
+8. **Does NativeIds::prepare call the shared structural core?** P7 shares the structural checks and
+   preserves the existing refusal mapping. The extra advisory findings never enter native admission.
 9. **Does Pelt graft?** D3 says the address becomes the pair "as each producer is grafted". The publisher grafts in P11.
    Pelt mints one tree with a counter from 2^63 per tile; no ruling asks it to graft (app composition AC2 names Pelt's
    combined tree as a user of the helper).
@@ -532,7 +530,7 @@ Each is a question for a later round, with its evidence. None is answered here.
 | Canvas through native publication | Producer owner and minted node ID. The graph member UUID travels separately as the domain reference. |
 | Graphshell mounted scene | Producer session and scene-instance node ID, scoped to the scene epoch. |
 | Turnstone host chrome and shared frame | Producer window root and local projected ID. Lens remapping runs before publication. |
-| Turnstone's retained documents in the host tree | Root-tree action key and host-mapped node ID. The captured document route retains its source and placement checks. |
+| Turnstone's retained documents in the host tree | Installed `(TreeId, NodeId)`. Each placement graft keeps the document's local IDs. Its captured route checks source and placement. |
 | Turnstone foreign surfaces, including nested guests | Installed `(TreeId, NodeId)`. The current owner table selects the surface, then the retained tree resolves the local node. |
 | Turnstone contributed panes | Installed `(TreeId, NodeId)`. The pane fills the address from the subtree it publishes. The source and placement still govern admission. |
 | Document, frozen, Gloss and Platen observation views | Caller-supplied producer instance and path-derived node ID. |

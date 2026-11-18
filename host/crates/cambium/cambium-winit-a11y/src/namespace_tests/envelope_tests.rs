@@ -92,3 +92,36 @@ fn published_tree_has_finalized_envelopes_for_every_node_and_real_command() {
         "ended owner clears metadata with routes"
     );
 }
+
+#[test]
+fn native_publication_retains_a_tree_with_advisory_bounds_findings() {
+    let f = Fixture::new();
+    let mut projection = f.projection();
+    let bindings = projection
+        .publication_envelopes(
+            &f.owner(),
+            &WindowDom::document(&f.dom),
+            &f.leaves,
+            &f.producers,
+        )
+        .unwrap();
+    projection.tree.nodes[0].1.clear_bounds();
+    let prepared = NativeIds::default()
+        .prepare(projection.tree, bindings)
+        .unwrap();
+    // The installed output is a valid AccessKit tree even with the advisory finding.
+    let consumer = accesskit_consumer::Tree::new(prepared.tree.clone(), true);
+    let lint = uxtree::lint::inspect(
+        accesskit::TreeId::ROOT,
+        std::slice::from_ref(&prepared.tree),
+        |(_, local)| prepared.envelopes.contains_key(&local),
+        |(_, local), _| prepared.requests.contains_key(&local),
+    );
+    assert!(lint.findings.iter().any(|finding| {
+        finding.kind == uxtree::lint::FindingKind::MissingBounds
+            && consumer
+                .state()
+                .node_by_tree_local_id(finding.node.unwrap(), finding.tree)
+                .is_some()
+    }));
+}

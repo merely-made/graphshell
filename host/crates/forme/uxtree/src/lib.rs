@@ -45,6 +45,7 @@ pub mod envelope;
 pub mod frozen;
 pub mod generation;
 pub mod graft;
+pub mod lint;
 
 pub use graft::{
     ActionTarget, Composition, GraftError, GraftTable, Grafts, as_subtree, graft_node,

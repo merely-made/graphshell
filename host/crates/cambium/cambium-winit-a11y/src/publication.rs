@@ -7,8 +7,9 @@
 //! Native ROOT publication namespace. Source IDs never enter native routing.
 use accesskit::{NodeId, TreeId, TreeUpdate};
 use cambium_rootstock::{A11yRequest, SemanticEnvelope, SemanticNodeIdentity, SemanticPublication};
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::sync::atomic::{AtomicU64, Ordering};
+use uxtree::lint::{FindingKind, StructureIssue};
 
 #[derive(Clone)]
 struct Entry {
@@ -65,25 +66,24 @@ impl NativeIds {
             return Err(Refusal::ForeignTree);
         }
         let root = tree.tree.as_ref().ok_or(Refusal::IncompleteTree)?.root;
-        let mut nodes = HashMap::new();
-        for (id, node) in &tree.nodes {
-            if nodes.insert(*id, node).is_some() {
-                return Err(Refusal::DuplicateNode(*id));
-            }
-        }
-        // A full snapshot must not hand an orphan, cycle, or repeated child to
-        // a platform consumer. Relation edges are validated by the schema hook.
-        let mut visited = HashSet::new();
-        let mut pending = vec![root];
-        while let Some(id) = pending.pop() {
-            if !visited.insert(id) {
-                return Err(Refusal::NotATree(id));
-            }
-            let node = nodes.get(&id).ok_or(Refusal::DanglingReference(id))?;
-            pending.extend(node.children());
-        }
-        if visited.len() != nodes.len() {
-            return Err(Refusal::UnreachableNode);
+        if let Some(finding) = uxtree::lint::structure(tree.tree_id, std::slice::from_ref(&tree))
+            .into_iter()
+            .next()
+        {
+            let node = finding.node;
+            return Err(match finding.kind {
+                FindingKind::Structure(StructureIssue::DuplicateNode) => {
+                    Refusal::DuplicateNode(node.unwrap())
+                },
+                FindingKind::Structure(StructureIssue::DanglingNode) => {
+                    Refusal::DanglingReference(node.unwrap())
+                },
+                FindingKind::Structure(StructureIssue::Cycle | StructureIssue::RepeatedChild) => {
+                    Refusal::NotATree(node.unwrap())
+                },
+                FindingKind::Structure(StructureIssue::UnreachableNode) => Refusal::UnreachableNode,
+                _ => Refusal::IncompleteTree,
+            });
         }
         let mut entries = HashMap::new();
         for (source, _) in &tree.nodes {

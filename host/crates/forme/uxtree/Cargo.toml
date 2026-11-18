@@ -20,11 +20,13 @@ default = []
 # frozen realization, which moved to the Graphshell repository, handed to the
 # platform assistive stack.
 frozen = ["dep:graphshell-client"]
+registry-lint = ["dep:registry"]
 
 [dependencies]
 accesskit.workspace = true
 graphshell-client = { workspace = true, optional = true }
 inker.workspace = true
+registry = { workspace = true, features = ["diagnostics"], optional = true }
 tracing.workspace = true
 
 [dev-dependencies]
