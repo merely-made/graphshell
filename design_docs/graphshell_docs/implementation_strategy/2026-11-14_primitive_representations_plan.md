@@ -104,6 +104,10 @@ relations; it does not scale the picture (D5).
   bounds and the rest a smaller one; zooming out restores the shares; the remainder region
   stays honest at every level; a headed check shows it on Tiles and on Rings.
 - Needs: the viewer's zoom input routed to the family as a reading parameter.
+- Complete. Enable Partition zoom in the recipe's Interaction panel. In the
+  preview, a group can take focus and Zoom out restores the whole. The
+  measured remainder keeps its share at either level.
+  [Partition zoom receipt](../../archive_docs/receipts/2026-11-14_primitive_representations_plan_receipts.md#2026-11-18-z-partition-zoom).
 
 ### N. Crystal
 Tiles on the infinite canvas that touch when linked, started by pinning (D6, D7; brief
@@ -889,3 +893,9 @@ face.
   frame picks, each of which enters recipe history in one step. The headed
   check shows cards in Partition and the subdivision inside the chosen
   viewport.
+
+- On 2026-11-18, Z added a viewing-time focus for the current Partition
+  containment level. The focused group gains half of each other measured
+  share. The remainder retains the fraction disclosed as unaccounted.
+  Headed Tiles and Rings checks show focus, a group switch, and return to the
+  whole in one viewport.
