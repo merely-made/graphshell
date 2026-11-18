@@ -289,6 +289,7 @@ fn mark_slot_edits_are_undoable_and_preserved_in_the_definition() {
         node: Some(scenograph::presentation::NodeMark::card()),
         relation: Some(scenograph::presentation::RelationForm::Stroke),
         field: Some(scenograph::FieldForm::Guide),
+        ..Default::default()
     };
     editor.reduce(EditorAction::SetMarks(marks.clone()), 0);
     assert_eq!(editor.draft().marks, marks);
@@ -356,4 +357,38 @@ fn each_swatch_pick_is_one_edit_and_frame_undo_restores_legacy_dimensions() {
         assert!(editor.redo());
         assert_eq!(editor.draft(), &picked);
     }
+}
+
+#[test]
+fn contexts_with_curated_commands_survive_undo_redo_and_save() {
+    use scenograph::contexts::{
+        CommandChoice, ContextPlacement, ContextScene, ContextTrigger, SubjectKind,
+    };
+
+    let draft = valid_draft();
+    let child = draft.clone().to_definition().unwrap();
+    let contexts = vec![ContextScene {
+        id: "menu".into(),
+        subject: SubjectKind::Node,
+        trigger: ContextTrigger::Request,
+        placement: ContextPlacement::Overlay,
+        input: "commands".into(),
+        recipe: Box::new(child),
+        commands: Some(vec![CommandChoice {
+            id: "host:fit".into(),
+            label: Some("Fit everything".into()),
+            shortcut: Some("Alt+F".into()),
+        }]),
+    }];
+    let mut editor = ProjectionEditor::new(draft);
+    editor.reduce(EditorAction::SetContexts(contexts.clone()), 0);
+    assert_eq!(editor.draft().marks.contexts, contexts);
+    assert!(editor.undo());
+    assert!(editor.draft().marks.contexts.is_empty());
+    assert!(!editor.can_undo());
+    assert!(editor.redo());
+    let saved = editor.draft().clone().to_definition().unwrap();
+    let reopened: scenograph::ProjectionDefinition =
+        serde_json::from_slice(&saved.to_json_bytes().unwrap()).unwrap();
+    assert_eq!(reopened.marks.contexts, contexts);
 }

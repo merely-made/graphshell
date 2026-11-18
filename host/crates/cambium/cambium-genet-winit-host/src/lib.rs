@@ -316,6 +316,7 @@ fn named_from_winit(named: &winit::keyboard::NamedKey) -> NamedKey {
         N::Home => NamedKey::Home,
         N::End => NamedKey::End,
         N::F10 => NamedKey::F10,
+        N::ContextMenu => NamedKey::ContextMenu,
         N::Alt => NamedKey::Alt,
         N::PageUp => NamedKey::PageUp,
         N::PageDown => NamedKey::PageDown,

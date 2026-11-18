@@ -147,6 +147,7 @@ pub enum EditorAction {
         dynamics: Option<DynamicsSlot>,
     },
     SetInteraction(Interaction),
+    SetContexts(Vec<scenograph::contexts::ContextScene>),
     SetAppearance(Appearance),
     SetProvenance(Provenance),
 }
@@ -336,6 +337,10 @@ impl ProjectionEditor {
             } => {
                 self.draft.arrangement = arrangement;
                 self.draft.dynamics = dynamics;
+                ReduceResult::Changed
+            },
+            EditorAction::SetContexts(contexts) => {
+                self.draft.marks.contexts = contexts;
                 ReduceResult::Changed
             },
             EditorAction::SetInteraction(value) => {

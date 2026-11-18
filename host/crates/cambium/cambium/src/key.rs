@@ -109,6 +109,8 @@ pub enum NamedKey {
     End,
     /// Enter the application menu bar on Windows and Linux.
     F10,
+    /// Open the focused subject’s context.
+    ContextMenu,
     /// The Alt key by itself, used to enter an application menu bar.
     Alt,
     /// Move by a larger semantic increment.

@@ -30,11 +30,13 @@ pub struct MarkSlots {
     pub relation: Option<RelationForm>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub field: Option<FieldForm>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub contexts: Vec<crate::contexts::ContextScene>,
 }
 
 impl MarkSlots {
     pub fn is_empty(&self) -> bool {
-        self.node.is_none() && self.relation.is_none() && self.field.is_none()
+        self.node.is_none() && self.relation.is_none() && self.field.is_none() && self.contexts.is_empty()
     }
 
     pub(crate) fn validation_issues(&self) -> Vec<crate::ValidationIssue> {
@@ -43,6 +45,7 @@ impl MarkSlots {
             .and_then(|mark| mark.validate().err())
             .map(|message| crate::ValidationIssue::error("marks.node", &message))
             .into_iter()
+            .chain(crate::contexts::context_issues(&self.contexts))
             .collect()
     }
 }
@@ -88,6 +91,7 @@ impl RuleSet {
                 },
                 Effect::RelationForm { value } => marks.relation = Some(*value),
                 Effect::FieldForm { value } => marks.field = Some(*value),
+                Effect::Contexts { value } => marks.contexts = value.clone(),
                 _ => {},
             }
         }
@@ -177,6 +181,7 @@ mod tests {
             node: Some(node),
             relation: Some(RelationForm::Stroke),
             field: Some(FieldForm::Guide),
+            ..Default::default()
         };
         let key = authored.sources.keys().next().unwrap().clone();
         let bound = authored.bind(&key, None).unwrap();

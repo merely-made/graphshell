@@ -556,3 +556,57 @@ locks use the checked Graphshell merge ac91ed3 and Genet b75face for
 the semantic lookup APIs. Stable per-repository and guest targets were
 reused on T-PC. The generated site and browser profiles were removed
 after capture.
+
+
+## 2026-11-18 X context scenes
+
+Graphshell 4c52c05 adds context declarations to recipe marks and a
+presentation effect that can replace the declarations for a matching
+occurrence. Each declaration selects the trigger, subject, input binding,
+child recipe and placement. Scenomise binds each disclosed input to that
+child recipe and uses the regular projection compiler. The command
+dataset carries ordered identities, labels, shortcuts and availability.
+Invocation stays with the authority that disclosed each command.
+
+Turnstone f6790128 uses the same child renderer for linked rows, a
+subject's resource, and an ordered menu. Its Interaction panel edits the
+context recipes as TOML. Apply enters the recipe's undo history as one
+step. Saving and reopening uses the normal executable projection record.
+The editor flags subject kinds with hover-only triggers. The workspace
+also reads committed, enabled presentation rules against disclosed facts.
+
+Both final runs passed on T-PC in headed Chrome with zero page errors
+and zero receipt gate failures. The first run used retained input to
+open the same node's linked items beside it, address in a pane, and
+commands in an overlay. It also showed a field summary in place on
+hover, exercised secondary press and a stationary held primary press,
+invoked a viewer command, and checked undo, save, and reopen. The
+second run offered a real, verified capsule component's WIT
+`actions.emit` action in the menu. Choosing it opened reading 2 through
+the applet's existing scope and navigation grant. The command disappeared
+after revocation. Remote advertised action and block claim bindings are
+covered by the product build. The headed held press exercises the
+retained gesture path. Physical touch remains unverified.
+
+The receipts and inspected captures are in
+`~/Code/testing/turnstone/receipts/2026-11-18_context_scenes` on T-PC.
+The final directories are `headed-qualified` and `headed-guest-qualified`.
+The signed component and derivation are in `native-capsule/site`. The
+component BLAKE3 is
+`300d7a2b58a8905d311aaf391978fa7878cc5e364eccd8078eae0507896f0a73`.
+The component used Rust 1.97.1 for the native WASI runner's import version.
+
+Both browser runs used the locked product build from
+`ports/graphshell/web` with
+`product,remote,image-decode,presentation-webgpu,presentation-webgl2,physics-engine`.
+The receipt harness loaded `tests/projection-contexts.html` and the
+scenarios `projection_contexts` and `projection_context_guest`.
+The shared bundle SHA-256 is
+`c43792327c260b3406f85ce99d8d1e4f8b30146acc78450fba081f99d434b48b`.
+
+Scenograph and Scenomise passed 364 tests with all features. Turnstone
+passed 281 library tests with six ignored under
+`--no-default-features --features web,physics-engine`. The configured
+repository checks passed. Turnstone's resolved root and web locks pin
+the checked Graphshell commit 4c52c05. The staged web bundle, headed
+profiles, and one-off fixture dependencies were removed after capture.
