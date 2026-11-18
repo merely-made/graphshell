@@ -437,3 +437,32 @@ and web locks used Graphshell's landed revision. The 74 accessibility tests
 and the Crystal consumer check passed with that supplier. Normal hooks and
 push landed Turnstone `46d79e84bbfaf8c4bc9178b893b1403d6d717b81`. The packet under
 `Code/testing/graphshell/uxtree-p6/landing-*` retains the merged results.
+
+## 2026-11-18 P7 accessibility lint
+
+Graphshell `914f21c1902d9a16ba2982faf6a4deaa9eda8399` passed 42 uxtree tests, 40 registry tests,
+30 Cambium publisher unit tests and 10 retained-session tests. Uxtree and
+the optional registry sink passed the wasm check. The family source check
+found zero strict or development cycles across 29 checkouts.
+
+The planted fixtures report each required structural and advisory finding.
+Stitching two subtrees from the same path reports their duplicate ID. The
+shared walk preserves Cambium's structural refusal mapping. A publisher
+test prepares a valid AccessKit tree with missing bounds and installs that
+tree in the consumer, where the lint still reports the advisory finding.
+
+`mere-registry/ux-lint` receives all five UX channels. The records carry
+counts, addresses and finding kinds. The package probe caught the initial
+dependency in the opposite direction. Moving the adapter kept registry out
+of uxtree's all-features dependency tree. The subsequent offline package
+probe reached the existing `nematic` dependency and stopped at offline
+resolution.
+
+Turnstone `6f3faa7cbd493beeee3640c125712c14cb7ca0fb` ran 75 accessibility tests against the exact
+pushed supplier. The real Taproot scenario handler passes a clean snapshot
+and fails on a planted bounds finding. The shell calls it on the primary
+window candidate and reports absent producer envelopes. Deliberately
+suppressing the bounds check, registry forwarding, or scenario failure
+breaks its corresponding test. The restored checks and ordinary hooks
+passed. The raw results and generated locks are under
+`Code/testing/graphshell/uxtree-p7/`.

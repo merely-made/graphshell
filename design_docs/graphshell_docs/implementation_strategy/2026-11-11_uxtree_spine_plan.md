@@ -2,7 +2,7 @@
 
 **Status:** 2026-11-18. P0 to P6 landed. P6 landed on Graphshell at `2a5a4f07` and on Turnstone
 at `46d79e84`. Turnstone qualified against that Graphshell main revision with the Crystal update.
-P7 is under way. P8 to P11 remain open.
+P7 is qualified and pushed on `uxtree/p7` in Graphshell and Turnstone. P8 to P11 remain open.
 The slice 4 cutover moved uxtree, Cambium and E1a to Graphshell's `host/`.
 P0 remains a gate for D1. If it fails, D1 returns to Mark.
 
@@ -259,6 +259,8 @@ is `mere-registry`'s existing `ux:` channels (`ux:structural_violation`, `ux:con
 A scenario verb runs the lint in Turnstone's `.scn` runner (about 50 lines, estimate). P7 uses `lint-a11y` for the primary window and a sink behind `mere-registry/ux-lint`. That placement
 keeps the packageable uxtree core independent of the internal registry. The shared structural findings preserve
 Cambium's existing refusal mapping. Label, bounds, route and envelope findings are advisory.
+The scenario reads the primary window candidate, including foreign, pooled document and contributed grafts.
+It reports missing envelopes where those producers have not supplied them.
 
 - Not here: frame-to-frame stability checks. D7 puts them after stability classes exist in code; they are cut as their
   own phase when P1 and P5 have landed.
@@ -737,3 +739,16 @@ Each is a question for a later round, with its evidence. None is answered here.
   retained-session tests. Turnstone `46d79e84` passed 74 accessibility tests
   and the Crystal consumer check against that exact supplier on main. Both
   landings passed the regular hooks. See `Code/testing/graphshell/uxtree-p6/landing-*`.
+
+- 2026-11-18: P7 shares the structural walk with Cambium's existing native
+  validator. The full inspector also reports label, bounds, action-route and
+  envelope findings. The package probe moved the optional sink behind
+  `mere-registry/ux-lint`, so the uxtree core resolves without any registry edge.
+
+- 2026-11-18: P7 passed 42 uxtree, 40 registry, 40 Cambium publication and
+  retained-session, and 75 Turnstone accessibility tests. The wasm check
+  passed for the inspector and the optional registry sink. Turnstone
+  `6f3faa7c` used the exact Graphshell Git supplier `914f21c1`.
+  The broken bounds, registry forwarding and scenario controls all failed
+  at their intended assertions. Both candidates passed regular hooks.
+  The evidence is under `Code/testing/graphshell/uxtree-p7/`. Land Graphshell before Turnstone.
