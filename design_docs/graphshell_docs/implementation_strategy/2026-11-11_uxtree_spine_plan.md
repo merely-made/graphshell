@@ -1,8 +1,8 @@
 # uxtree spine plan: a federated tree with one envelope
 
-**Status:** 2026-11-18. P0 to P4 landed. P4's Genet supplier is `b75face72c9` and its
-Graphshell code is `3b247317`. The retained-document action test passed with the supplier on
-Genet main. P5 is qualified and pushed on `uxtree/p5` in Graphshell and Turnstone. P6 to P11 remain open.
+**Status:** 2026-11-18. P0 to P5 landed. P5 landed in Graphshell at `5a8d2d1e` and in Turnstone at
+`6f45ffc4`. Turnstone passed the receiving tests against that Graphshell main revision.
+P6 is under way. P7 to P11 remain open.
 The slice 4 cutover moved uxtree, Cambium and E1a to Graphshell's `host/`.
 P0 remains a gate for D1. If it fails, D1 returns to Mark.
 
@@ -695,3 +695,9 @@ Each is a question for a later round, with its evidence. None is answered here.
   The root and web dependency locks still match the selected supplier after the
   hooks. Land Graphshell before Turnstone. The raw packet is under
   `Code/testing/graphshell/uxtree-p5/`.
+
+- 2026-11-18: P5 landed in supplier order. Graphshell advanced to `5a8d2d1e` after
+  38 uxtree tests passed again. Turnstone advanced to `6f45ffc4` after the 71
+  accessibility tests, the palette Keep/Drop test and all three dependency-ban
+  checks passed with Graphshell main. Both pushes ran the regular hooks.
+  The landing receipts are under `Code/testing/graphshell/uxtree-p5/landing-*`.

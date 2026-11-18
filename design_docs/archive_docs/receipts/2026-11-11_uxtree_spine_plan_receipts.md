@@ -394,3 +394,14 @@ Frozen Projection nodes, so the publisher filters the fills out. Frozen
 Projection selection still needs a binding. The raw results and generated
 locks are under `Code/testing/graphshell/uxtree-p5/`. The dependency order for
 landing is Graphshell, then Turnstone.
+
+### 2026-11-18 P5 landing
+
+Graphshell main received `5a8d2d1e142e0414bdd83bb4d47b7ba10a47d362`, with code
+matching the qualified supplier `a0595668`. All 38 uxtree tests passed again.
+
+The Turnstone root and web locks selected that revision from Graphshell
+main. The 71 accessibility tests and palette Keep/Drop test passed. The root,
+web and relay dependency bans passed, and the regular push advanced Turnstone
+main to `6f45ffc493e8edcefeb9278dc30b172efa1e02eb`. The landed revisions, locks
+and gate outputs are recorded in `Code/testing/graphshell/uxtree-p5/landing-*`.
