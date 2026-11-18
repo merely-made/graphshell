@@ -460,3 +460,57 @@ mod mark_tests;
 
 #[path = "frame_tests.rs"]
 mod frames;
+
+#[test]
+fn partition_focus_changes_the_view_without_changing_the_recipe_or_score() {
+    let data = dataset();
+    let compiler = ProjectionCompiler::new(sizes(40.0, 20.0));
+    let mut recipe = definition("partition", "lane");
+    let base = compiler.compile(&recipe, &data).unwrap();
+    let disabled = compiler
+        .compile_with_partition_focus(&recipe, &data, Some(&base), Some("todo"))
+        .unwrap();
+    assert!(disabled.placement_reused);
+    assert_eq!(disabled.partition_focus(), None);
+    recipe.interaction.zoom = true;
+    recipe.frame = Some(sceno::Frame::Bounded {
+        bounds: sceno::Rect::new(sceno::Vec2::new(40.0, 20.0), Size2::new(600.0, 400.0)),
+    });
+    for form in ["tiles", "rings"] {
+        recipe
+            .arrangement
+            .options
+            .insert("form".into(), form.into());
+        recipe
+            .arrangement
+            .options
+            .insert("whole".into(), "4".into());
+        let base = compiler.compile(&recipe, &data).unwrap();
+        let focused = compiler
+            .compile_with_partition_focus(&recipe, &data, Some(&base), Some("todo"))
+            .unwrap();
+        assert_eq!(focused.partition_focus(), Some("todo"));
+        assert!(!focused.placement_reused);
+        assert_eq!(focused.score, base.score);
+        assert_eq!(focused.scene.frame, base.scene.frame);
+        assert_eq!(focused.scene.bounds, base.scene.bounds);
+        assert_eq!(focused.instance_by_occurrence, base.instance_by_occurrence);
+        assert_ne!(focused.scene.items, base.scene.items);
+
+        let same = compiler
+            .compile_with_partition_focus(&recipe, &data, Some(&focused), Some("todo"))
+            .unwrap();
+        assert!(same.placement_reused);
+
+        let restored = compiler
+            .compile_with_partition_focus(&recipe, &data, Some(&focused), None)
+            .unwrap();
+        assert!(!restored.placement_reused);
+        assert_eq!(restored.scene, base.scene);
+        let stale = compiler
+            .compile_with_partition_focus(&recipe, &data, Some(&focused), Some("missing"))
+            .unwrap();
+        assert_eq!(stale.partition_focus(), None);
+        assert_eq!(stale.scene, base.scene);
+    }
+}

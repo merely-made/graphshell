@@ -218,7 +218,7 @@ impl ProjectionCompiler {
         definition: &ProjectionDefinition,
         dataset: &ProjectionDataset,
     ) -> Result<CompiledProjection, Vec<CompileIssue>> {
-        compile_inner(self, definition, dataset, None, None)
+        compile_inner(self, definition, dataset, None, None, None)
     }
 
     /// Revalidate a reading while retaining solved geometry when all solver
@@ -231,7 +231,20 @@ impl ProjectionCompiler {
         definition: &ProjectionDefinition,
         dataset: &ProjectionDataset,
     ) -> Result<CompiledProjection, Vec<CompileIssue>> {
-        compile_inner(self, definition, dataset, None, Some(previous))
+        compile_inner(self, definition, dataset, None, Some(previous), None)
+    }
+
+    /// Compile a view of a bounded Partition, including its optional focus group.
+    /// A missing group, disabled zoom, or a different arrangement shows the whole.
+    /// Focus affects placement alone and does not modify the definition or score.
+    pub fn compile_with_partition_focus(
+        &self,
+        definition: &ProjectionDefinition,
+        dataset: &ProjectionDataset,
+        previous: Option<&CompiledProjection>,
+        group: Option<&str>,
+    ) -> Result<CompiledProjection, Vec<CompileIssue>> {
+        compile_inner(self, definition, dataset, None, previous, group)
     }
 
     /// Reopen a saved definition and restore selection only when that exact
@@ -246,6 +259,7 @@ impl ProjectionCompiler {
             &snapshot.definition,
             dataset,
             snapshot.selected_occurrence.as_deref(),
+            None,
             None,
         )
     }
@@ -307,8 +321,15 @@ pub struct CompiledProjection {
     pub occurrence_by_instance: HashMap<InstanceId, String>,
     pub instance_by_occurrence: BTreeMap<String, InstanceId>,
     pub selected: Option<InstanceId>,
+    partition_focus: Option<String>,
     /// True when a validated refresh reused placement from the preceding result.
     pub placement_reused: bool,
+}
+
+impl CompiledProjection {
+    pub fn partition_focus(&self) -> Option<&str> {
+        self.partition_focus.as_deref()
+    }
 }
 
 /// The complete save/reopen payload for this proof. Pan and zoom do not belong

@@ -44,7 +44,7 @@ pub fn solve_with(
     plan_custom: impl FnOnce(&[&ScoreItem]) -> Option<Vec<Vec2>>,
 ) -> Scene {
     match crate::frames::prepare(score) {
-        Ok(prepared) => solve_configured(&prepared, plan_custom),
+        Ok(prepared) => solve_configured(&prepared, None, plan_custom),
         Err(_) => {
             let mut scene = Scene::new();
             scene.generation = score.generation;
@@ -55,6 +55,7 @@ pub fn solve_with(
 
 pub(crate) fn solve_configured(
     score: &Score,
+    partition_focus: Option<&str>,
     plan_custom: impl FnOnce(&[&ScoreItem]) -> Option<Vec<Vec2>>,
 ) -> Scene {
     let mut scene = Scene::new();
@@ -81,7 +82,7 @@ pub(crate) fn solve_configured(
     // families keep their original closed form below.
     let ordered: Vec<&ScoreItem> = order.iter().map(|(_, item)| *item).collect();
     // Bounded families (Partition, Sets) also size items and draw regions.
-    let shaped = families::shape(&score.arrangement, &ordered);
+    let shaped = families::shape(&score.arrangement, &ordered, partition_focus);
     let arranged = match &shaped {
         Some(shape) => Some(shape.positions.clone()),
         None => families::arrange(&score.arrangement, &ordered),

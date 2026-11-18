@@ -277,11 +277,23 @@ pub fn solve_via(
     score: &sceno::Score,
     registry: &SolverRegistry,
 ) -> Result<sceno::Scene, SolveError> {
+    solve_via_with_focus(score, registry, None)
+}
+
+pub(crate) fn solve_via_with_focus(
+    score: &sceno::Score,
+    registry: &SolverRegistry,
+    partition_focus: Option<&str>,
+) -> Result<sceno::Scene, SolveError> {
     crate::frames::validate_score(score, registry)?;
     let prepared = crate::frames::prepare(score)?;
     let score = &*prepared;
     let sceno::Arrangement::Custom { id, config } = &score.arrangement else {
-        return Ok(crate::solve::solve_configured(score, |_| None));
+        return Ok(crate::solve::solve_configured(
+            score,
+            partition_focus,
+            |_| None,
+        ));
     };
 
     let solver = registry
@@ -306,7 +318,7 @@ pub fn solve_via(
     }
 
     let mut failure = None;
-    let scene = crate::solve::solve_configured(score, |items| {
+    let scene = crate::solve::solve_configured(score, None, |items| {
         match match &score.frame {
             Some(frame) => solver.place_in_frame(config, items, frame),
             None => solver.place(config, items),

@@ -48,7 +48,7 @@ pub(crate) fn arrange(arrangement: &Arrangement, items: &[&ScoreItem]) -> Option
         Arrangement::Embedded(config) => embedded::place(config, items),
         Arrangement::Radial(config) => radial::place(config, items),
         Arrangement::Partition(_) | Arrangement::Setscape(_) | Arrangement::Mosaic(_) => {
-            shape(arrangement, items)?.positions
+            shape(arrangement, items, None)?.positions
         },
         Arrangement::Custom { .. } => return None,
     })
@@ -82,9 +82,13 @@ pub(crate) struct ShapedRegion {
 
 /// The shape of a family that sizes items and draws regions (Partition,
 /// Sets, Mosaic); `None` for the rest.
-pub(crate) fn shape(arrangement: &Arrangement, items: &[&ScoreItem]) -> Option<Shape> {
+pub(crate) fn shape(
+    arrangement: &Arrangement,
+    items: &[&ScoreItem],
+    partition_focus: Option<&str>,
+) -> Option<Shape> {
     match arrangement {
-        Arrangement::Partition(config) => Some(partition::shape(config, items)),
+        Arrangement::Partition(config) => Some(partition::shape(config, items, partition_focus)),
         Arrangement::Setscape(config) => Some(setscape::shape(config, items)),
         Arrangement::Mosaic(config) => Some(mosaic::shape(config, items)),
         _ => None,

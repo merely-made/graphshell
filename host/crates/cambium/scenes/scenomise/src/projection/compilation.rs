@@ -12,6 +12,7 @@ pub(super) fn compile_inner(
     dataset: &ProjectionDataset,
     selected_occurrence: Option<&str>,
     previous: Option<&CompiledProjection>,
+    partition_focus: Option<&str>,
 ) -> Result<CompiledProjection, Vec<CompileIssue>> {
     let mut issues = validation_issues(compiler, definition, dataset);
     if let Some(selected) = selected_occurrence
@@ -120,6 +121,16 @@ pub(super) fn compile_inner(
         );
         score.items.push(item);
     }
+    let partition_focus = partition_focus.filter(|name| {
+        let in_group = |item: &ScoreItem| match &item.axis {
+            Some(sceno::AxisValue::Categorical(group)) => group.as_str() == *name,
+            _ => false,
+        };
+        definition.interaction.zoom
+            && matches!(score.arrangement, ScenoArrangement::Partition(_))
+            && score.items.iter().any(in_group)
+            && score.items.iter().any(|item| !in_group(item))
+    });
     // Subdivision solvers own their footprint. A detail change can update
     // the placed item without resetting settled or authored geometry.
     let subdivision = matches!(
@@ -133,6 +144,7 @@ pub(super) fn compile_inner(
         old.score.version == score.version
             && old.score.arrangement == score.arrangement
             && old.score.frame == score.frame
+            && old.partition_focus() == partition_focus
             && (old.score.items == score.items
                 || subdivision
                     && old.score.items.len() == score.items.len()
@@ -176,7 +188,7 @@ pub(super) fn compile_inner(
         scene.generation = score.generation;
         scene
     } else {
-        crate::solve_via(&score, &compiler.registry)
+        crate::registry::solve_via_with_focus(&score, &compiler.registry, partition_focus)
             .map_err(|error| vec![CompileIssue::new(
                 if matches!(&error, crate::SolveError::Unplaceable { reason, .. } if reason.starts_with("frame:")) { "frame" } else { "arrangement.kind" },
                 error.to_string())])?
@@ -213,6 +225,7 @@ pub(super) fn compile_inner(
         occurrence_by_instance,
         instance_by_occurrence,
         selected,
+        partition_focus: partition_focus.map(str::to_owned),
         placement_reused,
     })
 }

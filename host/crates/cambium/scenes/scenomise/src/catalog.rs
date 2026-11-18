@@ -464,7 +464,7 @@ mod option_tests {
         let items = crate::families::tests::items(&owned);
         for family in FAMILIES {
             let arrangement = family.arrangement(&BTreeMap::new(), &measure()).unwrap();
-            let sizes = crate::families::shape(&arrangement, &items)
+            let sizes = crate::families::shape(&arrangement, &items, None)
                 .is_some_and(|shape| shape.footprints.iter().any(Option::is_some));
             let expected = if sizes {
                 Extent::Assigned
