@@ -41,6 +41,7 @@ fn published_tree_has_finalized_envelopes_for_every_node_and_real_command() {
         assert_eq!(envelope.address.local, *id);
         assert_eq!(envelope.address.instance, f.owner());
         assert_eq!(envelope.stability, Stability::Life);
+        assert_eq!(node.author_id(), envelope.authored_key.as_deref());
         assert!(
             source_by_identity
                 .iter()
@@ -63,7 +64,8 @@ fn published_tree_has_finalized_envelopes_for_every_node_and_real_command() {
             );
         }
         if node.label() == Some("Structural") {
-            assert!(envelope.domain_ref.is_some());
+            let source = envelope.domain_ref.as_ref().unwrap();
+            assert_eq!(envelope.authored_key.as_deref(), Some(source.id.as_str()));
             assert!(!host.requests.contains_key(id));
             structural_refs += 1;
         }

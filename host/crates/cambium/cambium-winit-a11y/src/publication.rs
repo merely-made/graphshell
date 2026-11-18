@@ -106,6 +106,9 @@ impl NativeIds {
                 .ok_or(Refusal::DanglingReference(source))
         };
         for (id, node) in &mut tree.nodes {
+            if let Some(key) = bindings.envelopes[id].authored_key.as_deref() {
+                node.set_author_id(key);
+            }
             *id = map(*id)?;
             crate::remap::try_map_node_ids(node, &map)?;
         }

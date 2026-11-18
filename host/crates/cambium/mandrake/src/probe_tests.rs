@@ -398,9 +398,10 @@ fn selector_tests_probe_routes_generated_actions_and_observes_declines() {
             .unwrap_err()
             .contains("Unsupported")
     );
-    // Scoped virtual clicks must not be recorded as pointer misses. Both
-    // accepted and declined last actions pass through the actual scenario lane.
-    for accepts in [true, false] {
+    // Both forms await and reflect the producer's reply in the scenario result.
+    let click = "click surface:local role:button Pin selected";
+    let act = "act id:pin";
+    for (source, accepts) in [(click, true), (click, false), (act, true), (act, false)] {
         offered.set(true);
         accepted.set(accepts);
         host.s.close_requested = false;
@@ -409,9 +410,7 @@ fn selector_tests_probe_routes_generated_actions_and_observes_declines() {
         let exit = Rc::new(Cell::new(0));
         let completion = Rc::new(RefCell::new(Lane::new(
             ProductFixture,
-            Some(
-                taproot::Scenario::parse("click surface:local role:button Pin selected\n").unwrap(),
-            ),
+            Some(taproot::Scenario::parse(source).unwrap()),
             None,
             None,
             exit.clone(),

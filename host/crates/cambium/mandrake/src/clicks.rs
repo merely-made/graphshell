@@ -15,12 +15,36 @@ use taproot::{Selector, SemanticTarget};
 #[derive(Default)]
 pub struct Clicks {
     pending: Option<(NodeId, Selector)>,
-    produced: Option<(Selector, cambium_rootstock::A11yReceipt)>,
+    produced: Option<(String, cambium_rootstock::A11yReceipt)>,
 }
 
 impl Clicks {
     pub(crate) fn is_pending(&self) -> bool {
         self.pending.is_some() || self.produced.is_some()
+    }
+
+    pub(crate) fn act_id<State, Logic, V>(
+        &mut self,
+        ctx: &mut AppCtx<'_, State, Logic, V>,
+        id: &str,
+    ) -> bool
+    where
+        State: 'static,
+        Logic: FnMut(&State) -> V,
+        V: RootView<State>,
+    {
+        if self.is_pending() {
+            return false;
+        }
+        let request = ctx
+            .semantic_projection()
+            .and_then(|projection| ctx.semantic_envelopes(&projection).ok())
+            .and_then(|semantics| semantics.request_by_action_id(id));
+        let Some(request) = request else {
+            return false;
+        };
+        self.produced = Some((format!("act id:{id}"), ctx.queue_a11y(request)));
+        true
     }
 
     /// Match roles/names against the host's semantic projection; explicit
@@ -45,12 +69,20 @@ impl Clicks {
         let Some(projection) = ctx.semantic_projection() else {
             return false;
         };
-        let lookup = taproot::AccessKitLookup::new(&projection.tree, |id| projection.dom_node(id));
+        let envelopes = matches!(selector.matcher, taproot::Match::Key(_))
+            .then(|| ctx.semantic_envelopes(&projection).ok())
+            .flatten();
+        let key = |id| envelopes.as_ref()?.authored_key(id);
+        let lookup = taproot::AccessKitLookup::new(&projection.tree, |id| projection.dom_node(id))
+            .with_authored_keys(&key);
         let nodes = taproot::matching_prefer_exact_with_lookup(
             &ctx.runner.dom().borrow(),
             selector,
             &lookup,
         );
+        if matches!(selector.matcher, taproot::Match::Key(_)) && nodes.len() != 1 {
+            return false;
+        }
         // A virtual action button has no physical pointer target. Queue its
         // explicit route and require the host's acknowledgement next frame.
         if let Some(SemanticTarget::Contributed(id)) = nodes.first() {
@@ -58,7 +90,7 @@ impl Clicks {
                 return false;
             };
             self.produced = Some((
-                selector.clone(),
+                format!("click {selector:?}"),
                 ctx.queue_a11y(cambium_rootstock::A11yRequest::produced(
                     cambium_rootstock::A11yAction::Click,
                     action.clone(),
@@ -116,14 +148,14 @@ impl Clicks {
         Logic: FnMut(&State) -> V,
         V: RootView<State>,
     {
-        if let Some((selector, receipt)) = self.produced.take() {
+        if let Some((command, receipt)) = self.produced.take() {
             return match receipt.result() {
                 Some(cambium_rootstock::A11yDispatch::Dispatched) => Ok(true),
-                Some(result) => Err(format!("click {selector:?}: semantic routing {result:?}")),
+                Some(result) => Err(format!("{command}: semantic routing {result:?}")),
                 None => {
                     // One host drain is required before the next presented frame.
                     Err(format!(
-                        "click {selector:?}: host did not acknowledge semantic routing"
+                        "{command}: host did not acknowledge semantic routing"
                     ))
                 },
             };
@@ -131,16 +163,26 @@ impl Clicks {
         let Some((node, selector)) = self.pending.take() else {
             return Ok(false);
         };
-        if matches!(selector.matcher, taproot::Match::Role(_)) {
+        if !matches!(selector.matcher, taproot::Match::Class(_)) {
             let still_matches = ctx.semantic_projection().is_some_and(|projection| {
+                let envelopes = matches!(selector.matcher, taproot::Match::Key(_))
+                    .then(|| ctx.semantic_envelopes(&projection).ok())
+                    .flatten();
+                let key = |id| envelopes.as_ref()?.authored_key(id);
                 let lookup =
-                    taproot::AccessKitLookup::new(&projection.tree, |id| projection.dom_node(id));
-                taproot::matching_prefer_exact_with_lookup(
+                    taproot::AccessKitLookup::new(&projection.tree, |id| projection.dom_node(id))
+                        .with_authored_keys(&key);
+                let matches = taproot::matching_prefer_exact_with_lookup(
                     &ctx.runner.dom().borrow(),
                     &selector,
                     &lookup,
-                )
-                .contains(&SemanticTarget::Dom(node))
+                );
+                let target = SemanticTarget::Dom(node);
+                if matches!(selector.matcher, taproot::Match::Key(_)) {
+                    matches.as_slice() == [target]
+                } else {
+                    matches.contains(&target)
+                }
             });
             if !still_matches {
                 return Err(format!(

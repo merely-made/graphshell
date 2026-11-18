@@ -48,6 +48,7 @@ pub fn scene_accessibility(
                 .and_then(|item| scene.tables.sources.get(item.source.0 as usize))
                 .and_then(Option::as_ref)
                 .cloned();
+            envelope.authored_key = envelope.domain_ref.as_ref().map(|source| source.id.clone());
             for action in item.actions.iter().chain(&item.local_actions) {
                 if !envelope.action_ids.contains(&action.intent.0) {
                     envelope.action_ids.push(action.intent.0.clone());

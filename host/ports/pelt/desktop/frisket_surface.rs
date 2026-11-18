@@ -917,6 +917,12 @@ impl FrisketSurface {
             let Some(node) = nodes.get(id).copied() else {
                 continue;
             };
+            if let Some(key) = ["data-key", "data-tabkey", "id"]
+                .into_iter()
+                .find_map(|name| attr(dom, node, name).filter(|key| !key.is_empty()))
+            {
+                access.set_author_id(key);
+            }
             // The canonical projector conservatively withholds Click beneath
             // an active scrollport. Livery's current clip-aware hit test can
             // admit visible controls without manufacturing stale geometry.

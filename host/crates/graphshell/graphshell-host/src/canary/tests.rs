@@ -75,6 +75,7 @@ fn host_envelopes_keep_the_mounted_item_source_epoch_and_intents() {
                 envelope.domain_ref,
                 Some(SourceRef::new("fixture.graphshell", source))
             );
+            assert_eq!(envelope.authored_key.as_deref(), Some(source));
             let expected: Vec<_> = item
                 .actions
                 .iter()

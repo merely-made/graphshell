@@ -44,12 +44,20 @@ impl<P: Product> Automatable for Probe<'_, '_, P> {
         let Some(projection) = self.ctx.semantic_projection() else {
             return SelectorTarget::Miss;
         };
-        let lookup = taproot::AccessKitLookup::new(&projection.tree, |id| projection.dom_node(id));
+        let envelopes = matches!(selector.matcher, taproot::Match::Key(_))
+            .then(|| self.ctx.semantic_envelopes(&projection).ok())
+            .flatten();
+        let key = |id| envelopes.as_ref()?.authored_key(id);
+        let lookup = taproot::AccessKitLookup::new(&projection.tree, |id| projection.dom_node(id))
+            .with_authored_keys(&key);
         let nodes = taproot::matching_prefer_exact_with_lookup(
             &self.ctx.runner.dom().borrow(),
             selector,
             &lookup,
         );
+        if matches!(selector.matcher, taproot::Match::Key(_)) && nodes.len() != 1 {
+            return SelectorTarget::Miss;
+        }
         for target in nodes {
             let taproot::SemanticTarget::Dom(owner) = target else {
                 // Virtual action buttons have an explicit command route, not
@@ -108,6 +116,10 @@ impl<P: Product> Automatable for Probe<'_, '_, P> {
 
     fn act(&mut self, label: &str) -> bool {
         self.lane.product.act(self.ctx, label)
+    }
+
+    fn act_id(&mut self, id: &str) -> bool {
+        self.lane.clicks.act_id(self.ctx, id)
     }
 
     fn press(&mut self, x: f32, y: f32) {

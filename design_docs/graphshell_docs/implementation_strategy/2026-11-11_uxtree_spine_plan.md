@@ -2,7 +2,7 @@
 
 **Status:** 2026-11-18. P0 to P8 landed. P7 landed on Graphshell at `9f3537ac` and on
 Turnstone at `c47ba17a`. P8 landed on Mere at `49d7d473a` and on Graphshell at `4b2ef6c3`.
-P9 to P11 remain open.
+P9 is under way. P10 and P11 remain open.
 The slice 4 cutover moved uxtree, Cambium and E1a to Graphshell's `host/`.
 P0 remains a gate for D1. If it fails, D1 returns to Mark.
 
@@ -294,11 +294,42 @@ The latter remains a surface kind.
 
 ### P9. Automation: authored keys, taproot reads the envelope, `act` by action id
 
-Producers that can carry an authored key do (D5). The carrier is open question 2. Taproot's selector reads the key
-through the optional fields of P4, with role and name as the fallback it uses today. The runner's `act` gains an
-action-id form that invokes the id the envelope carries, and keeps the label form where no id exists. Pixel clicks stay
-only where nothing semantic exists. Named in P9: the selector token, the `act` argument form, and whether mandrake's
-restated grammar (`wheel::parse_selector`, diagnostics plan M9) is replaced.
+P9 started on 2026-11-18 at Graphshell `4af02495` and Turnstone `7ff78a4f`. The native
+scenario baseline in 172 files still has 576 `act` lines, 54 pixel clicks, 37 tree-text
+assertions in 18 files, and 176 selector clicks. Of those clicks, 109 use a class, 67 a role,
+and 71 a data-attribute filter. The raw inventory is under
+Code/testing/graphshell/uxtree-p9/. Taproot already exposes optional key metadata,
+and Turnstone already maps some Actions to shared command ids.
+
+Genet landed the parser and lookup change at `41e70983a4c`. All 49
+Taproot tests passed. Dropping the supplied key broke the new lookup test.
+In the Turnstone candidate, 84 act lines now use shared IDs and 32
+assertions read individual nodes. The five remaining text assertions check
+reading order. The audit lists each of the 29 remaining pixel clicks with
+its reason. Turnstone’s candidate also includes main through `0875c24e`.
+The receiving dependency gates pass after refreshing `codespan-reporting`
+to select `unicode-width` 0.2.3. `miette` still uses 0.1.14 in the
+optional inference dependency graph. Graphshell passed 352 native tests and
+the Pelt receiving and Mandrake wasm checks. Removing the action witness let a retired request
+reach the replacement producer. Restoring it refused the request.
+
+Taproot parses `key:<key>` as an exact authored key. The same parser serves
+`click` and Mandrake’s `wheel on`. Role and name remain available for nodes
+without keys. Producers put supplied keys in the envelope. DOM producers can
+forward `data-key`, `data-tabkey`, or `id`, in that order. Mounted scene
+items use the source key. A document source with only a neutral projection
+can still be selected by role and name.
+
+`act id:<id>` selects a command advertised by its owner. Cambium keeps the
+envelope’s captured provenance through delivery and awaits the owner’s reply.
+Turnstone uses the existing shared command map and resolves from its current
+palette catalog. Commands without a shared ID keep their label form. A captured
+producer action for a reused node must still be refused at delivery.
+
+Turnstone reads `assert node` against nodes in the composed forest. Its
+`click surface:content` uses published node bounds and the ordinary pointer
+delivery path. Point-based interaction probes and suppliers without a semantic
+tree are tracked in the remaining-click inventory.
 
 The baseline, Turnstone's scenarios at the audit base: `act` by palette label 576 lines; `click-at` by pixel 54;
 `assert a11y` by text line 37 (in 18 files). Class, role and `data-` filters over 176 `click` lines are 109, 67 and 71
@@ -490,13 +521,13 @@ Each is a question for a later round, with its evidence. None is answered here.
 
 1. **Can one envelope serve a minted id and a path-hashed id without a consumer knowing which?** Read, not run
    (second brief §7). P0 is the test. If it fails, D1 returns to Mark.
-2. **What carries an authored key?** `data-key` and `data-tabkey` are in use in Turnstone's DOM (first brief F8). The
-   brief marks Turnstone chrome as "no": it is built without a DOM (second brief §3.2). The alternatives named were an
-   AccessKit node's `author_id` or a defined property in the tree (first brief fork 4). Not tested. Decides P9.
-3. **Do `hest` action ids name Turnstone's `Action` variants?** `hest` has 44 typed ids (1,359 lines). Turnstone's
-   `Action` has about 190 variants by a line count and does not use `hest`. No mapping exists anywhere to measure. D5
-   says `act` invokes a `hest` id where the envelope carries one, so the mapping's owner and scope decide how many
-   scenario lines can move.
+2. **What carries an authored key?** P9 uses `Envelope::authored_key`. The native publisher
+   copies it to the AccessKit `author_id` carried by the published node. A host can pass
+   a borrowed key to Taproot alongside the tree it observed.
+3. **Do shared action IDs name Turnstone Actions?** P5 added the shared mapping. P9 uses
+   it through the current command catalog, with the label form for other Actions. A Cambium
+   producer action uses the unique ID advertised by its current envelope and the captured
+   route that accompanied the offer.
 4. **Does D53's "one ID space" stay?** Graft keeps each tree's ids apart under a `TreeId`, by design (`graft.rs:7-25`);
    D3's end state is the pair; `taproot` builds no tree. The first brief's fork 2 proposed "one address space" as the
    restatement. Whether D53's text is restated, and by whom, is not decided.

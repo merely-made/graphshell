@@ -33,6 +33,32 @@ pub enum PublicationIssue {
     RouteMismatch(A11yNodeId),
     ContributorEnded(A11yNodeId),
 }
+impl SemanticPublication {
+    /// An authored key from this publication, addressed by the semantic tree's local id.
+    pub fn authored_key(&self, id: u64) -> Option<&str> {
+        self.envelopes.get(&A11yNodeId(id))?.authored_key.as_deref()
+    }
+
+    /// Capture a unique advertised action with its original owner witness.
+    /// Duplicate IDs require a more specific observation; callers cannot pick
+    /// a producer by map iteration or grant a retired observation a new life.
+    pub fn request_by_action_id(&self, id: &str) -> Option<crate::A11yRequest> {
+        let mut matches = self.envelopes.iter().filter(|(_, envelope)| {
+            envelope
+                .action_ids
+                .iter()
+                .any(|advertised| advertised == id)
+        });
+        let (node, _) = matches.next()?;
+        if matches.next().is_some() {
+            return None;
+        }
+        let mut request = self.requests.get(&node.0)?.clone();
+        request.action = crate::A11yAction::Click;
+        Some(request)
+    }
+}
+
 impl SemanticProjection {
     /// Freeze all node identities and action routes from one authored read.
     /// Unknown/duplicate nodes or inconsistent route metadata refuse publication.
@@ -73,10 +99,14 @@ impl SemanticProjection {
             }
             .copied()
             .ok_or(PublicationIssue::UnknownNode(*id))?;
-            let authored_key = if let NodeTarget::Node(node) = &target {
-                dom.attribute(*node, &Namespace::default(), &LocalName::from("data-key"))
-                    .or_else(|| dom.attribute(*node, &Namespace::default(), &LocalName::from("id")))
-                    .map(str::to_owned)
+            let dom_key = if let NodeTarget::Node(node) = &target {
+                ["data-key", "data-tabkey", "id"]
+                    .into_iter()
+                    .find_map(|name| {
+                        dom.attribute(*node, &Namespace::default(), &LocalName::from(name))
+                            .filter(|key| !key.is_empty())
+                            .map(str::to_owned)
+                    })
             } else {
                 None
             };
@@ -94,8 +124,11 @@ impl SemanticProjection {
                 .and_then(|metadata| metadata.domain_ref.clone());
             if let Some(action) = self.produced_targets.get(id) {
                 envelope.action_ids.push(action.id.clone());
+            } else {
+                envelope.authored_key = dom_key.or_else(|| {
+                    envelope.domain_ref.as_ref().map(|source| source.id.clone())
+                });
             }
-            envelope.authored_key = authored_key;
             if envelopes.insert(*id, envelope).is_some() {
                 return Err(PublicationIssue::DuplicateNode(*id));
             }

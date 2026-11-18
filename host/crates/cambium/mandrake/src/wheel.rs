@@ -19,12 +19,10 @@
 //! `click` and turns the wheel at the centre of what it matches. The modifiers
 //! are held for the notch only.
 //!
-//! Taproot parses `click`'s selector but does not export that parser, so
-//! [`parse_selector`] restates its grammar; taproot's own scenario tests hold
-//! the original, and this module's tests hold the restatement.
+//! Taproot supplies the same parser for wheel and click selectors.
 
 use cambium_rootstock::{HostPointer, Modifiers, WheelUnit};
-use taproot::Selector;
+use taproot::{Selector, parse_selector};
 
 /// The largest delta a scenario may state, in its own unit: a bound that
 /// refuses a typo like `1e30` rather than delivering it.
@@ -142,51 +140,6 @@ fn text_after<'a>(line: &'a str, word: &str) -> Result<&'a str, String> {
     Err(format!("wheel '{word}' wants a selector"))
 }
 
-/// A `click` selector: `.class` or `role:name`, optionally `surface:NAME` first,
-/// then an optional `@attr=value` or free text. The grammar of taproot's
-/// private `parse_selector`.
-pub(crate) fn parse_selector(rest: &str) -> Result<Selector, String> {
-    let (head, tail) = split_first(rest.trim());
-    let (scope, head, tail) = if let Some(surface) = head.strip_prefix("surface:") {
-        if surface.is_empty() {
-            return Err("wheel surface wants a nonempty name".into());
-        }
-        let (head, tail) = split_first(tail);
-        (Some(surface), head, tail)
-    } else {
-        (None, head, tail)
-    };
-    let mut selector = if let Some(class) = head.strip_prefix('.') {
-        Selector::class(class)
-    } else if let Some(role) = head.strip_prefix("role:") {
-        Selector::role(role)
-    } else {
-        return Err(format!(
-            "wheel on wants '.class' or 'role:name', got '{head}'"
-        ));
-    };
-    if let Some(scope) = scope {
-        selector = selector.on_surface(scope);
-    }
-    let tail = tail.trim();
-    if let Some(attr) = tail.strip_prefix('@') {
-        let (name, value) = attr
-            .split_once('=')
-            .ok_or_else(|| "wheel @attr wants 'name=value'".to_string())?;
-        selector = selector.with_attr(name, value);
-    } else if !tail.is_empty() {
-        selector = selector.containing(tail);
-    }
-    Ok(selector)
-}
-
-fn split_first(line: &str) -> (&str, &str) {
-    match line.trim().split_once(char::is_whitespace) {
-        Some((a, b)) => (a, b.trim()),
-        None => (line.trim(), ""),
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -242,6 +195,11 @@ mod tests {
             by_text.at,
             WheelAt::Selector(Selector::role("button").containing("Zoom in"))
         );
+        let by_key = parse("wheel 0 2 on surface:app key:canvas/main").unwrap();
+        assert_eq!(
+            by_key.at,
+            WheelAt::Selector(Selector::key("canvas/main").on_surface("app"))
+        );
         let by_attr = parse("wheel 0 2 on surface:app .canvas @data-key=a b").unwrap();
         assert_eq!(
             by_attr.at,
@@ -274,7 +232,7 @@ mod tests {
             ("wheel 1 1 at 5 6 7", "two numbers"),
             ("wheel 1 1 sideways at 0 0", "unknown wheel word"),
             ("wheel 1 1 on", "wants a selector"),
-            ("wheel 1 1 on button", "'.class' or 'role:name'"),
+            ("wheel 1 1 on button", "selector wants"),
             ("wheel 1e30 0 at 0 0", "limit"),
             ("wheelx 1 1 at 0 0", "wheel wants"),
         ] {

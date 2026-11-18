@@ -169,6 +169,21 @@ where
         ))
     }
 
+    /// Bind the envelopes and action requests from this semantic read to
+    /// the same current DOM, mount and producer lives.
+    pub fn semantic_envelopes(
+        &self,
+        projection: &crate::SemanticProjection,
+    ) -> Result<crate::semantics::SemanticPublication, crate::semantics::PublicationIssue> {
+        let dom = self.runner.dom();
+        projection.publication_envelopes(
+            &crate::A11yOwner::new(self.a11y_owner),
+            &crate::WindowDom::new(&dom.borrow(), self.runner.mount()),
+            self.leaves,
+            self.producers,
+        )
+    }
+
     /// Ask the host to scroll `node` into view.
     ///
     /// Resolved on the host's next layout against the node's painted rect

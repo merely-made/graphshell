@@ -498,3 +498,23 @@ existing dependency gate. Refreshing that holder restored its compatible
 0.13.0 selection, kept the older holder on 0.12.1, and passed the same
 gate with the exact Mere main revision. Both landings ran their normal hooks.
 See `Code/testing/graphshell/uxtree-p8/` for the raw checks and generated locks.
+
+
+## 2026-11-18 P9 automation
+
+Genet `41e70983a4c76526c17b32afce0cf8fc6d7d50b9` adds
+`key:<key>` and `act id:<id>` to Taproot. Its 49 tests passed.
+Withholding the owner’s key metadata made the exact-key test fail.
+
+Graphshell passes the captured action witness from the envelope to the same
+owner that handles native accessibility. The scenario lane observes the
+delivery result. Native tests passed across Cambium Rootstock, Cambium
+accessibility, Graphshell host, and Mandrake (352 total). The replacement
+producer reused the address. The test showed it received the retired action if
+the witness was stripped. With the witness restored, the host refused it.
+Pelt’s receiving check and Mandrake’s wasm check also passed.
+
+The Genet refresh let Cargo resolve `codespan-reporting` to the older
+`unicode-width` used by optional inference. A focused update of the holder
+selected 0.2.3 and passed both existing dependency checks. The raw logs and
+scenario inventories are in Code/testing/graphshell/uxtree-p9/.
