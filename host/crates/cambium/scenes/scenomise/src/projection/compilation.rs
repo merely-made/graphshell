@@ -135,7 +135,7 @@ pub(super) fn compile_inner(
     // the placed item without resetting settled or authored geometry.
     let subdivision = matches!(
         score.arrangement,
-        ScenoArrangement::Mosaic(_) | ScenoArrangement::Partition(_)
+        ScenoArrangement::Mosaic(_) | ScenoArrangement::Partition(_) | ScenoArrangement::Crystal(_)
     );
     // Compare exact solver inputs, not revision hashes: source revisions can
     // change without affecting placement, and unchanged revisions cannot excuse

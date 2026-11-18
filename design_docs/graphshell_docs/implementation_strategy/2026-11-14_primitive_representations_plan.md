@@ -124,6 +124,10 @@ section 3.7).
   Turnstone's `src/arrange_pane/tests.rs` (five uses) follows through its integration lane. Packing goes one step (D8) and overflow
   stays loose (D9), so the done-condition adds: pinning a tile moves only its own linked
   tiles, and linked tiles that do not fit on its border stay where they are.
+- Complete. Crystal is an unbounded arrangement with assigned tile extents.
+  The projection preview supports pinning, dropping and sliding. Each
+  disclosed link has a border or unmet report, and selection reveals its
+  fallback stroke. [Crystal receipt](../../archive_docs/receipts/2026-11-14_primitive_representations_plan_receipts.md#2026-11-18-n-crystal).
 
 ### M6. Compatibility and the swatch axes
 - Done when: every arrangement declares the extents it assigns, the placed forms it honours
@@ -899,3 +903,8 @@ face.
   share. The remainder retains the fraction disclosed as unaccounted.
   Headed Tiles and Rings checks show focus, a group switch, and return to the
   whole in one viewport.
+
+- On 2026-11-18, N landed a boundary search that fits ten leaves on the
+  earlier 48 px star. Turnstone e5feff14 uses the same solver for live pin,
+  drop and slide edits. The headed run exercised a crowded nucleus, its
+  loose overflow, and unpinning after a slide.

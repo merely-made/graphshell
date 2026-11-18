@@ -558,3 +558,43 @@ fn already_satisfied_mosaic_order_stays_honoured_when_every_node_is_pinned() {
         positions
     );
 }
+
+#[test]
+fn crystal_routes_disclosed_links_and_keeps_edited_geometry_on_refresh() {
+    use crate::crystal::{CrystalEdit, edit};
+    let (mut data, mut recipe) = fixture("crystal", RelationForm::Adjacency);
+    recipe.marks.relation = None;
+    recipe.frame = Some(sceno::Frame::Unbounded { origin: Vec2::new(15.0, 20.0) });
+    data.relationships = vec![request(&data, "ab", "a", "b"), request(&data, "bc", "b", "c")];
+    let compiler = compiler();
+    let mut compiled = data.compile(&compiler, &recipe).unwrap().projection;
+    let id = |name| compiled.instance_by_occurrence[name];
+    let (a, b, c) = (id("a"), id("b"), id("c"));
+    assert_eq!(compiled.scene.items[a.0 as usize].transform.translate, Vec2::new(15.0, 20.0));
+    assert_eq!(compiled.scene.relation_constraints.len(), 2);
+    assert!(compiled.scene.relations.iter().all(|r| r.form == RelationForm::Adjacency && r.points.is_empty()));
+
+    compiled.selected = Some(b);
+    route_relationships(&mut compiled, &data.dataset, &data.relationships).unwrap();
+    assert!(compiled.scene.relations.iter().all(|r| r.points.len() == 2));
+    let original = compiled.scene.items.clone();
+    edit(&mut compiled, CrystalEdit::Pin(a)).unwrap();
+    assert_eq!(compiled.scene.items[c.0 as usize], original[c.0 as usize]);
+    assert_eq!(compiled.scene.items[a.0 as usize], original[a.0 as usize]);
+    assert_ne!(compiled.scene.items[b.0 as usize], original[b.0 as usize]);
+    assert!(compiled.scene.relation_constraints[0].honored);
+    assert!(!compiled.scene.relation_constraints[1].honored);
+    assert_eq!(compiled.scene.honored_holds[0].placement.hold, sceno::Hold::Pinned);
+    let packed = compiled.scene.items.clone();
+
+    let mut refreshed = compiler.refresh(&compiled, &recipe, &data.dataset).unwrap();
+    route_relationships(&mut refreshed, &data.dataset, &data.relationships).unwrap();
+    assert_eq!(refreshed.scene.items, packed);
+    assert_eq!(refreshed.scene.honored_holds, compiled.scene.honored_holds);
+    assert!(refreshed.scene.relations[1].points.is_empty());
+    edit(&mut refreshed, CrystalEdit::Unpin(a)).unwrap();
+    assert_eq!(refreshed.scene.items, packed);
+    assert!(refreshed.scene.honored_holds.is_empty());
+    assert!(refreshed.scene.relation_constraints[0].honored);
+    assert!(refreshed.scene.relations.iter().all(|r| r.points.is_empty()));
+}

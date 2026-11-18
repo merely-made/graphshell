@@ -36,6 +36,8 @@ pub enum Arrangement {
     Setscape(crate::Setscape),
     /// Tiles by weight on the infinite canvas, grouped, never reflowing.
     Mosaic(crate::Mosaic),
+    /// Loose rectangular tiles that pack immediate links against a pin.
+    Crystal(crate::Crystal),
     /// A solver registered at runtime, named by id, configured opaquely.
     ///
     /// The id is matched against the `scenograph` solver registry. An

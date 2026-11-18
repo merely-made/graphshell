@@ -83,4 +83,6 @@ pub use score::{
     ScoreItem, ScoreVersionError, Spiral, SpiralCurve, Stack, SubdivisionCount, Timeline,
     TimelineFallback, UnusedVertexPolicy,
 };
-pub use subdivision::{Mosaic, Partition, PartitionForm, SET_CORE_WEIGHT, SET_SEPARATOR, Setscape};
+pub use subdivision::{
+    Crystal, Mosaic, Partition, PartitionForm, SET_CORE_WEIGHT, SET_SEPARATOR, Setscape,
+};
