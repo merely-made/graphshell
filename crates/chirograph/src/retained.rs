@@ -20,6 +20,15 @@
 
 use super::*;
 
+/// Local owner intent that changes the keep switch without editing its policy.
+pub const KEEP_ENABLED_INTENT: &str = "retained.enabled/v1";
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct KeepEnabledV1 {
+    pub enabled: bool,
+}
+
 /// The request's limits. Zero in any field asks for the default.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RetainedPagesLimits {

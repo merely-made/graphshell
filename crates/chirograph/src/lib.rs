@@ -536,7 +536,8 @@ pub use text_payloads::{
 mod retained;
 
 pub use retained::{
-    RETAINED_PAGES_CEILING, RETAINED_PAGES_DEFAULT, RetainedKeeping, RetainedLinkWire,
+    KEEP_ENABLED_INTENT, KeepEnabledV1, RETAINED_PAGES_CEILING, RETAINED_PAGES_DEFAULT,
+    RetainedKeeping, RetainedLinkWire,
     RetainedPageWire, RetainedPagesLimits, RetainedPagesRequest, RetainedPagesResponse,
     RetainedTruncation, RetainedUnretainedWire, RetainedVersionWire,
 };

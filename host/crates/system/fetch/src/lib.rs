@@ -38,6 +38,11 @@ use zeroize::Zeroizing;
 #[cfg(feature = "smolweb")]
 pub use errand::TofuStore as SmolwebTofuStore;
 
+#[cfg(all(feature = "kept-page", not(target_arch = "wasm32")))]
+mod kept_page;
+#[cfg(all(feature = "kept-page", not(target_arch = "wasm32")))]
+pub use kept_page::capture_kept_page;
+
 mod policy;
 pub use policy::ClientFetchPolicy;
 

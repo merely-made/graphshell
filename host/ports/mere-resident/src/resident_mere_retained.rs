@@ -13,27 +13,28 @@
 //! - the read-only, bounded `RetainedPages` request, answered for the attached
 //!   graph session and no other, with the graph's links from the host's
 //!   projected relations; and
-//! - two owner-checked intents on that graph session: keep a page's text, and
+//! - owner-checked intents on that graph session: keep a page's text, and
 //!   change the mere's "Keep page text" setting. Keeping writes the same
 //!   records the browser extension writes and only while the setting is on and
 //!   custody allows; otherwise the answer says why and nothing is written.
 
 use super::*;
 use chirograph::{
-    RetainedKeeping, RetainedPagesRequest, RetainedPagesResponse,
+    KEEP_ENABLED_INTENT, KeepEnabledV1, RetainedKeeping, RetainedPagesRequest,
+    RetainedPagesResponse,
 };
-use graphshell_host::goal_surface::{GraphFacts, RetainedPages, door as page_door};
 use eidetic::kept_text::{
     KEEP_PAGES_INTENT, KEEP_SETTING_INTENT, KeepPagesV1, KeepSettingV1, KeepTextPolicy, KeptBatch,
     fetch_record_key, judge, record_kept_pages,
 };
+use graphshell_host::goal_surface::{GraphFacts, RetainedPages, door as page_door};
 use pandect::{KeepPageText, Keeping, RetainedText};
 
 /// Whether `intent` is one of the retained-text intents.
 pub(super) fn is_retained_intent(intent: &IntentInvocation) -> bool {
     matches!(
         intent.intent.as_str(),
-        KEEP_PAGES_INTENT | KEEP_SETTING_INTENT
+        KEEP_PAGES_INTENT | KEEP_SETTING_INTENT | KEEP_ENABLED_INTENT
     )
 }
 
@@ -123,19 +124,33 @@ impl MereEndpoint {
     ) -> Result<IntentResult, String> {
         let shared = Arc::clone(&self.shared);
         run(async move {
+            let _write = shared.retained_write.lock().await;
             let store = shared.retained().await?;
             let rejected = |reason: String| Ok(IntentResult::Rejected { reason });
-            if intent.intent == KEEP_SETTING_INTENT {
-                let asked: KeepSettingV1 =
-                    serde_json::from_slice(&intent.payload).map_err(|e| e.to_string())?;
-                return match store
-                    .set_setting(KeepPageText {
+            let setting = match intent.intent.as_str() {
+                KEEP_SETTING_INTENT => {
+                    let asked: KeepSettingV1 =
+                        serde_json::from_slice(&intent.payload).map_err(|e| e.to_string())?;
+                    Some(KeepPageText {
                         enabled: asked.enabled,
                         max_bytes: asked.max_bytes,
                         excluded_origins: asked.excluded_origins,
                     })
-                    .await
-                {
+                },
+                KEEP_ENABLED_INTENT => {
+                    let asked: KeepEnabledV1 =
+                        serde_json::from_slice(&intent.payload).map_err(|e| e.to_string())?;
+                    if let Keeping::Paused(reason) = store.keeping().await? {
+                        return rejected(reason);
+                    }
+                    let mut setting = store.setting().await?;
+                    setting.enabled = asked.enabled;
+                    Some(setting)
+                },
+                _ => None,
+            };
+            if let Some(setting) = setting {
+                return match store.set_setting(setting).await {
                     Ok(()) => Ok(IntentResult::Accepted),
                     Err(reason) => rejected(reason),
                 };
@@ -144,7 +159,9 @@ impl MereEndpoint {
                 serde_json::from_slice(&intent.payload).map_err(|e| e.to_string())?;
             let setting = match store.permit_write().await {
                 Ok(setting) => setting,
-                Err(Keeping::Off) => return rejected("Keep page text is off for this mere.".into()),
+                Err(Keeping::Off) => {
+                    return rejected("Keep page text is off for this mere.".into());
+                },
                 Err(Keeping::On) => unreachable!("permit_write never refuses with On"),
                 Err(Keeping::Paused(reason)) => {
                     return rejected(format!("Keeping page text is paused. {reason}"));
@@ -173,7 +190,10 @@ impl MereEndpoint {
             let slots = JsonSlots::new(store.backend().clone());
             for fetch in &asked.fetches {
                 if let Err(error) = slots
-                    .save(&fetch_record_key(&fetch.final_url, fetch.fetched_at_ms), fetch)
+                    .save(
+                        &fetch_record_key(&fetch.final_url, fetch.fetched_at_ms),
+                        fetch,
+                    )
                     .await
                 {
                     return rejected(format!("The fetch record could not be kept: {error}"));

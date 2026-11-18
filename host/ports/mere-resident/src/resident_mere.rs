@@ -488,6 +488,7 @@ impl MereRoutes {
             shared_root: self.inner.shared_root.clone(),
             mere: mere.id,
             retained: OnceCell::new(),
+            retained_write: Mutex::new(()),
             retained_sealing: self.inner.retained.clone(),
         });
         let ambient = ResidentEndpointRoute::new(ambient_mere_route_id(&domain), MERE_NOTICE_POLL)
@@ -825,6 +826,7 @@ struct MereShared {
     /// The reservoir-owned retained page-text store, opened on first use so a
     /// mere that never keeps page text never creates one.
     retained: OnceCell<Result<pandect::RetainedText<pandect::SealedValues<RedbBackend>>, String>>,
+    retained_write: Mutex<()>,
     retained_sealing: crate::retained_custody::RetainedSealing,
 }
 

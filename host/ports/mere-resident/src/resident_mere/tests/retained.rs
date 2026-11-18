@@ -82,6 +82,42 @@ fn read(
 }
 
 #[tokio::test(flavor = "multi_thread")]
+async fn switching_keeping_preserves_the_existing_page_policy() {
+    use chirograph::{KEEP_ENABLED_INTENT, KeepEnabledV1};
+
+    let fixture = fixture(0x5336_10, "browsing").await;
+    let mut app = fixture.attach("graphshell").await;
+    let graph = graph(&mut app);
+    let setting = KeepSettingV1 {
+        enabled: true,
+        max_bytes: 16,
+        excluded_origins: ["https://blocked.test".into()].into(),
+    };
+    assert_eq!(
+        app.invoke(graph_intent(&graph, KEEP_SETTING_INTENT, serde_json::to_vec(&setting).unwrap()))
+            .unwrap(),
+        IntentResult::Accepted,
+    );
+    for enabled in [false, true] {
+        let payload = serde_json::to_vec(&KeepEnabledV1 { enabled }).unwrap();
+        assert_eq!(app.invoke(graph_intent(&graph, KEEP_ENABLED_INTENT, payload)).unwrap(),
+            IntentResult::Accepted);
+        let kept = read(&mut app, &graph, Default::default()).unwrap().keeping;
+        assert_eq!(kept, if enabled { RetainedKeeping::On } else { RetainedKeeping::Off });
+    }
+    let excluded = keep(&[("https://blocked.test/page", "tiny")]);
+    assert!(matches!(
+        app.invoke(graph_intent(&graph, KEEP_PAGES_INTENT, excluded)).unwrap(),
+        IntentResult::Rejected { reason } if reason.contains("excluded")
+    ));
+    let oversized = keep(&[("https://allowed.test/page", "1234567890 1234567890")]);
+    assert!(matches!(
+        app.invoke(graph_intent(&graph, KEEP_PAGES_INTENT, oversized)).unwrap(),
+        IntentResult::Rejected { reason } if reason.contains("bound")
+    ));
+}
+
+#[tokio::test(flavor = "multi_thread")]
 async fn keeping_is_off_by_default_and_a_refused_keep_writes_nothing() {
     let fixture = fixture(0x5336_01, "browsing").await;
     let mut app = fixture.attach("graphshell").await;

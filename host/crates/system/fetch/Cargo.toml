@@ -32,6 +32,8 @@ https-blobs = ["dep:eidetic", "dep:ureq"]
 iroh-blobs = ["dep:eidetic", "dep:transport"]
 # Fleece's crawl seam over the single-hop crawler transport (engine split P1).
 fleece-crawl = ["dep:fleece", "fleece/crawl"]
+# Explicit single-page capture for a host that submits kept text to a resident.
+kept-page = ["dep:fleece", "fleece/article", "dep:eidetic"]
 
 [dependencies]
 async-trait = "0.1"
