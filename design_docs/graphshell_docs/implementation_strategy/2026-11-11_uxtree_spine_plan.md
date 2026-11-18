@@ -1,9 +1,9 @@
 # uxtree spine plan: a federated tree with one envelope
 
-**Status:** 2026-11-18. P0 to P9 landed. P7 landed on Graphshell at `9f3537ac` and on
+**Status:** 2026-11-18. P0 to P10 landed. P7 landed on Graphshell at `9f3537ac` and on
 Turnstone at `c47ba17a`. P8 landed on Mere at `49d7d473a` and on Graphshell at `4b2ef6c3`.
 P9 landed on Genet at `41e70983a4c`, Graphshell at `f2374e83`, and
-Turnstone at `b72da53f`. P10 and P11 remain open.
+Turnstone at `b72da53f`. P10 landed on Turnstone at `690d6f12`. P11 remains open.
 The slice 4 cutover moved uxtree, Cambium and E1a to Graphshell's `host/`.
 P0 remains a gate for D1. If it fails, D1 returns to Mark.
 
@@ -349,6 +349,31 @@ The baseline, Turnstone's scenarios at the audit base: `act` by palette label 57
 
 ### P10. The JSON snapshot and the read-only MCP resource
 
+P10 started on 2026-11-18 at Graphshell `6360c688` and Turnstone `b72da53f`.
+Turnstone owns the snapshot projection and applies its text policy before
+building the JSON. `record-uxtree <name>` writes the primary window's
+composed forest to `<name>.uxtree.json` in the scenario capture directory.
+The separate `mere-mcp` process can serve an explicit capture as
+`uxtree://snapshot` via `--uxtree-snapshot <path>`. It loads the chosen file
+once at startup, up to 8 MiB. Captures omit text by default and use
+`TURNSTONE_A11Y_PUBLIC_FIXTURE_RECEIPT=1` for synthetic public fixtures. Password nodes
+and their descendants stay redacted across grafts, including envelope text.
+The snapshot describes route provenance at the product boundary and records
+any existing envelope. The capture does not issue action generations.
+The planted-label test caught an eager read even when the resulting JSON hid
+the text. An intentional change to the tools advertised with a capture
+attached also failed the compatibility test.
+The restored accessibility, MCP, and resident route suites passed on
+Windows. The MCP comparison covers both protocol eras with write tools
+enabled and disabled. The headed scenario produced both private and
+public-fixture captures, each with 30 nodes and 16 envelopes. It found the
+synthetic omnibar text only in the public-fixture capture.
+Turnstone main advanced to the Personae pane change (`6a75eaa5`) during
+qualification. The integration kept the P10 diff byte-for-byte and took
+that revision's recorded dependency resolution. The combined revision
+passed the tests, native captures, Clippy and dependency gates, and landed
+at `690d6f12`.
+
 A function dumps a tree with its envelopes as JSON, read-only, for diagnostics and the MCP surface (D6). It is not a
 contract: no stability promise, nobody builds against it. Home of the function is named in P10. The MCP resource is in
 Turnstone (`graphshell-mcp` moves there under `mere:engine-split D23` and D104), so that half is a Turnstone change. It
@@ -358,7 +383,7 @@ exposes the snapshot as a resource and adds no tool that invokes an action.
   snapshot code has no path that reads node text before the product's redaction (tested with a planted label); the
   MCP server's tool list has the same tools as before; a golden snapshot test exists and the file is JSON; the module
   docs say it is read-only tooling with no stability promise.
-- Needs: P1, P6; the MCP home (Turnstone) after the cutover; open question 10.
+- Needs: P1, P6 and the MCP move to Turnstone. Question 10 is resolved below.
 
 ### P11. Promotion: `foreign_a11y` and the generic bridge parts move into `cambium-winit-a11y` (touches turnstone.git)
 
@@ -544,8 +569,8 @@ Each is a question for a later round, with its evidence. None is answered here.
 9. **Does Pelt graft?** D3 says the address becomes the pair "as each producer is grafted". The publisher grafts in P11.
    Pelt mints one tree with a counter from 2^63 per tile; no ruling asks it to graft (app composition AC2 names Pelt's
    combined tree as a user of the helper).
-10. **What does the snapshot's schema version promise?** The second brief's option committed to "a versioned schema";
-    D6 makes no stability promise. Whether the snapshot carries a version field, and what it then means, is open.
+10. **What does the snapshot's schema version promise?** P10 follows D6 by omitting a schema version.
+    The file's `kind` identifies a Turnstone tooling capture. It carries no compatibility promise.
 11. **Can inker surfaces fill an envelope?** The suppliers behind `foreign_a11y` publish AccessKit trees only, and the
     second brief did not read inker's surface side. Whether a supplier tree's nodes are Scoped, Life or unenveloped
     (and so reported by the lint) is not known. Also open: the 174-line `turnstone/shell/foreign_a11y.rs`, the supplier

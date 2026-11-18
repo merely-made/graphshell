@@ -536,3 +536,31 @@ build. Those replays reproduced the missing frame target, missing frozen
 projection document, and old chrome fixture’s focus or presentation failures.
 The individual outputs and the final headed receipt are retained under
 Code/testing/graphshell/uxtree-p9/.
+
+## 2026-11-18 P10 redacted uxtree snapshots
+
+Turnstone `5ae2ecda974e9deea6e7f5024d3c89d2ec43daa0` adds
+`record-uxtree <name>` for the composed primary-window tree and its
+available envelopes. The existing public-fixture opt-in reveals only
+unprotected text. Password nodes and their descendants stay redacted
+across grafts. The exporter writes tooling JSON without a schema version.
+`mere-mcp --uxtree-snapshot <path>` exposes one chosen export at
+`uxtree://snapshot`. The MCP tests check both protocol eras and both write
+settings against the same golden capture.
+
+The planted fixture put the marker in a password node, its envelope and
+its descendants, including a grafted tree. The eager-read control read
+five nodes in private mode and failed before comparing the output. The
+changed-tool-list control failed when attaching a snapshot removed an
+existing tool. The restored exporter read zero node text fields in private
+mode and the two unprotected nodes in public-fixture mode.
+
+Turnstone main advanced to `6a75eaa56275af07fa0633cbd88927b4fdd8dd8c`.
+The merge kept the P10 diff byte-for-byte and used that commit's recorded
+native, web and relay resolution. The combined revision passed 77
+accessibility tests, both focused P10 tests, 19 MCP tests and six
+resident-route tests. Both Clippy checks and all three dependency gates
+passed. Headed private and public-fixture captures each contained 30 nodes
+and 16 envelopes. Only the public fixture contained the synthetic omnibar
+text. The regular push landed `690d6f12cf7032bbf83594f5eeec9bcde0ca4e35`.
+Raw logs, locks, and JSON exports are under Code/testing/graphshell/uxtree-p10/.
