@@ -1,8 +1,9 @@
 # uxtree spine plan: a federated tree with one envelope
 
-**Status:** 2026-11-17. P0 and P1 landed. P2 landed on Graphshell main at `7c40580e`.
-Turnstone is testing that published Git source before landing. P3 passed its native and wasm qualification. P4 to P11
-remain open. The slice 4 cutover moved uxtree, Cambium and E1a to Graphshell's `host/`.
+**Status:** 2026-11-17. P0 and P1 landed. P2 landed on Graphshell `7c40580e` and Turnstone
+`7406f9f3`. Turnstone passed its native and wasm checks against published Graphshell main.
+P3 passed native and wasm qualification and awaits review. P4 to P11 remain open.
+The slice 4 cutover moved uxtree, Cambium and E1a to Graphshell's `host/`.
 P0 remains a gate for D1. If it fails, D1 returns to Mark.
 
 **For:** carrying out `mere:engine-split D53`, "uxtree grows into the stack's accessibility and automation spine".
@@ -644,3 +645,7 @@ Each is a question for a later round, with its evidence. None is answered here.
   the same tile and session observed through two windows.
 - 2026-11-17: The no-default-feature graphshell-host library builds for wasm. Browser
   execution and platform assistive-technology acceptance remain later gates.
+- 2026-11-17: P2 landed on Turnstone main at `7406f9f3`. The 13 canvas tests and wasm
+  library check pass with Graphshell `7c40580e` resolved from Git. The three dependency-ban
+  hooks and the resolved-version push passed. P3 candidate `85cdc0af` passed all normal
+  code commit hooks. The P3 branch also records this P2 landing.

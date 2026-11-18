@@ -274,6 +274,19 @@ snapshots are recorded separately in `combined-report.md`,
 the named Cargo home is also reused for these combined receiving checks.
 
 
+
+### P2 published-source landing
+
+Graphshell main advanced to `7c40580ec7ebbdb692705fbbea96e7cd5a8f7e29`.
+Turnstone generated a fresh lock without the local supplier override. Its
+Rootstock, native accessibility, uxtree and Sceno packages all resolved to that
+Graphshell Git commit. The 13 canvas reader tests and wasm library check passed.
+This receipt uses Genet `fe42f351`. Turnstone’s dependency bans for root, web and
+relay passed along with resolved-version recording and pushing. Turnstone main
+advanced to `7406f9f3` with the published-source receipt in its index.
+The original qualification packet is preserved. The `landing-turnstone-*`
+files under `Code/testing/graphshell/uxtree-p2/` record the final source and results.
+
 ## 2026-11-17: P3 Pelt and client item envelopes
 
 Graphshell base `7c40580e`. Raw logs, source controls and generated Cargo lock
