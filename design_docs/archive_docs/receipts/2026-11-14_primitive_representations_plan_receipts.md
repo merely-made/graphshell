@@ -383,3 +383,66 @@ This receipt is the retained evidence for M5. The existing reusable targets
 in ~/Code/targets/graphshell and ~/Code/targets/turnstone still serve their
 respective repositories. The Graphshell checkout in Cargo uses the existing
 guest fixtures in ~/Code/targets/graphshell/guests.
+
+## 2026-11-17 M6 compatibility and swatch axes
+
+Graphshell 5409300 gathers the extent, placed relation forms and accepted
+frames for the arrangement's current options. A registered solver uses the
+same lookup and supplies positions for measured items. Frame validation and
+relation routing consult that lookup. A typed swatch pick changes the selected
+recipe slot as one history entry. A bounded-frame pick also clears the legacy
+width and height, and undo restores both.
+
+Turnstone d413ad7f reuses the comparison grid and its whole and selected
+scopes for node marks, relation forms, field forms and frames. It checks each
+choice, compiles supported recipes before offering them and lists the reasons
+for incompatibilities. The
+relationship preview reads the host's disclosed relationships. The field
+preview reads the arrangement's regions. Viewport stores the preview
+rectangle at the time of the pick.
+
+The headed Chrome run on T-PC used the embedded product tree with `app=local`
+and the BrowserWebGpu presenter. The fixture
+`ports/graphshell/web/tests/projection-swatches.html` opens Partition on the
+existing host relationship dataset. The `projection_swatches` scenario picks
+Card, Viewport, Matrix cell and Contour. It checks the resolved slots and
+their undo steps, redoes Card and Viewport, and verifies that the instantiated
+viewport contains all four card footprints. The two captures show the four
+cards and the complete outline of the viewport around them.
+
+The scenario completed with zero page errors and zero gate failures. The
+retained receipt is at
+`~/Code/testing/turnstone/receipts/2026-11-17_m6_swatches-main` on T-PC. It
+contains `partition_cards.png`, `partition_viewport.png`, the whole-frame
+capture, the accessibility tree and the machine-readable results.
+The scenario SHA-256 is
+`fa65d31c89bb1e47568ccfe529cd58f56271fc6ac5e75a87299336400ee41a98`.
+The Wasm bundle SHA-256 is
+`d4e264757e6f9cd60ed4ff67bef3f9d2d6a008f16ee1c299fbe33e1d98767fba`.
+
+Build from the `ports/graphshell/web` workspace so Cargo loads its Wasm
+stack settings. This run set `CARGO_PROFILE_DEV_DEBUG=0` and used
+`wasm-bindgen` 0.2.129.
+
+```sh
+cargo build --target wasm32-unknown-unknown --no-default-features \
+  --features product,remote,image-decode,presentation-webgpu,presentation-webgl2,physics-engine \
+  --offline --locked
+```
+
+Stage the web assets alongside the bindgen `pkg` directory. Pass the staged
+site to `tests/run-headed-receipt.py` with `--scenario projection_swatches`,
+`--page tests/projection-swatches.html`, `--query app=local`, `--unsafe-webgpu`,
+`--chrome-arg=--enable-features=Vulkan` and `--chrome-arg=--use-angle=vulkan`.
+
+Scenograph and Scenomise passed 355 tests with all features on the checked
+Graphshell revision 7397ad9, which integrates the concurrent uxtree P2 update.
+Turnstone passed 281 library tests with six ignored using
+`cargo test -p graphshell --no-default-features --features web,physics-engine
+--lib --offline --locked`.
+Turnstone uses the checked Graphshell revision in both the root and web resolved locks,
+on top of the dependency resolution recorded for its canvas envelope update
+at 7406f9f3. The runs reused the T-PC targets in
+`~/Code/targets/graphshell` and `~/Code/targets/turnstone` and the existing
+guest targets under `~/Code/targets/graphshell/guests`. The headed site and
+isolated browser profiles were removed after capture.
