@@ -11,6 +11,10 @@ mod content;
 mod input;
 mod pool;
 mod pool_a11y;
+#[cfg(feature = "genet")]
+mod semantic_lookup;
+#[cfg(feature = "genet")]
+pub use semantic_lookup::{DocumentSemanticLookup, ScopedDocumentEnvelope};
 pub use input::{PeltInput, mouse_pointer};
 pub use pool::{PeltControllerPool, PeltDocumentWork, PeltPlacement};
 pub use pool_a11y::PeltPlacementA11y;

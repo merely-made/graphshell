@@ -1,8 +1,8 @@
 # uxtree spine plan: a federated tree with one envelope
 
-**Status:** 2026-11-17. P0 and P1 landed. P2 landed on Graphshell `7c40580e` and Turnstone
-`7406f9f3`. Turnstone passed its native and wasm checks against published Graphshell main.
-P3 landed after combined-tree qualification. P4 to P11 remain open.
+**Status:** 2026-11-18. P0 to P4 landed. P4's Genet supplier is `b75face72c9` and its
+Graphshell code is `3b247317`. The retained-document action test passed with the supplier on
+Genet main. P5 awaits question 6 below. P6 to P11 remain open.
 The slice 4 cutover moved uxtree, Cambium and E1a to Graphshell's `host/`.
 P0 remains a gate for D1. If it fails, D1 returns to Mark.
 
@@ -194,17 +194,24 @@ adapter lives in graphshell-host and derives scope and source from one mounted r
 
 ### P4. The host fills the envelope for Genet-backed nodes (touches genet.git)
 
-Genet keeps its projection as it is (D2). The host's `SemanticLookup` implementation fills the envelope from
-`DocumentA11yProjection`: Scoped, with `revision` as the scope, the session added by the host as address and
-provenance. In genet.git, `taproot`'s `SemanticNode` (`taproot/lookup.rs:9-27`, 176 lines) gains optional fields that
-carry nothing host-specific. Their names and types are named in P4. This is a Genet change and goes through Genet's
-own gates.
+Taproot's `SemanticNode` adds `authored_key: Option<&str>` and `opaque_address: Option<&str>`.
+Built-in lookups leave both empty and selector matching keeps its current behavior. Taproot exposes
+its existing selector role spelling for document roles so the host uses the same vocabulary.
+
+Pelt's retained-document lookup owns one `DocumentA11yProjection` observation. It walks the engine's
+child order and inherits hidden state. Each node gets a Scoped envelope with the session as instance
+and provenance, the engine-local node as local ID, and the observed revision as scope. The opaque
+address is for observation. The host admits actions through the typed observation, verifies the same
+session and forwards the captured revision for the engine to check. Genet's document projection has
+no authored-key field, so these observations leave that metadata empty.
 
 - Done when: `SemanticNode`'s new fields are `None` on Genet's own `AccessKitLookup` and `DocumentLookup` and taproot's
   tests pass unchanged; the host's lookup returns a Scoped envelope for a Genet-backed node; a request carrying a
   stale `revision` is refused by Genet's engine through the host path; no Genet manifest names uxtree (the family cycle
   checker, and `cargo metadata` over the Genet workspace, which the second brief could not finish).
-- Needs: P1; a Genet-side review of the two optional fields.
+- Needs: P1 and Genet-side review. Land the Taproot change before the Graphshell consumer.
+
+P4 receipts are under `Code/testing/graphshell/uxtree-p4/` with a 100 MB cap across both repositories.
 
 ### P5. Derived ids get an owner generation (touches turnstone.git)
 
@@ -653,3 +660,25 @@ Each is a question for a later round, with its evidence. None is answered here.
 - 2026-11-17: P3 integrated with Graphshell main `2e041d0b`. The combined tree passed
   85 Pelt and 26 Graphshell host tests. Landing receipts are in
   `Code/testing/graphshell/uxtree-p3/landing-tests.log` and `landing-hooks.log`.
+
+- 2026-11-17: P4 Genet candidate `b75face72c9` is pushed. Taproot passed 47 tests and
+  its normal commit gates. A planted opaque address in a built-in lookup fails the new test.
+  The full Genet workspace metadata resolves 59 members and finds no uxtree dependency.
+  The host has passed an initial retained-document stale-revision test and Pelt core suite with
+  a local source override. The published Genet source is being qualified in the ordinary Git
+  dependency resolution before the receiving candidate is pushed.
+- 2026-11-17: The P4 receiving lock resolves all 37 Genet packages from published
+  candidate `b75face72c9`. All 116 Pelt core tests pass in that Git cohort. Replacing
+  the captured revision with the live revision makes the stale-write test fail at runtime.
+  Restoring the source passes the suite. The family checker finds no strict or development
+  cycles across 29 repositories. The review order is Genet first, then Graphshell.
+
+- 2026-11-18: P4 landed in supplier order. Genet main received the exact tested source
+  `b75face72c9`. The Graphshell lock matched the final qualification records, and the
+  retained-document stale-action test passed again. Both landings use the normal hooks.
+- 2026-11-18: P5 question 6 is still open. Turnstone's current bridge allocates generations
+  per action queue and delegates route equality to the app's document and pane comparators.
+  Proposed boundary: uxtree defines one reusable generation map. Turnstone owns its map instance
+  in P5. Cambium owns the instance when the native bridge moves in P11. Turnstone keeps
+  its route comparators. The same map retains a generation for equal admissions, assigns a
+  fresh one on replacement, and retires it on removal. This proposal awaits a ruling.

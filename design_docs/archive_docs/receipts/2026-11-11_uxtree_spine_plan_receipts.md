@@ -312,3 +312,51 @@ loopback reader uses the adapter. The client crate keeps its tree and routing.
 
 These are software receipts. App runtime and human assistive-technology
 acceptance have their own gates.
+
+
+## 2026-11-17: P3 landing and P4 retained-document lookup
+
+P3 landed on Graphshell at `bf987154`. The merged tree with main `2e041d0b`
+passed 85 Pelt and 26 Graphshell host tests. `uxtree-p3/landing-record.md`
+links the raw results, normal hooks and push record in the existing packet.
+
+Genet candidate `b75face72c9ca054b80d7628633bfb1117a6bdb0` adds optional
+`authored_key` and `opaque_address` to Taproot's borrowed node view. Its own
+lookups leave both empty. The host uses Taproot's existing role spelling.
+Taproot passes 47 tests, including the new metadata check. A planted address
+in a built-in lookup trips that check. All Genet commit gates pass. Workspace
+metadata covers 59 members and finds no uxtree edge.
+
+Graphshell's Pelt lookup uses Scoped envelopes, with the current session and
+captured engine revision. The real Genet-backed test proves a current write,
+rejects a captured write after the revision changed, and accepts a fresh write.
+It also tests refusal in a different session. The broken control substitutes
+the live revision and fails the stale-write assertion. The restored receiving
+suite passes 116 Pelt core tests. The cycle gate covers 29 repositories and
+finds no strict or development cycles.
+
+The first receiving run used a local Taproot override and passed with Cargo
+path-override warnings. The final run selects all 37 Genet packages from the
+published Git candidate via a generated lock. There is no committed override
+or lock change. Land Genet after review, then integrate Graphshell with the
+published supplier. The raw packet under `Code/testing/graphshell/uxtree-p4/`
+contains the locks, logs and broken controls, with a 100 MB cap across both repos.
+
+
+The first Graphshell commit passed Clippy and found a resolver drift in the
+ban gate: `codespan-reporting` selected `unicode-width` 0.1.14. A focused Cargo
+refresh selected the compatible 0.2.3 for the same holder and kept the exact
+Genet source. The policy and manifests are unchanged by this refresh. The
+final receiving test log and resolution delta are retained in the P4 packet.
+
+
+### 2026-11-18: P4 landing
+
+Genet main advanced to `b75face72c9ca054b80d7628633bfb1117a6bdb0`. The
+Graphshell candidate `3b247317` used that same supplier and the recorded final
+package graph. The focused retained-document test passed again once Genet main
+held the tested commit. Its capture, stale replay and fresh action check the
+normal host-to-engine route. Graphshell lands the tested source plus this status
+and receipt update. The original P4 packet stays intact. New landing outputs
+and hashes are in `Code/testing/graphshell/uxtree-p4/landing-*` and
+`LANDING-SHA256SUMS`.
