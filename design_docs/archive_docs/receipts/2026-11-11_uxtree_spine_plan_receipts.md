@@ -425,3 +425,15 @@ Normal Graphshell and Turnstone hooks passed, including Turnstone's root,
 web and relay bans. The receiving root and web locks stayed identical
 through the hooks. The family check found zero strict or development cycles
 across 29 checkouts. Raw outputs and locks are under `Code/testing/graphshell/uxtree-p6/`.
+
+### 2026-11-18 P6 landing
+
+Graphshell merged the P6 candidate with Crystal main `cffc961a`. The 39 uxtree
+tests and 10 retained-session tests passed. Normal hooks and push landed
+Graphshell `2a5a4f070457c5b20f6c555f7049f4e5fd3404c4`.
+
+Turnstone merged the P6 candidate with Crystal main `e5feff14`. Its root
+and web locks used Graphshell's landed revision. The 74 accessibility tests
+and the Crystal consumer check passed with that supplier. Normal hooks and
+push landed Turnstone `46d79e84bbfaf8c4bc9178b893b1403d6d717b81`. The packet under
+`Code/testing/graphshell/uxtree-p6/landing-*` retains the merged results.

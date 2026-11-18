@@ -1,8 +1,8 @@
 # uxtree spine plan: a federated tree with one envelope
 
-**Status:** 2026-11-18. P0 to P5 landed. P5 landed in Graphshell at `5a8d2d1e` and in Turnstone at
-`6f45ffc4`. Turnstone passed the receiving tests against that Graphshell main revision.
-P6 is qualified and pushed on `uxtree/p6` in Graphshell and Turnstone. P7 to P11 remain open.
+**Status:** 2026-11-18. P0 to P6 landed. P6 landed on Graphshell at `2a5a4f07` and on Turnstone
+at `46d79e84`. Turnstone qualified against that Graphshell main revision with the Crystal update.
+P7 is under way. P8 to P11 remain open.
 The slice 4 cutover moved uxtree, Cambium and E1a to Graphshell's `host/`.
 P0 remains a gate for D1. If it fails, D1 returns to Mark.
 
@@ -532,7 +532,7 @@ Each is a question for a later round, with its evidence. None is answered here.
 | Canvas through native publication | Producer owner and minted node ID. The graph member UUID travels separately as the domain reference. |
 | Graphshell mounted scene | Producer session and scene-instance node ID, scoped to the scene epoch. |
 | Turnstone host chrome and shared frame | Producer window root and local projected ID. Lens remapping runs before publication. |
-| Turnstone's retained documents in the host tree | Root-tree action key and host-mapped node ID. The captured document route retains its source and placement checks. |
+| Turnstone's retained documents in the host tree | Installed `(TreeId, NodeId)`. Each placement graft keeps the document's local IDs. Its captured route checks source and placement. |
 | Turnstone foreign surfaces, including nested guests | Installed `(TreeId, NodeId)`. The current owner table selects the surface, then the retained tree resolves the local node. |
 | Turnstone contributed panes | Installed `(TreeId, NodeId)`. The pane fills the address from the subtree it publishes. The source and placement still govern admission. |
 | Document, frozen, Gloss and Platen observation views | Caller-supplied producer instance and path-derived node ID. |
@@ -731,3 +731,9 @@ Each is a question for a later round, with its evidence. None is answered here.
   restored pair passed. Both candidates passed their ordinary hooks. The family
   check found zero cycles across 29 repositories. The receipt packet is under
   `Code/testing/graphshell/uxtree-p6/`. Land Graphshell before Turnstone.
+
+- 2026-11-18: P6 landed in supplier order after both candidates incorporated the
+  concurrent Crystal changes. Graphshell `2a5a4f07` passed 39 uxtree and 10
+  retained-session tests. Turnstone `46d79e84` passed 74 accessibility tests
+  and the Crystal consumer check against that exact supplier on main. Both
+  landings passed the regular hooks. See `Code/testing/graphshell/uxtree-p6/landing-*`.
