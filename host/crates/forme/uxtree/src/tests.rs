@@ -433,3 +433,21 @@ fn probes_05_17_fold_headings_carry_expanded_state_and_hidden_blocks_are_omitted
         );
     }
 }
+
+#[test]
+fn document_projection_emits_derived_observations() {
+    use crate::envelope::Stability;
+
+    let tree = project_document(&doc_with(vec![Block::Paragraph {
+        spans: vec![InlineSpan::Text("hi".into())],
+    }]));
+    let instance = String::from("test document");
+    let envelopes: Vec<_> = tree.derived_envelopes(instance.as_str()).collect();
+    assert_eq!(envelopes.len(), tree.nodes.len());
+    for (envelope, (id, _)) in envelopes.iter().zip(&tree.nodes) {
+        assert_eq!(envelope.address.instance, instance.as_str());
+        assert_eq!(envelope.address.local, *id);
+        assert_eq!(envelope.stability, Stability::Derived { generation: None });
+        assert!(envelope.action_ids.is_empty());
+    }
+}

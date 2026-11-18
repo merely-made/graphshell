@@ -1,8 +1,8 @@
 # uxtree spine plan: a federated tree with one envelope
 
-**Status:** 2026-11-18. P0 to P4 landed. P4's Genet supplier is `b75face72c9` and its
-Graphshell code is `3b247317`. The retained-document action test passed with the supplier on
-Genet main. P5 awaits question 6 below. P6 to P11 remain open.
+**Status:** 2026-11-18. P0 to P5 landed. P5 landed in Graphshell at `5a8d2d1e` and in Turnstone at
+`6f45ffc4`. Turnstone passed the receiving tests against that Graphshell main revision.
+P6 is under way. P7 to P11 remain open.
 The slice 4 cutover moved uxtree, Cambium and E1a to Graphshell's `host/`.
 P0 remains a gate for D1. If it fails, D1 returns to Mark.
 
@@ -225,7 +225,12 @@ have no domain reference.
 - Done when: a request on a Derived id captured before its route changed is refused by the uxtree-owned generation, the
   existing bridge test moved to uxtree and passing; Turnstone's `A11yRoutes` count in non-test source is zero, or what
   remains is named; uxtree's own projections emit Derived envelopes; no frame counter appears as a generation.
-- Needs: P1. Open question 6 (where the generation map lives) is answered first.
+- Needs: P1 and D10, both settled.
+- P5 uses a uxtree map per publishing window. Turnstone supplies route and source equality. Pure projections expose
+  Derived observation envelopes with the producer instance and local ID. The window publisher issues the generation
+  for each action admission. Frame fixtures observe and dispatch synchronously through their current owner.
+- Turnstone's legacy graph-member selection fills use a different path from the Frozen Projection nodes.
+  The platform publisher filters those fills out. Frozen Projection emits observations and has no published selection route.
 
 ### P6. The address converges on `(TreeId, NodeId)`
 
@@ -341,7 +346,7 @@ it. The Cambium publisher takes grafted guests, which moves its address to the `
 ## Decisions
 
 Each records the evidence put to Mark, what was offered, his answer in his words, what follows, and an outcome. Numbers
-come from the briefs and are cited there. D1 to D9 are in answer order.
+come from the briefs and are cited there. D1 to D9 are in answer order. D10 records the P5 ruling.
 
 - **D1. The spine is federated (Mark, 2026-11-11):** Evidence (second brief §0, §3.4, §4, §6.1; E1, E2): four semantic
   models already sit above AccessKit (Genet's `DocumentA11yProjection` with 49 roles, Cambium's `ProducerSemantics`
@@ -467,6 +472,10 @@ come from the briefs and are cited there. D1 to D9 are in answer order.
 
   Links: area The stack · draws on uxtree-spine D3, uxtree-spine D4, mere:engine-split D102 · plans uxtree-spine P11 · summary foreign_a11y and the bridge's generic parts move into cambium-winit-a11y as guest-tree support; one publication path and one id policy; headed checks.
 
+- **D10. One shared generation map in uxtree (Mark, 2026-11-18).** D4 and D9 use the same map implementation.
+  Turnstone owns an instance for each window in P5. In P11, Cambium owns the instance for the moved native
+  publisher and uses uxtree's map. Each publisher supplies its admission equality and rechecks its own source.
+
 ## Open questions
 
 Each is a question for a later round, with its evidence. None is answered here.
@@ -486,9 +495,7 @@ Each is a question for a later round, with its evidence. None is answered here.
 5. **Should an MCP tool invoke a tree node's action?** D6 rules a read-only resource only. The first brief's fork 9
    option (c) would add a tool through the same route table and stale checks; the June 2026 plan imagined a typed agent
    harness. `graphshell-mcp` lives in Turnstone after D23.
-6. **Where does the generation map live?** D4 says uxtree owns a generation for Derived ids, a move of about 80 lines
-   from Turnstone's bridge (estimate). D9 says the bridge's generation map follows into `cambium-winit-a11y`. Both may
-   be one map with two callers; it is not stated. Decides P5 and P11.
+6. **Where does the generation map live?** Settled in D10.
 7. **Is the Derived hash pinned?** `DefaultHasher` is unspecified across Rust releases; the toolchain is pinned today
    (first brief F4). D4 calls Derived an address and not a life; no ruling says whether the hash is specified.
 8. **Does `NativeIds::prepare` call the shared structural core?** The brief estimated -60 lines in `cambium-a11y` if so
@@ -676,9 +683,21 @@ Each is a question for a later round, with its evidence. None is answered here.
 - 2026-11-18: P4 landed in supplier order. Genet main received the exact tested source
   `b75face72c9`. The Graphshell lock matched the final qualification records, and the
   retained-document stale-action test passed again. Both landings use the normal hooks.
-- 2026-11-18: P5 question 6 is still open. Turnstone's current bridge allocates generations
-  per action queue and delegates route equality to the app's document and pane comparators.
-  Proposed boundary: uxtree defines one reusable generation map. Turnstone owns its map instance
-  in P5. Cambium owns the instance when the native bridge moves in P11. Turnstone keeps
-  its route comparators. The same map retains a generation for equal admissions, assigns a
-  fresh one on replacement, and retires it on removal. This proposal awaits a ruling.
+- 2026-11-18: D10 settled the P5 boundary. uxtree owns the map implementation and
+  each publishing window owns its instance. Turnstone preserves its document and pane
+  comparators and captures its host action envelopes at publication. The publishers
+  preserve equal admissions and retire changed or removed ones.
+- 2026-11-18: Graphshell `a0595668` passed uxtree's 38 native tests and its wasm
+  check. Turnstone passed 71 accessibility tests and a palette test against that Git
+  revision. Keeping an old generation alive caused each deliberately broken
+  stale-admission test to fail. The family checker found zero cycles across 29
+  repositories. Turnstone `6f45ffc4` passed the regular commit and push hooks.
+  The root and web dependency locks still match the selected supplier after the
+  hooks. Land Graphshell before Turnstone. The raw packet is under
+  `Code/testing/graphshell/uxtree-p5/`.
+
+- 2026-11-18: P5 landed in supplier order. Graphshell advanced to `5a8d2d1e` after
+  38 uxtree tests passed again. Turnstone advanced to `6f45ffc4` after the 71
+  accessibility tests, the palette Keep/Drop test and all three dependency-ban
+  checks passed with Graphshell main. Both pushes ran the regular hooks.
+  The landing receipts are under `Code/testing/graphshell/uxtree-p5/landing-*`.

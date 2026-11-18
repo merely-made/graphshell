@@ -41,7 +41,7 @@
 //! no action admission. A request must retain its observed scope and provenance
 //! and be checked by its current owner. Re-reading a reused address cannot grant
 //! authority to an old request. Derived nodes without a generation are readable
-//! observations only; P5 owns their generation map. Authored keys are resolved
+//! observations only. See [`crate::generation::GenerationMap`] for publication. Authored keys are resolved
 //! to a current Life or Scoped target at use, and that resolved target is not
 //! retained as a durable identity. There is no serialization or wire contract.
 //!
