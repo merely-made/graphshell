@@ -908,3 +908,11 @@ face.
   earlier 48 px star. Turnstone e5feff14 uses the same solver for live pin,
   drop and slide edits. The headed run exercised a crowded nucleus, its
   loose overflow, and unpinning after a slide.
+
+
+- On 2026-11-18, X landed the context recipe and typed command dataset in
+  4c52c05. Turnstone f6790128 runs child scenes for the projection workspace
+  and offers their authoring through the Interaction panel. The headed runs
+  exercised placement, triggers, save and reopen, local viewer commands, and
+  a signed Wasm applet action before and after revocation.
+  [X receipt](../../archive_docs/receipts/2026-11-14_primitive_representations_plan_receipts.md#2026-11-18-x-context-scenes).
