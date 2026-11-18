@@ -48,6 +48,7 @@ fn recipe_marks_reach_the_scene_and_rules_override_one_occurrence() {
         node: Some(default.clone()),
         relation: Some(RelationForm::Stroke),
         field: Some(FieldForm::Contour),
+        ..Default::default()
     };
     let rules = rules(vec![Effect::NodeMark {
         value: replacement.clone(),
@@ -276,4 +277,48 @@ fn switching_subdivision_detail_preserves_an_adjusted_placement() {
         }
         assert_eq!(refreshed.scene, expected, "{kind}");
     }
+}
+
+#[test]
+fn context_rule_replaces_only_the_matching_occurrence() {
+    use scenograph::contexts::{ContextPlacement, ContextScene, ContextTrigger, SubjectKind};
+
+    let mut recipe = definition("grid", "x");
+    let default = ContextScene {
+        id: "linked".into(),
+        subject: SubjectKind::Node,
+        trigger: ContextTrigger::Hover,
+        placement: ContextPlacement::Beside,
+        input: "linked".into(),
+        recipe: Box::new(recipe.clone()),
+        commands: None,
+    };
+    let override_scene = ContextScene {
+        id: "resource".into(),
+        input: "resource".into(),
+        trigger: ContextTrigger::Request,
+        ..default.clone()
+    };
+    recipe.marks.contexts = vec![default.clone()];
+    let rules = rules(vec![Effect::Contexts {
+        value: vec![override_scene.clone()],
+    }]);
+    assert!(rules.validate().is_ok());
+    let compiler = ProjectionCompiler::new(sizes(40.0, 20.0)).with_presentation(rules);
+    let data = dataset();
+    let compiled = compiler.compile(&recipe, &data).unwrap();
+    assert_eq!(
+        compiled.node_marks[&compiled.instance_by_occurrence["a"]]
+            .marks
+            .contexts,
+        [override_scene]
+    );
+    assert_eq!(
+        compiled.node_marks[&compiled.instance_by_occurrence["b"]]
+            .marks
+            .contexts,
+        [default.clone()]
+    );
+    let child = crate::contexts::compile(&compiler, &default, &data).unwrap();
+    assert_eq!(child.scene.items.len(), data.occurrences.len());
 }

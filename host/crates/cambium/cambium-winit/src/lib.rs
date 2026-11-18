@@ -44,6 +44,7 @@ pub fn key_event_from_winit(key: &WinitKey, mods: Modifiers) -> Option<KeyEvent>
             WinitNamedKey::Home => NamedKey::Home,
             WinitNamedKey::End => NamedKey::End,
             WinitNamedKey::F10 => NamedKey::F10,
+            WinitNamedKey::ContextMenu => NamedKey::ContextMenu,
             WinitNamedKey::Alt => NamedKey::Alt,
             WinitNamedKey::PageUp => NamedKey::PageUp,
             WinitNamedKey::PageDown => NamedKey::PageDown,

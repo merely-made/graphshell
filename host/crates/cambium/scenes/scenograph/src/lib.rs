@@ -18,6 +18,7 @@ use std::collections::BTreeMap;
 use serde::{Deserialize, Serialize};
 
 pub mod attention;
+pub mod contexts;
 pub mod dataset;
 pub mod dynamics;
 pub mod fields;

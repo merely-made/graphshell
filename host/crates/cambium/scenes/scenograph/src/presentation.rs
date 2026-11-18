@@ -191,6 +191,7 @@ pub enum Effect {
     Representation { value: Representation },
     NodeMark { value: NodeMark },
     FieldForm { value: crate::FieldForm },
+    Contexts { value: Vec<crate::contexts::ContextScene> },
     Details { visible: bool },
     RelationForm { value: RelationForm },
     Provenance { visible: bool },
@@ -205,6 +206,7 @@ pub enum Property {
     Details,
     RelationForm,
     FieldForm,
+    Contexts,
     Provenance,
     RegionGuides,
     DropPreviews,
@@ -215,6 +217,7 @@ impl Effect {
         match self {
             Self::Representation { .. } | Self::NodeMark { .. } => Property::Representation,
             Self::FieldForm { .. } => Property::FieldForm,
+            Self::Contexts { .. } => Property::Contexts,
             Self::Details { .. } => Property::Details,
             Self::RelationForm { .. } => Property::RelationForm,
             Self::Provenance { .. } => Property::Provenance,
@@ -229,15 +232,12 @@ impl Effect {
             Self::Representation { .. } | Self::NodeMark { .. } | Self::Details { .. }
         )
     }
-    fn target_kind(&self) -> PrimitiveKind {
+    fn matches_target(&self, kind: PrimitiveKind) -> bool {
         match self {
-            Self::Representation { .. } | Self::NodeMark { .. } | Self::Details { .. } => {
-                PrimitiveKind::Node
-            },
-            Self::RelationForm { .. } | Self::Provenance { .. } => PrimitiveKind::Relation,
-            Self::FieldForm { .. } | Self::RegionGuides { .. } | Self::DropPreviews { .. } => {
-                PrimitiveKind::Field
-            },
+            Self::Representation { .. } | Self::NodeMark { .. } | Self::Details { .. } => kind == PrimitiveKind::Node,
+            Self::RelationForm { .. } | Self::Provenance { .. } => kind == PrimitiveKind::Relation,
+            Self::FieldForm { .. } | Self::RegionGuides { .. } | Self::DropPreviews { .. } => kind == PrimitiveKind::Field,
+            Self::Contexts { .. } => true,
         }
     }
 }
@@ -385,7 +385,12 @@ impl RuleSet {
                     );
                 }
                 let effect_path = format!("{path}.effects[{effect_index}]");
-                if effect.target_kind() != rule.target.kind {
+                if let Effect::Contexts { value } = effect {
+                    for problem in crate::contexts::context_issues(value) {
+                        issue(&mut issues, &effect_path, &problem.message);
+                    }
+                }
+                if !effect.matches_target(rule.target.kind) {
                     issue(
                         &mut issues,
                         &effect_path,

@@ -38,6 +38,7 @@ pub mod arrangement;
 pub mod authoring;
 pub mod catalog;
 pub mod crystal;
+pub mod contexts;
 pub mod document;
 pub mod facet;
 mod families;
