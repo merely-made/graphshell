@@ -9,11 +9,6 @@ use std::fmt;
 
 use crate::envelope::TreeAddress;
 
-#[cfg(feature = "registry-lint")]
-mod registry_sink;
-#[cfg(feature = "registry-lint")]
-pub use registry_sink::RegistrySink;
-
 #[cfg(test)]
 mod tests;
 

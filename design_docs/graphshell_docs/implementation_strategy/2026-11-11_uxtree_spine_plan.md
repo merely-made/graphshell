@@ -1,8 +1,8 @@
 # uxtree spine plan: a federated tree with one envelope
 
-**Status:** 2026-11-18. P0 to P5 landed. P6 supplier landed on Graphshell main at `2a5a4f07`.
-Turnstone is qualifying the landed supplier with the Crystal update. P7 is under way.
-P8 to P11 remain open.
+**Status:** 2026-11-18. P0 to P6 landed. P6 landed on Graphshell at `2a5a4f07` and on Turnstone
+at `46d79e84`. Turnstone qualified against that Graphshell main revision with the Crystal update.
+P7 is under way. P8 to P11 remain open.
 The slice 4 cutover moved uxtree, Cambium and E1a to Graphshell's `host/`.
 P0 remains a gate for D1. If it fails, D1 returns to Mark.
 
@@ -256,7 +256,9 @@ missing bounds, an action with no route, a node with no envelope. The structural
 `NativeIds::prepare` (`winit-a11y/publication.rs`), shared and not copied. Findings go to a sink trait. The first sink
 is `mere-registry`'s existing `ux:` channels (`ux:structural_violation`, `ux:contract_warning`,
 `ux:presentation_bounds_missing`, `ux:tree_build`, `ux:tree_snapshot_built`; zero to two new descriptors, estimate).
-A scenario verb runs the lint in Turnstone's `.scn` runner (about 50 lines, estimate). P7 uses `lint-a11y` and uxtree's optional `registry-lint` feature. The structural findings retain Cambium's existing refusal mapping. Label, bounds, route and envelope findings are advisory.
+A scenario verb runs the lint in Turnstone's `.scn` runner (about 50 lines, estimate). P7 uses `lint-a11y` for the primary window and a sink behind `mere-registry/ux-lint`. That placement
+keeps the packageable uxtree core independent of the internal registry. The shared structural findings preserve
+Cambium's existing refusal mapping. Label, bounds, route and envelope findings are advisory.
 
 - Not here: frame-to-frame stability checks. D7 puts them after stability classes exist in code; they are cut as their
   own phase when P1 and P5 have landed.
@@ -530,7 +532,7 @@ Each is a question for a later round, with its evidence. None is answered here.
 | Canvas through native publication | Producer owner and minted node ID. The graph member UUID travels separately as the domain reference. |
 | Graphshell mounted scene | Producer session and scene-instance node ID, scoped to the scene epoch. |
 | Turnstone host chrome and shared frame | Producer window root and local projected ID. Lens remapping runs before publication. |
-| Turnstone's retained documents in the host tree | Installed `(TreeId, NodeId)`. Each placement graft keeps the document's local IDs. Its captured route checks source and placement. |
+| Turnstone's pooled retained documents | Installed `(TreeId, NodeId)`. Each placement graft keeps the document's local IDs. Its captured route checks source and placement. |
 | Turnstone foreign surfaces, including nested guests | Installed `(TreeId, NodeId)`. The current owner table selects the surface, then the retained tree resolves the local node. |
 | Turnstone contributed panes | Installed `(TreeId, NodeId)`. The pane fills the address from the subtree it publishes. The source and placement still govern admission. |
 | Document, frozen, Gloss and Platen observation views | Caller-supplied producer instance and path-derived node ID. |
@@ -729,3 +731,9 @@ Each is a question for a later round, with its evidence. None is answered here.
   restored pair passed. Both candidates passed their ordinary hooks. The family
   check found zero cycles across 29 repositories. The receipt packet is under
   `Code/testing/graphshell/uxtree-p6/`. Land Graphshell before Turnstone.
+
+- 2026-11-18: P6 landed in supplier order after both candidates incorporated the
+  concurrent Crystal changes. Graphshell `2a5a4f07` passed 39 uxtree and 10
+  retained-session tests. Turnstone `46d79e84` passed 74 accessibility tests
+  and the Crystal consumer check against that exact supplier on main. Both
+  landings passed the regular hooks. See `Code/testing/graphshell/uxtree-p6/landing-*`.

@@ -22,6 +22,8 @@ pub mod channels;
 mod correlation;
 pub mod descriptor;
 pub mod emit;
+#[cfg(feature = "ux-lint")]
+pub mod ux_lint;
 pub use correlation::DiagnosticCorrelation;
 
 pub use descriptor::*;
