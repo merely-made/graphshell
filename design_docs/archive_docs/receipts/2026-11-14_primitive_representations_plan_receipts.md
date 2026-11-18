@@ -494,3 +494,65 @@ Turnstone passed 281 library tests with six ignored using
 --lib --offline --locked`. Its root and web lock notes use f337e02. The runs reused the
 Graphshell and Turnstone targets on T-PC. The staged browser site
 and isolated browser profiles were removed after the headed check.
+
+## 2026-11-18 N Crystal
+
+Graphshell eacce17 adds the unbounded Crystal arrangement, its assigned
+rectangular tiles, and adjacency as a placed relation form. The recipe's
+`smallest_side` defaults to 32 px. A shared border counts at half that
+length. The packer searches perimeter boundary coordinates at the minimum
+size with a bounded beam, then grows placed tiles where the borders and
+clearance allow. A pin only repacks its immediate unpinned links. Other
+tiles, including previous pins and loose tiles, are obstacles. Unlinked
+tiles keep 8 px apart.
+
+The 30-leaf star at a 160 × 100 nucleus and 48 px minimum fits ten leaves.
+Probe 2 fit nine for that control. The document replay reconstructed the
+70 vertices incident to the 118 links in Graphshell a0469fc1. It parks
+160 × 100 tiles 512 px apart in ten columns, visits each component in
+breadth-first order from its highest degree, and checks clearance and tile
+size after each pin. Its border counts were 17, 20, 27, 42, 61 and 74 after
+1, 5, 10, 25, 50 and 70 pins respectively. The all-pinned share was 63%.
+Probe 2 reported 65% in its grows-back run. Its free-tile and starting
+positions differ from this replay. The graph and counts are in
+`packer-graph.txt` and `packer-replay.json` in the receipt directory.
+
+Turnstone e5feff14 wires the live edits into the spatial preview. Pinning
+uses the scene's honored pin role. Moving an attached tile lets the packer
+choose a feasible position on a border and repack the siblings. Scene
+placements survive compiler refresh and unpinning. Each disclosed link
+has a shared border or an unmet report, with a fallback stroke for
+selected endpoints.
+
+The headed Chrome run on T-PC used BrowserWebGpu. It loaded
+`ports/graphshell/web/tests/projection-crystal.html` through the normal
+product route with `app=local`. The `projection_crystal` scenario used
+keyboard drop and slide input. The 96 px minimum fixture reports ten
+links. The first pin fits six direct links and leaves three direct links
+loose at their starting positions. The second-hop tile stays put. The
+slide moves Branch from (82, 96) to (-130, 48) and its siblings repack
+around the fixed nucleus. Unpinning preserves those coordinates.
+Clearing selection removes the link overlays.
+
+The final run passed with zero page errors and zero gate failures. The
+three inspected captures are `crystal_pinned.png`, `crystal_slid.png`
+and `crystal_unpinned.png` in
+`~/Code/testing/turnstone/receipts/2026-11-18_crystal/headed-final` on T-PC.
+This run used the M6 product Wasm features and web workspace configuration.
+It used `tests/run-headed-receipt.py --scenario projection_crystal
+--page tests/projection-crystal.html --query app=local`, with
+`--force-device-scale-factor=0.8` passed to Chrome.
+The scenario SHA-256 is
+`2abc789328d34856810dbe9cb86d5f3510a6f49a2143566b57c7cb4fa4b914c6`.
+The Wasm bundle SHA-256 is
+`e435f98015ae07c2fc362b5b003e05deae20889d3bbb626e4d64ffd9e480194c`.
+
+Scenograph and Scenomise passed 361 tests with all features. Turnstone
+passed 281 library tests with six ignored using
+`cargo test -p graphshell --no-default-features --features web,physics-engine
+--lib --offline --locked`. Both repositories passed their configured
+checks after integrating uxtree P5. Turnstone's resolved root and web
+locks use the checked Graphshell merge ac91ed3 and Genet b75face for
+the semantic lookup APIs. Stable per-repository and guest targets were
+reused on T-PC. The generated site and browser profiles were removed
+after capture.
