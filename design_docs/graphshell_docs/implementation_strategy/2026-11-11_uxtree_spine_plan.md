@@ -1,9 +1,8 @@
 # uxtree spine plan: a federated tree with one envelope
 
-**Status:** 2026-11-18. P0 to P4 landed. P4's Genet supplier is `b75face72c9` and its
-Graphshell code is `3b247317`. The retained-document action test passed with the supplier on
-Genet main. The P5 supplier is on Graphshell main at `5a8d2d1e`. Turnstone is qualifying that revision.
-P6 is under way. P7 to P11 remain open.
+**Status:** 2026-11-18. P0 to P5 landed. P5 landed in Graphshell at `5a8d2d1e` and in Turnstone at
+`6f45ffc4`. Turnstone passed the receiving tests against that Graphshell main revision.
+P6 is qualified and pushed on `uxtree/p6` in Graphshell and Turnstone. P7 to P11 remain open.
 The slice 4 cutover moved uxtree, Cambium and E1a to Graphshell's `host/`.
 P0 remains a gate for D1. If it fails, D1 returns to Mark.
 
@@ -243,10 +242,11 @@ Pelt mints one tree. `GraftTable` already routes an `ActionRequest` by `target_t
 - Done when: for Turnstone's grafted producers the address is the pair and a resolver test finds each node by it; a
   request naming a `TreeId` no longer in the table is refused; the plan's Findings list each producer with the address
   form it uses, updated here and again at P11.
-- Needs: P1, P5.
+- Needs: P1, P5, both landed.
 - A federated reader declares either a producer instance or an installed tree as the address space.
   The shared graft resolver selects the owner from the tree ID. The owner resolves the local node
-  and checks its live admission.
+  and checks its live admission. Contributed route admission carries both IDs when the window
+  publishes it.
 
 ### P7. The lint library, the sink trait, the registry sink, the scenario verb
 
@@ -522,6 +522,22 @@ Each is a question for a later round, with its evidence. None is answered here.
 
 ## Findings
 
+### P6 address forms by producer
+
+| Producer | Address at this phase |
+|---|---|
+| Cambium native publication | Producer owner and minted `NodeId`, assigned by `NativeIds`. The publisher refuses grafts until P11. |
+| Retained Genet document read through Pelt core | Producer session and the document projection's local `NodeId`. Scope comes from the engine revision. |
+| Pelt desktop document | Producer window, tile and session with the minted node ID in the window's tree. |
+| Canvas through native publication | Producer owner and minted node ID. The graph member UUID travels separately as the domain reference. |
+| Graphshell mounted scene | Producer session and scene-instance node ID, scoped to the scene epoch. |
+| Turnstone host chrome and shared frame | Producer window root and local projected ID. Lens remapping runs before publication. |
+| Turnstone's retained documents in the host tree | Root-tree action key and host-mapped node ID. The captured document route retains its source and placement checks. |
+| Turnstone foreign surfaces, including nested guests | Installed `(TreeId, NodeId)`. The current owner table selects the surface, then the retained tree resolves the local node. |
+| Turnstone contributed panes | Installed `(TreeId, NodeId)`. The pane fills the address from the subtree it publishes. The source and placement still govern admission. |
+| Document, frozen, Gloss and Platen observation views | Caller-supplied producer instance and path-derived node ID. |
+
+
 - 2026-11-17: P1 defines the six metadata fields and all four classes without importing any host
   types or changing uxtree's manifest. Generic instance/provenance/domain payloads preserve a
   reader's existing common identity and weak witnesses. The mixed-source P0 gate still reads all
@@ -699,3 +715,19 @@ Each is a question for a later round, with its evidence. None is answered here.
   The root and web dependency locks still match the selected supplier after the
   hooks. Land Graphshell before Turnstone. The raw packet is under
   `Code/testing/graphshell/uxtree-p5/`.
+
+- 2026-11-18: P5 landed in supplier order. Graphshell advanced to `5a8d2d1e` after
+  38 uxtree tests passed again. Turnstone advanced to `6f45ffc4` after the 71
+  accessibility tests, the palette Keep/Drop test and all three dependency-ban
+  checks passed with Graphshell main. Both pushes ran the regular hooks.
+  The landing receipts are under `Code/testing/graphshell/uxtree-p5/landing-*`.
+
+- 2026-11-18: P6 pairs installed tree IDs with unchanged local node IDs in
+  Turnstone's foreign and contributed grafts. The P6 Findings table records
+  the producer-instance and installed-tree forms in use.
+- 2026-11-18: Graphshell `78c9f4ca` passed 39 uxtree tests, 10 real-session tests
+  and the wasm check. Turnstone `563ed234` passed 74 accessibility tests against
+  that exact Git supplier. The local-ID-only control failed at runtime and the
+  restored pair passed. Both candidates passed their ordinary hooks. The family
+  check found zero cycles across 29 repositories. The receipt packet is under
+  `Code/testing/graphshell/uxtree-p6/`. Land Graphshell before Turnstone.

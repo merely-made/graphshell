@@ -394,3 +394,34 @@ Frozen Projection nodes, so the publisher filters the fills out. Frozen
 Projection selection still needs a binding. The raw results and generated
 locks are under `Code/testing/graphshell/uxtree-p5/`. The dependency order for
 landing is Graphshell, then Turnstone.
+
+### 2026-11-18 P5 landing
+
+Graphshell main received `5a8d2d1e142e0414bdd83bb4d47b7ba10a47d362`, with code
+matching the qualified supplier `a0595668`. All 38 uxtree tests passed again.
+
+The Turnstone root and web locks selected that revision from Graphshell
+main. The 71 accessibility tests and palette Keep/Drop test passed. The root,
+web and relay dependency bans passed, and the regular push advanced Turnstone
+main to `6f45ffc493e8edcefeb9278dc30b172efa1e02eb`. The landed revisions, locks
+and gate outputs are recorded in `Code/testing/graphshell/uxtree-p5/landing-*`.
+
+## 2026-11-18 P6 tree-qualified grafts
+
+Graphshell `78c9f4ca6aedfbbd2656691e6705749ce8c79e48` defines the two address spaces, producer instance and
+installed tree. Its native uxtree suite passed 29 unit tests, nine integration
+tests and one doctest. Ten E1a real-session tests and the all-features wasm check
+passed. Replacing the installed tree ID with ROOT failed the address test.
+
+Turnstone `563ed2349fcee5a503e6135548227e19ccd96861` passed 74 accessibility tests against that exact Git
+revision. The foreign fixture resolves all nodes of a nested foreign surface.
+Retiring it refuses its old action while another surface's same local ID still
+resolves. The contributed fixture resolves each published local node through
+the actual AccessKit consumer and checks removal from the composed tree.
+Comparing only the local ID admits a cross-tree click and fails the deliberate
+control. Restoring the source passes it again.
+
+Normal Graphshell and Turnstone hooks passed, including Turnstone's root,
+web and relay bans. The receiving root and web locks stayed identical
+through the hooks. The family check found zero strict or development cycles
+across 29 checkouts. Raw outputs and locks are under `Code/testing/graphshell/uxtree-p6/`.
