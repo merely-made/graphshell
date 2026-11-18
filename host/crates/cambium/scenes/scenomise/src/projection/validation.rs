@@ -74,6 +74,12 @@ pub(super) fn validation_issues(
             "this realization supports single selection with a fitted viewport",
         ));
     }
+    if definition.dynamics.is_some() && matches!(target, Some(Target::Builtin(Family::Crystal))) {
+        issues.push(CompileIssue::new(
+            "dynamics",
+            "Crystal moves tiles through pin, drop and slide edits",
+        ));
+    }
     if definition.appearance.realization != "canvas" {
         issues.push(CompileIssue::new(
             "appearance.realization",

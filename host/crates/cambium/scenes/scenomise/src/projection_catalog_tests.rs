@@ -189,7 +189,9 @@ fn an_assigned_extent_is_refused_for_a_mark_that_does_not_accept_it() {
             },
             _ => {
                 let issues = result.unwrap_err();
-                assert_eq!(fields(&issues), ["occurrences[a].mark", "occurrences[b].mark", "occurrences[c].mark"], "{}", family.id());
+                let mut rejected = fields(&issues);
+                rejected.sort();
+                assert_eq!(rejected, ["occurrences[a].mark", "occurrences[b].mark", "occurrences[c].mark"], "{}", family.id());
                 assert_eq!(
                     issues[0].message,
                     format!(

@@ -37,6 +37,7 @@ pub mod arrangement;
 #[cfg(feature = "authoring")]
 pub mod authoring;
 pub mod catalog;
+pub mod crystal;
 pub mod document;
 pub mod facet;
 mod families;

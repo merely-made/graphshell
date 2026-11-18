@@ -23,10 +23,10 @@ pub(super) fn form_issues(
     field: &str,
     arrangement: &str,
 ) -> Vec<CompileIssue> {
-    if form == RelationForm::Adjacency {
+    if form != RelationForm::Adjacency && allowed.contains(&RelationForm::Adjacency) {
         return vec![CompileIssue::new(
             field,
-            "relation-driven adjacency belongs to Crystal",
+            "Crystal uses adjacency for its relationships",
         )];
     }
     if form.is_placed() && !allowed.contains(&form) {
@@ -139,14 +139,18 @@ pub(crate) fn route(
         ScenoArrangement::Partition(config) => config.gap,
         _ => 0.0,
     };
-    crate::relation_forms::arrange(
-        &projection.score,
-        &projection.relation_registry,
-        &mut scene,
-        &constraints,
-        assigned,
-        gap,
-    )?;
+    if let ScenoArrangement::Crystal(config) = &projection.score.arrangement {
+        crate::crystal::initialize(&mut scene, config, constraints, projection.selected);
+    } else {
+        crate::relation_forms::arrange(
+            &projection.score,
+            &projection.relation_registry,
+            &mut scene,
+            &constraints,
+            assigned,
+            gap,
+        )?;
+    }
     projection.base_scene = base_scene;
     projection.scene = scene;
     projection.relation_marks = marks;
@@ -187,6 +191,10 @@ fn resolve_forms(
     relationships: &[DisclosedRelationship],
     selected: Option<&str>,
 ) -> Result<BTreeMap<String, scenograph::ResolvedMarks>, Vec<CompileIssue>> {
+    let mut defaults = defaults.clone();
+    if allowed.contains(&RelationForm::Adjacency) && defaults.relation.is_none() {
+        defaults.relation = Some(RelationForm::Adjacency);
+    }
     let availability = InputAvailability {
         states: [ViewState::Selected].into(),
         screen_size: false,
@@ -215,7 +223,7 @@ fn resolve_forms(
             screen_size: None,
             previous_matches: Default::default(),
         };
-        let resolution = match rules.resolve_marks(defaults, &context, &availability) {
+        let resolution = match rules.resolve_marks(&defaults, &context, &availability) {
             Ok(resolution) => resolution,
             Err(problems) => {
                 issues.extend(problems.into_iter().map(|issue| {

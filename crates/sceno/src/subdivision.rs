@@ -54,6 +54,26 @@ pub enum PartitionForm {
     Rings,
 }
 
+/// Pin-nucleated rectangular tiles on an unbounded plane.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Crystal {
+    pub origin: Vec2,
+    pub tile: Size2,
+    pub smallest_side: f32,
+    pub spacing: f32,
+}
+
+impl Default for Crystal {
+    fn default() -> Self {
+        Self {
+            origin: Vec2::ZERO,
+            tile: Size2::new(160.0, 100.0),
+            smallest_side: 32.0,
+            spacing: 16.0,
+        }
+    }
+}
+
 /// Fixed set regions as the backdrop. An item's categorical axis lists the
 /// sets it belongs to, separated by `|`, which picks its region; a weight of
 /// at least one half places it in the core of those sets (forward), anything

@@ -22,10 +22,10 @@
 use std::collections::BTreeMap;
 
 use sceno::{
-    Arrangement, Embedded, EmbeddingFallback, Geographic, Grid, Hulls, IterationDepth, Kanban,
-    LSystem, LSystemGrammar, Mosaic, Partition, PartitionForm, Penrose, PenroseVariant, Radial,
-    RadialAngularPolicy, RadialUnreachablePolicy, Rect, Setscape, Size2, Spiral, SpiralCurve,
-    Stack, SubdivisionCount, Timeline, TimelineFallback, UnusedVertexPolicy, Vec2,
+    Arrangement, Crystal, Embedded, EmbeddingFallback, Geographic, Grid, Hulls, IterationDepth,
+    Kanban, LSystem, LSystemGrammar, Mosaic, Partition, PartitionForm, Penrose, PenroseVariant,
+    Radial, RadialAngularPolicy, RadialUnreachablePolicy, Rect, Setscape, Size2, Spiral,
+    SpiralCurve, Stack, SubdivisionCount, Timeline, TimelineFallback, UnusedVertexPolicy, Vec2,
 };
 use scenograph::dataset::ProjectionFieldType;
 use scenograph::options::{OptionDefault, OptionKind, OptionSpec};
@@ -51,10 +51,11 @@ pub enum Family {
     Partition,
     Sets,
     Mosaic,
+    Crystal,
 }
 
 /// Every family in the catalog, in a stable order.
-pub const FAMILIES: [Family; 14] = [
+pub const FAMILIES: [Family; 15] = [
     Family::Spiral,
     Family::Grid,
     Family::Geographic,
@@ -69,6 +70,7 @@ pub const FAMILIES: [Family; 14] = [
     Family::Partition,
     Family::Sets,
     Family::Mosaic,
+    Family::Crystal,
 ];
 
 /// How a family reads a recipe's x and y encoding.

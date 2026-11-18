@@ -13,7 +13,7 @@
 //! exists), which is why these take the whole ordered slice rather than one
 //! item at a time.
 
-use sceno::{Arrangement, AxisValue, Footprint, Placement, ScoreItem, Vec2};
+use sceno::{Arrangement, AxisValue, Footprint, Placement, ScoreItem, Size2, Vec2};
 
 mod axial;
 mod embedded;
@@ -47,9 +47,10 @@ pub(crate) fn arrange(arrangement: &Arrangement, items: &[&ScoreItem]) -> Option
         Arrangement::Kanban(config) => axial::kanban(config, items),
         Arrangement::Embedded(config) => embedded::place(config, items),
         Arrangement::Radial(config) => radial::place(config, items),
-        Arrangement::Partition(_) | Arrangement::Setscape(_) | Arrangement::Mosaic(_) => {
-            shape(arrangement, items, None)?.positions
-        },
+        Arrangement::Partition(_)
+        | Arrangement::Setscape(_)
+        | Arrangement::Mosaic(_)
+        | Arrangement::Crystal(_) => shape(arrangement, items, None)?.positions,
         Arrangement::Custom { .. } => return None,
     })
 }
@@ -91,6 +92,23 @@ pub(crate) fn shape(
         Arrangement::Partition(config) => Some(partition::shape(config, items, partition_focus)),
         Arrangement::Setscape(config) => Some(setscape::shape(config, items)),
         Arrangement::Mosaic(config) => Some(mosaic::shape(config, items)),
+        Arrangement::Crystal(config) => {
+            let mut shape = Shape::unplaced(items.len());
+            let columns = (items.len() as f32).sqrt().ceil().max(1.0) as usize;
+            let size = Size2::new(
+                config.tile.w.max(config.smallest_side),
+                config.tile.h.max(config.smallest_side),
+            );
+            let gap = config.spacing.max(crate::crystal::CLEARANCE);
+            for index in 0..items.len() {
+                shape.positions[index] = Vec2::new(
+                    config.origin.x + (index % columns) as f32 * (size.w + gap),
+                    config.origin.y + (index / columns) as f32 * (size.h + gap),
+                );
+                shape.footprints[index] = Some(Footprint::Rect { size });
+            }
+            Some(shape)
+        },
         _ => None,
     }
 }

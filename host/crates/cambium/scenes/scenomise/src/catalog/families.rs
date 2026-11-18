@@ -23,6 +23,7 @@ impl Family {
             Self::Partition => "partition",
             Self::Sets => "sets",
             Self::Mosaic => "mosaic",
+            Self::Crystal => "crystal",
         }
     }
 
@@ -47,6 +48,7 @@ impl Family {
         use sceno::RelationForm;
         match self {
             Self::Grid | Self::Spiral | Self::Mosaic => vec![RelationForm::Order],
+            Self::Crystal => vec![RelationForm::Adjacency],
             Self::Partition if options.get("form").is_none_or(|form| form == "tiles") => {
                 vec![RelationForm::Containment]
             },
@@ -74,7 +76,7 @@ impl Family {
             Self::Kanban | Self::Partition | Self::Sets | Self::Mosaic => {
                 ChannelUse::CategoricalAxis
             },
-            Self::Spiral | Self::Penrose | Self::LSystem => ChannelUse::Order,
+            Self::Spiral | Self::Penrose | Self::LSystem | Self::Crystal => ChannelUse::Order,
         }
     }
 
@@ -82,7 +84,7 @@ impl Family {
     /// representations plan, M1): Partition and Mosaic write the footprint.
     pub fn extent(self) -> Extent {
         match self {
-            Self::Partition | Self::Mosaic => Extent::Assigned,
+            Self::Partition | Self::Mosaic | Self::Crystal => Extent::Assigned,
             _ => Extent::Measured,
         }
     }
@@ -280,6 +282,12 @@ impl Family {
                 measured("height", "Height", OptionKind::Positive, AREA),
                 OptionSpec::new("sets", "Sets", OptionKind::List, OptionDefault::Empty),
             ],
+            Self::Crystal => vec![OptionSpec::new(
+                "smallest_side",
+                "Smallest tile side",
+                OptionKind::Positive,
+                OptionDefault::Value(Crystal::default().smallest_side.to_string()),
+            )],
             Self::Mosaic => vec![
                 measured(
                     "unit_area",
@@ -361,6 +369,11 @@ impl Family {
                 "Sets",
                 "Items sit in the overlap of the sets they belong to.",
                 &["spatial-memory"],
+            ),
+            Self::Crystal => (
+                "Crystal",
+                "Pinned tiles pack their immediate links as shared borders.",
+                &["spatial-memory", "adjacency"],
             ),
             Self::Mosaic => (
                 "Mosaic",
@@ -529,6 +542,19 @@ impl Family {
                 bounds: area(read, measure),
                 sets: read.list("sets"),
             }),
+            Self::Crystal => {
+                let smallest_side =
+                    read.positive("smallest_side", Crystal::default().smallest_side);
+                Arrangement::Crystal(Crystal {
+                    origin: Vec2::ZERO,
+                    tile: Size2::new(
+                        measure.largest.w.max(smallest_side),
+                        measure.largest.h.max(smallest_side),
+                    ),
+                    smallest_side,
+                    spacing: measure.spacing,
+                })
+            },
             Self::Mosaic => {
                 let default = Mosaic::default();
                 Arrangement::Mosaic(Mosaic {
