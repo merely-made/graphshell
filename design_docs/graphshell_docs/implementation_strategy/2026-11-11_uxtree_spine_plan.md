@@ -2,7 +2,8 @@
 
 **Status:** 2026-11-18. P0 to P4 landed. P4's Genet supplier is `b75face72c9` and its
 Graphshell code is `3b247317`. The retained-document action test passed with the supplier on
-Genet main. P5 is qualified and pushed on `uxtree/p5` in Graphshell and Turnstone. P6 to P11 remain open.
+Genet main. The P5 supplier is on Graphshell main at `5a8d2d1e`. Turnstone is qualifying that revision.
+P6 is under way. P7 to P11 remain open.
 The slice 4 cutover moved uxtree, Cambium and E1a to Graphshell's `host/`.
 P0 remains a gate for D1. If it fails, D1 returns to Mark.
 
@@ -243,6 +244,9 @@ Pelt mints one tree. `GraftTable` already routes an `ActionRequest` by `target_t
   request naming a `TreeId` no longer in the table is refused; the plan's Findings list each producer with the address
   form it uses, updated here and again at P11.
 - Needs: P1, P5.
+- A federated reader declares either a producer instance or an installed tree as the address space.
+  The shared graft resolver selects the owner from the tree ID. The owner resolves the local node
+  and checks its live admission.
 
 ### P7. The lint library, the sink trait, the registry sink, the scenario verb
 

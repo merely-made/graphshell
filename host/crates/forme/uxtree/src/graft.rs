@@ -27,6 +27,8 @@
 use std::collections::{HashMap, HashSet};
 use std::hash::{Hash, Hasher};
 
+use crate::envelope::TreeAddress;
+
 use accesskit::{
     ActionRequest, Affine, Node, NodeId, Rect, Role, TreeId, TreeInfo, TreeUpdate, Uuid,
 };
@@ -364,15 +366,21 @@ impl<K> GraftTable<K> {
         self.guests.get(&tree)
     }
 
-    /// Route `request` by its `target_tree`.
-    pub fn route(&self, request: &ActionRequest) -> ActionTarget<'_, K> {
-        if request.target_tree == self.host {
+    /// Resolve the owning session for a tree-qualified address. The owner
+    /// checks that the local node still exists and supports the action.
+    pub fn resolve(&self, (tree, _): TreeAddress) -> ActionTarget<'_, K> {
+        if tree == self.host {
             return ActionTarget::Host;
         }
-        match self.guests.get(&request.target_tree) {
+        match self.guests.get(&tree) {
             Some(key) => ActionTarget::Guest(key),
-            None => ActionTarget::Unknown(request.target_tree),
+            None => ActionTarget::Unknown(tree),
         }
+    }
+
+    /// Route the same address supplied by the AccessKit request.
+    pub fn route(&self, request: &ActionRequest) -> ActionTarget<'_, K> {
+        self.resolve((request.target_tree, request.target_node))
     }
 }
 

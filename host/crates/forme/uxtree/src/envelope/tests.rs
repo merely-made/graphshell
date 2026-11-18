@@ -128,3 +128,17 @@ fn schema_guard_catches_each_planted_accesskit_field() {
         assert!(failure.is_err(), "guard failed to detect {foreign}");
     }
 }
+
+#[test]
+fn a_grafted_address_preserves_both_ids_and_its_declared_space() {
+    let a = crate::tree_id_for_path("address/one");
+    let b = crate::tree_id_for_path("address/two");
+    let local = NodeId(12);
+    let first = FederatedAddress::grafted((a, local));
+    let second = FederatedAddress::grafted((b, local));
+    let producer = FederatedAddress::producer(a, local);
+    assert_eq!(first.tree_address(), Some((a, local)));
+    assert_eq!(second.tree_address(), Some((b, local)));
+    assert_eq!(producer.tree_address(), None);
+    assert_eq!(HashSet::from([first, second, producer]).len(), 3);
+}

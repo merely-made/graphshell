@@ -56,13 +56,24 @@
 //! assert!(envelope.action_ids.is_empty());
 //! ```
 
-use accesskit::NodeId;
+use accesskit::{NodeId, TreeId};
 
-/// A producer instance and its local AccessKit ID, scoped to one reader.
-///
-/// The caller supplies its existing instance identity, not a frame number.
-/// This pair does not assert that the instance is an installed AccessKit tree;
-/// P6 adds the explicitly tree-qualified address form.
+/// An address in an installed AccessKit tree, with the tree's local node ID.
+pub type TreeAddress = (TreeId, NodeId);
+
+/// The identity space used by a reader that combines producers and grafts.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum AddressSpace<I> {
+    Producer(I),
+    Grafted(TreeId),
+}
+
+/// An address that distinguishes producer instances from installed trees.
+pub type FederatedAddress<I> = Address<AddressSpace<I>>;
+
+/// An instance and its local AccessKit ID. Pure producers can supply their
+/// existing instance identity. Readers that also use installed trees use
+/// [`FederatedAddress`].
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct Address<I> {
     pub instance: I,
@@ -72,6 +83,25 @@ pub struct Address<I> {
 impl<I> Address<I> {
     pub fn new(instance: I, local: NodeId) -> Self {
         Self { instance, local }
+    }
+}
+
+impl<I> FederatedAddress<I> {
+    /// Keep a local node in an un-grafted producer's identity space.
+    pub fn producer(instance: I, local: NodeId) -> Self {
+        Self::new(AddressSpace::Producer(instance), local)
+    }
+
+    /// Address a node by the installed tree and its unchanged local ID.
+    pub fn grafted((tree, local): TreeAddress) -> Self {
+        Self::new(AddressSpace::Grafted(tree), local)
+    }
+
+    pub fn tree_address(&self) -> Option<TreeAddress> {
+        match &self.instance {
+            AddressSpace::Producer(_) => None,
+            AddressSpace::Grafted(tree) => Some((*tree, self.local)),
+        }
     }
 }
 
