@@ -91,6 +91,8 @@ arrangement.
 - Needs: M2.
 
 ### M5. Mosaic and Partition take any assigned mark
+**Completed 2026-11-17.**
+
 - Done when: each accepts any node mark with an assigned extent, a card included, with its
   current placements unchanged for the tile mark.
 - Needs: M2, M4.
@@ -869,3 +871,11 @@ face.
   (5267dd2) was merged without conflicts, and the combined main passes its
   configured checks. M5 (any assigned node mark), M6, Partition zoom and Crystal
   remain open.
+
+
+- 2026-11-17: M5 validates the winning node mark against the assigned extent.
+  Mosaic and both Partition forms retain their positions, footprints and group
+  contours across tile, card and other assigned marks. A detail edit can reuse
+  existing placement. Turnstone's spatial preview fits cards to the assigned
+  footprints, including the clipped sectors in Partition Rings.
+  [M5 receipt](../../archive_docs/receipts/2026-11-14_primitive_representations_plan_receipts.md#2026-11-17-m5-assigned-node-marks).

@@ -350,3 +350,36 @@ shared source revision.
 The task reused stable per-repository targets on T-PC. Seven Graphshell guest
 target aliases share the existing ~/Code/targets/graphshell/guests fixtures.
 Windows primary checkouts and concurrent work were preserved.
+
+
+## 2026-11-17 M5 assigned node marks
+
+Scenomise checks the resolved occurrence mark after presentation rules apply.
+A measured default can yield to an assigned mark, and refusals name the
+occurrences whose effective marks cannot fill the extent. A detail change
+reuses placement for Mosaic and Partition when the other inputs match.
+
+The regression fixtures compare the complete realized scene for the legacy
+tile, an explicit square tile, a card, a snapshot and a host-defined mark.
+Mosaic and both Partition forms produced identical positions, footprints,
+regions and occurrence mappings. A second check changes a tile to a card
+after adjusting a position and verifies that the compiler reuses that
+placement. Shared code is 51f55dd and 5206d4f.
+
+Turnstone 66716cd5 renders the resolved Card as a title and details inside
+the assigned cell. The spatial preview clips ring items to their polygonal
+footprints. Other detail requests retain their identity in the scene and use
+a label in this preview. The headed demonstration remains part of M6.
+
+Verification on T-PC used the existing Graphshell and Turnstone Cargo targets.
+Scenomise passed 254 library, 4 integration and 3 doc tests with all features.
+Cartography passed four projection mark tests and three arrangement golden
+tests. Turnstone passed 279 Graphshell library tests with 6 ignored. The
+full product Wasm check passed with CPU physics, WebGPU and WebGL presentation.
+Both repositories passed their configured pre-commit checks. Turnstone's
+root and browser resolved locks use 5206d4f.
+
+This receipt is the retained evidence for M5. The existing reusable targets
+in ~/Code/targets/graphshell and ~/Code/targets/turnstone still serve their
+respective repositories. The Graphshell checkout in Cargo uses the existing
+guest fixtures in ~/Code/targets/graphshell/guests.
