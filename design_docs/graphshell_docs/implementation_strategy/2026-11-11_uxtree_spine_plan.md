@@ -1,8 +1,9 @@
 # uxtree spine plan: a federated tree with one envelope
 
-**Status:** 2026-11-18. P0 to P8 landed. P7 landed on Graphshell at `9f3537ac` and on
+**Status:** 2026-11-18. P0 to P9 landed. P7 landed on Graphshell at `9f3537ac` and on
 Turnstone at `c47ba17a`. P8 landed on Mere at `49d7d473a` and on Graphshell at `4b2ef6c3`.
-P9 is under way. P10 and P11 remain open.
+P9 landed on Genet at `41e70983a4c`, Graphshell at `f2374e83`, and
+Turnstone at `b72da53f`. P10 and P11 remain open.
 The slice 4 cutover moved uxtree, Cambium and E1a to Graphshell's `host/`.
 P0 remains a gate for D1. If it fails, D1 returns to Mark.
 
@@ -301,17 +302,18 @@ and 71 a data-attribute filter. The raw inventory is under
 Code/testing/graphshell/uxtree-p9/. Taproot already exposes optional key metadata,
 and Turnstone already maps some Actions to shared command ids.
 
-Genet landed the parser and lookup change at `41e70983a4c`. All 49
-Taproot tests passed. Dropping the supplied key broke the new lookup test.
-In the Turnstone candidate, 84 act lines now use shared IDs and 32
-assertions read individual nodes. The five remaining text assertions check
-reading order. The audit lists each of the 29 remaining pixel clicks with
-its reason. Turnstone’s candidate also includes main through `0875c24e`.
-The receiving dependency gates pass after refreshing `codespan-reporting`
-to select `unicode-width` 0.2.3. `miette` still uses 0.1.14 in the
-optional inference dependency graph. Graphshell passed 352 native tests and
-the Pelt receiving and Mandrake wasm checks. Removing the action witness let a retired request
-reach the replacement producer. Restoring it refused the request.
+The native scenario audit found 84 calls to shared commands. All 84 use IDs,
+and the remaining label calls have no shared ID. Of 54 pixel clicks, 25 now
+use selectors. The receipt lists the 29 points that exercise geometry or
+whose target source supplies no selectable semantics. Of 37 whole-tree text
+checks, 32 now assert on individual nodes and five check reading order.
+
+Turnstone included the concurrent native link inspector change at `9110a93e`.
+The final window run found the omnibar by key, activated a suggestion by role
+and name, and opened Settings by command ID. The accessibility suite, focused
+selector tests, neighborhood tests and ordinary hooks passed. The receipts
+record the failed exploratory replays of older scenarios and the native and
+wasm supplier checks.
 
 Taproot parses `key:<key>` as an exact authored key. The same parser serves
 `click` and Mandrake’s `wheel on`. Role and name remain available for nodes

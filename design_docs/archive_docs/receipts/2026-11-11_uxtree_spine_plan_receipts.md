@@ -518,3 +518,21 @@ The Genet refresh let Cargo resolve `codespan-reporting` to the older
 `unicode-width` used by optional inference. A focused update of the holder
 selected 0.2.3 and passed both existing dependency checks. The raw logs and
 scenario inventories are in Code/testing/graphshell/uxtree-p9/.
+
+Graphshell landed the receiving change at `f2374e838e5f2b5f59cc4abc2ec91acca497e3a1`. Turnstone landed
+at `b72da53f8f1b467756ad6274e95c334392d93f5b` against that exact supplier. Native and web lockfiles
+both selected it. The web resolver refresh restored the Oxigraph family’s
+compatible `thiserror` 2 selection. The strict native, web and relay package
+checks passed.
+
+Turnstone passed 76 accessibility tests, two focused selector tests, and two
+native neighborhood tests after integrating `9110a93e`. In the headed smoke
+test, its native runner found the omnibar by its authored key, clicked the
+named suggestion through retained pointer geometry, and opened the Settings
+pane by ID. The final 172-scenario inventory has zero mapped palette label
+calls, 29 justified pixel clicks and five reading-order assertions. The
+exploratory replays also ran the original scenario files on the receiving
+build. Those replays reproduced the missing frame target, missing frozen
+projection document, and old chrome fixture’s focus or presentation failures.
+The individual outputs and the final headed receipt are retained under
+Code/testing/graphshell/uxtree-p9/.
