@@ -40,6 +40,7 @@ pub mod catalog;
 pub mod document;
 pub mod facet;
 mod families;
+pub mod frames;
 pub mod history;
 pub mod host_dataset;
 mod math;

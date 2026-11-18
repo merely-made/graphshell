@@ -89,6 +89,7 @@ pub fn relationship_recipe(
     let label = label.into();
     RelationshipRecipe {
         definition: AuthoredProjectionDefinition {
+            frame: None,
             marks: Default::default(),
             fields: Vec::new(),
             dynamics: None,

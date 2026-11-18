@@ -253,3 +253,22 @@ and two links to shared caches. Its configuration and exact rejection/ownership
 status are recorded in `cleanup.json`. Four cache origins created through that
 home were normalized to persistent global cache paths. Shared source caches
 and reusable Graphshell/Turnstone targets, including the CEF SDK cache, remain.
+
+
+### P2 combined-main snapshot
+
+During the long dependency checks, remote main advanced to Graphshell
+`a9c12694a83b534971b6beeb129ce4adeae5edcb` and Turnstone
+`66716cd5a8a4b0818eb2b425f1c8426d4c718430`. P1's merge remains an ancestor of
+Graphshell main. Both snapshots merge cleanly into the P2 review branches.
+Combined qualification repeats the 340 supplier tests, 10 desktop accessibility
+tests, 13 canvas tests and receiving wasm check successfully. These source
+changes add no manifest edge; the existing source-cycle qualification remains
+applicable. Normal merge hooks also run before these candidates are pushed.
+
+The original report, source records and `SHA256SUMS` are preserved unchanged.
+Final combined heads, source diffs, hook/push output and the exact tested main
+snapshots are recorded separately in `combined-report.md`,
+`combined-candidate-record.json`, `combined-*.log` and `COMBINED-SHA256SUMS` under
+`Code/testing/graphshell/uxtree-p2/`. The cleanup rejection remains recorded;
+the named Cargo home is also reused for these combined receiving checks.

@@ -623,3 +623,8 @@ Each is a question for a later round, with its evidence. None is answered here.
   plus junctions to shared caches). Four gate-created Git cache origins were normalized to their
   persistent cache paths. Shared targets and source caches are preserved. Cleanup details and the
   complete qualification packet are under `Code/testing/graphshell/uxtree-p2/` (100 MB cap).
+- 2026-11-17: Final integration snapshot: Graphshell main advanced to `a9c12694` and
+  Turnstone main to `66716cd5` during dependency qualification. Both merge cleanly into the
+  review candidates. The combined trees pass the 340 supplier tests, 10 desktop tests,
+  13 canvas tests and the Turnstone wasm check again. Normal merge hooks are being run.
+  The original report/hash inventory is frozen; combined-tree receipts use separate filenames.

@@ -138,6 +138,7 @@ pub enum EditorAction {
     SetReading(Reading),
     SetEncoding(Encoding),
     SetMarks(scenograph::MarkSlots),
+    SetFrame(Option<scenograph::Frame>),
     SetArrangement(Arrangement),
     SetDynamics(Option<DynamicsSlot>),
     ApplyComparison {
@@ -308,6 +309,10 @@ impl ProjectionEditor {
                 self.draft.encoding = value;
                 ReduceResult::Changed
             },
+            EditorAction::SetFrame(value) => {
+                self.draft.frame = value;
+                ReduceResult::Changed
+            },
             EditorAction::SetMarks(value) => {
                 self.draft.marks = value;
                 ReduceResult::Changed
@@ -422,6 +427,9 @@ impl ProjectionEditor {
     ) -> Result<(), String> {
         let mut draft = self.draft().clone();
         let action = match field {
+            "frame" => EditorAction::SetFrame(
+                serde_json::from_str(value).map_err(|error| error.to_string())?,
+            ),
             "marks" => EditorAction::SetMarks(
                 serde_json::from_str(value).map_err(|error| error.to_string())?,
             ),

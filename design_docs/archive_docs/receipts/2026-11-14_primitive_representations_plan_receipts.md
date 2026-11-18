@@ -250,3 +250,136 @@ knot-editor,woodshed,cleromancy}, owned by their corresponding repositories.
 The seven Graphshell guest fixture aliases continue to use
 ~/Code/targets/graphshell/guests. The task used primary T-PC checkouts, including
 a new primary Mer3ly checkout; Windows concurrent work was preserved.
+
+
+## 2026-11-17 M4 frame slot
+
+Scope: recipe frame data through editing, binding, placement and portable scene
+state. Retained evidence is this compact receipt plus committed tests, under
+the default 100 MB receipt cap. Work uses the clean T-PC primary checkout and
+the reusable ~/Code/targets/graphshell cache.
+
+- Sceno owns Frame and FrameKind: Unbounded(origin), Bounded(bounds),
+  Nested(local bounds and a Space transform), Flow(origin and page width).
+  Scenograph re-exports the vocabulary. Authored, bound and draft recipes carry
+  an optional frame; binding, promotion and undo preserve it. Missing frames
+  retain existing geometry and remain absent from legacy recipe JSON.
+- Score version 6 carries the slot. Older Scores retain their family geometry
+  and hold semantics. A version-5 reader rejects version 6 rather than silently
+  discard the frame. Legacy family bounds/origin fields remain compatibility
+  inputs; explicit frames supply the effective geometry during placement.
+- Partition and Sets declare bounded frames; Mosaic declares unbounded.
+  Grid also declares Nested and Flow; Hulls declares Bounded and the other
+  built-ins declare Unbounded. Custom solvers declare accepted kinds and
+  implement place_in_frame. Unsupported combinations are refused before
+  placement; a declaration without a reader also refuses.
+- Flow caps ordinal/generated grid columns to page width and grows height.
+  Authored cell coordinates must fit. Nested Grid uses a genuine Space and
+  keeps authored pins in local coordinates. SceneFrame retains the domain and
+  its live Space, so routing and motion refresh follow later Space movement.
+  Snapshots and transactional diffs retain and validate that metadata.
+- With an explicit bounded frame, legacy width/height options are refused so
+  they cannot compete with the rectangle. Changing the frame invalidates
+  placement reuse; unchanged frames retain it.
+
+Shared checks:
+- cargo test --manifest-path host/Cargo.toml -p sceno -p scenograph
+  -p scenomise -p scenotime --all-features --offline: Sceno 41 library and
+  6 doc tests; Scenograph 83 library and 9 integration tests; Scenomise
+  250 library, 4 integration and 3 doc tests; Scenotime 45 library and
+  2 doc tests passed.
+- Full serial Cartography run: 762 passed, 18 ignored, with one expected
+  score-byte golden failure caused by the writer version changing from 5
+  to 6. Every position hash remained unchanged. Only four score-byte hashes
+  were updated. A new migration guard serializes those scores at version 5
+  and matches their preceding hashes, proving the remaining content is
+  unchanged. The targeted arrangement_goldens rerun passed all 3 tests.
+- All configured Graphshell pre-commit checks passed before that golden
+  refresh. The commit hooks repeat the applicable checks on the final files.
+
+These are compiler, scene and automated renderer checks. The combined headed
+frame/primitive picker demonstration remains the M6 acceptance gate.
+
+- A combined nested-frame/matrix regression checks direct relation rerouting,
+  metadata-only recipe refresh, and another reroute after moving the live
+  Space. Rebuilding relation placement now preserves that Space pose when
+  the authored frame is unchanged. The full Scenomise suite passes 251
+  library, 4 integration and 3 doc tests after this refinement.
+
+
+### Consumer and merged-main qualification
+
+The shared implementation is fbb05e2, with the nested-pose refresh refinement
+in 75e391d. Turnstone 1c31de2d copies an explicit frame into the editable draft.
+Its new workflow regression saves a framed recipe, changes the working frame,
+reopens the snapshot, refreshes the editor and checks that both the frame and
+its placement remain intact.
+
+Turnstone passed all configured pre-commit checks. Its Graphshell library suite
+passed 279 tests with 6 ignored against committed shared revision 75e391d.
+The full product browser check also passed, using:
+cargo check --manifest-path ports/graphshell/web/Cargo.toml
+--target wasm32-unknown-unknown --no-default-features
+--features product,remote,image-decode,presentation-webgpu,presentation-webgl2,physics-engine
+--offline --locked.
+The library command was cargo test -p graphshell --no-default-features
+--features web,physics-engine --lib --offline --locked.
+
+The other consumers passed their configured pre-commit checks against the M4
+API revision fbb05e2 without source edits:
+
+| Consumer | Checked source | Resolution baseline |
+| --- | --- | --- |
+| Mer3ly | dd6dc45 | recorded on the same commit |
+| Knot | 12b3552 | recorded on the same commit |
+| Cleromancy | ba7442a | nearest recorded ancestor 4b7dcf1 |
+| Woodshed | fd3b60d4 | recorded on the same commit |
+
+Their recorded locks were replayed with only the Graphshell Git source
+advanced for qualification. After checking, the original lock bytes were
+restored. Package-name/version/source comparison confirmed that no other
+dependency changed; their source trees and existing resolution notes remain
+unchanged. The later pose refinement changes the nested-frame implementation,
+with its complete Scenomise regression suite recorded above.
+
+While integration ran, uxtree P1 (5267dd2) landed on origin. It was merged
+without source conflicts as b5ac7c2. All configured Graphshell checks passed
+on that combined main. Turnstone's recorded lock notes retain its checked
+shared source revision.
+
+The task reused stable per-repository targets on T-PC. Seven Graphshell guest
+target aliases share the existing ~/Code/targets/graphshell/guests fixtures.
+Windows primary checkouts and concurrent work were preserved.
+
+
+## 2026-11-17 M5 assigned node marks
+
+Scenomise checks the resolved occurrence mark after presentation rules apply.
+A measured default can yield to an assigned mark, and refusals name the
+occurrences whose effective marks cannot fill the extent. A detail change
+reuses placement for Mosaic and Partition when the other inputs match.
+
+The regression fixtures compare the complete realized scene for the legacy
+tile, an explicit square tile, a card, a snapshot and a host-defined mark.
+Mosaic and both Partition forms produced identical positions, footprints,
+regions and occurrence mappings. A second check changes a tile to a card
+after adjusting a position and verifies that the compiler reuses that
+placement. Shared code is 51f55dd and 5206d4f.
+
+Turnstone 66716cd5 renders the resolved Card as a title and details inside
+the assigned cell. The spatial preview clips ring items to their polygonal
+footprints. Other detail requests retain their identity in the scene and use
+a label in this preview. The headed demonstration remains part of M6.
+
+Verification on T-PC used the existing Graphshell and Turnstone Cargo targets.
+Scenomise passed 254 library, 4 integration and 3 doc tests with all features.
+Cartography passed four projection mark tests and three arrangement golden
+tests. Turnstone passed 279 Graphshell library tests with 6 ignored. The
+full product Wasm check passed with CPU physics, WebGPU and WebGL presentation.
+Both repositories passed their configured pre-commit checks. Turnstone's
+root and browser resolved locks use 5206d4f.
+
+This receipt is the retained evidence for M5. The existing reusable targets
+in ~/Code/targets/graphshell and ~/Code/targets/turnstone still serve their
+respective repositories. The Graphshell checkout in Cargo uses the existing
+guest fixtures in ~/Code/targets/graphshell/guests.

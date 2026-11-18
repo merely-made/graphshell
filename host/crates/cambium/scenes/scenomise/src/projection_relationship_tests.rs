@@ -446,3 +446,37 @@ fn selected_relationship_rule_reaches_cells_without_collapsing_repeated_sources(
             .matched
     );
 }
+
+#[test]
+fn an_ordered_grid_recipe_flows_within_its_authored_page_width() {
+    let data = disclosed("sound-adapter", "sound.rhyme");
+    let original = data.clone();
+    let mut saved = snapshot(&data);
+    saved.recipe.definition.arrangement.kind = "grid.ordered".into();
+    saved.recipe.definition.frame = Some(sceno::Frame::Flow {
+        origin: sceno::Vec2::new(100.0, 200.0),
+        width: 164.0,
+    });
+    let compiled = compiler()
+        .compile_relationship_snapshot(&saved, &data)
+        .unwrap();
+    let scene = &compiled.projection.scene;
+    assert_eq!(scene.bounds.origin, sceno::Vec2::new(100.0, 200.0));
+    assert_eq!(scene.bounds.size.w, 164.0);
+    assert!(scene.bounds.size.h > 68.0 * 2.0);
+    assert!(
+        scene
+            .items
+            .iter()
+            .all(|item| item.transform.translate.x == 182.0)
+    );
+    assert_ne!(
+        scene.items[0].transform.translate.y,
+        scene.items[1].transform.translate.y
+    );
+    assert_eq!(
+        data, original,
+        "frame layout never rewrites disclosed source data"
+    );
+    assert_eq!(compiled.relationships[0].disclosure, data.relationships[0]);
+}

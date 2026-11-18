@@ -16,6 +16,8 @@ use crate::{BackdropId, FoldId, RegionId, RelationId, Revision, SceneEpoch};
 /// index during this epoch.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SceneTables {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub frame: Option<sceno::SceneFrame>,
     pub sources: Vec<Option<SourceRef>>,
     pub spaces: Vec<Option<Space>>,
     #[serde(default)]
@@ -78,6 +80,7 @@ impl SceneSnapshot {
             epoch,
             revision,
             tables: SceneTables {
+                frame: scene.frame,
                 sources: scene.sources.into_iter().map(Some).collect(),
                 spaces: scene.spaces.into_iter().map(Some).collect(),
                 backdrops: scene.backdrops.into_iter().map(Some).collect(),
@@ -180,6 +183,13 @@ impl SceneSnapshot {
         }
         if tables.items.len() != tables.item_order.len() {
             return invalid("item and order tables must have equal length");
+        }
+        if let Some(frame) = &tables.frame {
+            require_active(&tables.spaces, frame.space.0, "frame space")?;
+            frame
+                .spec
+                .validate()
+                .map_err(|message| SnapshotError::Invalid(message.into()))?;
         }
         for (index, item) in tables.items.iter().enumerate() {
             match (item, tables.item_order[index]) {

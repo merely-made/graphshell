@@ -56,6 +56,8 @@
 
 pub mod fold;
 pub mod footprint;
+mod frame;
+pub use frame::{Frame, FrameKind, SceneFrame};
 pub mod geometry;
 pub mod link;
 mod relation;

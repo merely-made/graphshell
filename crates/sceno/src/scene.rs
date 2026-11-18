@@ -229,6 +229,9 @@ pub struct Region {
 /// scenotime diffs, the input a host realizes.
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
 pub struct Scene {
+    /// The instantiated layout frame and the Space that owns its coordinates.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub frame: Option<crate::SceneFrame>,
     pub sources: Vec<SourceRef>,
     /// `spaces[0]` is the world space (no parent, identity transform, by
     /// construction via [`Scene::new`]).

@@ -86,6 +86,7 @@ pub(super) fn compile_inner(
     });
     let mut score = Score::new(arrangement);
     score.generation = stable_generation(dataset);
+    score.frame = definition.frame.clone();
     // Marks are resolved before measurement and placement.
     for (ordinal, occurrence) in occurrences.iter().enumerate() {
         let representation = node_marks[&InstanceId(ordinal as u32)]
@@ -119,13 +120,29 @@ pub(super) fn compile_inner(
         );
         score.items.push(item);
     }
+    // Subdivision solvers own their footprint. A detail change can update
+    // the placed item without resetting settled or authored geometry.
+    let subdivision = matches!(
+        score.arrangement,
+        ScenoArrangement::Mosaic(_) | ScenoArrangement::Partition(_)
+    );
     // Compare exact solver inputs, not revision hashes: source revisions can
     // change without affecting placement, and unchanged revisions cannot excuse
     // changed data. Ordered occurrence identity also protects repeated sources.
     let reusable = previous.filter(|old| {
         old.score.version == score.version
             && old.score.arrangement == score.arrangement
-            && old.score.items == score.items
+            && old.score.frame == score.frame
+            && (old.score.items == score.items
+                || subdivision
+                    && old.score.items.len() == score.items.len()
+                    && old.score.items.iter().zip(&score.items).all(|(old, new)| {
+                        old == new
+                            || ScoreItem {
+                                representation: new.representation.clone(),
+                                ..old.clone()
+                            } == *new
+                    }))
             && old.score.holds == score.holds
             && occurrences.iter().enumerate().all(|(index, occurrence)| {
                 old.occurrence_by_instance.get(&InstanceId(index as u32))
@@ -145,11 +162,24 @@ pub(super) fn compile_inner(
         } else {
             old.scene.clone()
         };
+        if old.scene.frame.as_ref().is_some_and(|frame| {
+            matches!(frame.spec, sceno::Frame::Nested { .. })
+                && old.base_scene.frame.as_ref() == Some(frame)
+        }) {
+            scene.spaces.clone_from(&old.scene.spaces);
+        }
+        if subdivision {
+            for (item, input) in scene.items.iter_mut().zip(&score.items) {
+                item.representation = input.representation.clone();
+            }
+        }
         scene.generation = score.generation;
         scene
     } else {
         crate::solve_via(&score, &compiler.registry)
-            .map_err(|error| vec![CompileIssue::new("arrangement.kind", error.to_string())])?
+            .map_err(|error| vec![CompileIssue::new(
+                if matches!(&error, crate::SolveError::Unplaceable { reason, .. } if reason.starts_with("frame:")) { "frame" } else { "arrangement.kind" },
+                error.to_string())])?
     };
     let mut labels = HashMap::new();
     let mut occurrence_by_instance = HashMap::new();

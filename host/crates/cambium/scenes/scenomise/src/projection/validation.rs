@@ -40,6 +40,7 @@ pub(super) fn validation_issues(
                 reading: definition.reading.clone(),
                 encoding: definition.encoding.clone(),
                 arrangement: definition.arrangement.clone(),
+                frame: definition.frame.clone(),
                 marks: definition.marks.clone(),
                 fields: definition.fields.clone(),
                 interaction: definition.interaction.clone(),
@@ -53,6 +54,7 @@ pub(super) fn validation_issues(
         .map(|issue| CompileIssue::new(issue.field, issue.message))
         .collect();
     issues.extend(card_issue(compiler.sizes));
+    issues.extend(crate::frames::definition_issues(compiler, definition));
 
     source_matches(&mut issues, definition, dataset);
     if definition.reading.value.is_some() {
@@ -139,23 +141,6 @@ pub(super) fn validation_issues(
         ));
     }
     validate_arrangement(&mut issues, compiler, definition, dataset, target.as_ref());
-    if let Some(target) = target.as_ref() {
-        let imposed = target.extent();
-        let mark = definition.marks.node.as_ref().unwrap_or(&compiler.mark);
-        if !mark.accepts(imposed) {
-            let accepted: Vec<_> = mark.accepts.iter().map(|e| e.id()).collect();
-            issues.push(CompileIssue::new(
-                "arrangement.kind",
-                format!(
-                    "{} imposes the {} extent; the {} mark accepts {}",
-                    definition.arrangement.kind,
-                    imposed.id(),
-                    mark.label(),
-                    accepted.join(", ")
-                ),
-            ));
-        }
-    }
     if let Some(form) = definition.marks.relation {
         issues.extend(super::relations::form_issues(
             form,

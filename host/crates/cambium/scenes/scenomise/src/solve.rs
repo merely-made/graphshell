@@ -43,6 +43,20 @@ pub fn solve_with(
     score: &Score,
     plan_custom: impl FnOnce(&[&ScoreItem]) -> Option<Vec<Vec2>>,
 ) -> Scene {
+    match crate::frames::prepare(score) {
+        Ok(prepared) => solve_configured(&prepared, plan_custom),
+        Err(_) => {
+            let mut scene = Scene::new();
+            scene.generation = score.generation;
+            report_holds(score, scene)
+        },
+    }
+}
+
+pub(crate) fn solve_configured(
+    score: &Score,
+    plan_custom: impl FnOnce(&[&ScoreItem]) -> Option<Vec<Vec2>>,
+) -> Scene {
     let mut scene = Scene::new();
     scene.generation = score.generation;
 
@@ -175,7 +189,7 @@ pub fn solve_with(
 
     let mut scene = report_holds(score, scene);
     scene.bounds = bounds.unwrap_or_default();
-    scene
+    crate::frames::finish(scene, score.frame.as_ref())
 }
 
 /// Record both halves of the hold story on a scene.

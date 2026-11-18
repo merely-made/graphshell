@@ -23,6 +23,12 @@ pub(super) fn resolve(
     };
     let mut resolved = HashMap::new();
     let mut errors = Vec::new();
+    if occurrences.is_empty() {
+        let mark = definition.marks.node.as_ref().unwrap_or(&compiler.mark);
+        if !mark.accepts(extent) {
+            errors.push(extent_issue(definition, mark, extent, "marks.node"));
+        }
+    }
     for (index, occurrence) in occurrences.iter().enumerate() {
         let mark =
             definition
@@ -74,14 +80,11 @@ pub(super) fn resolve(
                         message,
                     ));
                 } else if !mark.accepts(extent) {
-                    errors.push(CompileIssue::new(
-                        format!("occurrences[{}].mark", context.id),
-                        format!(
-                            "{} imposes {} extent; {} mark refuses it",
-                            definition.arrangement.kind,
-                            extent.id(),
-                            mark.label()
-                        ),
+                    errors.push(extent_issue(
+                        definition,
+                        mark,
+                        extent,
+                        &format!("occurrences[{}].mark", context.id),
                     ));
                 }
                 resolved.insert(InstanceId(index as u32), presentation);
@@ -94,6 +97,25 @@ pub(super) fn resolve(
     } else {
         Err(errors)
     }
+}
+
+fn extent_issue(
+    definition: &ProjectionDefinition,
+    mark: &NodeMark,
+    extent: Extent,
+    field: &str,
+) -> CompileIssue {
+    let accepted: Vec<_> = mark.accepts.iter().map(|value| value.id()).collect();
+    CompileIssue::new(
+        field,
+        format!(
+            "{} imposes the {} extent; the {} mark accepts {}",
+            definition.arrangement.kind,
+            extent.id(),
+            mark.label(),
+            accepted.join(", ")
+        ),
+    )
 }
 
 fn issues(problems: Vec<scenograph::presentation::Issue>) -> Vec<CompileIssue> {

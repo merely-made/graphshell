@@ -467,3 +467,45 @@ fn placed_relation_outcomes_and_order_survive_snapshot_and_diff() {
     assert!(snapshot.tables.relation_constraints.is_empty());
     assert!(snapshot.tables.arrangement_order.is_empty());
 }
+
+#[test]
+fn frame_metadata_survives_snapshots_and_invalid_frame_diffs_are_atomic() {
+    let mut scene = Scene::new();
+    let frame = sceno::SceneFrame {
+        spec: sceno::Frame::Flow {
+            origin: sceno::Vec2::new(20.0, 40.0),
+            width: 400.0,
+        },
+        space: Scene::WORLD,
+    };
+    scene.frame = Some(frame.clone());
+    let mut snapshot = SceneSnapshot::from_dense(SceneEpoch(1), Revision(1), scene).unwrap();
+    let decoded: SceneSnapshot =
+        serde_json::from_slice(&serde_json::to_vec(&snapshot).unwrap()).unwrap();
+    assert_eq!(decoded.tables.frame, Some(frame.clone()));
+    let before = snapshot.clone();
+    let mut invalid = frame;
+    invalid.space = SpaceId(99);
+    assert!(
+        snapshot
+            .apply_diff(&SceneDiff {
+                epoch: SceneEpoch(1),
+                base: Revision(1),
+                revision: Revision(2),
+                operations: vec![SceneOp::SetFrame {
+                    frame: Some(invalid)
+                }]
+            })
+            .is_err()
+    );
+    assert_eq!(snapshot, before);
+    snapshot
+        .apply_diff(&SceneDiff {
+            epoch: SceneEpoch(1),
+            base: Revision(1),
+            revision: Revision(2),
+            operations: vec![SceneOp::SetFrame { frame: None }],
+        })
+        .unwrap();
+    assert!(snapshot.tables.frame.is_none());
+}

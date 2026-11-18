@@ -226,6 +226,7 @@ impl AuthoredProjectionDefinition {
             reading: self.reading.clone(),
             encoding: self.encoding.clone(),
             arrangement,
+            frame: self.frame.clone(),
             marks: self.marks.clone(),
             fields: self.fields.clone(),
             interaction: self.interaction.clone(),

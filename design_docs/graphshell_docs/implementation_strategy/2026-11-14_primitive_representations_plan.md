@@ -80,6 +80,8 @@ slot order and one honoured/unmet report for each placed request.
 - Needs: M2. Adjacency driven by relations is Crystal's (D6); Mosaic keeps group and order.
 
 ### M4. Frame as a slot
+**Completed 2026-11-17.** Shared and consumer gates are recorded in the M4 receipt.
+
 Bounded, unbounded, nested and flow frames are chosen on the recipe and passed to the
 arrangement.
 - Done when: the recipe names the frame and `Partition`, `Setscape` and `Mosaic` take their
@@ -89,6 +91,8 @@ arrangement.
 - Needs: M2.
 
 ### M5. Mosaic and Partition take any assigned mark
+**Completed 2026-11-17.**
+
 - Done when: each accepts any node mark with an assigned extent, a card included, with its
   current placements unchanged for the tile mark.
 - Needs: M2, M4.
@@ -841,3 +845,37 @@ face.
   their configured checks, and the full product CPU-physics Wasm profile passes.
   The receipt and refs/notes/resolved retain the exact inputs. M4 (the recipe's
   frame), M5, Partition zoom and Crystal remain open.
+
+
+- 2026-11-17: M4 adds an optional typed frame to authored recipes, bound
+  definitions and editable drafts, with an undoable frame edit. Binding and
+  promotion preserve it. Omission retains each family's existing geometry.
+- 2026-11-17: The frame reaches a version-6 Sceno Score. Partition and Sets
+  read a bounded rectangle; Mosaic reads an unbounded origin. Grid also reads
+  flow width and nested local bounds through a Space. Other families and
+  custom solvers declare their accepted frame kinds as data. A mismatch is
+  refused before placement, and a custom declaration requires a frame reader.
+- 2026-11-17: SceneFrame retains the instantiated domain and its Space.
+  Routing, motion refresh, snapshots and transactional diffs preserve it.
+  Legacy family geometry fields remain compatibility inputs when no explicit
+  frame is present. With an explicit bounded frame, legacy width/height
+  options are refused instead of competing with the frame.
+
+  [M4 receipt](../../archive_docs/receipts/2026-11-14_primitive_representations_plan_receipts.md#2026-11-17-m4-frame-slot).
+
+
+- 2026-11-17: M4 is complete through fbb05e2 and 75e391d. Turnstone preserves
+  the frame through saved-recipe reopening (1c31de2d); 279 library tests and the
+  full product CPU-physics Wasm check pass. Mer3ly, Knot, Cleromancy and Woodshed
+  pass their configured compatibility checks unchanged. The uxtree P1 update
+  (5267dd2) was merged without conflicts, and the combined main passes its
+  configured checks. M5 (any assigned node mark), M6, Partition zoom and Crystal
+  remain open.
+
+
+- 2026-11-17: M5 validates the winning node mark against the assigned extent.
+  Mosaic and both Partition forms retain their positions, footprints and group
+  contours across tile, card and other assigned marks. A detail edit can reuse
+  existing placement. Turnstone's spatial preview fits cards to the assigned
+  footprints, including the clipped sectors in Partition Rings.
+  [M5 receipt](../../archive_docs/receipts/2026-11-14_primitive_representations_plan_receipts.md#2026-11-17-m5-assigned-node-marks).

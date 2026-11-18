@@ -38,9 +38,9 @@ fn score_names_regular_cells_grid_on_the_wire() {
 }
 
 #[test]
-fn score_stamps_v5() {
-    assert_eq!(SCORE_VERSION, 5);
-    assert_eq!(Score::new(Arrangement::Grid(Grid::default())).version, 5);
+fn score_stamps_v6() {
+    assert_eq!(SCORE_VERSION, 6);
+    assert_eq!(Score::new(Arrangement::Grid(Grid::default())).version, 6);
 }
 
 /// A v3 score predates the three disclosure fields entirely. It must still
@@ -182,7 +182,7 @@ fn three_holds_round_trip() {
         });
     }
     let json = serde_json::to_string(&score).unwrap();
-    assert!(json.contains(r#""version":5"#));
+    assert!(json.contains(r#""version":6"#));
     let back: Score = serde_json::from_str(&json).unwrap();
     assert_eq!(back, score);
     assert_eq!(serde_json::to_string(&back).unwrap(), json, "byte for byte");
@@ -194,7 +194,7 @@ fn three_holds_round_trip() {
 }
 
 /// F44: a version-4 score's "Anchored" was best effort, and reads as
-/// `Seeded`; its "Pinned" stays pinned. Written again, it is a version-5
+/// `Seeded`; its "Pinned" stays pinned. Written again, it is a current-version
 /// score whose seeded hold reads back as seeded.
 #[test]
 fn an_old_scores_anchored_hold_reads_as_seeded() {
@@ -217,13 +217,13 @@ fn an_old_scores_anchored_hold_reads_as_seeded() {
     let pinned: Score = serde_json::from_str(&pinned).unwrap();
     assert_eq!(pinned.holds[0].hold, Hold::Pinned, "a v4 pin is a pin");
     let again: Score = serde_json::from_str(&serde_json::to_string(&score).unwrap()).unwrap();
-    assert_eq!(again.version, 5);
+    assert_eq!(again.version, SCORE_VERSION);
     assert_eq!(again.holds[0].hold, Hold::Seeded, "and stays seeded");
 }
 
 /// F44: a reader refuses a score newer than itself. A version-4 reader
 /// meets a version-5 score with an anchored hold; the current reader
-/// meets a version-6 score. Each reads its own version (the control).
+/// meets a score newer than the current version. Each reads its own version (the control).
 #[test]
 fn a_reader_refuses_a_newer_score() {
     let mut score = Score::new(Arrangement::Spiral(Spiral::default()));
@@ -244,12 +244,16 @@ fn a_reader_refuses_a_newer_score() {
         }
     );
     assert!(Score::read(wire(4), 4).is_ok(), "a v4 reader reads v4");
-    let mut six = serde_json::to_value(&score).unwrap();
-    six["version"] = serde_json::json!(6);
-    let refused = serde_json::from_value::<Score>(six).unwrap_err();
+    let mut newer = serde_json::to_value(&score).unwrap();
+    newer["version"] = serde_json::json!(SCORE_VERSION + 1);
+    let refused = serde_json::from_value::<Score>(newer).unwrap_err();
     assert_eq!(
         refused.to_string(),
-        "score version 6 is newer than this reader's 5"
+        format!(
+            "score version {} is newer than this reader's {}",
+            SCORE_VERSION + 1,
+            SCORE_VERSION
+        )
     );
     assert!(serde_json::from_value::<Score>(serde_json::to_value(&score).unwrap()).is_ok());
 }
@@ -272,4 +276,40 @@ fn a_version_1_score_still_reads_with_no_holds() {
     );
     assert_eq!(score.generation, 3);
     assert!(score.holds.is_empty());
+}
+
+#[test]
+fn a_v5_reader_refuses_a_frame_bearing_v6_score() {
+    let mut score = Score::new(Arrangement::Partition(crate::Partition::default()));
+    score.frame = Some(crate::Frame::Bounded {
+        bounds: Rect::new(Vec2::new(20.0, 40.0), Size2::new(600.0, 400.0)),
+    });
+    let bytes = serde_json::to_vec(&score).unwrap();
+    let wire: ScoreWire = serde_json::from_slice(&bytes).unwrap();
+    assert_eq!(
+        Score::read(wire, 5).unwrap_err(),
+        ScoreVersionError {
+            found: 6,
+            reader: 5
+        }
+    );
+    assert_eq!(serde_json::from_slice::<Score>(&bytes).unwrap(), score);
+}
+
+#[test]
+fn old_score_bounds_survive_the_new_optional_frame_slot() {
+    let mut value = serde_json::to_value(Score::new(Arrangement::Partition(crate::Partition {
+        bounds: Rect::new(Vec2::new(30.0, 60.0), Size2::new(300.0, 200.0)),
+        ..Default::default()
+    })))
+    .unwrap();
+    assert!(value.get("frame").is_none());
+    value["version"] = serde_json::json!(5);
+    let score: Score = serde_json::from_value(value).unwrap();
+    assert_eq!(score.version, 6);
+    assert!(score.frame.is_none());
+    let Arrangement::Partition(config) = score.arrangement else {
+        panic!("partition");
+    };
+    assert_eq!(config.bounds.origin, Vec2::new(30.0, 60.0));
 }

@@ -168,6 +168,9 @@ pub(super) fn relationship_snapshot(
             .and_then(|v| v.parse::<u32>().ok())
             .filter(|v| *v > 0)
             .unwrap_or_else(|| (dataset.occurrences.len() as f64).sqrt().ceil().max(1.0) as u32);
+        let columns = crate::frames::column_limit(&bound, compiler.sizes)
+            .map_or(columns, |limit| columns.min(limit))
+            .max(1);
         let mut order: Vec<_> = dataset
             .occurrences
             .iter()

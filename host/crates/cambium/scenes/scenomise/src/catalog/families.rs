@@ -54,6 +54,16 @@ impl Family {
         }
     }
 
+    /// Frame kinds realized by this family, shared by validation and pickers.
+    pub fn frames(self) -> &'static [sceno::FrameKind] {
+        use sceno::FrameKind::*;
+        match self {
+            Self::Partition | Self::Sets | Self::Hulls => &[Bounded],
+            Self::Grid => &[Unbounded, Nested, Flow],
+            _ => &[Unbounded],
+        }
+    }
+
     pub fn channels(self) -> ChannelUse {
         match self {
             Self::Grid => ChannelUse::Cells,
@@ -369,6 +379,7 @@ impl Family {
         };
         capability.tags = tags.iter().map(|tag| (*tag).to_owned()).collect();
         capability.options = self.options();
+        capability.frames = self.frames().to_vec();
         capability
     }
 

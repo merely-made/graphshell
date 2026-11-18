@@ -93,6 +93,7 @@ fn dataset() -> ProjectionDataset {
 fn definition(kind: &str, x: &str) -> ProjectionDefinition {
     let data = dataset();
     ProjectionDefinition {
+        frame: None,
         marks: Default::default(),
         fields: Vec::new(),
         dynamics: None,
@@ -188,7 +189,7 @@ fn an_assigned_extent_is_refused_for_a_mark_that_does_not_accept_it() {
             },
             _ => {
                 let issues = result.unwrap_err();
-                assert_eq!(fields(&issues), ["arrangement.kind"], "{}", family.id());
+                assert_eq!(fields(&issues), ["occurrences[a].mark", "occurrences[b].mark", "occurrences[c].mark"], "{}", family.id());
                 assert_eq!(
                     issues[0].message,
                     format!(
@@ -456,3 +457,6 @@ fn a_recipe_with_fields_compiles_to_the_same_scene_and_bad_fields_are_named() {
 
 #[path = "projection/mark_tests.rs"]
 mod mark_tests;
+
+#[path = "frame_tests.rs"]
+mod frames;

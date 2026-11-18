@@ -32,6 +32,7 @@ fn dynamics_is_edited_as_one_undo_step_and_saved_in_the_definition() {
 
 pub(super) fn valid_draft() -> ProjectionDraft {
     ProjectionDraft {
+        frame: None,
         marks: Default::default(),
         fields: Vec::new(),
         dynamics: None,
@@ -302,4 +303,19 @@ fn mark_slot_edits_are_undoable_and_preserved_in_the_definition() {
             .is_err()
     );
     assert_eq!(editor.draft(), &saved);
+}
+
+#[test]
+fn frame_edits_are_one_undo_step_and_survive_promotion() {
+    let mut editor = ProjectionEditor::new(valid_draft());
+    let frame = scenograph::Frame::Flow {
+        origin: sceno::Vec2::new(30.0, 50.0),
+        width: 400.0,
+    };
+    editor.reduce(EditorAction::SetFrame(Some(frame.clone())), 0);
+    assert_eq!(editor.draft().frame, Some(frame.clone()));
+    assert!(editor.undo());
+    assert!(editor.draft().frame.is_none());
+    assert!(editor.redo());
+    assert_eq!(editor.draft().to_definition().unwrap().frame, Some(frame));
 }
