@@ -129,6 +129,10 @@ section 3.7).
   shows cards under a subdivision and a subdivision in a viewport frame.
 - Needs: M2 to M5. The second half of the headed check (a subdivision in a viewport frame)
   is Partition with a card mark.
+- Complete. Turnstone uses the shared comparison grid, with the refusal shown
+  for each unavailable choice. Picking Viewport saves the preview rectangle
+  with the recipe.
+  [M6 receipt](../../archive_docs/receipts/2026-11-14_primitive_representations_plan_receipts.md#2026-11-17-m6-compatibility-and-swatch-axes).
 
 ### X. Context scenes
 What appears for a subject on hover, focus, selection or a context request is a scene with its own recipe
@@ -879,3 +883,9 @@ face.
   existing placement. Turnstone's spatial preview fits cards to the assigned
   footprints, including the clipped sectors in Partition Rings.
   [M5 receipt](../../archive_docs/receipts/2026-11-14_primitive_representations_plan_receipts.md#2026-11-17-m5-assigned-node-marks).
+
+- On 2026-11-17, M6 added the shared swatch compatibility check in 5409300.
+  Turnstone d413ad7f uses it for node mark, relation form, field form and
+  frame picks, each of which enters recipe history in one step. The headed
+  check shows cards in Partition and the subdivision inside the chosen
+  viewport.

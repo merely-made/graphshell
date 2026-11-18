@@ -319,3 +319,41 @@ fn frame_edits_are_one_undo_step_and_survive_promotion() {
     assert!(editor.redo());
     assert_eq!(editor.draft().to_definition().unwrap().frame, Some(frame));
 }
+
+#[test]
+fn each_swatch_pick_is_one_edit_and_frame_undo_restores_legacy_dimensions() {
+    use scenograph::swatch::SwatchChoice;
+    let mut draft = valid_draft();
+    draft
+        .arrangement
+        .options
+        .insert("width".into(), "500".into());
+    draft
+        .arrangement
+        .options
+        .insert("height".into(), "350".into());
+    let picks = [
+        SwatchChoice::NodeMark(Some(scenograph::presentation::NodeMark::card())),
+        SwatchChoice::RelationForm(Some(sceno::RelationForm::Stroke)),
+        SwatchChoice::FieldForm(Some(scenograph::FieldForm::Contour)),
+        SwatchChoice::Frame(Some(sceno::Frame::Bounded {
+            bounds: sceno::Rect::new(sceno::Vec2::ZERO, sceno::Size2::new(600.0, 400.0)),
+        })),
+    ];
+    for pick in picks {
+        let wire = serde_json::to_string(&pick).unwrap();
+        assert_eq!(serde_json::from_str::<SwatchChoice>(&wire).unwrap(), pick);
+        let mut editor = ProjectionEditor::new(draft.clone());
+        editor.reduce(EditorAction::ApplySwatch(pick), 1);
+        let picked = editor.draft().clone();
+        assert_ne!(picked, draft);
+        if picked.frame.is_some() {
+            assert!(picked.arrangement.options.is_empty());
+        }
+        assert!(editor.undo());
+        assert_eq!(editor.draft(), &draft);
+        assert!(!editor.undo());
+        assert!(editor.redo());
+        assert_eq!(editor.draft(), &picked);
+    }
+}

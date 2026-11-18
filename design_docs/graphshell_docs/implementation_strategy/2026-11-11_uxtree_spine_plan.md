@@ -2,7 +2,7 @@
 
 **Status:** 2026-11-17. P0 and P1 landed. P2 landed on Graphshell `7c40580e` and Turnstone
 `7406f9f3`. Turnstone passed its native and wasm checks against published Graphshell main.
-P3 passed native and wasm qualification and awaits review. P4 to P11 remain open.
+P3 landed after combined-tree qualification. P4 to P11 remain open.
 The slice 4 cutover moved uxtree, Cambium and E1a to Graphshell's `host/`.
 P0 remains a gate for D1. If it fails, D1 returns to Mark.
 
@@ -649,3 +649,7 @@ Each is a question for a later round, with its evidence. None is answered here.
   library check pass with Graphshell `7c40580e` resolved from Git. The three dependency-ban
   hooks and the resolved-version push passed. P3 candidate `85cdc0af` passed all normal
   code commit hooks. The P3 branch also records this P2 landing.
+
+- 2026-11-17: P3 integrated with Graphshell main `2e041d0b`. The combined tree passed
+  85 Pelt and 26 Graphshell host tests. Landing receipts are in
+  `Code/testing/graphshell/uxtree-p3/landing-tests.log` and `landing-hooks.log`.

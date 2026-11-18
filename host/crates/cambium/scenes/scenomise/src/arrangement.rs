@@ -17,6 +17,35 @@ use scenograph::options::{OptionDefault, OptionSpec};
 use crate::catalog::{Family, Measure};
 use crate::registry::SolverRegistry;
 
+/// Placement constraints an arrangement declares for the current options.
+/// Closed-form families and registered solvers use the same editor vocabulary.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ArrangementCapabilities {
+    pub extent: scenograph::presentation::Extent,
+    pub placed_forms: Vec<sceno::RelationForm>,
+    pub frames: Vec<sceno::FrameKind>,
+}
+
+pub fn arrangement_capabilities(
+    arrangement: &Arrangement,
+    registry: &SolverRegistry,
+) -> Option<ArrangementCapabilities> {
+    if let Some(family) = Family::resolve(&arrangement.kind) {
+        return Some(ArrangementCapabilities {
+            extent: family.extent(),
+            placed_forms: family.placed_forms(&arrangement.options),
+            frames: family.frames().to_vec(),
+        });
+    }
+    let registered = registry.resolve(&arrangement.kind)?.capability();
+    Some(ArrangementCapabilities {
+        // A registered solver supplies positions for already measured items.
+        extent: scenograph::presentation::Extent::Measured,
+        placed_forms: registered.placed_forms,
+        frames: registered.frames,
+    })
+}
+
 /// The options an arrangement id declares: a built-in family's, else a
 /// registered solver's; `None` when the id names neither (track E5).
 pub fn arrangement_options(kind: &str, registry: &SolverRegistry) -> Option<Vec<OptionSpec>> {
