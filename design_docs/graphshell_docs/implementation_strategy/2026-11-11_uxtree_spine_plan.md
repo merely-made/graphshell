@@ -1,8 +1,8 @@
 # uxtree spine plan: a federated tree with one envelope
 
-**Status:** 2026-11-18. P0 to P7 landed. P7 landed in Graphshell at `9f3537ac` and Turnstone
-at `c47ba17a` after qualifying with the context-scene updates on both mains.
-P8 is under way. P9 to P11 remain open.
+**Status:** 2026-11-18. P0 to P8 landed. P7 landed on Graphshell at `9f3537ac` and on
+Turnstone at `c47ba17a`. P8 landed on Mere at `49d7d473a` and on Graphshell at `4b2ef6c3`.
+P9 to P11 remain open.
 The slice 4 cutover moved uxtree, Cambium and E1a to Graphshell's `host/`.
 P0 remains a gate for D1. If it fails, D1 returns to Mark.
 
@@ -570,9 +570,9 @@ Each is a question for a later round, with its evidence. None is answered here.
 - 2026-11-17: a Rootstock `TextureProducer` contributes semantics through a `custom-leaf` slot.
   The raw `external-texture` element is not in `owned_layout::custom_leaf_key` and does not take
   this semantic path. P0 uses the supported slot; it adds no production API or rendering fallback.
-- 2026-11-17: the independent Mere half of P8 is a pushed candidate, Mere `13a084dde`, removing
-  `descriptor_for` and its unused AccessKit support while retaining `SurfaceId`. It is not yet on
-  Mere main; the rest of P8 remains open.
+- 2026-11-18: the Mere P8 cleanup prepared at `13a084dde` landed as `49d7d473a`. It removed
+  `descriptor_for` and its unused AccessKit support. `kernel::accessibility::SurfaceId` still
+  names the surface kind used by the Graphshell event crate.
 - 2026-11-11: the semantic model above AccessKit exists four times and the envelope's fields are kept four times
   (second brief §0, E1, E2). The canvas outputs Cambium producer semantics, not AccessKit, and `stitch` concatenates
   subtrees and does not rehash them (second brief §1; it corrects the first). Two subtrees built from one path collide
@@ -757,3 +757,11 @@ Each is a question for a later round, with its evidence. None is answered here.
 - 2026-11-18: P7 landed Graphshell `9f3537ac` first, then Turnstone `c47ba17a`.
   Turnstone passed 75 accessibility tests and the ordinary hooks against the
   landed supplier. The landing receipts are under `Code/testing/graphshell/uxtree-p7/landing-*`.
+
+- 2026-11-18: P8 landed Mere `49d7d473a`, then Graphshell `4b2ef6c3`. The
+  Mere workspace tests, 45 UX event tests, 11 incipit tests, the UX event wasm
+  check and both repositories' ordinary hooks passed. The same-kind-pane
+  probe preserved separate installed addresses and paired each pane's events.
+  Earlier serialized events decoded with their address absent. The before
+  and after Rust-source greps verified the two removals across the three
+  repositories. See `Code/testing/graphshell/uxtree-p8/` for the gates and locks.

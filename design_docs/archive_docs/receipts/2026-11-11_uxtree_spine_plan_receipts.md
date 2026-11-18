@@ -474,3 +474,27 @@ uxtree, Cambium and registry tests passed, and the normal push landed
 `9f3537ac2cb1c6ba61790acb339deda693dbbd57`. Turnstone passed 75 accessibility tests and the regular hooks
 against that exact supplier and landed `c47ba17a43bba57851abce6f571d5a46703913c5`. See the logs and generated
 locks under `Code/testing/graphshell/uxtree-p7/landing-*`.
+
+## 2026-11-18 P8 UX event addresses and cleanup
+
+Mere `49d7d473afda0203a67cc1ccb89a58e683184676` removed `descriptor_for` and its unused AccessKit
+dependency. The workspace passed 955 test cases. `SurfaceId` remains in
+`kernel::accessibility` and describes the surface kind.
+
+Graphshell `4b2ef6c32258b4ac6df5ff32c87962ae174705e2` retired `incipit::forme::ux` and adds the
+optional address to open, dismiss, and action dispatch events. The same-kind
+pane probe takes both addresses from envelopes, preserves them through
+serialization and diagnostics, and pairs each dismissal with its own open.
+The producer-address test reads an older event without an address. The two
+controls failed when the address lost its tree ID or the probe ignored the
+address. The restored 45 UX event and 11 incipit tests passed, and the event
+crate compiled for wasm.
+
+The scoped Rust-source grep found both definitions before removal and zero
+retired references after removal across Mere, Graphshell and Turnstone.
+The family check found zero cycles across 29 source trees. Cargo's first
+resolution selected `itertools` 0.12.1 for `bindgen` 0.72.1 and failed the
+existing dependency gate. Refreshing that holder restored its compatible
+0.13.0 selection, kept the older holder on 0.12.1, and passed the same
+gate with the exact Mere main revision. Both landings ran their normal hooks.
+See `Code/testing/graphshell/uxtree-p8/` for the raw checks and generated locks.
