@@ -446,6 +446,8 @@ pub struct CanaryRun {
     pub compact: Vec<ResolvedPresentation>,
     pub rich_accessibility: AccessibilityTree,
     pub compact_accessibility: AccessibilityTree,
+    pub rich_item_envelopes: Vec<crate::accessibility::SceneItemEnvelope>,
+    pub compact_item_envelopes: Vec<crate::accessibility::SceneItemEnvelope>,
 }
 
 pub fn run_loopback_canary() -> Result<CanaryRun, CanaryError> {
@@ -481,14 +483,26 @@ pub fn run_loopback_canary() -> Result<CanaryRun, CanaryError> {
         &compact_profile,
         item_count,
     )?;
-    let rich_accessibility = client.accessibility_tree(&session, &rich_profile)?;
-    let compact_accessibility = client.accessibility_tree(&session, &compact_profile)?;
+    let rich_accessibility = crate::accessibility::scene_accessibility(
+        &client,
+        &session,
+        &rich_profile,
+        &graphshell_client::NoLocalActions,
+    )?;
+    let compact_accessibility = crate::accessibility::scene_accessibility(
+        &client,
+        &session,
+        &compact_profile,
+        &graphshell_client::NoLocalActions,
+    )?;
     Ok(CanaryRun {
         session,
         rich,
         compact,
-        rich_accessibility,
-        compact_accessibility,
+        rich_accessibility: rich_accessibility.tree,
+        compact_accessibility: compact_accessibility.tree,
+        rich_item_envelopes: rich_accessibility.items,
+        compact_item_envelopes: compact_accessibility.items,
     })
 }
 

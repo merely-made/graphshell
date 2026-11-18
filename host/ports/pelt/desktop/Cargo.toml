@@ -32,7 +32,7 @@ livery = [
     "present", "dep:genet-documents", "genet-documents/livery", "dep:mere-lanes", "dep:inker",
     "dep:cambium", "dep:cambium-desktop", "dep:genet-livery", "dep:genet-scripted-dom",
     "dep:genet-render", "dep:accesskit", "dep:layout-dom-api", "dep:paint_list_render", "dep:url",
-    "dep:windows", "dep:dpi", "dep:scrying-engine",
+    "dep:windows", "dep:dpi", "dep:scrying-engine", "dep:uxtree",
     "dep:tabard-workshop", "dep:cambium-rootstock", "dep:mandrake", "dep:taproot", "dep:dirs",
 ]
 # Named developer receipt for applying a Tabard artifact to Pelt Chrome. This
@@ -122,6 +122,7 @@ linux-present = [
 ]
 
 [dependencies]
+uxtree = { workspace = true, optional = true }
 # Landed in mere 2026-09-03. Every dependency that reached genet by relative
 # path (`../../../components/...`) is now a workspace-declared git pin on
 # genet.git at the one revision the root manifest states.

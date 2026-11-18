@@ -49,6 +49,7 @@
 //! modules are compiled out on wasm32, but its dependencies are not meant to
 //! build there.
 
+pub mod accessibility;
 #[cfg(feature = "admission")]
 pub mod admission;
 pub mod canary;

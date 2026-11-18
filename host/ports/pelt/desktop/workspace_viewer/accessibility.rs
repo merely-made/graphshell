@@ -11,6 +11,8 @@
 //! its content aperture, so a typed action routes to exactly one tile.
 
 use super::*;
+use std::sync::atomic::AtomicU64;
+use uxtree::envelope::{Address, Envelope};
 
 // ---------------------------------------------------------------------
 // The accessibility vocabulary: the focus and action-target model, the
@@ -212,15 +214,6 @@ pub(super) enum WorkspaceA11yActionTarget {
     Document(DocumentA11yActionTarget),
 }
 
-impl WorkspaceA11yActionTarget {
-    fn is_document(&self) -> bool {
-        match self {
-            Self::Frisket(_) => false,
-            Self::Document(_) => true,
-        }
-    }
-}
-
 /// The session identity and action snapshot for a renderer-neutral document
 /// semantic node. The document owns semantic truth; Pelt owns namespacing,
 /// tile/session validation, and its ordinary pointer route.
@@ -293,11 +286,23 @@ impl DocumentA11yNamespace {
     }
 }
 
-/// The tree and action map delivered together to the one-tree platform bridge.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(super) struct DocumentProducer {
+    pub(super) window: u64,
+    pub(super) tile: TileId,
+    pub(super) session: PeltSessionIdentity,
+}
+
+type DocumentEnvelope = Envelope<DocumentProducer, DocumentA11yActionTarget, TileId>;
+type DocumentEnvelopes = HashMap<AccessNodeId, DocumentEnvelope>;
+type FrisketRoutes = HashMap<AccessNodeId, genet_scripted_dom::NodeId>;
+
+/// The composite tree and the records used to route its platform requests.
 pub(super) struct WorkspaceA11yProjection {
     pub(super) tree: TreeUpdate,
     pub(super) root: AccessNodeId,
-    pub(super) actions: HashMap<AccessNodeId, WorkspaceA11yActionTarget>,
+    pub(super) frisket_routes: FrisketRoutes,
+    pub(super) documents: DocumentEnvelopes,
 }
 
 /// A completed renderer-neutral document projection ready to attach below one
@@ -316,7 +321,9 @@ pub(super) struct WorkspaceAccessibility {
     pub(super) bridge: AccessKitBridge,
     pub(super) window_revealed: bool,
     pub(super) last_install_error: Option<String>,
-    pub(super) action_map: HashMap<AccessNodeId, WorkspaceA11yActionTarget>,
+    frisket_routes: FrisketRoutes,
+    documents: DocumentEnvelopes,
+    producer_window: u64,
     pub(super) focus: Option<WorkspaceA11yFocus>,
     pub(super) child_namespaces: HashMap<TileId, DocumentA11yNamespace>,
     pub(super) assigned_child_ids: HashSet<AccessNodeId>,
@@ -326,6 +333,10 @@ pub(super) struct WorkspaceAccessibility {
 
 impl WorkspaceAccessibility {
     pub(super) fn new() -> Self {
+        static NEXT_WINDOW: AtomicU64 = AtomicU64::new(1);
+        let producer_window = NEXT_WINDOW
+            .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |id| id.checked_add(1))
+            .expect("Pelt accessibility window IDs exhausted");
         let wake = Arc::new(AtomicBool::new(false));
         let requested = Arc::clone(&wake);
         Self {
@@ -334,7 +345,9 @@ impl WorkspaceAccessibility {
             }),
             window_revealed: false,
             last_install_error: None,
-            action_map: HashMap::new(),
+            frisket_routes: HashMap::new(),
+            documents: HashMap::new(),
+            producer_window,
             focus: None,
             child_namespaces: HashMap::new(),
             assigned_child_ids: HashSet::new(),
@@ -351,13 +364,14 @@ impl WorkspaceAccessibility {
         projection: WorkspaceA11yProjection,
         scale_factor: f64,
     ) -> TreeUpdate {
-        self.action_map = projection.actions;
+        self.frisket_routes = projection.frisket_routes;
+        self.documents = projection.documents;
         let mut tree = projection.tree;
         if let Some(WorkspaceA11yFocus::Document(id)) = self.focus.as_ref()
             && self
-                .action_map
+                .documents
                 .get(id)
-                .is_some_and(WorkspaceA11yActionTarget::is_document)
+                .is_some_and(|node| node.provenance.actions != 0)
         {
             tree.focus = *id;
         }
@@ -418,7 +432,14 @@ impl WorkspaceAccessibility {
     }
 
     pub(super) fn action_for(&self, id: AccessNodeId) -> Option<WorkspaceA11yActionTarget> {
-        self.action_map.get(&id).cloned()
+        if let Some(document) = self.documents.get(&id) {
+            let target = document.provenance;
+            return (target.actions != 0).then_some(WorkspaceA11yActionTarget::Document(target));
+        }
+        self.frisket_routes
+            .get(&id)
+            .copied()
+            .map(WorkspaceA11yActionTarget::Frisket)
     }
 
     pub(super) fn set_focus(&mut self, target: WorkspaceA11yFocus) -> bool {
@@ -493,16 +514,13 @@ impl WorkspaceAccessibility {
         }
     }
 
-    fn clear_stale_document_focus(
-        &mut self,
-        actions: &HashMap<AccessNodeId, WorkspaceA11yActionTarget>,
-    ) {
+    fn clear_stale_document_focus(&mut self, documents: &DocumentEnvelopes) {
         let Some(WorkspaceA11yFocus::Document(id)) = self.focus.as_ref() else {
             return;
         };
-        if !actions
+        if !documents
             .get(id)
-            .is_some_and(WorkspaceA11yActionTarget::is_document)
+            .is_some_and(|node| node.provenance.actions != 0)
         {
             self.focus = None;
         }
@@ -532,7 +550,7 @@ impl WorkspaceAccessibility {
 fn append_document_child(
     accessibility: &mut WorkspaceAccessibility,
     tree: &mut TreeUpdate,
-    actions: &mut HashMap<AccessNodeId, WorkspaceA11yActionTarget>,
+    documents: &mut DocumentEnvelopes,
     shell_ids: &HashSet<AccessNodeId>,
     child: DocumentA11yChild,
 ) {
@@ -662,27 +680,29 @@ fn append_document_child(
         if semantic.state.focused {
             tree.focus = global_id;
         }
-        let action_bits = DocumentA11yActionTarget::from_actions(&semantic.actions);
-        if action_bits != 0 {
-            actions.insert(
-                global_id,
-                WorkspaceA11yActionTarget::Document(DocumentA11yActionTarget {
-                    tile,
-                    session_identity,
-                    revision: projection.revision(),
-                    placement_generation,
-                    local_node: semantic.id,
-                    content_rect,
-                    actions: action_bits,
-                }),
-            );
-        }
+        let target = DocumentA11yActionTarget {
+            tile,
+            session_identity,
+            revision: projection.revision(),
+            placement_generation,
+            local_node: semantic.id,
+            content_rect,
+            actions: DocumentA11yActionTarget::from_actions(&semantic.actions),
+        };
+        let producer = DocumentProducer {
+            window: accessibility.producer_window,
+            tile,
+            session: session_identity,
+        };
+        let mut envelope = Envelope::life(Address::new(producer, global_id), target);
+        envelope.domain_ref = Some(tile);
+        documents.insert(global_id, envelope);
         tree.nodes.push((global_id, node));
     }
 }
 
 /// Build a composite tree for an already-laid-out tearout. The returned
-/// action map is local to this window and cannot route into the primary lane.
+/// routes are local to this window and cannot route into the primary lane.
 pub(super) fn secondary_accessibility_projection(
     accessibility: &mut WorkspaceAccessibility,
     frisket: &FrisketSurface,
@@ -718,10 +738,10 @@ pub(super) fn secondary_accessibility_projection(
         nodes,
         content_nodes,
     } = shell;
-    let mut actions = nodes
+    let mut documents = HashMap::new();
+    let frisket_routes = nodes
         .into_iter()
         .filter(|(id, _)| !accessibility.child_id_is_reserved(*id))
-        .map(|(id, node)| (id, WorkspaceA11yActionTarget::Frisket(node)))
         .collect::<HashMap<_, _>>();
     for (tile, aperture) in content_nodes {
         let Some(controller) = workspace.controller(tile) else {
@@ -736,7 +756,7 @@ pub(super) fn secondary_accessibility_projection(
         append_document_child(
             accessibility,
             &mut tree,
-            &mut actions,
+            &mut documents,
             &shell_ids,
             DocumentA11yChild {
                 tile,
@@ -748,11 +768,12 @@ pub(super) fn secondary_accessibility_projection(
             },
         );
     }
-    accessibility.clear_stale_document_focus(&actions);
+    accessibility.clear_stale_document_focus(&documents);
     Ok(WorkspaceA11yProjection {
         tree,
         root,
-        actions,
+        frisket_routes,
+        documents,
     })
 }
 
@@ -976,173 +997,32 @@ impl WorkspaceApp {
             nodes,
             ..
         } = shell;
-        let mut actions = nodes
+        let mut documents = HashMap::new();
+        let frisket_routes = nodes
             .into_iter()
             .filter(|(id, _)| !self.accessibility.child_id_is_reserved(*id))
-            .map(|(id, node)| (id, WorkspaceA11yActionTarget::Frisket(node)))
             .collect::<HashMap<_, _>>();
 
         for child in children {
-            let DocumentA11yChild {
-                tile,
-                session_identity,
-                aperture,
-                projection,
-                content_rect,
-                placement_generation,
-            } = child;
-            let local_ids = projection
-                .nodes()
-                .iter()
-                .map(|node| {
-                    let local = AccessNodeId(node.id.get());
-                    let global = self.accessibility.child_global_id(
-                        tile,
-                        session_identity,
-                        local,
-                        &shell_ids,
-                    );
-                    (node.id, global)
-                })
-                .collect::<HashMap<_, _>>();
-            let Some(&child_root) = local_ids.get(&projection.root()) else {
-                continue;
-            };
-            let Some((_, aperture_node)) = tree.nodes.iter_mut().find(|(id, _)| *id == aperture)
-            else {
-                continue;
-            };
-            aperture_node.set_children([child_root]);
-            for semantic in projection.nodes() {
-                let Some(&global_id) = local_ids.get(&semantic.id) else {
-                    continue;
-                };
-                let mut node = AccessNode::new(Self::accesskit_role(semantic.role));
-                if let DocumentA11yRole::Heading { level } = semantic.role
-                    && level > 0
-                {
-                    node.set_level(usize::from(level));
-                }
-                if let Some(name) = &semantic.name {
-                    node.set_label(name.clone());
-                }
-                if let Some(value) = &semantic.value {
-                    node.set_value(value.clone());
-                }
-                if semantic.state.disabled {
-                    node.set_disabled();
-                }
-                if semantic.state.hidden {
-                    node.set_hidden();
-                }
-                if semantic.state.read_only {
-                    node.set_read_only();
-                }
-                if semantic.state.required {
-                    node.set_required();
-                }
-                if let Some(selected) = semantic.state.selected {
-                    node.set_selected(selected);
-                }
-                if let Some(expanded) = semantic.state.expanded {
-                    node.set_expanded(expanded);
-                }
-                if let Some(toggled) = semantic.state.toggled {
-                    node.set_toggled(match toggled {
-                        inker::DocumentA11yToggled::On => Toggled::True,
-                        inker::DocumentA11yToggled::Off => Toggled::False,
-                        inker::DocumentA11yToggled::Mixed => Toggled::Mixed,
-                    });
-                } else if let Some(checked) = semantic.state.checked {
-                    node.set_toggled(if checked {
-                        Toggled::True
-                    } else {
-                        Toggled::False
-                    });
-                }
-                if let Some(live) = semantic.state.live {
-                    node.set_live(match live {
-                        inker::DocumentA11yLive::Off => Live::Off,
-                        inker::DocumentA11yLive::Polite => Live::Polite,
-                        inker::DocumentA11yLive::Assertive => Live::Assertive,
-                    });
-                }
-                if let Some(orientation) = semantic.state.orientation {
-                    node.set_orientation(match orientation {
-                        inker::DocumentA11yOrientation::Horizontal => Orientation::Horizontal,
-                        inker::DocumentA11yOrientation::Vertical => Orientation::Vertical,
-                    });
-                }
-                if let Some(has_popup) = semantic.state.has_popup {
-                    node.set_has_popup(match has_popup {
-                        inker::DocumentA11yHasPopup::Menu => HasPopup::Menu,
-                        inker::DocumentA11yHasPopup::ListBox => HasPopup::Listbox,
-                        inker::DocumentA11yHasPopup::Tree => HasPopup::Tree,
-                        inker::DocumentA11yHasPopup::Grid => HasPopup::Grid,
-                        inker::DocumentA11yHasPopup::Dialog => HasPopup::Dialog,
-                    });
-                }
-                if let Some(value) = semantic.numeric_value {
-                    node.set_numeric_value(value);
-                }
-                if let Some(value) = semantic.numeric_minimum {
-                    node.set_min_numeric_value(value);
-                }
-                if let Some(value) = semantic.numeric_maximum {
-                    node.set_max_numeric_value(value);
-                }
-                if let Some(bounds) = semantic.bounds {
-                    node.set_bounds(AccessRect::new(
-                        f64::from(bounds.x),
-                        f64::from(bounds.y),
-                        f64::from(bounds.x + bounds.width),
-                        f64::from(bounds.y + bounds.height),
-                    ));
-                }
-                let descendants = semantic
-                    .children
-                    .iter()
-                    .filter_map(|child| local_ids.get(child).copied())
-                    .collect::<Vec<_>>();
-                node.set_children(descendants);
-                if semantic.id == projection.root() {
-                    node.set_transform(Affine::translate((
-                        f64::from(content_rect.x),
-                        f64::from(content_rect.y),
-                    )));
-                }
-                Self::accesskit_actions(&semantic.actions, &mut node);
-                if semantic.state.focused {
-                    tree.focus = global_id;
-                }
-                let action_bits = DocumentA11yActionTarget::from_actions(&semantic.actions);
-                if action_bits != 0 {
-                    actions.insert(
-                        global_id,
-                        WorkspaceA11yActionTarget::Document(DocumentA11yActionTarget {
-                            tile,
-                            session_identity,
-                            revision: projection.revision(),
-                            placement_generation,
-                            local_node: semantic.id,
-                            content_rect,
-                            actions: action_bits,
-                        }),
-                    );
-                }
-                tree.nodes.push((global_id, node));
-            }
+            append_document_child(
+                &mut self.accessibility,
+                &mut tree,
+                &mut documents,
+                &shell_ids,
+                child,
+            );
         }
-        self.accessibility.clear_stale_document_focus(&actions);
+        self.accessibility.clear_stale_document_focus(&documents);
         Ok(WorkspaceA11yProjection {
             tree,
             root,
-            actions,
+            frisket_routes,
+            documents,
         })
     }
 
     /// Build the currently retained composite tree without a window. This
-    /// keeps semantic projection and its action map GPU-free and testable.
+    /// keeps semantic projection and its action routes GPU-free and testable.
     pub(in crate::workspace_viewer) fn prepare_accessibility_tree(
         &mut self,
     ) -> Result<TreeUpdate, String> {

@@ -36,6 +36,56 @@ fn both_profiles_keep_advertised_actions_accessible() {
 }
 
 #[test]
+fn host_envelopes_keep_the_mounted_item_source_epoch_and_intents() {
+    let mut endpoint = FixtureEndpoint::new();
+    let mut snapshot = endpoint.snapshot(endpoint.request()).unwrap();
+    snapshot.scene.epoch = SceneEpoch(7);
+    snapshot.scene.revision = Revision(13);
+    let session = snapshot.session.clone();
+    let mut client = ClientState::default();
+    client.apply_snapshot(snapshot).unwrap();
+    for profile in [
+        CapabilityProfile::new([PresentationCapability::PortableCard]),
+        CapabilityProfile::new([PresentationCapability::NativeGlyph]),
+    ] {
+        let read = crate::accessibility::scene_accessibility(
+            &client,
+            &session,
+            &profile,
+            &graphshell_client::NoLocalActions,
+        )
+        .unwrap();
+        assert_eq!(read.items.len(), 2);
+        assert_eq!(read.items.len(), read.tree.children.len());
+        for ((item, envelope), source) in read
+            .tree
+            .children
+            .iter()
+            .zip(&read.items)
+            .zip(["note:recent", "tile:coast"])
+        {
+            assert_eq!(envelope.address.instance, session);
+            assert_eq!(envelope.address.local.0, u64::from(item.instance.0));
+            assert_eq!(
+                envelope.stability,
+                uxtree::envelope::Stability::Scoped { revision: 7 }
+            );
+            assert_eq!(envelope.provenance, Revision(13));
+            assert_eq!(
+                envelope.domain_ref,
+                Some(SourceRef::new("fixture.graphshell", source))
+            );
+            let expected: Vec<_> = item
+                .actions
+                .iter()
+                .map(|action| action.intent.0.as_str())
+                .collect();
+            assert_eq!(envelope.action_ids, expected);
+        }
+    }
+}
+
+#[test]
 fn fixture_rechecks_the_advertised_choice_before_accepting_it() {
     let mut endpoint = FixtureEndpoint::new();
     let snapshot = endpoint.snapshot(endpoint.request()).unwrap();

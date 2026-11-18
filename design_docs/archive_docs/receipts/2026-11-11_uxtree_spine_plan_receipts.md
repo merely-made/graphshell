@@ -272,3 +272,30 @@ snapshots are recorded separately in `combined-report.md`,
 `combined-candidate-record.json`, `combined-*.log` and `COMBINED-SHA256SUMS` under
 `Code/testing/graphshell/uxtree-p2/`. The cleanup rejection remains recorded;
 the named Cargo home is also reused for these combined receiving checks.
+
+
+## 2026-11-17: P3 Pelt and client item envelopes
+
+Graphshell base `7c40580e`. Raw logs, source controls and generated Cargo lock
+are under `Code/testing/graphshell/uxtree-p3/` (100 MB cap). Pelt primary and
+tearout windows use the same document lowering. Each mounted document node
+carries its window, tile and session, its published local ID, and the captured
+admission facts. A Frisket-only DOM lookup still routes shell actions. The
+old Pelt `action_map` name has zero Rust source occurrences.
+
+The host adapts the graphshell-client tree by pairing it with the same mounted
+scene read. Items carry the observed epoch as their scope, the observed revision
+as provenance, the scene source reference and the advertised intent IDs. The
+loopback reader uses the adapter. The client crate keeps its tree and routing.
+
+- Pelt desktop library, 85 tests passed. The tearout fixture checks the tile
+  envelope and distinct window addresses. Existing stale-action tests pass.
+- Graphshell host library, 26 tests passed. The envelope fixture uses epoch 7 and
+  revision 13 and checks the complete advertised command list for both profiles.
+- Three broken controls fail at runtime if the tile or client source is dropped,
+  or if revision replaces epoch. The scripts restore the original source bytes.
+- Host library wasm check passed with default features disabled.
+- Family source cycles checked across 29 repositories with none found.
+
+These are software receipts. App runtime and human assistive-technology
+acceptance have their own gates.

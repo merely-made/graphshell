@@ -1675,13 +1675,26 @@ fn secondary_accessibility_projection_keeps_tile_namespace_and_virtual_focus() {
         child_id.0 >= 1_u64 << 63,
         "child IDs stay out of shell range"
     );
+    let envelope = &first.documents[&child_id];
+    assert_eq!(envelope.address.local, child_id);
+    assert_eq!(envelope.stability, uxtree::envelope::Stability::Life);
+    let tile = workspace.tree().tiles()[0].id;
+    let session = workspace.controller(tile).unwrap().session_identity();
+    assert_eq!(envelope.address.instance.tile, tile);
+    assert_eq!(envelope.address.instance.session, session);
+    let mut other_window = WorkspaceAccessibility::new();
+    let other = secondary_accessibility_projection(&mut other_window, &frisket, &workspace)
+        .expect("same document observed in a distinct window namespace");
+    assert_ne!(
+        envelope.address.instance.window,
+        other.documents[&child_id].address.instance.window,
+    );
+    assert_eq!(envelope.domain_ref, Some(tile));
+    assert_eq!(envelope.provenance.session_identity, session);
     let (action_id, target) = first
-        .actions
+        .frisket_routes
         .iter()
         .find_map(|(id, target)| {
-            let WorkspaceA11yActionTarget::Frisket(target) = target else {
-                return None;
-            };
             let supports_focus = first
                 .tree
                 .nodes

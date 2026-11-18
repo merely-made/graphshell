@@ -127,6 +127,8 @@ clip = [
 test-support = ["mere-host"]
 
 [dependencies]
+accesskit.workspace = true
+uxtree.workspace = true
 ostiary = { workspace = true, optional = true }
 castellan-client = { workspace = true, optional = true }
 base64.workspace = true

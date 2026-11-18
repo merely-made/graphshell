@@ -1,14 +1,9 @@
 # uxtree spine plan: a federated tree with one envelope
 
-**Status:** 2026-11-17: P0 merged after qualification against current main. The mixed-source gate, all
-three broken controls and the supplier suites pass on the combined tree; the source-manifest family
-cycle check also passed for P0. P1 is merged after its production metadata and adapted P0 gate passed
-qualification against current main. P2 is software-qualified on pushed Graphshell and Turnstone `uxtree/p2` candidates, awaiting
-integration. Native tests, wasm checks and normal hooks pass; all six source controls are caught.
-The two P2 worktrees remain for review because both primary checkouts contain concurrent source work.
-The slice 4 cutover is present:
-uxtree, Cambium and the E1a bench live under Graphshell's `host/`. Nine rulings are recorded (D1 to D9,
-Mark, 2026-11-11). P0 remains a gate: if it fails, D1 goes back to Mark as a question. P2 awaits integration; P3 to P11 remain open.
+**Status:** 2026-11-17. P0 and P1 landed. P2 landed on Graphshell main at `7c40580e`.
+Turnstone is testing that published Git source before landing. P3 passed its native and wasm qualification. P4 to P11
+remain open. The slice 4 cutover moved uxtree, Cambium and E1a to Graphshell's `host/`.
+P0 remains a gate for D1. If it fails, D1 returns to Mark.
 
 **For:** carrying out `mere:engine-split D53`, "uxtree grows into the stack's accessibility and automation spine".
 Two briefs read the producers and put the forks to Mark:
@@ -175,17 +170,26 @@ application semantic tree. Browser runtime and human/platform acceptance remain 
 
 ### P3. Pelt and graphshell-client fill the envelope
 
-Pelt composite (`pelt/accessibility.rs`, 1,247 lines): the `action_map` and its `WorkspaceA11yActionTarget` (about 60
-lines, estimate) give way to the envelope, with tile and session identity as provenance and the tile as domain
-reference. Life ids come from the per-tile counter. graphshell-client's `AccessibilityTree` is already a semantic
-model; the host translates it (Scoped by scene epoch; `SourceRef` as domain reference; chirograph intents as action
-ids). No change inside graphshell-client.
+Pelt fills Life envelopes for the document nodes it attaches beneath each tile. The window,
+tile and session identify the producer. Pelt keeps its existing local node allocator and uses
+captured session identity, revision, placement generation, content rectangle and action kinds
+for admission. Frisket retains a DOM node lookup for shell actions.
+
+The Graphshell host reads the client tree and mounted scene together. Visible items carry
+Scoped envelopes with the scene epoch, observed revision, `SourceRef` and advertised intent IDs.
+Client tree and action routing stay in graphshell-client.
 
 - Done when: a Pelt tile node carries an envelope; the existing stale-action test (session identity, content rect,
   placement generation, revision) passes unchanged through the envelope; a graphshell-client item reaches the envelope
   with `SourceRef` as domain reference and its observed epoch; the count of `action_map` in Pelt non-test source is
   zero, or what remains is named.
 - Needs: P1.
+
+P3 receipts are under `Code/testing/graphshell/uxtree-p3/`, with a 100 MB cap. Pelt's
+primary and tearout use the same fill for all mounted document nodes. Addresses include the
+window, tile and session, and keep Pelt’s current window node allocator. The envelope retains
+the existing typed admission facts. Frisket keeps its DOM-only route lookup. The client
+adapter lives in graphshell-host and derives scope and source from one mounted read.
 
 ### P4. The host fills the envelope for Genet-backed nodes (touches genet.git)
 
@@ -628,3 +632,15 @@ Each is a question for a later round, with its evidence. None is answered here.
   review candidates. The combined trees pass the 340 supplier tests, 10 desktop tests,
   13 canvas tests and the Turnstone wasm check again. Normal merge hooks are being run.
   The original report/hash inventory is frozen; combined-tree receipts use separate filenames.
+
+- 2026-11-17: Graphshell P2 landed at `7c40580e`. Turnstone resolved the four envelope
+  dependencies to that exact published source. Native and wasm receiving checks are in flight.
+  P3 is replacing Pelt document routes with envelope provenance and filling client item envelopes
+  in graphshell-host.
+
+- 2026-11-17: P3 native qualification passed 85 Pelt and 26 graphshell-host tests. Three
+  source controls caught a missing Pelt tile, a missing client source and revision substituted for
+  scene epoch. The source-cycle check passed across 29 repositories. The Pelt test also distinguishes
+  the same tile and session observed through two windows.
+- 2026-11-17: The no-default-feature graphshell-host library builds for wasm. Browser
+  execution and platform assistive-technology acceptance remain later gates.
