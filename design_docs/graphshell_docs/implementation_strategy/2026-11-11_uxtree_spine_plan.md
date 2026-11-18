@@ -2,7 +2,7 @@
 
 **Status:** 2026-11-18. P0 to P4 landed. P4's Genet supplier is `b75face72c9` and its
 Graphshell code is `3b247317`. The retained-document action test passed with the supplier on
-Genet main. P5 is under way with D10 settled. P6 to P11 remain open.
+Genet main. P5 is qualified and pushed on `uxtree/p5` in Graphshell and Turnstone. P6 to P11 remain open.
 The slice 4 cutover moved uxtree, Cambium and E1a to Graphshell's `host/`.
 P0 remains a gate for D1. If it fails, D1 returns to Mark.
 
@@ -683,9 +683,15 @@ Each is a question for a later round, with its evidence. None is answered here.
 - 2026-11-18: P4 landed in supplier order. Genet main received the exact tested source
   `b75face72c9`. The Graphshell lock matched the final qualification records, and the
   retained-document stale-action test passed again. Both landings use the normal hooks.
-- 2026-11-18: P5 question 6 is still open. Turnstone's current bridge allocates generations
-  per action queue and delegates route equality to the app's document and pane comparators.
-  Proposed boundary: uxtree defines one reusable generation map. Turnstone owns its map instance
-  in P5. Cambium owns the instance when the native bridge moves in P11. Turnstone keeps
-  its route comparators. The same map retains a generation for equal admissions, assigns a
-  fresh one on replacement, and retires it on removal. This proposal awaits a ruling.
+- 2026-11-18: D10 settled the P5 boundary. uxtree owns the map implementation and
+  each publishing window owns its instance. Turnstone preserves its document and pane
+  comparators and captures its host action envelopes at publication. The publishers
+  preserve equal admissions and retire changed or removed ones.
+- 2026-11-18: Graphshell `a0595668` passed uxtree's 38 native tests and its wasm
+  check. Turnstone passed 71 accessibility tests and a palette test against that Git
+  revision. Keeping an old generation alive caused each deliberately broken
+  stale-admission test to fail. The family checker found zero cycles across 29
+  repositories. Turnstone `6f45ffc4` passed the regular commit and push hooks.
+  The root and web dependency locks still match the selected supplier after the
+  hooks. Land Graphshell before Turnstone. The raw packet is under
+  `Code/testing/graphshell/uxtree-p5/`.

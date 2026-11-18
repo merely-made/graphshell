@@ -373,3 +373,24 @@ doctest. The wasm32 all-features check passed. A control that reused the
 generation for every retained address failed the stale-admission test at
 runtime. The original source was restored before the passing runs. Raw
 output is under `Code/testing/graphshell/uxtree-p5/`.
+
+### 2026-11-18 P5 paired qualification
+
+Graphshell `a059566801f26a0754c19d75b3435d55b7ee2bde` and Turnstone
+`6f45ffc493e8edcefeb9278dc30b172efa1e02eb` incorporate the matching Partition
+updates from the two main branches. Turnstone resolves Graphshell from Git.
+The generated root and web locks match the post-hook copies.
+
+The combined Graphshell tree passed the 38 uxtree tests and the wasm check.
+Turnstone passed 71 accessibility tests and the palette Keep/Drop test. The
+receiving control accepted a retired generation and failed at the stale row
+assertion. The restored source passed the same test. Document, frozen, Gloss
+and Platen fixtures exercised the Derived envelope view. The Graphshell and
+Turnstone commit and push hooks passed. The family check found zero strict or
+development cycles across 29 repositories.
+
+Turnstone's legacy graph-member selection fills use IDs that differ from the
+Frozen Projection nodes, so the publisher filters the fills out. Frozen
+Projection selection still needs a binding. The raw results and generated
+locks are under `Code/testing/graphshell/uxtree-p5/`. The dependency order for
+landing is Graphshell, then Turnstone.
