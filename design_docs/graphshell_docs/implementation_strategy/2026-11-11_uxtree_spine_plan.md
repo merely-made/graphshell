@@ -3,11 +3,12 @@
 **Status:** 2026-11-17: P0 merged after qualification against current main. The mixed-source gate, all
 three broken controls and the supplier suites pass on the combined tree; the source-manifest family
 cycle check also passed for P0. P1 is merged after its production metadata and adapted P0 gate passed
-qualification against current main. P2 is in progress from published merge `5267dd2d`, in isolated
-Graphshell and Turnstone worktrees because both primary checkouts have concurrent source work.
+qualification against current main. P2 is software-qualified on pushed Graphshell and Turnstone `uxtree/p2` candidates, awaiting
+integration. Native tests, wasm checks and normal hooks pass; all six source controls are caught.
+The two P2 worktrees remain for review because both primary checkouts contain concurrent source work.
 The slice 4 cutover is present:
 uxtree, Cambium and the E1a bench live under Graphshell's `host/`. Nine rulings are recorded (D1 to D9,
-Mark, 2026-11-11). P0 remains a gate: if it fails, D1 goes back to Mark as a question. P2 to P11 remain open.
+Mark, 2026-11-11). P0 remains a gate: if it fails, D1 goes back to Mark as a question. P2 awaits integration; P3 to P11 remain open.
 
 **For:** carrying out `mere:engine-split D53`, "uxtree grows into the stack's accessibility and automation spine".
 Two briefs read the producers and put the forks to Mark:
@@ -139,12 +140,15 @@ native and wasm library checks, the unchanged uxtree manifest and family-cycle c
 
 ### P2. Cambium's native publisher and the canvas fill the envelope
 
-`rootstock/semantics.rs` (506 lines) `publication_bindings` freezes a `SemanticNodeIdentity` per node
-(`a11y_provenance.rs`, 175 lines). That table, `PublicationBindings` (about 100 lines, estimate), becomes envelope
-fills: Life ids, provenance, producer action ids from texture producers' `ProducedAction`. DOM-derived nodes carry
-action kinds and no ids, and the envelope does not make one up (second brief §3.2). The canvas's reference-app lowering
-(`gs-port/canvas_reader.rs`, 200 lines; about 25 lines change) carries the member UUID through `ProducerNode` as the
-domain reference; `DescribedKeyRegistry` stays the key owner.
+Rootstock's `semantics/publication.rs` fills one uxtree envelope per semantic node: Life addresses,
+existing weak provenance, actual producer command IDs, optional source reference and authored DOM key.
+`SemanticPublication` holds these envelopes and typed delivery routes. The native publisher finalizes
+addresses through its existing ID allocation, then advances envelopes with the tree and routes. DOM
+action kinds stay on the AccessKit node; producer command IDs come from `ProducedAction`.
+
+Turnstone's `ports/graphshell/src/canvas_reader.rs` forwards each member UUID through `ProducerNode`
+as `sceno::SourceRef::new("mere.graph", member.to_string())`, including the item's action buttons after lowering.
+`DescribedKeyRegistry` owns the key; the adapter forwards it.
 
 - Done when: a test walks a published tree and finds an envelope on every node; a texture producer's command appears
   as an action id on its node; a canvas node carries its member UUID as domain reference; a request after the node's
@@ -597,3 +601,25 @@ Each is a question for a later round, with its evidence. None is answered here.
   current main `9185d150`. The 12 family packages moved together and registry `peer-facts`
   0.0.1 disappeared. Before/after package IDs and locks are retained; manifests, source
   patches and dependency-ban policy are unchanged. Normal hooks are being retried.
+- 2026-11-17: P2 supplier candidate `5c390762` is pushed with normal hooks passing after
+  the holder refresh. Turnstone passes 13 canvas reader tests, a broken-reference source control,
+  the restored 13-test suite and its browser-target library check. Six receiving contract packages
+  resolve to the candidate Graphshell checkout. The final source cycle gate passes across 29 repos.
+- 2026-11-17: Review removed an unnecessary assumption that every native ID must numerically
+  differ from its source ID. The native test checks the final tree address and retained provenance;
+  all 29 tests pass again, and omitting address finalization still fails the revised test. Receiving
+  hooks have passed both Clippy checks and the root bans; the web workspace is fetching its own
+  newer Genet revision before its bans run. These source cohorts are retained separately.
+- 2026-11-17: P2 Turnstone candidate `219c99b1` is pushed. Both Clippy hooks, root/web/relay
+  dependency bans, house patch checks, resolved-version recording and push hooks pass. Native tests
+  and the wasm check use Genet `0cd7e98`; the separate web dependency-ban resolution uses `fe42f35`.
+  Exact locks and source IDs are retained for each claim. The root receiving package IDs did not
+  change through the hook run. Land Graphshell first, then refresh Turnstone's Graphshell Git source
+  through Cargo and integrate the receiving change; all three standalone roots retain their own locks.
+- 2026-11-17: P2 cleanup: the P1 worktree and feature branches were removed after integration.
+  The two P2 worktrees remain for review. Automatic approval review rejected removal of the named
+  temporary Cargo home and a narrower literal junction unlink, returning only "blocked by policy".
+  `C:/t/cargo-homes/turnstone-uxtree-p2` remains owned by P2 qualification (325,055 bytes of local files,
+  plus junctions to shared caches). Four gate-created Git cache origins were normalized to their
+  persistent cache paths. Shared targets and source caches are preserved. Cleanup details and the
+  complete qualification packet are under `Code/testing/graphshell/uxtree-p2/` (100 MB cap).

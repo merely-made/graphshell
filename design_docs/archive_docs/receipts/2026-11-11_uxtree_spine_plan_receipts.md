@@ -160,7 +160,7 @@ Producer action-button envelopes carry the actual command and their child's
 source reference. Structural children carry the reference without an action
 route. Existing native refusal policy is unchanged.
 
-The full submitted semantic-tree walk passes, including every final address,
+The native semantic publication payload walk passes, including every final address,
 Life class, owner/provenance, command, source reference and authored key. The
 new Rootstock test freezes a real envelope route, replaces the child while
 retaining the old marker, and sees `StaleTarget` with no action effect; a fresh
@@ -202,3 +202,54 @@ Dramatis Git packages from `2c779ded` to `9185d150` and removed registry 0.0.1.
 No manifest, patch, skip or manual lock edit was needed. The before/after locks,
 package IDs and failed hooks are retained in `graphshell-host*.Cargo.lock`,
 `resolution-delta.json`, `refresh-dramatis.log` and `graphshell-commit-hooks*.log`.
+
+
+### P2 receiving and final review
+
+Turnstone candidate `219c99b1e8168461ae7e214f2ed9e1fae1bd91de` is pushed on
+`uxtree/p2`. The 13 canvas reader tests pass, including 12 actual sample members
+retaining UUID, described key and command IDs through Rootstock. Dropping the
+reference in the real canvas lowering fails the same runtime test; restoring
+its bytes passes all 13 again. The first receiving compile exposed a missing
+`LayoutDom` import in the new test; the corrected and restored logs are retained.
+The no-default-feature `web` library wasm check passes.
+
+Both normal Turnstone Clippy hooks, dependency bans at root/web/relay roots,
+house patch checks, resolved-version recording and push hooks pass. Receiving
+root package IDs are identical before and after those hooks. The native/wasm
+checks and root hooks use Genet `0cd7e985`; the separate web ban resolution uses
+`fe42f351`. The relay has no Genet source. These are separate qualification
+claims, with exact locks and Git IDs in `receiving-hook-sources.json` and
+`receiving-package-ids.json`; the local supplier selection is confined to the
+retained gate Cargo configuration. All six contract packages resolve to the
+Graphshell candidate checkout. Land Graphshell, refresh Turnstone's Graphshell
+Git source with Cargo, then integrate the receiver.
+
+Review removed an assumption that every native number differs from its source
+number. Every envelope must match its final tree node and preserve provenance;
+numeric coincidences between namespaces are valid. The revised native suite
+passes 29 tests, omitting address finalization still fails its runtime assertion,
+and restoring the source passes the 29 again. Production publication code is
+unchanged from supplier `5c390762`; the final supplier commit adds this test fix
+and the completed plan/receipt status.
+
+The native walk uses production `NativeIds::prepare` and commits its output into
+a detached host fixture. It certifies the prepared publication payload and
+lifetime/admission behavior. OS adapter submission, installed binaries, browser
+runtime and human AT are not claimed by these software gates. The existing
+pre-layout bootstrap remains a pending window carrier with no semantic routes.
+
+Raw final evidence: `canvas-restored.log`, `control-canvas-domain.log`,
+`turnstone-wasm-check.log`, `turnstone-commit-hooks.log`, `turnstone-push.log`,
+`native-review-restored.log`, `control-source-address-review.log` and
+`qualified-source-family-cycles.json`. The full raw report and hash inventory
+are `Code/testing/graphshell/uxtree-p2/report.md` and `SHA256SUMS`.
+
+The P2 worktrees remain for review. Automatic approval review rejected the
+normal temporary-home cleanup and the narrower literal junction unlink, stating
+only "blocked by policy". The P2-owned home at
+`C:/t/cargo-homes/turnstone-uxtree-p2` remains with 325,055 bytes of local files
+and two links to shared caches. Its configuration and exact rejection/ownership
+status are recorded in `cleanup.json`. Four cache origins created through that
+home were normalized to persistent global cache paths. Shared source caches
+and reusable Graphshell/Turnstone targets, including the CEF SDK cache, remain.
