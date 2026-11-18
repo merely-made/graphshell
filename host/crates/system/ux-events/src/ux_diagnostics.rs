@@ -32,7 +32,7 @@
 
 use std::sync::Mutex;
 
-use crate::ux_observability::{DismissReason, SurfaceId, UxEvent, UxObserver};
+use crate::ux_observability::{DismissReason, EventAddress, SurfaceId, UxEvent, UxObserver};
 
 /// Severity tier for a diagnostics channel emission. Mirrors the
 /// shell crate's existing `ChannelSeverity` taxonomy so a host can
@@ -51,6 +51,7 @@ pub enum DiagnosticsSeverity {
 pub struct ChannelEmission {
     pub channel_id: &'static str,
     pub severity: DiagnosticsSeverity,
+    pub address: Option<EventAddress>,
     /// Optional descriptive payload (e.g., `"reason=Confirmed"`).
     /// Hosts that use structured payloads can ignore this and read
     /// the originating event directly via [`UxChannelObserver`]'s
@@ -68,20 +69,28 @@ pub trait DiagnosticsChannelSink: Send + Sync {
 /// Map a `UxEvent` to its canonical channel emission. Pure function;
 /// the mapping is the locked-in contract.
 pub fn event_channel(event: &UxEvent) -> ChannelEmission {
+    let address = event.address();
     match event {
-        UxEvent::SurfaceOpened { surface } => ChannelEmission {
+        UxEvent::SurfaceOpened { surface, .. } => ChannelEmission {
             channel_id: surface_open_channel(*surface),
             severity: DiagnosticsSeverity::Info,
+            address,
             note: None,
         },
-        UxEvent::SurfaceDismissed { surface, reason } => ChannelEmission {
+        UxEvent::SurfaceDismissed {
+            surface, reason, ..
+        } => ChannelEmission {
             channel_id: surface_dismiss_channel(*surface),
             severity: DiagnosticsSeverity::Info,
+            address,
             note: Some(format!("reason={}", dismiss_reason_label(*reason))),
         },
-        UxEvent::ActionDispatched { action_id, target } => ChannelEmission {
+        UxEvent::ActionDispatched {
+            action_id, target, ..
+        } => ChannelEmission {
             channel_id: ACTION_CHANNEL,
             severity: DiagnosticsSeverity::Info,
+            address,
             note: Some(match target {
                 Some(_) => format!("action={};targeted=true", action_id.key()),
                 None => format!("action={};targeted=false", action_id.key()),
@@ -90,6 +99,7 @@ pub fn event_channel(event: &UxEvent) -> ChannelEmission {
         UxEvent::OpenNodeDispatched { .. } => ChannelEmission {
             channel_id: OPEN_NODE_CHANNEL,
             severity: DiagnosticsSeverity::Info,
+            address,
             note: None,
         },
     }
@@ -248,6 +258,7 @@ mod tests {
     #[test]
     fn surface_opened_maps_to_open_channel() {
         let emission = event_channel(&UxEvent::SurfaceOpened {
+            address: None,
             surface: SurfaceId::CommandPalette,
         });
         assert_eq!(emission.channel_id, "ux.command_palette.opened");
@@ -257,6 +268,7 @@ mod tests {
     #[test]
     fn surface_dismissed_carries_reason_in_note() {
         let emission = event_channel(&UxEvent::SurfaceDismissed {
+            address: None,
             surface: SurfaceId::ConfirmDialog,
             reason: DismissReason::Confirmed,
         });
@@ -267,6 +279,7 @@ mod tests {
     #[test]
     fn action_dispatched_carries_action_key_and_targeted_flag() {
         let untargeted = event_channel(&UxEvent::ActionDispatched {
+            address: None,
             action_id: ActionId::PhysicsToggle,
             target: None,
         });
@@ -287,6 +300,7 @@ mod tests {
         );
 
         let targeted = event_channel(&UxEvent::ActionDispatched {
+            address: None,
             action_id: ActionId::NodePinToggle,
             target: Some(NodeKey::new(7)),
         });
@@ -305,6 +319,7 @@ mod tests {
     fn zero_capacity_disables_channel_recording() {
         let sink = RecordingChannelSink::with_capacity(0);
         let emission = event_channel(&UxEvent::SurfaceOpened {
+            address: None,
             surface: SurfaceId::NodeFinder,
         });
         for _ in 0..256 {
@@ -319,9 +334,11 @@ mod tests {
     fn channel_recorder_retains_the_newest_emissions_at_capacity() {
         let sink = RecordingChannelSink::with_capacity(1);
         sink.record(&event_channel(&UxEvent::SurfaceOpened {
+            address: None,
             surface: SurfaceId::NodeFinder,
         }));
         sink.record(&event_channel(&UxEvent::SurfaceDismissed {
+            address: None,
             surface: SurfaceId::NodeFinder,
             reason: DismissReason::Cancelled,
         }));
@@ -345,9 +362,11 @@ mod tests {
         let mut observers = UxObservers::new();
         observers.register(Box::new(observer));
         observers.emit(UxEvent::SurfaceOpened {
+            address: None,
             surface: SurfaceId::NodeFinder,
         });
         observers.emit(UxEvent::SurfaceDismissed {
+            address: None,
             surface: SurfaceId::NodeFinder,
             reason: DismissReason::Cancelled,
         });
@@ -363,8 +382,12 @@ mod tests {
         let ids = all_channel_ids();
         for surface in [SurfaceId::InspectorPane, SurfaceId::StewardPane] {
             for event in [
-                UxEvent::SurfaceOpened { surface },
+                UxEvent::SurfaceOpened {
+                    surface,
+                    address: None,
+                },
                 UxEvent::SurfaceDismissed {
+                    address: None,
                     surface,
                     reason: DismissReason::Cancelled,
                 },
@@ -381,10 +404,19 @@ mod tests {
             ids.len()
         );
         for &surface in CHANNEL_SURFACES {
-            assert!(ids.contains(&event_channel(&UxEvent::SurfaceOpened { surface }).channel_id));
+            assert!(
+                ids.contains(
+                    &event_channel(&UxEvent::SurfaceOpened {
+                        surface,
+                        address: None
+                    })
+                    .channel_id
+                )
+            );
             assert!(
                 ids.contains(
                     &event_channel(&UxEvent::SurfaceDismissed {
+                        address: None,
                         surface,
                         reason: DismissReason::Cancelled
                     })
@@ -404,6 +436,7 @@ mod tests {
     fn noop_sink_is_silent() {
         let sink = NoopChannelSink;
         sink.record(&ChannelEmission {
+            address: None,
             channel_id: "ux.command_palette.opened",
             severity: DiagnosticsSeverity::Info,
             note: None,

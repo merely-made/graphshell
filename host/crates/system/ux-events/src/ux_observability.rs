@@ -60,6 +60,9 @@ pub use kernel::accessibility::SurfaceId;
 use hest::actions::ActionId;
 use kernel::graph::NodeKey;
 
+mod address;
+pub use address::EventAddress;
+
 /// Why a surface dismissed. Lets observers distinguish "user
 /// confirmed" from "user cancelled" from "system superseded" without
 /// reaching into surface-specific state.
@@ -82,12 +85,18 @@ pub enum DismissReason {
 /// belong on host-side decorators, not here.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum UxEvent {
-    /// A chrome surface opened.
-    SurfaceOpened { surface: SurfaceId },
+    /// A chrome surface opened, optionally with its published pane root.
+    SurfaceOpened {
+        surface: SurfaceId,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        address: Option<EventAddress>,
+    },
     /// A chrome surface dismissed for the given reason.
     SurfaceDismissed {
         surface: SurfaceId,
         reason: DismissReason,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        address: Option<EventAddress>,
     },
     /// A host dispatched an action, optionally on a node. The
     /// optional `target` is the resolved NodeKey when the dispatch
@@ -95,9 +104,23 @@ pub enum UxEvent {
     ActionDispatched {
         action_id: ActionId,
         target: Option<NodeKey>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        address: Option<EventAddress>,
     },
     /// A host dispatched a request to open a node.
     OpenNodeDispatched { node_key: NodeKey },
+}
+
+impl UxEvent {
+    /// The observed pane root or action target supplied by the host.
+    pub fn address(&self) -> Option<EventAddress> {
+        match self {
+            Self::SurfaceOpened { address, .. }
+            | Self::SurfaceDismissed { address, .. }
+            | Self::ActionDispatched { address, .. } => *address,
+            Self::OpenNodeDispatched { .. } => None,
+        }
+    }
 }
 
 /// Trait every UX observer implements. Observers are `Send + Sync`
@@ -280,13 +303,16 @@ mod tests {
         observers.register(Box::new(CountingObserverProxy(Arc::clone(&counts))));
 
         observers.emit(UxEvent::SurfaceOpened {
+            address: None,
             surface: SurfaceId::CommandPalette,
         });
         observers.emit(UxEvent::SurfaceDismissed {
+            address: None,
             surface: SurfaceId::CommandPalette,
             reason: DismissReason::Cancelled,
         });
         observers.emit(UxEvent::ActionDispatched {
+            address: None,
             action_id: ActionId::PhysicsToggle,
             target: None,
         });
@@ -307,6 +333,7 @@ mod tests {
 
         for _ in 0..256 {
             observers.emit(UxEvent::SurfaceOpened {
+                address: None,
                 surface: SurfaceId::CommandPalette,
             });
         }
@@ -326,12 +353,15 @@ mod tests {
         observers.register(Box::new(RecordingObserverProxy(Arc::clone(&recorder))));
 
         observers.emit(UxEvent::SurfaceOpened {
+            address: None,
             surface: SurfaceId::CommandPalette,
         });
         observers.emit(UxEvent::SurfaceOpened {
+            address: None,
             surface: SurfaceId::NodeFinder,
         });
         observers.emit(UxEvent::SurfaceOpened {
+            address: None,
             surface: SurfaceId::ContextMenu,
         });
 
@@ -341,12 +371,14 @@ mod tests {
         assert!(matches!(
             snap[0],
             UxEvent::SurfaceOpened {
+                address: None,
                 surface: SurfaceId::NodeFinder
             }
         ));
         assert!(matches!(
             snap[1],
             UxEvent::SurfaceOpened {
+                address: None,
                 surface: SurfaceId::ContextMenu
             }
         ));
@@ -361,6 +393,7 @@ mod tests {
         observers.register(Box::new(CountingObserverProxy(Arc::clone(&b))));
 
         observers.emit(UxEvent::SurfaceOpened {
+            address: None,
             surface: SurfaceId::CommandPalette,
         });
 

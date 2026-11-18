@@ -52,6 +52,7 @@ impl UxProbe for DestructiveActionGateProbe {
             UxEvent::SurfaceDismissed {
                 surface: SurfaceId::ConfirmDialog,
                 reason,
+                ..
             } => {
                 let mut grant = self.confirm_grant.lock().unwrap();
                 *grant = matches!(reason, DismissReason::Confirmed);

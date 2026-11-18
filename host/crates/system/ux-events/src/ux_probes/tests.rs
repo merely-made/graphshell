@@ -23,13 +23,16 @@ fn mutual_exclusion_passes_when_dismissals_precede_opens() {
     // Open palette, dismiss-superseded, open finder. The host
     // emits the dismissal *before* the new open — invariant holds.
     observers.emit(UxEvent::SurfaceOpened {
+        address: None,
         surface: SurfaceId::CommandPalette,
     });
     observers.emit(UxEvent::SurfaceDismissed {
+        address: None,
         surface: SurfaceId::CommandPalette,
         reason: DismissReason::Superseded,
     });
     observers.emit(UxEvent::SurfaceOpened {
+        address: None,
         surface: SurfaceId::NodeFinder,
     });
 
@@ -43,9 +46,11 @@ fn mutual_exclusion_flags_overlapping_modals() {
     observers.register(probe_as_observer(Arc::clone(&probe) as Arc<dyn UxProbe>));
 
     observers.emit(UxEvent::SurfaceOpened {
+        address: None,
         surface: SurfaceId::CommandPalette,
     });
     observers.emit(UxEvent::SurfaceOpened {
+        address: None,
         surface: SurfaceId::NodeFinder,
     });
 
@@ -62,9 +67,11 @@ fn mutual_exclusion_ignores_non_modal_surfaces() {
     observers.register(probe_as_observer(Arc::clone(&probe) as Arc<dyn UxProbe>));
 
     observers.emit(UxEvent::SurfaceOpened {
+        address: None,
         surface: SurfaceId::CommandPalette,
     });
     observers.emit(UxEvent::SurfaceOpened {
+        address: None,
         surface: SurfaceId::StatusBar,
     });
 
@@ -78,9 +85,11 @@ fn open_dismiss_balance_passes_for_paired_events() {
     observers.register(probe_as_observer(Arc::clone(&probe) as Arc<dyn UxProbe>));
 
     observers.emit(UxEvent::SurfaceOpened {
+        address: None,
         surface: SurfaceId::ContextMenu,
     });
     observers.emit(UxEvent::SurfaceDismissed {
+        address: None,
         surface: SurfaceId::ContextMenu,
         reason: DismissReason::Cancelled,
     });
@@ -96,9 +105,11 @@ fn open_dismiss_balance_flags_double_open() {
     observers.register(probe_as_observer(Arc::clone(&probe) as Arc<dyn UxProbe>));
 
     observers.emit(UxEvent::SurfaceOpened {
+        address: None,
         surface: SurfaceId::ContextMenu,
     });
     observers.emit(UxEvent::SurfaceOpened {
+        address: None,
         surface: SurfaceId::ContextMenu,
     });
 
@@ -114,6 +125,7 @@ fn open_dismiss_balance_flags_unmatched_dismiss() {
     observers.register(probe_as_observer(Arc::clone(&probe) as Arc<dyn UxProbe>));
 
     observers.emit(UxEvent::SurfaceDismissed {
+        address: None,
         surface: SurfaceId::ContextMenu,
         reason: DismissReason::Cancelled,
     });
@@ -134,6 +146,7 @@ fn open_dismiss_balance_pending_reports_unclosed_surfaces() {
     observers.register(probe_as_observer(Arc::clone(&probe) as Arc<dyn UxProbe>));
 
     observers.emit(UxEvent::SurfaceOpened {
+        address: None,
         surface: SurfaceId::CommandPalette,
     });
     // Forgot the dismissal — pending_opens reports it.
@@ -150,13 +163,16 @@ fn productive_selection_palette_with_action_dispatch_passes() {
     observers.register(probe_as_observer(Arc::clone(&probe) as Arc<dyn UxProbe>));
 
     observers.emit(UxEvent::SurfaceOpened {
+        address: None,
         surface: SurfaceId::CommandPalette,
     });
     observers.emit(UxEvent::SurfaceDismissed {
+        address: None,
         surface: SurfaceId::CommandPalette,
         reason: DismissReason::Confirmed,
     });
     observers.emit(UxEvent::ActionDispatched {
+        address: None,
         action_id: ActionId::PhysicsToggle,
         target: None,
     });
@@ -172,10 +188,12 @@ fn productive_selection_palette_routed_to_node_create_passes() {
 
     // Palette confirms a host-routed action that opens NodeCreate.
     observers.emit(UxEvent::SurfaceDismissed {
+        address: None,
         surface: SurfaceId::CommandPalette,
         reason: DismissReason::Confirmed,
     });
     observers.emit(UxEvent::SurfaceOpened {
+        address: None,
         surface: SurfaceId::NodeCreate,
     });
 
@@ -189,12 +207,14 @@ fn productive_selection_finder_must_emit_open_node() {
     observers.register(probe_as_observer(Arc::clone(&probe) as Arc<dyn UxProbe>));
 
     observers.emit(UxEvent::SurfaceDismissed {
+        address: None,
         surface: SurfaceId::NodeFinder,
         reason: DismissReason::Confirmed,
     });
     // ActionDispatched is NOT a productive outcome for NodeFinder —
     // only OpenNodeDispatched satisfies the rule.
     observers.emit(UxEvent::ActionDispatched {
+        address: None,
         action_id: ActionId::PhysicsToggle,
         target: None,
     });
@@ -212,6 +232,7 @@ fn productive_selection_finder_with_open_node_passes() {
 
     let dummy = kernel::graph::NodeKey::new(0);
     observers.emit(UxEvent::SurfaceDismissed {
+        address: None,
         surface: SurfaceId::NodeFinder,
         reason: DismissReason::Confirmed,
     });
@@ -229,6 +250,7 @@ fn productive_selection_ignores_cancelled_dismissals() {
     // Cancelled dismissals carry no productive expectation — the user
     // chose not to act and the probe must not flag.
     observers.emit(UxEvent::SurfaceDismissed {
+        address: None,
         surface: SurfaceId::CommandPalette,
         reason: DismissReason::Cancelled,
     });
@@ -243,10 +265,12 @@ fn productive_selection_context_menu_destructive_path_passes() {
     observers.register(probe_as_observer(Arc::clone(&probe) as Arc<dyn UxProbe>));
 
     observers.emit(UxEvent::SurfaceDismissed {
+        address: None,
         surface: SurfaceId::ContextMenu,
         reason: DismissReason::Confirmed,
     });
     observers.emit(UxEvent::SurfaceOpened {
+        address: None,
         surface: SurfaceId::ConfirmDialog,
     });
 
@@ -275,10 +299,12 @@ fn destructive_gate_passes_when_confirm_dialog_grants() {
     // Standard destructive flow: ConfirmDialog Confirmed → destructive
     // action dispatched.
     observers.emit(UxEvent::SurfaceDismissed {
+        address: None,
         surface: SurfaceId::ConfirmDialog,
         reason: DismissReason::Confirmed,
     });
     observers.emit(UxEvent::ActionDispatched {
+        address: None,
         action_id: ActionId::NodeDelete,
         target: None,
     });
@@ -294,6 +320,7 @@ fn destructive_gate_flags_unconfirmed_destructive() {
 
     // Destructive action fires without any preceding ConfirmDialog.
     observers.emit(UxEvent::ActionDispatched {
+        address: None,
         action_id: ActionId::NodeDelete,
         target: None,
     });
@@ -312,15 +339,18 @@ fn destructive_gate_consumes_grant_after_one_destructive() {
     observers.register(probe_as_observer(Arc::clone(&probe) as Arc<dyn UxProbe>));
 
     observers.emit(UxEvent::SurfaceDismissed {
+        address: None,
         surface: SurfaceId::ConfirmDialog,
         reason: DismissReason::Confirmed,
     });
     observers.emit(UxEvent::ActionDispatched {
+        address: None,
         action_id: ActionId::NodeDelete,
         target: None,
     });
     // First passed; second fires without a fresh confirm.
     observers.emit(UxEvent::ActionDispatched {
+        address: None,
         action_id: ActionId::NodeDelete,
         target: None,
     });
@@ -336,10 +366,12 @@ fn destructive_gate_cancelled_confirm_does_not_grant() {
     observers.register(probe_as_observer(Arc::clone(&probe) as Arc<dyn UxProbe>));
 
     observers.emit(UxEvent::SurfaceDismissed {
+        address: None,
         surface: SurfaceId::ConfirmDialog,
         reason: DismissReason::Cancelled,
     });
     observers.emit(UxEvent::ActionDispatched {
+        address: None,
         action_id: ActionId::NodeDelete,
         target: None,
     });
@@ -356,6 +388,7 @@ fn destructive_gate_ignores_non_destructive_actions() {
 
     // Non-destructive action without a confirm — fine.
     observers.emit(UxEvent::ActionDispatched {
+        address: None,
         action_id: ActionId::PhysicsToggle,
         target: None,
     });
@@ -374,14 +407,17 @@ fn destructive_gate_intervening_action_consumes_grant() {
     observers.register(probe_as_observer(Arc::clone(&probe) as Arc<dyn UxProbe>));
 
     observers.emit(UxEvent::SurfaceDismissed {
+        address: None,
         surface: SurfaceId::ConfirmDialog,
         reason: DismissReason::Confirmed,
     });
     observers.emit(UxEvent::ActionDispatched {
+        address: None,
         action_id: ActionId::PhysicsToggle,
         target: None,
     });
     observers.emit(UxEvent::ActionDispatched {
+        address: None,
         action_id: ActionId::NodeDelete,
         target: None,
     });
@@ -399,6 +435,7 @@ fn destructive_gate_reads_the_offered_declaration_instead_of_an_action_list() {
     commands.register(toggle);
     let probe = DestructiveActionGateProbe::new(commands);
     probe.observe(&UxEvent::ActionDispatched {
+        address: None,
         action_id: ActionId::PhysicsToggle,
         target: None,
     });
@@ -419,8 +456,108 @@ fn destructive_gate_does_not_infer_destructiveness_from_the_shared_id() {
     );
     let probe = DestructiveActionGateProbe::new(commands);
     probe.observe(&UxEvent::ActionDispatched {
+        address: None,
         action_id: ActionId::NodeDelete,
         target: None,
     });
     assert!(probe.drain_failures().is_empty());
+}
+
+#[test]
+fn same_kind_grafted_panes_keep_distinct_event_addresses_and_balance() {
+    use crate::ux_diagnostics::event_channel;
+    use crate::ux_observability::EventAddress;
+    use accesskit::NodeId;
+    use uxtree::envelope::{Envelope, FederatedAddress};
+
+    let address = |path| {
+        let tree = uxtree::tree_id_for_path(path);
+        let pane: Envelope<_, _, ()> = Envelope::life(
+            FederatedAddress::<()>::grafted((tree, NodeId(9))),
+            "private witness",
+        );
+        let address = EventAddress::from_envelope(&pane, |_| panic!("graft uses its tree"));
+        assert_eq!(
+            address,
+            EventAddress::Grafted {
+                tree: tree.0,
+                local: 9
+            }
+        );
+        address
+    };
+    let first = address("p8/first-pane");
+    let second = address("p8/second-pane");
+    assert_ne!(first, second);
+    let surface = SurfaceId::TilePane;
+    let probe = Arc::new(OpenDismissBalanceProbe::new());
+    let mut observers = UxObservers::new();
+    observers.register(probe_as_observer(Arc::clone(&probe) as Arc<dyn UxProbe>));
+
+    let opened = [first, second].map(|address| UxEvent::SurfaceOpened {
+        surface,
+        address: Some(address),
+    });
+    let emissions = opened.each_ref().map(event_channel);
+    assert_eq!(emissions[0].channel_id, emissions[1].channel_id);
+    assert_eq!(
+        emissions.map(|event| event.address),
+        [Some(first), Some(second)]
+    );
+    for event in opened {
+        let json = serde_json::to_string(&event).unwrap();
+        assert!(!json.contains("private witness"));
+        assert_eq!(serde_json::from_str::<UxEvent>(&json).unwrap(), event);
+        observers.emit(event);
+    }
+    assert!(
+        probe.drain_failures().is_empty(),
+        "two distinct panes may be open together"
+    );
+    assert_eq!(probe.pending_opens().get(&surface), Some(&2));
+
+    // Dismissing the second pane twice cannot balance the first pane's open.
+    for address in [second, second] {
+        observers.emit(UxEvent::SurfaceDismissed {
+            surface,
+            reason: DismissReason::Cancelled,
+            address: Some(address),
+        });
+    }
+    assert_eq!(probe.drain_failures().len(), 1);
+    assert_eq!(probe.pending_opens().get(&surface), Some(&1));
+    observers.emit(UxEvent::SurfaceDismissed {
+        surface,
+        reason: DismissReason::Confirmed,
+        address: Some(first),
+    });
+    assert!(probe.pending_opens().is_empty());
+    assert!(probe.drain_failures().is_empty());
+}
+
+#[test]
+fn producer_address_is_optional_and_distinct_from_the_graph_target() {
+    use crate::ux_diagnostics::event_channel;
+    use crate::ux_observability::EventAddress;
+    use accesskit::NodeId;
+    use kernel::graph::NodeKey;
+    use uuid::Uuid;
+    use uxtree::envelope::{Envelope, FederatedAddress};
+
+    let instance = Uuid::from_u128(11);
+    let envelope: Envelope<_, _, u64> =
+        Envelope::life(FederatedAddress::producer(instance, NodeId(4)), "pane");
+    let address = EventAddress::from_envelope(&envelope, |id| *id);
+    assert_eq!(address, EventAddress::Producer { instance, local: 4 });
+    let event = UxEvent::ActionDispatched {
+        action_id: ActionId::NodePinToggle,
+        target: Some(NodeKey::new(22)),
+        address: Some(address),
+    };
+    assert_eq!(event_channel(&event).address, Some(address));
+
+    let old = serde_json::json!({"SurfaceOpened": {"surface": "TilePane"}});
+    let decoded: UxEvent = serde_json::from_value(old.clone()).unwrap();
+    assert_eq!(decoded.address(), None);
+    assert_eq!(serde_json::to_value(decoded).unwrap(), old);
 }

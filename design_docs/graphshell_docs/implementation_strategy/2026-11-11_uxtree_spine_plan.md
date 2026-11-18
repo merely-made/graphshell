@@ -1,8 +1,8 @@
 # uxtree spine plan: a federated tree with one envelope
 
-**Status:** 2026-11-18. P0 to P6 landed. P6 landed on Graphshell at `2a5a4f07` and on Turnstone
-at `46d79e84`. Turnstone qualified against that Graphshell main revision with the Crystal update.
-P7 is qualified and pushed on `uxtree/p7` in Graphshell and Turnstone. P8 to P11 remain open.
+**Status:** 2026-11-18. P0 to P8 landed. P7 landed on Graphshell at `9f3537ac` and on
+Turnstone at `c47ba17a`. P8 landed on Mere at `49d7d473a` and on Graphshell at `4b2ef6c3`.
+P9 to P11 remain open.
 The slice 4 cutover moved uxtree, Cambium and E1a to Graphshell's `host/`.
 P0 remains a gate for D1. If it fails, D1 returns to Mark.
 
@@ -273,23 +273,24 @@ It reports missing envelopes where those producers have not supplied them.
 
 ### P8. Events gain the address; two dead pieces retire (touches mere.git)
 
-`UxEvent` (`ux-events/src/ux_observability.rs:84-101`) gets an optional node address taken from the envelope. Which
-variants carry it is named in P8. Two deletions:
+`UxEvent` carries an optional address from the observed envelope. `SurfaceOpened` and
+`SurfaceDismissed` carry the pane root when available, and `ActionDispatched` carries its
+observed target alongside the graph target. `OpenNodeDispatched` carries the domain key.
+The event copies the producer scope or installed tree and local ID. Observers and the
+diagnostics bridge retain that address. The balance probe pairs open and dismiss by kind
+and captured address. Address-less events keep the surface-kind behavior.
 
-- `incipit::forme::ux` (458 lines, no caller in Mere, Graphshell or Turnstone; it moves to Graphshell's `host/` with
-  `incipit` at the cutover, since incipit is not among the five crates that stay, D102). A Graphshell change.
-- `descriptor_for` in `mere-kernel` (`mere/crates/graph/graph-kernel/src/accessibility.rs`, 376 lines in the file; no
-  caller). `mere-kernel` stays in Mere, so this is a Mere change. It touches `mere:engine-split D59`'s "no kernel code
-  moves" only as a deletion. The file also holds `SurfaceId` and the `AccessibilityDescriptor` type (Findings): the
-  deletion takes `descriptor_for`, its tests and what only it uses; `SurfaceId` stays. Where `SurfaceId` then lives is
-  named in P8.
+P8 removes the unused Graphshell `incipit::forme::ux` projection and the Mere kernel's
+`descriptor_for`, its tests and the types used only by that function. `ux-events` stays
+in Graphshell, and `kernel::accessibility::SurfaceId` stays in Mere (engine split D39).
+The latter remains a surface kind.
 
-`ux-events` and `SurfaceId` stay (`mere:engine-split D39`).
+- Done when: two panes of the same surface kind produce different event addresses in the
+  probe, and the library round-trips earlier events without addresses. Baseline and final
+  Rust-source greps in Mere, Graphshell and Turnstone show both retired paths are gone.
+  `ux-events` and Mere's workspace build with `SurfaceId` in place.
+- Needs: P6 for the address. The Mere deletion can land independently.
 
-- Done when: a probe test shows two panes of one surface kind produce events with different addresses; `git grep` for
-  `descriptor_for`, `emit_ux_tree` and `forme::ux` returns zero in Mere, Graphshell and Turnstone (run first on the
-  pre-deletion tree to show the grep finds them); `ux-events` and Mere's workspace build with `SurfaceId` in place.
-- Needs: P6 for the address; for the Mere half, nothing: it is independent and may land before the cutover.
 
 ### P9. Automation: authored keys, taproot reads the envelope, `act` by action id
 
@@ -569,9 +570,9 @@ Each is a question for a later round, with its evidence. None is answered here.
 - 2026-11-17: a Rootstock `TextureProducer` contributes semantics through a `custom-leaf` slot.
   The raw `external-texture` element is not in `owned_layout::custom_leaf_key` and does not take
   this semantic path. P0 uses the supported slot; it adds no production API or rendering fallback.
-- 2026-11-17: the independent Mere half of P8 is a pushed candidate, Mere `13a084dde`, removing
-  `descriptor_for` and its unused AccessKit support while retaining `SurfaceId`. It is not yet on
-  Mere main; the rest of P8 remains open.
+- 2026-11-18: the Mere P8 cleanup prepared at `13a084dde` landed as `49d7d473a`. It removed
+  `descriptor_for` and its unused AccessKit support. `kernel::accessibility::SurfaceId` still
+  names the surface kind used by the Graphshell event crate.
 - 2026-11-11: the semantic model above AccessKit exists four times and the envelope's fields are kept four times
   (second brief §0, E1, E2). The canvas outputs Cambium producer semantics, not AccessKit, and `stitch` concatenates
   subtrees and does not rehash them (second brief §1; it corrects the first). Two subtrees built from one path collide
@@ -752,3 +753,15 @@ Each is a question for a later round, with its evidence. None is answered here.
   The broken bounds, registry forwarding and scenario controls all failed
   at their intended assertions. Both candidates passed regular hooks.
   The evidence is under `Code/testing/graphshell/uxtree-p7/`. Land Graphshell before Turnstone.
+
+- 2026-11-18: P7 landed Graphshell `9f3537ac` first, then Turnstone `c47ba17a`.
+  Turnstone passed 75 accessibility tests and the ordinary hooks against the
+  landed supplier. The landing receipts are under `Code/testing/graphshell/uxtree-p7/landing-*`.
+
+- 2026-11-18: P8 landed Mere `49d7d473a`, then Graphshell `4b2ef6c3`. The
+  Mere workspace tests, 45 UX event tests, 11 incipit tests, the UX event wasm
+  check and both repositories' ordinary hooks passed. The same-kind-pane
+  probe preserved separate installed addresses and paired each pane's events.
+  Earlier serialized events decoded with their address absent. The before
+  and after Rust-source greps verified the two removals across the three
+  repositories. See `Code/testing/graphshell/uxtree-p8/` for the gates and locks.
