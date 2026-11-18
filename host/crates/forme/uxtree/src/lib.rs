@@ -43,6 +43,7 @@ use inker::{Block, EngineDocument, FoldState, InlineSpan, MenuRow, inline_text};
 pub mod envelope;
 #[cfg(feature = "frozen")]
 pub mod frozen;
+pub mod generation;
 pub mod graft;
 
 pub use graft::{
@@ -69,6 +70,19 @@ pub struct UxTree {
 }
 
 impl UxTree {
+    /// Emit metadata for a path-derived projection such as a document,
+    /// frozen projection, Gloss or Platen tree. The producer supplies its
+    /// instance. These observations acquire an action generation only when
+    /// their owner publishes an admission.
+    pub fn derived_envelopes<'tree, I: Clone + 'tree>(
+        &'tree self,
+        instance: I,
+    ) -> impl Iterator<Item = envelope::Envelope<I, (), ()>> + 'tree {
+        self.nodes.iter().map(move |(id, _)| {
+            envelope::Envelope::derived(envelope::Address::new(instance.clone(), *id), None, ())
+        })
+    }
+
     /// Convert this tree into an [`accesskit::TreeUpdate`] suitable for
     /// pushing to AccessKit's platform adapters
     /// (`accesskit_windows::Adapter`, `accesskit_unix::Adapter`,

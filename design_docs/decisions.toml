@@ -578,3 +578,7 @@ area = "The stack"
 summary = "foreign_a11y and the bridge's generic parts move into cambium-winit-a11y as guest-tree support; one publication path and one id policy; headed checks."
 draws_on = ["uxtree-spine D3", "uxtree-spine D4", "mere:engine-split D102"]
 plans = ["uxtree-spine"]
+
+[decisions."uxtree-spine D10"]
+title = "One shared generation map in uxtree (Mark, 2026-11-18)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-11_uxtree_spine_plan.md"

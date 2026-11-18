@@ -360,3 +360,16 @@ normal host-to-engine route. Graphshell lands the tested source plus this status
 and receipt update. The original P4 packet stays intact. New landing outputs
 and hashes are in `Code/testing/graphshell/uxtree-p4/landing-*` and
 `LANDING-SHA256SUMS`.
+
+## 2026-11-18: P5 shared generation map
+
+D10 is recorded. uxtree owns the generation map. A publishing window owns its
+instance and provides admission equality. Path-derived trees can emit Derived
+observation envelopes. They carry the producer instance and each local node
+ID. An action takes a generation from the window's published admission.
+
+The uxtree native suite passed 28 unit tests, nine integration tests and one
+doctest. The wasm32 all-features check passed. A control that reused the
+generation for every retained address failed the stale-admission test at
+runtime. The original source was restored before the passing runs. Raw
+output is under `Code/testing/graphshell/uxtree-p5/`.
