@@ -12,15 +12,9 @@ pub(super) fn placed_forms(
     compiler: &ProjectionCompiler,
     definition: &ProjectionDefinition,
 ) -> Vec<RelationForm> {
-    if let Some(family) = Family::resolve(&definition.arrangement.kind) {
-        family.placed_forms(&definition.arrangement.options)
-    } else {
-        compiler
-            .registry
-            .resolve(&definition.arrangement.kind)
-            .map(|solver| solver.capability().placed_forms)
-            .unwrap_or_default()
-    }
+    crate::arrangement::arrangement_capabilities(&definition.arrangement, compiler.registry())
+        .map(|entry| entry.placed_forms)
+        .unwrap_or_default()
 }
 
 pub(super) fn form_issues(

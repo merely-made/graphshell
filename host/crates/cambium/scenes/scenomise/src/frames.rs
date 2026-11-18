@@ -66,14 +66,10 @@ pub(crate) fn definition_issues(
     let Some(frame) = &definition.frame else {
         return Vec::new();
     };
-    let accepted = match Family::resolve(&definition.arrangement.kind) {
-        Some(family) => family.frames().to_vec(),
-        None => compiler
-            .registry()
-            .resolve(&definition.arrangement.kind)
-            .map(|solver| solver.capability().frames)
-            .unwrap_or_default(),
-    };
+    let accepted =
+        crate::arrangement::arrangement_capabilities(&definition.arrangement, compiler.registry())
+            .map(|entry| entry.frames)
+            .unwrap_or_default();
     let mut issues = Vec::new();
     if let Err(message) = check_kind(frame, &accepted) {
         issues.push(CompileIssue::new(

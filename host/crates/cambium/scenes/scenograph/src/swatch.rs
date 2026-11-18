@@ -76,6 +76,38 @@ pub enum AxisKind {
     Scope,
     Arrangement,
     Dynamics,
+    NodeMark,
+    RelationForm,
+    FieldForm,
+    Frame,
+}
+
+/// A single authored choice carried by a comparison cell.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(tag = "slot", content = "value", rename_all = "snake_case")]
+pub enum SwatchChoice {
+    NodeMark(Option<crate::presentation::NodeMark>),
+    RelationForm(Option<sceno::RelationForm>),
+    FieldForm(Option<crate::FieldForm>),
+    Frame(Option<sceno::Frame>),
+}
+
+impl SwatchChoice {
+    pub fn apply(&self, draft: &mut crate::ProjectionDraft) {
+        match self {
+            Self::NodeMark(mark) => draft.marks.node.clone_from(mark),
+            Self::RelationForm(form) => draft.marks.relation = *form,
+            Self::FieldForm(form) => draft.marks.field = *form,
+            Self::Frame(frame) => {
+                draft.frame.clone_from(frame);
+                if matches!(frame, Some(sceno::Frame::Bounded { .. })) {
+                    // An explicit rectangle replaces the legacy size options.
+                    draft.arrangement.options.remove("width");
+                    draft.arrangement.options.remove("height");
+                }
+            },
+        }
+    }
 }
 
 /// Whether an axis's cells are drawn at one scale (SE56).

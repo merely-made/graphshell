@@ -380,6 +380,7 @@ impl Family {
         capability.tags = tags.iter().map(|tag| (*tag).to_owned()).collect();
         capability.options = self.options();
         capability.frames = self.frames().to_vec();
+        capability.placed_forms = self.placed_forms(&BTreeMap::new());
         capability
     }
 

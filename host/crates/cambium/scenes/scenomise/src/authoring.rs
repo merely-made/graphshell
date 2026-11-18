@@ -139,6 +139,7 @@ pub enum EditorAction {
     SetEncoding(Encoding),
     SetMarks(scenograph::MarkSlots),
     SetFrame(Option<scenograph::Frame>),
+    ApplySwatch(scenograph::swatch::SwatchChoice),
     SetArrangement(Arrangement),
     SetDynamics(Option<DynamicsSlot>),
     ApplyComparison {
@@ -311,6 +312,10 @@ impl ProjectionEditor {
             },
             EditorAction::SetFrame(value) => {
                 self.draft.frame = value;
+                ReduceResult::Changed
+            },
+            EditorAction::ApplySwatch(choice) => {
+                choice.apply(&mut self.draft);
                 ReduceResult::Changed
             },
             EditorAction::SetMarks(value) => {
