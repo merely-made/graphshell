@@ -11,7 +11,8 @@
 //! lays them out as a squarified treemap and each group's members again
 //! inside it; Rings gives each share an angle, groups on the inner ring and
 //! their members outside them. An item's weight is its measured size; one
-//! without a usable weight counts as one.
+//! without a usable weight counts as one. Focusing a group reallocates the
+//! accounted share while preserving the measured remainder.
 
 use std::f32::consts::{FRAC_PI_2, TAU};
 
@@ -69,14 +70,36 @@ fn shares(config: &Partition, items: &[&ScoreItem]) -> Vec<(Share, f32)> {
     shares
 }
 
-pub(super) fn shape(config: &Partition, items: &[&ScoreItem]) -> Shape {
+pub(super) fn shape(config: &Partition, items: &[&ScoreItem], focus: Option<&str>) -> Shape {
     let mut shape = Shape::unplaced(items.len());
-    let shares = shares(config, items);
+    let mut shares = shares(config, items);
+    if let Some(group) = focus {
+        focus_group(&mut shares, group);
+    }
     match config.form {
         PartitionForm::Tiles => tiles(config, items, &shares, &mut shape),
         PartitionForm::Rings => rings(config, items, &shares, &mut shape),
     }
     shape
+}
+
+/// Transfer half of each other measured share to the focused group.
+fn focus_group(shares: &mut [(Share, f32)], group: &str) {
+    let Some(focused) = shares
+        .iter()
+        .position(|(share, _)| matches!(share, Share::Group { name, .. } if name == group))
+    else {
+        return;
+    };
+    let mut transferred = 0.0;
+    for (index, (share, size)) in shares.iter_mut().enumerate() {
+        if index != focused && !matches!(share, Share::Remainder) {
+            let shift = *size / 2.0;
+            *size -= shift;
+            transferred += shift;
+        }
+    }
+    shares[focused].1 += transferred;
 }
 
 fn tiles(config: &Partition, items: &[&ScoreItem], shares: &[(Share, f32)], shape: &mut Shape) {
@@ -154,9 +177,10 @@ fn rings(config: &Partition, items: &[&ScoreItem], shares: &[(Share, f32)], shap
                     label: Some(name.clone()),
                     members: members.clone(),
                 });
+                let measured_size: f32 = members.iter().map(|index| size_of(items[*index])).sum();
                 let mut at = angle;
                 for index in members {
-                    let part = span * size_of(items[*index]) / size;
+                    let part = span * size_of(items[*index]) / measured_size;
                     place_sector(
                         shape,
                         *index,
@@ -335,7 +359,7 @@ mod tests {
             whole: Some(4000.0),
             ..Partition::default()
         };
-        let shape = shape(&config, &items(&owned));
+        let shape = shape(&config, &items(&owned), None);
         let labels: Vec<_> = shape
             .regions
             .iter()
@@ -361,9 +385,62 @@ mod tests {
     #[test]
     fn no_whole_means_no_remainder_and_missing_weights_count_as_one() {
         let owned = [card(1), card(2)];
-        let shape = shape(&Partition::default(), &items(&owned));
+        let shape = shape(&Partition::default(), &items(&owned), None);
         assert!(shape.regions.is_empty());
         assert!(shape.footprints.iter().all(Option::is_some));
+    }
+
+    #[test]
+    fn focus_reallocates_measured_shares_in_both_forms() {
+        let owned = [
+            sized(1, Some("a"), 1.0),
+            sized(2, Some("a"), 2.0),
+            sized(3, Some("b"), 4.0),
+            sized(4, None, 1.0),
+        ];
+        let area = |points: &[Vec2]| {
+            points
+                .iter()
+                .zip(points.iter().cycle().skip(1))
+                .map(|(a, b)| a.x * b.y - b.x * a.y)
+                .sum::<f32>()
+                .abs()
+                / 2.0
+        };
+        let item_area = |shape: &Shape, index: usize| match &shape.footprints[index] {
+            Some(Footprint::Rect { size }) => size.w * size.h,
+            Some(Footprint::Polygon { points }) => area(points),
+            other => panic!("expected assigned footprint, got {other:?}"),
+        };
+        for form in [PartitionForm::Tiles, PartitionForm::Rings] {
+            let config = Partition {
+                whole: Some(10.0),
+                gap: 0.0,
+                form,
+                ..Partition::default()
+            };
+            let original = shape(&config, &items(&owned), None);
+            let zoomed = shape(&config, &items(&owned), Some("a"));
+            for index in [0, 1] {
+                assert!(
+                    item_area(&zoomed, index) > item_area(&original, index),
+                    "{form:?}"
+                );
+            }
+            for index in [2, 3] {
+                assert!(
+                    (item_area(&zoomed, index) / item_area(&original, index) - 0.5).abs() < 0.002
+                );
+            }
+            assert!((item_area(&zoomed, 1) / item_area(&zoomed, 0) - 2.0).abs() < 0.004);
+            for (before, after) in original.regions.iter().zip(&zoomed.regions) {
+                assert_eq!(before.label, after.label);
+                assert_eq!(before.members, after.members);
+            }
+            let remainder_before = area(&original.regions[2].contour);
+            let remainder_after = area(&zoomed.regions[2].contour);
+            assert!((remainder_after / remainder_before - 1.0).abs() < 0.002);
+        }
     }
 
     #[test]
@@ -378,7 +455,7 @@ mod tests {
             whole: Some(8.0),
             ..Partition::default()
         };
-        let shape = shape(&config, &items(&owned));
+        let shape = shape(&config, &items(&owned), None);
         assert_eq!(shape.regions.len(), 2, "group a and the remainder");
         assert!(matches!(
             shape.footprints[0],

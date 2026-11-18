@@ -229,6 +229,8 @@ have no domain reference.
 - P5 uses a uxtree map per publishing window. Turnstone supplies route and source equality. Pure projections expose
   Derived observation envelopes with the producer instance and local ID. The window publisher issues the generation
   for each action admission. Frame fixtures observe and dispatch synchronously through their current owner.
+- Turnstone's legacy graph-member selection fills use a different path from the Frozen Projection nodes.
+  The platform publisher filters those fills out. Frozen Projection emits observations and has no published selection route.
 
 ### P6. The address converges on `(TreeId, NodeId)`
 

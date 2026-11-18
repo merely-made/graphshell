@@ -63,9 +63,11 @@ pub(super) fn validation_issues(
             "nodes does not accept a value aggregation",
         ));
     }
+    let target = resolve_target(compiler, definition);
     if definition.interaction.selection != scenograph::SelectionMode::Single
         || definition.interaction.pan
         || definition.interaction.zoom
+            && !matches!(target, Some(Target::Builtin(Family::Partition)))
     {
         issues.push(CompileIssue::new(
             "interaction",
@@ -97,7 +99,6 @@ pub(super) fn validation_issues(
         &definition.reading.key,
         &[ProjectionFieldType::Text],
     );
-    let target = resolve_target(compiler, definition);
     let (x_types, reads_y): (&[ProjectionFieldType], bool) =
         match target.as_ref().and_then(Target::channels) {
             Some(channels) => (channels.x_types(), channels.reads_y()),

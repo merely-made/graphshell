@@ -446,3 +446,51 @@ at 7406f9f3. The runs reused the T-PC targets in
 `~/Code/targets/graphshell` and `~/Code/targets/turnstone` and the existing
 guest targets under `~/Code/targets/graphshell/guests`. The headed site and
 isolated browser profiles were removed after capture.
+
+## 2026-11-18 Z Partition zoom
+
+Graphshell f337e02 reads a focus group when it solves a zoom-enabled
+Partition. Each other measured share gives half to the focused group.
+Members keep their relative weights, and the unaccounted share retains
+its measured size. The focus changes the view and stays outside the
+recipe, score and saved snapshot. Placement reuse checks the focus as
+well as the score. An absent group or disabled zoom yields the whole.
+
+Turnstone 3e3d7c43 exposes the recipe's Partition zoom toggle in
+Interaction and the group controls in the spatial preview. The preview reports
+the shares from the realized area or angle. It draws the remainder as
+a distinct region. Zoom out returns to the unfocused placement.
+
+Both headed Chrome runs on T-PC used the BrowserWebGpu presenter with
+`app=local`. The `projection_partition_zoom` scenario opens the fixture
+`ports/graphshell/web/tests/projection-partition-zoom.html` with `form=tiles`
+and `form=rings`. It enables zoom, focuses Alpha and then Beta, and
+zooms out. The group and remainder shares move from 40/40/20 to 60/20/20
+and 20/60/20, then return to 40/40/20. Each view uses the same
+760 × 340 bounds. The run also checks that selecting a card retains the
+focus and that the next recipe undo undoes enabling zoom.
+
+Both receipts record zero page errors and zero gate failures. The
+four inspected captures are `whole.png` and `focused.png` under `tiles`
+and `rings` in
+`~/Code/testing/turnstone/receipts/2026-11-18_partition_zoom` on T-PC.
+The receipt directories also contain the whole-frame and accessibility
+captures. The scenario SHA-256 is
+`17e1523ffc5bb4de7f80d434e1289c687399ae153b8d9a82bd56c1ed5de935dc`.
+The Wasm bundle SHA-256 is
+`02ec6b29c55bbd2a669880b17dfde21e3134eb846e47c9ff4fb29d7283d32b02`.
+
+The build used the same product Wasm features and web workspace settings
+as the M6 receipt above. Run `tests/run-headed-receipt.py` with
+`--scenario projection_partition_zoom` and
+`--page tests/projection-partition-zoom.html`. Use
+`--query 'app=local&form=tiles'` and `--query 'app=local&form=rings'`
+with separate receipt directories.
+
+Scenograph and Scenomise passed 357 tests with all features, both on
+f337e02 and after 8c481b4 merged the concurrent uxtree P4 update.
+Turnstone passed 281 library tests with six ignored using
+`cargo test -p graphshell --no-default-features --features web,physics-engine
+--lib --offline --locked`. Its root and web lock notes use f337e02. The runs reused the
+Graphshell and Turnstone targets on T-PC. The staged browser site
+and isolated browser profiles were removed after the headed check.
