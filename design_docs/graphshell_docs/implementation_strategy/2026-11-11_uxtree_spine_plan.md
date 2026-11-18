@@ -1,8 +1,8 @@
 # uxtree spine plan: a federated tree with one envelope
 
-**Status:** 2026-11-18. P0 to P6 landed. P6 landed on Graphshell at `2a5a4f07` and on Turnstone
-at `46d79e84`. Turnstone qualified against that Graphshell main revision with the Crystal update.
-P7 is qualified and pushed on `uxtree/p7` in Graphshell and Turnstone. P8 to P11 remain open.
+**Status:** 2026-11-18. P0 to P7 landed. P7 landed in Graphshell at `9f3537ac` and Turnstone
+at `c47ba17a` after qualifying with the context-scene updates on both mains.
+P8 is under way. P9 to P11 remain open.
 The slice 4 cutover moved uxtree, Cambium and E1a to Graphshell's `host/`.
 P0 remains a gate for D1. If it fails, D1 returns to Mark.
 
@@ -273,23 +273,24 @@ It reports missing envelopes where those producers have not supplied them.
 
 ### P8. Events gain the address; two dead pieces retire (touches mere.git)
 
-`UxEvent` (`ux-events/src/ux_observability.rs:84-101`) gets an optional node address taken from the envelope. Which
-variants carry it is named in P8. Two deletions:
+`UxEvent` carries an optional address from the observed envelope. `SurfaceOpened` and
+`SurfaceDismissed` carry the pane root when available, and `ActionDispatched` carries its
+observed target alongside the graph target. `OpenNodeDispatched` carries the domain key.
+The event copies the producer scope or installed tree and local ID. Observers and the
+diagnostics bridge retain that address. The balance probe pairs open and dismiss by kind
+and captured address. Address-less events keep the surface-kind behavior.
 
-- `incipit::forme::ux` (458 lines, no caller in Mere, Graphshell or Turnstone; it moves to Graphshell's `host/` with
-  `incipit` at the cutover, since incipit is not among the five crates that stay, D102). A Graphshell change.
-- `descriptor_for` in `mere-kernel` (`mere/crates/graph/graph-kernel/src/accessibility.rs`, 376 lines in the file; no
-  caller). `mere-kernel` stays in Mere, so this is a Mere change. It touches `mere:engine-split D59`'s "no kernel code
-  moves" only as a deletion. The file also holds `SurfaceId` and the `AccessibilityDescriptor` type (Findings): the
-  deletion takes `descriptor_for`, its tests and what only it uses; `SurfaceId` stays. Where `SurfaceId` then lives is
-  named in P8.
+P8 removes the unused Graphshell `incipit::forme::ux` projection and the Mere kernel's
+`descriptor_for`, its tests and the types used only by that function. `ux-events` stays
+in Graphshell, and `kernel::accessibility::SurfaceId` stays in Mere (engine split D39).
+The latter remains a surface kind.
 
-`ux-events` and `SurfaceId` stay (`mere:engine-split D39`).
+- Done when: two panes of the same surface kind produce different event addresses in the
+  probe, and the library round-trips earlier events without addresses. Baseline and final
+  Rust-source greps in Mere, Graphshell and Turnstone show both retired paths are gone.
+  `ux-events` and Mere's workspace build with `SurfaceId` in place.
+- Needs: P6 for the address. The Mere deletion can land independently.
 
-- Done when: a probe test shows two panes of one surface kind produce events with different addresses; `git grep` for
-  `descriptor_for`, `emit_ux_tree` and `forme::ux` returns zero in Mere, Graphshell and Turnstone (run first on the
-  pre-deletion tree to show the grep finds them); `ux-events` and Mere's workspace build with `SurfaceId` in place.
-- Needs: P6 for the address; for the Mere half, nothing: it is independent and may land before the cutover.
 
 ### P9. Automation: authored keys, taproot reads the envelope, `act` by action id
 
@@ -752,3 +753,7 @@ Each is a question for a later round, with its evidence. None is answered here.
   The broken bounds, registry forwarding and scenario controls all failed
   at their intended assertions. Both candidates passed regular hooks.
   The evidence is under `Code/testing/graphshell/uxtree-p7/`. Land Graphshell before Turnstone.
+
+- 2026-11-18: P7 landed Graphshell `9f3537ac` first, then Turnstone `c47ba17a`.
+  Turnstone passed 75 accessibility tests and the ordinary hooks against the
+  landed supplier. The landing receipts are under `Code/testing/graphshell/uxtree-p7/landing-*`.

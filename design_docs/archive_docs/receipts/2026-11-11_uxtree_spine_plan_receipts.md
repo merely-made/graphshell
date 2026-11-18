@@ -466,3 +466,11 @@ suppressing the bounds check, registry forwarding, or scenario failure
 breaks its corresponding test. The restored checks and ordinary hooks
 passed. The raw results and generated locks are under
 `Code/testing/graphshell/uxtree-p7/`.
+
+### 2026-11-18 P7 landing
+
+Both branches integrated the concurrent context-scene work. Graphshell's
+uxtree, Cambium and registry tests passed, and the normal push landed
+`9f3537ac2cb1c6ba61790acb339deda693dbbd57`. Turnstone passed 75 accessibility tests and the regular hooks
+against that exact supplier and landed `c47ba17a43bba57851abce6f571d5a46703913c5`. See the logs and generated
+locks under `Code/testing/graphshell/uxtree-p7/landing-*`.

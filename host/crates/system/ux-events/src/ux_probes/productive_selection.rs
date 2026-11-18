@@ -107,7 +107,7 @@ impl ProductiveSelectionProbe {
         match (outcome, event) {
             (ProductiveOutcome::AnyAction, UxEvent::ActionDispatched { .. }) => true,
             (ProductiveOutcome::OpenNode, UxEvent::OpenNodeDispatched { .. }) => true,
-            (ProductiveOutcome::Open(target), UxEvent::SurfaceOpened { surface }) => {
+            (ProductiveOutcome::Open(target), UxEvent::SurfaceOpened { surface, .. }) => {
                 target == *surface
             },
             _ => false,
@@ -152,6 +152,7 @@ impl UxProbe for ProductiveSelectionProbe {
         if let UxEvent::SurfaceDismissed {
             surface,
             reason: DismissReason::Confirmed,
+            ..
         } = event
         {
             if let Some(rule_idx) = self.rules.iter().position(|r| r.surface == *surface) {

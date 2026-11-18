@@ -59,7 +59,7 @@ impl UxProbe for MutualExclusionProbe {
 
     fn observe(&self, event: &UxEvent) {
         match event {
-            UxEvent::SurfaceOpened { surface } if is_modal_like(*surface) => {
+            UxEvent::SurfaceOpened { surface, .. } if is_modal_like(*surface) => {
                 let mut open = self.open_modals.lock().unwrap();
                 if !open.is_empty() {
                     self.failures.lock().unwrap().push(ProbeFailure {

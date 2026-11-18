@@ -9,8 +9,8 @@ registry.
 It sits alongside two other event layers: code-level `tracing` spans, and the
 `register-diagnostics` channel registry.
 
-Depends on `kernel` (for `accessibility::SurfaceId`, `actions::ActionId`,
-`graph::{GraphViewId, NodeKey}`, `pane::{PaneId, ToolPaneState}`), and `serde`.
+Uses the kernel's surface and graph identifiers, hest action IDs, and
+uxtree envelope addresses.
 
 ## Modules
 
@@ -28,14 +28,21 @@ The crate root also exports `VERSION` and `STAGE`.
 
 ```rust
 pub enum UxEvent {
-    SurfaceOpened { surface: SurfaceId },
-    SurfaceDismissed { surface: SurfaceId, reason: DismissReason },
-    ActionDispatched { action_id: ActionId, target: Option<NodeKey> },
+    SurfaceOpened { surface: SurfaceId, address: Option<EventAddress> },
+    SurfaceDismissed { surface: SurfaceId, reason: DismissReason, address: Option<EventAddress> },
+    ActionDispatched { action_id: ActionId, target: Option<NodeKey>, address: Option<EventAddress> },
     OpenNodeDispatched { node_key: NodeKey },
 }
 ```
 
 `DismissReason` is `Confirmed`, `Cancelled`, `Superseded`, or `Programmatic`.
+
+Pass the observed pane root to open and dismiss events and keep that address
+for the surface's lifetime. Dispatch events can carry the action target's
+accessibility address alongside the domain node key. Use `EventAddress::from_envelope`
+to copy a published address and supply an opaque ID for a producer instance.
+Grafted addresses preserve the installed tree and local node ID. Legacy
+serialized events without an address still read as `None`.
 
 Hosts register observers on a `UxObservers` collection and call
 `UxObservers::emit`; every registered observer sees the event in registration
@@ -47,7 +54,7 @@ mutability and are `Send + Sync`.
 | Probe | Invariant |
 | --- | --- |
 | `MutualExclusionProbe` | At most one modal-like surface open at a time |
-| `OpenDismissBalanceProbe` | Every `SurfaceOpened` is eventually paired with a `SurfaceDismissed` |
+| `OpenDismissBalanceProbe` | Every `SurfaceOpened` is eventually paired with a `SurfaceDismissed` for its surface kind and address |
 | `ProductiveSelectionProbe` | A `Confirmed` dismissal is followed by a productive event, per a list of `ProductiveRule`s with `ProductiveOutcome` targets |
 | `DestructiveActionGateProbe` | An `ActionDispatched` for a configured-destructive `ActionId` is preceded by a `Confirmed` `ConfirmDialog` dismissal |
 
@@ -57,8 +64,7 @@ registered on a `UxObservers` through `probe_as_observer(Arc<dyn UxProbe>)`.
 
 ## Diagnostics bridge
 
-`event_channel(&UxEvent) -> ChannelEmission` is the canonical mapping to a
-`(channel_id, severity, note)` triple. Channel ids follow
+`event_channel(&UxEvent) -> ChannelEmission` is the canonical mapping to an emission with the channel ID, severity, note and optional address. Channel ids follow
 `"ux.<surface>.<opened|dismissed>"`, plus `"ux.action.dispatched"` and
 `"ux.open_node.dispatched"`. `all_channel_ids()` lists the ids a host
 pre-registers at startup. A host implements `DiagnosticsChannelSink` over its

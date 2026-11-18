@@ -6,23 +6,25 @@
 
 //! Open/Dismiss balance probe — every Opened eventually gets Dismissed.
 
-use std::collections::HashMap;
+use std::collections::{HashMap, hash_map::Entry};
 use std::sync::Mutex;
 
-use crate::ux_observability::{SurfaceId, UxEvent};
+use crate::ux_observability::{EventAddress, SurfaceId, UxEvent};
 
 use super::{ProbeFailure, UxProbe};
 
 /// Asserts that every `SurfaceOpened` for a given surface gets
 /// matched by a `SurfaceDismissed` before the same surface is
-/// re-opened. Catches leaks where a dismissal path is forgotten.
+/// re-opened. The surface kind and optional captured address form the key.
+/// Keep the address used at open until dismiss. Address-less events use the
+/// surface kind on its own.
 ///
 /// This probe *flags on re-open*, not on stream end (the stream
 /// never explicitly ends). To check terminal balance, call
 /// [`Self::pending_opens`] after running messages: any non-zero
 /// count means a surface is still open.
 pub struct OpenDismissBalanceProbe {
-    open_counts: Mutex<HashMap<SurfaceId, u32>>,
+    open_counts: Mutex<HashMap<(SurfaceId, Option<EventAddress>), u32>>,
     failures: Mutex<Vec<ProbeFailure>>,
 }
 
@@ -38,13 +40,11 @@ impl OpenDismissBalanceProbe {
     /// Dismisses). A non-zero entry means that surface is currently
     /// open — useful for terminal-balance assertions in tests.
     pub fn pending_opens(&self) -> HashMap<SurfaceId, u32> {
-        self.open_counts
-            .lock()
-            .unwrap()
-            .iter()
-            .filter(|(_, c)| **c > 0)
-            .map(|(s, c)| (*s, *c))
-            .collect()
+        let mut pending = HashMap::new();
+        for (&(surface, _), &count) in self.open_counts.lock().unwrap().iter() {
+            *pending.entry(surface).or_insert(0) += count;
+        }
+        pending
     }
 }
 
@@ -61,9 +61,9 @@ impl UxProbe for OpenDismissBalanceProbe {
 
     fn observe(&self, event: &UxEvent) {
         match event {
-            UxEvent::SurfaceOpened { surface } => {
+            UxEvent::SurfaceOpened { surface, address } => {
                 let mut counts = self.open_counts.lock().unwrap();
-                let entry = counts.entry(*surface).or_insert(0);
+                let entry = counts.entry((*surface, *address)).or_insert(0);
                 if *entry > 0 {
                     self.failures.lock().unwrap().push(ProbeFailure {
                         probe_name: self.name(),
@@ -76,17 +76,22 @@ impl UxProbe for OpenDismissBalanceProbe {
                 }
                 *entry += 1;
             },
-            UxEvent::SurfaceDismissed { surface, .. } => {
+            UxEvent::SurfaceDismissed {
+                surface, address, ..
+            } => {
                 let mut counts = self.open_counts.lock().unwrap();
-                let entry = counts.entry(*surface).or_insert(0);
-                if *entry == 0 {
-                    self.failures.lock().unwrap().push(ProbeFailure {
-                        probe_name: self.name(),
-                        description: format!("{:?} dismissed without a matching open", surface),
-                        triggering_event: event.clone(),
-                    });
-                } else {
-                    *entry -= 1;
+                match counts.entry((*surface, *address)) {
+                    Entry::Occupied(mut entry) if *entry.get() > 1 => *entry.get_mut() -= 1,
+                    Entry::Occupied(entry) => {
+                        entry.remove();
+                    },
+                    Entry::Vacant(_) => {
+                        self.failures.lock().unwrap().push(ProbeFailure {
+                            probe_name: self.name(),
+                            description: format!("{:?} dismissed without a matching open", surface),
+                            triggering_event: event.clone(),
+                        });
+                    },
                 }
             },
             _ => {},

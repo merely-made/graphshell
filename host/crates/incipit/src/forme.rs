@@ -64,7 +64,6 @@ pub mod reconciliation;
 mod subgraph;
 mod topology;
 mod tree;
-mod ux;
 
 pub use layout::*;
 pub use lens::*;
@@ -74,7 +73,6 @@ pub use query::*;
 pub use subgraph::*;
 pub use topology::*;
 pub use tree::*;
-pub use ux::*;
 
 /// Portable rectangle — no framework dependency.
 #[derive(Clone, Copy, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
