@@ -11,6 +11,12 @@
 //! column hears which row each value belongs to, with no extra column. The
 //! sorted column says so with `aria-sort`. An empty value is written as words
 //! ("no value") by whoever fills the cells, never left blank.
+//!
+//! A grouped table (T5) puts each innermost group in its own `<tbody>`, led
+//! by a heading row whose `<th scope="rowgroup">` gives the group and its
+//! count. HTML cannot nest a `<tbody>`, so an outer group's heading leads
+//! the body of its first inner group, and each inner heading names the
+//! headings around it with `headers`, so a reader hears the whole path.
 
 use sceno::SourceRef;
 use serde::{Deserialize, Serialize};
@@ -33,6 +39,22 @@ pub struct FrozenTable {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub sorted: Option<(usize, bool)>,
     pub rows: Vec<FrozenTableRow>,
+    /// Group headings in reading order, outer before inner; empty when the
+    /// table is not grouped.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub groups: Vec<FrozenTableGroup>,
+}
+
+/// One group heading: where its rows start, its level, its words and count.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct FrozenTableGroup {
+    /// The index of the group's first row.
+    pub position: usize,
+    /// Zero for the outermost key.
+    pub level: usize,
+    /// "Shelf: Fiction".
+    pub label: String,
+    pub count: usize,
 }
 
 /// Why a table cannot be frozen as it stands.
@@ -46,6 +68,8 @@ pub enum FrozenTableError {
     Ragged { row: usize, cells: usize },
     /// A cell is blank.
     BlankCell { row: usize, column: usize },
+    /// A group heading is blank or starts past the last row.
+    BadGroup { group: usize },
 }
 
 impl FrozenTable {
@@ -71,6 +95,13 @@ impl FrozenTable {
                 return Err(FrozenTableError::BlankCell { row, column });
             }
         }
+        if let Some(group) = self
+            .groups
+            .iter()
+            .position(|g| g.label.trim().is_empty() || g.position >= self.rows.len())
+        {
+            return Err(FrozenTableError::BadGroup { group });
+        }
         Ok(())
     }
 
@@ -91,8 +122,43 @@ impl FrozenTable {
             };
             html.push_str(&format!("<th scope=\"col\"{sort}>{}</th>", escape(name)));
         }
-        html.push_str("</tr></thead><tbody>");
-        for row in &self.rows {
+        html.push_str("</tr></thead>");
+        if self.groups.is_empty() {
+            html.push_str("<tbody>");
+        }
+        // The heading id open at each level, for an inner heading's `headers`.
+        let mut open: Vec<String> = Vec::new();
+        let mut next_group = 0;
+        for (at, row) in self.rows.iter().enumerate() {
+            let mut started = false;
+            while let Some(group) = self.groups.get(next_group).filter(|g| g.position == at) {
+                if !started {
+                    if at > 0 {
+                        html.push_str("</tbody>");
+                    }
+                    html.push_str("<tbody>");
+                    started = true;
+                }
+                open.truncate(group.level);
+                let id = format!("{}-group-{next_group}", escape(id_prefix));
+                let headers = if open.is_empty() {
+                    String::new()
+                } else {
+                    format!(" headers=\"{}\"", open.join(" "))
+                };
+                let rows = if group.count == 1 { "row" } else { "rows" };
+                html.push_str(&format!(
+                    "<tr class=\"frozen-group\" data-level=\"{}\"><th scope=\"rowgroup\" colspan=\"{}\" id=\"{id}\"{headers}>{}, {} {rows}</th></tr>",
+                    group.level,
+                    self.columns.len(),
+                    escape(&group.label),
+                    group.count,
+                ));
+                open.push(id);
+                next_group += 1;
+            }
+            // Every group starts an innermost one where it starts, so each
+            // innermost group gets its own body.
             html.push_str(&format!(
                 "<tr data-source-adapter=\"{}\" data-source-id=\"{}\">",
                 escape(&row.source.adapter),
@@ -106,6 +172,9 @@ impl FrozenTable {
                 }
             }
             html.push_str("</tr>");
+        }
+        if !self.groups.is_empty() && self.rows.is_empty() {
+            html.push_str("<tbody>");
         }
         html.push_str("</tbody></table>");
         html
@@ -125,7 +194,48 @@ mod tests {
                 source: SourceRef::new("books", "b<1>"),
                 cells: vec!["Dune & more".into(), "412".into()],
             }],
+            groups: Vec::new(),
         }
+    }
+
+    #[test]
+    fn each_innermost_group_is_a_body_led_by_its_headings() {
+        let row = |title: &str| FrozenTableRow {
+            source: SourceRef::new("books", title),
+            cells: vec![title.into(), "1".into()],
+        };
+        let group = |position, level, label: &str, count| FrozenTableGroup {
+            position,
+            level,
+            label: label.into(),
+            count,
+        };
+        let grouped = FrozenTable {
+            rows: vec![row("a"), row("b"), row("c")],
+            groups: vec![
+                group(0, 0, "Shelf: art", 2),
+                group(0, 1, "Year: 1", 1),
+                group(1, 1, "Year: 2", 1),
+                group(2, 0, "Shelf: sea", 1),
+                group(2, 1, "Year: 2", 1),
+            ],
+            ..table()
+        };
+        assert_eq!(grouped.check(), Ok(()));
+        let html = grouped.to_html("t");
+        assert_eq!(html.matches("<tbody>").count(), 3);
+        assert_eq!(html.matches("scope=\"rowgroup\"").count(), 5);
+        assert!(html.contains(
+            "<th scope=\"rowgroup\" colspan=\"2\" id=\"t-group-0\">Shelf: art, 2 rows</th>"
+        ));
+        // The second inner group's body names its outer heading.
+        assert!(html.contains(
+            "<tbody><tr class=\"frozen-group\" data-level=\"1\"><th scope=\"rowgroup\" colspan=\"2\" id=\"t-group-2\" headers=\"t-group-0\">Year: 2, 1 row</th></tr>"
+        ));
+        assert!(html.contains("id=\"t-group-4\" headers=\"t-group-3\""));
+        let mut bad = grouped.clone();
+        bad.groups[1].label = " ".into();
+        assert_eq!(bad.check(), Err(FrozenTableError::BadGroup { group: 1 }));
     }
 
     #[test]

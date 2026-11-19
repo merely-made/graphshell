@@ -575,6 +575,31 @@ title = "Genet's part goes to the session that holds it (Mark, 2026-11-19)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
 summary = "The Genet speed work is carried by the session already holding the retained-session work."
 
+[decisions."table-projection D35"]
+title = "A grouped field's header shows the group's direction (Mark, 2026-11-19)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "A grouped field's column header shows the grouping's direction and a group mark."
+
+[decisions."table-projection D36"]
+title = "A list has its own contains (Mark, 2026-11-19)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "List membership is the contains_item operator, separate from text contains."
+
+[decisions."table-projection D37"]
+title = "Ordered operators (Mark, 2026-11-19)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "Ordered filter operators apply to number, date and date-time fields only."
+
+[decisions."table-projection D38"]
+title = "A missing value (Mark, 2026-11-19)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "A missing value passes is-not, and is-empty also holds for blank text and an empty list."
+
+[decisions."table-projection D39"]
+title = "Ranks count the keys still sorting (Mark, 2026-11-19)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "Sort ranks number only the keys that order rows inside the groups."
+
 [decisions."uxtree-spine D1"]
 title = "The spine is federated (Mark, 2026-11-11)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-11_uxtree_spine_plan.md"

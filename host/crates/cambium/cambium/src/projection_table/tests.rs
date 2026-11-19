@@ -34,7 +34,7 @@ fn source() -> SourceBinding {
 
 /// `rows` books: a title, pages, read or not, a date, an author reference
 /// and a list of tags; every seventh book has no pages.
-fn dataset(rows: usize) -> ProjectionDataset {
+pub(super) fn dataset(rows: usize) -> ProjectionDataset {
     let occurrences = (0..rows)
         .map(|i| {
             let id = format!("b{i:06}");
@@ -92,7 +92,7 @@ fn field(path: &str, name: &str, viewer: Option<&str>) -> FieldSpec {
     field
 }
 
-fn draft() -> ProjectionDraft {
+pub(super) fn draft() -> ProjectionDraft {
     let mut draft = ProjectionDraft::new();
     draft.id = "shelf".into();
     draft.label = "Shelf".into();
@@ -101,7 +101,7 @@ fn draft() -> ProjectionDraft {
         kind: "nodes".into(),
         key: "id".into(),
         value: None,
-        sort: Vec::new(),
+        ..Default::default()
     };
     draft.encoding = Encoding {
         x: Channel::Field("id".into()),
@@ -149,7 +149,7 @@ fn draft() -> ProjectionDraft {
     draft
 }
 
-fn open(rows: usize) -> ProjectionTable {
+pub(super) fn open(rows: usize) -> ProjectionTable {
     let compiler = ProjectionCompiler::new(ItemSizes {
         card: Size2::new(120.0, 24.0),
     });
@@ -164,13 +164,13 @@ fn view(table: &ProjectionTable) -> GridView<ProjectionTable, ()> {
     projection_table(table)
 }
 
-fn attr(dom: &ScriptedDom, node: NodeId, name: &str) -> String {
+pub(super) fn attr(dom: &ScriptedDom, node: NodeId, name: &str) -> String {
     dom.attribute(node, &Namespace::from(""), &LocalName::from(name))
         .unwrap_or_default()
         .to_string()
 }
 
-fn find_role(dom: &ScriptedDom, node: NodeId, role: &str, out: &mut Vec<NodeId>) {
+pub(super) fn find_role(dom: &ScriptedDom, node: NodeId, role: &str, out: &mut Vec<NodeId>) {
     if attr(dom, node, "role") == role {
         out.push(node);
     }
@@ -179,7 +179,7 @@ fn find_role(dom: &ScriptedDom, node: NodeId, role: &str, out: &mut Vec<NodeId>)
     }
 }
 
-fn text(dom: &ScriptedDom, node: NodeId) -> String {
+pub(super) fn text(dom: &ScriptedDom, node: NodeId) -> String {
     let mut out = dom.text(node).map(str::to_owned).unwrap_or_default();
     for child in dom.dom_children(node) {
         out.push_str(&text(dom, child));
@@ -187,7 +187,7 @@ fn text(dom: &ScriptedDom, node: NodeId) -> String {
     out
 }
 
-fn runner(
+pub(super) fn runner(
     table: ProjectionTable,
 ) -> (
     DomHandle,
@@ -301,16 +301,25 @@ fn the_sort_indicator_is_a_drawn_box_and_no_glyph() {
         }
         (out, text(&d, pages))
     };
-    assert_eq!(marks(&runner), (vec!["grid-sort".to_owned()], "Pages".to_owned()));
-    runner.dispatch_click(pages, PointerClick::at((1.0, 1.0)));
     assert_eq!(
         marks(&runner),
-        (vec!["grid-sort grid-sort-asc".to_owned()], "Pages".to_owned())
+        (vec!["grid-sort".to_owned()], "Pages".to_owned())
     );
     runner.dispatch_click(pages, PointerClick::at((1.0, 1.0)));
     assert_eq!(
         marks(&runner),
-        (vec!["grid-sort grid-sort-desc".to_owned()], "Pages".to_owned())
+        (
+            vec!["grid-sort grid-sort-asc".to_owned()],
+            "Pages".to_owned()
+        )
+    );
+    runner.dispatch_click(pages, PointerClick::at((1.0, 1.0)));
+    assert_eq!(
+        marks(&runner),
+        (
+            vec!["grid-sort grid-sort-desc".to_owned()],
+            "Pages".to_owned()
+        )
     );
 }
 
@@ -521,7 +530,10 @@ fn a_refused_sort_is_stepped_back_and_noticed() {
     table.apply_sort(vec![SortKey::ascending("colour")], 0);
     assert!(table.draft().reading.sort.is_empty());
     assert!(
-        table.notice.as_deref().is_some_and(|n| n.contains("\"colour\"")),
+        table
+            .notice
+            .as_deref()
+            .is_some_and(|n| n.contains("\"colour\"")),
         "{:?}",
         table.notice
     );

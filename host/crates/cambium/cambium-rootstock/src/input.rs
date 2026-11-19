@@ -138,7 +138,10 @@ where
             let Some(runner) = self.s.runner.as_mut() else {
                 return;
             };
-            runner.dispatch_click(node, PointerClick::at(local));
+            runner.dispatch_click(
+                node,
+                PointerClick::at(local).with_modifiers(self.s.modifiers.into()),
+            );
             runner.default_prevented()
         };
         // 2. Begin a drag when the press lands under an `on_pointer` element.

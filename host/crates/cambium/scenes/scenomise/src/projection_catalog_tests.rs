@@ -55,18 +55,20 @@ fn disclosed_classes_round_trip_and_set_detail_per_occurrence() {
 
 /// Three occurrences carrying every kind of value a family might read.
 pub(super) fn dataset() -> ProjectionDataset {
-    let occurrence = |id: &str, x: f64, y: f64, lane: &str, layer: f64| ProjectionOccurrence::new(
-        id,
-        SourceRef::new("fixture", id),
-        BTreeMap::from([
-            ("occurrence_id".into(), ProjectionValue::Text(id.into())),
-            ("label".into(), ProjectionValue::Text(format!("Label {id}"))),
-            ("x".into(), ProjectionValue::Number(x)),
-            ("y".into(), ProjectionValue::Number(y)),
-            ("lane".into(), ProjectionValue::Text(lane.into())),
-            ("layer".into(), ProjectionValue::Number(layer)),
-        ]),
-    );
+    let occurrence = |id: &str, x: f64, y: f64, lane: &str, layer: f64| {
+        ProjectionOccurrence::new(
+            id,
+            SourceRef::new("fixture", id),
+            BTreeMap::from([
+                ("occurrence_id".into(), ProjectionValue::Text(id.into())),
+                ("label".into(), ProjectionValue::Text(format!("Label {id}"))),
+                ("x".into(), ProjectionValue::Number(x)),
+                ("y".into(), ProjectionValue::Number(y)),
+                ("lane".into(), ProjectionValue::Text(lane.into())),
+                ("layer".into(), ProjectionValue::Number(layer)),
+            ]),
+        )
+    };
     ProjectionDataset {
         source: SourceBinding {
             authority: "fixture.local".into(),
@@ -105,7 +107,7 @@ pub(super) fn definition(kind: &str, x: &str) -> ProjectionDefinition {
             kind: "nodes".into(),
             key: "occurrence_id".into(),
             value: None,
-            sort: Vec::new(),
+            ..Default::default()
         },
         encoding: Encoding {
             x: Channel::Field(x.into()),
@@ -149,7 +151,9 @@ fn x_for(family: Family) -> &'static str {
 
 fn position(compiled: &CompiledProjection, occurrence: &str) -> Vec2 {
     let instance = compiled.instance_by_occurrence[occurrence];
-    compiled.scene.items[instance.0 as usize].transform.translate
+    compiled.scene.items[instance.0 as usize]
+        .transform
+        .translate
 }
 
 pub(super) fn fields(issues: &[CompileIssue]) -> Vec<&str> {
@@ -166,7 +170,11 @@ fn every_catalog_family_compiles_from_a_recipe() {
         assert_eq!(compiled.scene.items.len(), 3, "{}", family.id());
         for item in &compiled.scene.items {
             let at = item.transform.translate;
-            assert!(at.x.is_finite() && at.y.is_finite(), "{} placed {at:?}", family.id());
+            assert!(
+                at.x.is_finite() && at.y.is_finite(),
+                "{} placed {at:?}",
+                family.id()
+            );
         }
     }
 }
@@ -192,7 +200,16 @@ fn an_assigned_extent_is_refused_for_a_mark_that_does_not_accept_it() {
                 let issues = result.unwrap_err();
                 let mut rejected = fields(&issues);
                 rejected.sort();
-                assert_eq!(rejected, ["occurrences[a].mark", "occurrences[b].mark", "occurrences[c].mark"], "{}", family.id());
+                assert_eq!(
+                    rejected,
+                    [
+                        "occurrences[a].mark",
+                        "occurrences[b].mark",
+                        "occurrences[c].mark"
+                    ],
+                    "{}",
+                    family.id()
+                );
                 assert_eq!(
                     issues[0].message,
                     format!(
@@ -213,7 +230,10 @@ fn ids_and_aliases_resolve_to_their_families() {
         assert!(family.capability().is_deterministic);
     }
     assert_eq!(Family::resolve(GRID_ARRANGEMENT_ID), Some(Family::Grid));
-    assert_eq!(Family::resolve(SCATTER_ARRANGEMENT_ID), Some(Family::Geographic));
+    assert_eq!(
+        Family::resolve(SCATTER_ARRANGEMENT_ID),
+        Some(Family::Geographic)
+    );
     assert_eq!(Family::resolve("made-up-layout"), None);
 }
 
@@ -242,7 +262,10 @@ fn an_option_overrides_a_measured_parameter() {
     let compiled = ProjectionCompiler::new(sizes(164.0, 68.0))
         .compile(&recipe, &dataset())
         .unwrap();
-    assert_eq!(position(&compiled, "b").x - position(&compiled, "c").x, 316.0);
+    assert_eq!(
+        position(&compiled, "b").x - position(&compiled, "c").x,
+        316.0
+    );
 }
 
 #[test]
@@ -254,8 +277,14 @@ fn unknown_ids_and_options_are_typed_issues() {
     assert!(fields(&issues).contains(&"arrangement.kind"));
 
     let mut recipe = definition("grid", "x");
-    recipe.arrangement.options.insert("bogus".into(), "1".into());
-    recipe.arrangement.options.insert("columns".into(), "zero".into());
+    recipe
+        .arrangement
+        .options
+        .insert("bogus".into(), "1".into());
+    recipe
+        .arrangement
+        .options
+        .insert("columns".into(), "zero".into());
     let issues = compiler.compile(&recipe, &dataset()).unwrap_err();
     assert!(fields(&issues).contains(&"arrangement.options.bogus"));
     assert!(fields(&issues).contains(&"arrangement.options.columns"));
@@ -328,9 +357,15 @@ fn a_registered_solver_compiles_through_the_registry() {
     registry.register(Arc::new(Line)).unwrap();
     let compiler = ProjectionCompiler::with_registry(sizes(164.0, 68.0), registry);
     let mut recipe = definition("test.line", "x");
-    recipe.arrangement.options.insert("step".into(), "25".into());
+    recipe
+        .arrangement
+        .options
+        .insert("step".into(), "25".into());
     let compiled = compiler.compile(&recipe, &dataset()).unwrap();
-    assert_eq!(compiled.scene.items[2].transform.translate, Vec2::new(50.0, 0.0));
+    assert_eq!(
+        compiled.scene.items[2].transform.translate,
+        Vec2::new(50.0, 0.0)
+    );
 
     // The control: without the registration the id names nothing.
     let issues = ProjectionCompiler::new(sizes(164.0, 68.0))

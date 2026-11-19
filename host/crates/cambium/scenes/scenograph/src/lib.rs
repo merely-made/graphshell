@@ -22,6 +22,8 @@ pub mod contexts;
 pub mod dataset;
 pub mod dynamics;
 pub mod fields;
+pub mod filter;
+pub mod group;
 pub mod marks;
 pub use dynamics::{DYNAMICS_SLOT_VERSION, DynamicsSlot, DynamicsVariant};
 pub use fields::{FieldSpec, ViewerCatalog};
@@ -35,8 +37,8 @@ pub mod sort;
 pub use sort::SortKey;
 pub mod suggestion;
 pub mod swatch;
-pub mod temporal;
 pub mod table;
+pub mod temporal;
 #[cfg(feature = "toml")]
 mod toml_io;
 
@@ -130,6 +132,13 @@ pub struct Reading {
     /// Sort keys in priority order; empty keeps the arrangement's own order.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub sort: Vec<SortKey>,
+    /// Conditions a row must all meet to be read; empty reads every row.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub filter: Vec<filter::Condition>,
+    /// Group keys in priority order, one heading level each; empty is
+    /// ungrouped.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub group: Vec<SortKey>,
 }
 
 impl Default for Reading {
@@ -139,6 +148,8 @@ impl Default for Reading {
             key: String::new(),
             value: None,
             sort: Vec::new(),
+            filter: Vec::new(),
+            group: Vec::new(),
         }
     }
 }

@@ -34,6 +34,8 @@ use winit::keyboard::{Key, NamedKey};
 #[derive(Default)]
 struct App {
     clicks: Vec<&'static str>,
+    /// Whether Shift was held at each click on Alpha.
+    shift_clicks: Vec<bool>,
     /// Every pointer phase the drag element saw, with the coordinates it was
     /// handed. The whole point of the drag receipt.
     drag: Vec<(PointerPhase, (f32, f32), (f32, f32))>,
@@ -75,7 +77,10 @@ fn root(state: &App) -> Child {
                 focusable(on_key(
                     clickable(
                         el("button", text("Alpha")).attr("style", place(0, 0, 100, 40)),
-                        |s: &mut App, _| s.clicks.push("alpha"),
+                        |s: &mut App, click: cambium::PointerClick| {
+                            s.clicks.push("alpha");
+                            s.shift_clicks.push(click.modifiers.shift);
+                        },
                     ),
                     move |s: &mut App, e: cambium::KeyEvent| {
                         s.keys.push(format!("{:?}", e.key));
@@ -156,6 +161,20 @@ fn a_press_clicks_the_element_under_it() {
 
     h.click_at(10.0, 62.0);
     assert_eq!(h.state().clicks, vec!["alpha", "beta"]);
+}
+
+/// A click carries the modifier keys the host holds, so a Shift+click can
+/// mean more than a click (table D26).
+#[test]
+fn a_click_carries_the_modifiers_held() {
+    let mut h = harness();
+    h.click_at(10.0, 12.0);
+    h.set_modifiers(Modifiers {
+        shift: true,
+        ..Modifiers::NONE
+    });
+    h.click_at(10.0, 12.0);
+    assert_eq!(h.state().shift_clicks, [false, true]);
 }
 
 /// A drag routes Down / Move / Up to the capturing element with coordinates in
@@ -683,7 +702,10 @@ fn text_byte_scroll_restores_the_first_visible_line_without_moving_editor_select
             let Some(byte) = ctx.text_position_at(source, (x + 8.0, y + 10.0)) else {
                 return;
             };
-            assert!(ctx.element_scroll(pane).is_some_and(|offset| offset.1 > 0.0));
+            assert!(
+                ctx.element_scroll(pane)
+                    .is_some_and(|offset| offset.1 > 0.0)
+            );
             positions_hook.borrow_mut().push(byte);
         }),
         ..inert_hooks()

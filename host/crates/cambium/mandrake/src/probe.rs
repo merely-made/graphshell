@@ -179,8 +179,13 @@ impl<P: Product> Driveable for Probe<'_, '_, P> {
             ["cost-end"] => self.lane.costs.end()?,
             ["key", name] => {
                 use cambium::{Key, KeyEvent, NamedKey};
-                let key = match *name {
-                    "Tab" | "Shift+Tab" => Key::Named(NamedKey::Tab),
+                // `Shift+<key>` holds Shift: Shift+Tab, Shift+Enter.
+                let (shift, base) = match name.strip_prefix("Shift+") {
+                    Some(base) => (true, base),
+                    None => (false, *name),
+                };
+                let key = match base {
+                    "Tab" => Key::Named(NamedKey::Tab),
                     "Enter" => Key::Named(NamedKey::Enter),
                     "Space" => Key::Named(NamedKey::Space),
                     "Escape" => Key::Named(NamedKey::Escape),
@@ -192,11 +197,11 @@ impl<P: Product> Driveable for Probe<'_, '_, P> {
                     "End" => Key::Named(NamedKey::End),
                     "PageUp" => Key::Named(NamedKey::PageUp),
                     "PageDown" => Key::Named(NamedKey::PageDown),
-                    name if name.chars().count() == 1 => Key::Character(name.into()),
+                    base if base.chars().count() == 1 => Key::Character(base.into()),
                     _ => return Err(format!("unsupported scenario key {name}")),
                 };
                 let mut event = KeyEvent::new(key);
-                event.mods.shift = *name == "Shift+Tab";
+                event.mods.shift = shift;
                 self.ctx.runner.dispatch_key(event);
             },
             ["wheel", ..] => {

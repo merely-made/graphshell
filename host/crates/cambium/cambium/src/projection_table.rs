@@ -11,15 +11,19 @@
 //! table's rows in their placed order, one column per field in list order,
 //! headed by the fields' names. A header click writes the sort onto the
 //! recipe's reading through the projection editor, one undo step each, and
-//! the recipe is compiled again. The table reads and never writes a cell
-//! (table D4). [`ProjectionTable::frozen`] is the same table as an accessible
-//! HTML table.
+//! so do a filter and a grouping; a change to the reading alone is read
+//! again through the compiler's own reading order, with no compile. A grouped
+//! table draws a heading band per group, which collapses as view state
+//! (table D25, D29). The table reads and never writes a cell (table D4).
+//! [`ProjectionTable::frozen`] is the same table as an accessible HTML table.
 
 use std::collections::HashMap;
 
-use graphshell_client::frozen_table::{FrozenTable, FrozenTableRow};
+use graphshell_client::frozen_table::{FrozenTable, FrozenTableGroup, FrozenTableRow};
 use sceno::InstanceId;
 use scenograph::dataset::ProjectionDataset;
+use scenograph::group::GroupBand;
+use scenograph::table::CollapsedGroups;
 use scenograph::{ProjectionDefinition, ProjectionDraft, SortKey};
 use scenomise::authoring::{EditorAction, ProjectionEditor};
 use scenomise::projection::{CompileIssue, ProjectionCompiler};
@@ -35,9 +39,12 @@ fn issue(field: impl Into<String>, message: impl Into<String>) -> CompileIssue {
     }
 }
 
+mod bands;
 mod cells;
 mod keys;
 mod view;
+
+pub use bands::{TableBandView, TableHeadingView};
 
 pub use cells::{CellContent, ColumnFacts, TableViewers, Viewer, plain_text};
 pub use view::{PROJECTION_TABLE_CSS, projection_table};
@@ -60,8 +67,14 @@ pub struct ProjectionTable {
     compiler: ProjectionCompiler,
     viewers: TableViewers,
     dataset: ProjectionDataset,
-    /// Row rank to the dataset's occurrence index.
+    /// Row rank to the dataset's occurrence index: the rows read, grouped.
     rows: Vec<u32>,
+    /// The groups' headings, outer before inner.
+    groups: Vec<GroupBand>,
+    /// What the grid draws, top to bottom: visible headings and rows.
+    bands: Vec<bands::Band>,
+    /// Collapsed groups: view state, never the recipe's (table D29).
+    collapsed: CollapsedGroups,
     columns: Vec<TableColumnView>,
     row_height: f32,
     header_height: f32,
@@ -91,6 +104,9 @@ impl ProjectionTable {
             viewers,
             dataset,
             rows: Vec::new(),
+            groups: Vec::new(),
+            bands: Vec::new(),
+            collapsed: CollapsedGroups::default(),
             columns: Vec::new(),
             row_height: 0.0,
             header_height: 0.0,
@@ -104,28 +120,38 @@ impl ProjectionTable {
         Ok(table)
     }
 
-    /// Take the rows and columns from the draft. A change to the sort alone
-    /// re-sorts the rows through the compiler's own reading order, which is
-    /// the order a compile places them in; anything else compiles again.
+    /// Take the rows and columns from the draft. A change to the sort, the
+    /// filter or the grouping alone reads the rows again through the
+    /// compiler's own reading order, which is the order a compile places
+    /// them in; anything else compiles again.
     fn rebuild(&mut self) -> Result<(), Vec<CompileIssue>> {
+        self.rebuild_rows()?;
+        self.rebuild_bands();
+        Ok(())
+    }
+
+    fn rebuild_rows(&mut self) -> Result<(), Vec<CompileIssue>> {
         let definition = self.editor.draft().to_definition().map_err(|issues| {
             issues
                 .into_iter()
                 .map(|found| issue(found.field, found.message))
                 .collect::<Vec<_>>()
         })?;
-        let sort_only = self.placed.as_ref().is_some_and(|placed| {
+        let reading_only = self.placed.as_ref().is_some_and(|placed| {
             let mut reading = placed.reading.clone();
             reading.sort.clone_from(&definition.reading.sort);
-            placed.reading.sort != definition.reading.sort
+            reading.filter.clone_from(&definition.reading.filter);
+            reading.group.clone_from(&definition.reading.group);
+            placed.reading != definition.reading
                 && ProjectionDefinition {
                     reading,
                     ..placed.clone()
                 } == definition
         });
-        if sort_only {
-            let order = self.compiler.reading_order(&definition, &self.dataset)?;
-            self.rows = order.into_iter().map(|index| index as u32).collect();
+        if reading_only {
+            let reading = self.compiler.table_reading(&definition, &self.dataset)?;
+            self.rows = reading.rows.into_iter().map(|index| index as u32).collect();
+            self.groups = reading.groups;
             self.placed = Some(definition);
             return Ok(());
         }
@@ -186,6 +212,15 @@ impl ProjectionTable {
             })
             .collect();
         self.rows = rows;
+        // The compile placed the headings; their groups, by value, come from
+        // the same reading.
+        self.groups = if definition.reading.group.is_empty() {
+            Vec::new()
+        } else {
+            self.compiler
+                .table_reading(&definition, &self.dataset)?
+                .groups
+        };
         self.placed = Some(definition);
         self.columns = columns;
         self.row_height = layout.table.row_height;
@@ -205,8 +240,14 @@ impl ProjectionTable {
         &self.columns
     }
 
+    /// How many rows the reading keeps, in every group, collapsed or not.
     pub fn row_count(&self) -> usize {
         self.rows.len()
+    }
+
+    /// How many rows the dataset holds before the filter.
+    pub fn source_row_count(&self) -> usize {
+        self.dataset.occurrences.len()
     }
 
     pub fn row_height(&self) -> f32 {
@@ -246,26 +287,82 @@ impl ProjectionTable {
         (column.viewer)(values.get(&column.field), &column.facts)
     }
 
-    /// The column the sort leads with, and whether it runs descending.
+    /// The column the reading's order leads with, and whether it runs
+    /// descending: the outermost grouping when grouped, else the sort's lead
+    /// key. `aria-sort` marks this column alone (table D35).
     pub fn sorted(&self) -> Option<(usize, bool)> {
-        let key = self.editor.draft().reading.sort.first()?;
+        let reading = &self.editor.draft().reading;
+        let key = reading.group.first().or_else(|| reading.sort.first())?;
         let col = self.columns.iter().position(|c| c.field == key.field)?;
         Some((col, key.descending))
+    }
+
+    /// The sort keys that order rows within the groups, by column, in
+    /// priority order: a key on a grouped field is left out, as the grouping
+    /// orders it. A key whose field is not a column is left out too.
+    pub fn sort_columns(&self) -> Vec<(usize, bool)> {
+        let reading = &self.editor.draft().reading;
+        self.key_columns(
+            reading
+                .sort
+                .iter()
+                .filter(|key| !reading.group.iter().any(|g| g.field == key.field)),
+        )
+    }
+
+    /// The grouping's keys by column, outermost first.
+    pub fn group_columns(&self) -> Vec<(usize, bool)> {
+        self.key_columns(self.editor.draft().reading.group.iter())
+    }
+
+    fn key_columns<'a>(&self, keys: impl Iterator<Item = &'a SortKey>) -> Vec<(usize, bool)> {
+        keys.filter_map(|key| {
+            let col = self.columns.iter().position(|c| c.field == key.field)?;
+            Some((col, key.descending))
+        })
+        .collect()
     }
 
     /// Sort by column `col`, or flip it if it already leads: one undo step
     /// on the recipe. `now_ms` is the host's clock.
     pub fn click_header(&mut self, col: usize, now_ms: u64) {
+        self.press_header(col, false, now_ms);
+    }
+
+    /// A header pressed: alone, it replaces the sort as [`Self::click_header`]
+    /// does; with Shift (`add`), it adds the column as the next key or flips
+    /// it where it already is one (table D26).
+    pub fn press_header(&mut self, col: usize, add: bool, now_ms: u64) {
         let Some(field) = self.columns.get(col).map(|c| c.field.clone()) else {
             return;
         };
-        let keys = scenograph::sort::header_click(&self.editor.draft().reading.sort, &field);
+        let current = &self.editor.draft().reading.sort;
+        let keys = if add {
+            scenograph::sort::header_add(current, &field)
+        } else {
+            scenograph::sort::header_click(current, &field)
+        };
         self.apply_sort(keys, now_ms);
     }
 
     /// Replace the recipe's sort; a refused sort is undone and noticed.
     pub fn apply_sort(&mut self, keys: Vec<SortKey>, now_ms: u64) {
         self.editor.reduce(EditorAction::SetSort(keys), now_ms);
+        self.recompile_or_step_back();
+    }
+
+    /// Replace the recipe's filter: one undo step; a refused one is undone
+    /// and noticed.
+    pub fn apply_filter(&mut self, conditions: Vec<scenograph::filter::Condition>, now_ms: u64) {
+        self.editor
+            .reduce(EditorAction::SetFilter(conditions), now_ms);
+        self.recompile_or_step_back();
+    }
+
+    /// Replace the recipe's grouping: one undo step; a refused one is
+    /// undone and noticed.
+    pub fn apply_group(&mut self, keys: Vec<SortKey>, now_ms: u64) {
+        self.editor.reduce(EditorAction::SetGroup(keys), now_ms);
         self.recompile_or_step_back();
     }
 
@@ -298,7 +395,7 @@ impl ProjectionTable {
 
     /// The largest scroll that still fills the body.
     pub fn max_scroll(&self) -> f32 {
-        (self.rows.len() as f32 * self.row_height - self.viewport_height).max(0.0)
+        (self.bands.len() as f32 * self.row_height - self.viewport_height).max(0.0)
     }
 
     /// Scroll by `dy` px, clamped to the rows.
@@ -307,7 +404,9 @@ impl ProjectionTable {
     }
 
     /// The same table frozen: a caption, one column header per field, a row
-    /// per occurrence in this order, each cell in words.
+    /// per occurrence read in this order, each cell in words, and a heading
+    /// per group. Every group is open: collapse is the view's, not the
+    /// recipe's.
     pub fn frozen(&self) -> FrozenTable {
         let rows = (0..self.rows.len())
             .map(|rank| {
@@ -325,9 +424,23 @@ impl ProjectionTable {
             columns: self.columns.iter().map(|c| c.name.clone()).collect(),
             sorted: self.sorted(),
             rows,
+            groups: self
+                .groups
+                .iter()
+                .enumerate()
+                .map(|(index, band)| FrozenTableGroup {
+                    position: band.start,
+                    level: band.level,
+                    label: self.heading_label(index),
+                    count: band.count,
+                })
+                .collect(),
         }
     }
 }
 
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+mod group_tests;

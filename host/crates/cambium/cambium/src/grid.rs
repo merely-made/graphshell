@@ -17,7 +17,11 @@
 //!
 //! The root, headers, rows, and cells expose the ARIA grid roles and indices.
 //! Only materialized rows exist in the DOM, while `aria-rowcount` reports the
-//! full model size.
+//! full model size, headings included.
+//!
+//! [`data_grid_banded`] also draws group headings: a body row the caller
+//! names a heading is one header cell spanning every column, with its count
+//! and `aria-expanded`, and a press on it goes to the caller (table D25).
 //!
 //! Theming rides classes (`grid`, `grid-header`, `grid-header-cell`,
 //! `grid-body`, `grid-row`, `grid-row-even` / `-odd`, `grid-cell`); inline
@@ -27,9 +31,13 @@ use sprigging::{GridSpec, Placement};
 
 use crate::pod::GenetElement;
 use crate::{
-    AnyView, GenetCtx, Key, KeyEvent, Keyed, NamedKey, PointerClick, arrangement::placed_with, el,
-    on_click, on_key, request_focus,
+    AnyView, GenetCtx, Key, KeyEvent, Keyed, Modifiers, NamedKey, PointerClick,
+    arrangement::placed_with, el, on_click, on_key, request_focus,
 };
+
+mod heading;
+use heading::heading_row;
+pub use heading::{GridBand, GridHeading, GridRowKey};
 
 /// The erased view type grid cells (and the grid itself) use.
 pub type GridView<State, Action> = Box<dyn AnyView<State, Action, GenetCtx, GenetElement>>;
@@ -49,6 +57,13 @@ pub struct GridFocus {
 pub struct GridOptions {
     /// The sorted column and whether it runs descending, for `aria-sort`.
     pub sorted: Option<(usize, bool)>,
+    /// Every sort key's column and direction in priority order. With more
+    /// than one, each sorted header shows its arrow and its priority number.
+    pub sort_keys: Vec<(usize, bool)>,
+    /// The columns the rows are grouped by, outermost first, and each
+    /// group's direction. Such a header shows the group's arrow and a group
+    /// mark instead of a sort rank (table D35).
+    pub group_keys: Vec<(usize, bool)>,
     /// The roving focus; `None` keeps every header a tab stop and no cell one.
     pub focus: Option<GridFocus>,
     /// The grid's accessible name.
@@ -103,6 +118,43 @@ where
     State: 'static,
     Action: 'static,
 {
+    data_grid_banded(
+        spec,
+        total_rows,
+        viewport_height,
+        scroll,
+        cell,
+        GridBand::Row,
+        move |s: &mut State, col, _: Modifiers| on_header_click(s, col),
+        |_: &mut State, _| {},
+        row_class,
+        options,
+        on_key_event,
+    )
+}
+
+/// [`data_grid_with`] with group headings: `band(row)` says whether a body
+/// row is a row or a heading, with the key it is kept by, and `on_heading(row)`
+/// hears a press on a heading. A header press carries its modifier keys, so
+/// Shift can add a sort key.
+#[allow(clippy::too_many_arguments)]
+pub fn data_grid_banded<State, Action>(
+    spec: &GridSpec,
+    total_rows: usize,
+    viewport_height: f32,
+    scroll: f32,
+    cell: impl Fn(usize, usize) -> GridView<State, Action>,
+    band: impl Fn(usize) -> GridBand,
+    on_header: impl Fn(&mut State, usize, Modifiers) + Clone + 'static,
+    on_heading: impl Fn(&mut State, usize) + Clone + 'static,
+    row_class: impl Fn(usize) -> Option<String>,
+    options: &GridOptions,
+    on_key_event: impl Fn(&mut State, KeyEvent) + 'static,
+) -> GridView<State, Action>
+where
+    State: 'static,
+    Action: 'static,
+{
     let width = spec.total_width();
     let focus = options.focus;
     // The tab stop and focus request for one cell, or `None` with no focus.
@@ -119,13 +171,34 @@ where
         .iter()
         .enumerate()
         .map(|(c, col)| {
-            let click_handler = on_header_click.clone();
-            let key_handler = on_header_click.clone();
+            let click_handler = on_header.clone();
+            let key_handler = on_header.clone();
             let sort = match options.sorted {
                 Some((sorted, true)) if sorted == c => "descending",
                 Some((sorted, false)) if sorted == c => "ascending",
                 _ => "none",
             };
+            // Each key of a several-key sort shows its own arrow and number;
+            // `aria-sort` stays on the lead key, as ARIA allows one.
+            let key = options
+                .sort_keys
+                .iter()
+                .position(|(sorted, _)| *sorted == c)
+                .map(|at| (at, options.sort_keys[at].1));
+            let grouped = options
+                .group_keys
+                .iter()
+                .find(|(grouped, _)| *grouped == c)
+                .map(|(_, descending)| *descending);
+            let drawn = match (sort, grouped, key) {
+                (_, Some(true), _) | ("none", None, Some((_, true))) => "descending",
+                (_, Some(false), _) | ("none", None, Some((_, false))) => "ascending",
+                (sort, ..) => sort,
+            };
+            let priority = key
+                .filter(|_| grouped.is_none() && options.sort_keys.len() > 1)
+                .map(|(at, _)| (at + 1).to_string())
+                .unwrap_or_default();
             let (tabindex, requested) = stop(None, c).unwrap_or(("0", false));
             // Only the tab stop takes Tab focus; the arrows reach the rest.
             let tab_stop = tabindex == "0";
@@ -134,10 +207,23 @@ where
             let indicator = el::<_, State, Action>("span", ())
                 .attr(
                     "class",
-                    match sort {
+                    match drawn {
                         "descending" => "grid-sort grid-sort-desc",
                         "ascending" => "grid-sort grid-sort-asc",
                         _ => "grid-sort",
+                    },
+                )
+                .attr("aria-hidden", "true");
+            let priority = el::<_, State, Action>("span", priority)
+                .attr("class", "grid-key-priority")
+                .attr("aria-hidden", "true");
+            let group_mark = el::<_, State, Action>("span", ())
+                .attr(
+                    "class",
+                    if grouped.is_some() {
+                        "grid-group grid-group-on"
+                    } else {
+                        "grid-group"
                     },
                 )
                 .attr("aria-hidden", "true");
@@ -148,6 +234,8 @@ where
                     el::<_, State, Action>("span", col.title.clone())
                         .attr("class", "grid-header-title"),
                     indicator,
+                    priority,
+                    group_mark,
                 ),
             )
             .attr("class", "grid-header-cell")
@@ -157,12 +245,12 @@ where
             .attr("tabindex", tabindex);
             Box::new(request_focus(
                 on_key(
-                    on_click(header_cell, move |s: &mut State, _: PointerClick| {
-                        click_handler(s, c)
+                    on_click(header_cell, move |s: &mut State, click: PointerClick| {
+                        click_handler(s, c, click.modifiers)
                     }),
                     move |s: &mut State, event| {
                         if matches!(event.key, Key::Named(NamedKey::Enter | NamedKey::Space)) {
-                            key_handler(s, c);
+                            key_handler(s, c, event.mods);
                             event.prevent_default();
                         }
                     },
@@ -187,12 +275,25 @@ where
     // Virtualized body: only the window's rows exist, each at its own y in a
     // strip that the scroll offsets. A scroll that keeps the window moves the
     // strip alone, one style change rather than one per row. Rows are keyed by
-    // row index, so a window shift builds the arriving rows and drops the
-    // leaving ones; the rows in both windows are not rewritten.
+    // the caller's key (a plain grid's is the row index), so a window shift
+    // builds the arriving rows and drops the leaving ones; the rows in both
+    // windows are not rewritten. A heading is kept by its group, so a
+    // collapse or a regrouping moves it rather than building it again.
     let window = spec.window(total_rows, viewport_height, scroll);
-    let rows: Keyed<usize, GridView<State, Action>> = window
+    let rows: Keyed<GridRowKey, GridView<State, Action>> = window
         .range()
         .map(|r| {
+            let key = match band(r) {
+                GridBand::Heading(heading) => {
+                    let stop = focus.map(|focus| {
+                        let here = focus.row == Some(r);
+                        (here, here && focus.requested)
+                    });
+                    let key = GridRowKey::Heading(heading.key.clone());
+                    return (key, heading_row(spec, r, heading, stop, on_heading.clone()));
+                },
+                GridBand::Row(key) => GridRowKey::Row(key),
+            };
             let cells: Vec<GridView<State, Action>> = spec
                 .columns
                 .iter()
@@ -244,7 +345,7 @@ where
                 .attr("aria-rowindex", (r + 2).to_string())
                 .attr("data-row", r.to_string()),
             ) as GridView<State, Action>;
-            (r, row)
+            (key, row)
         })
         .collect();
     let strip = placed_with(
@@ -277,258 +378,4 @@ where
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::tags::custom_leaf;
-    use crate::{DomHandle, GenetAppRunner};
-    use genet_scripted_dom::{NodeId, ScriptedDom};
-    use layout_dom_api::{LayoutDom, LocalName, Namespace};
-    use sprigging::GridColumn;
-    use std::cell::RefCell;
-    use std::rc::Rc;
-
-    fn spec() -> GridSpec {
-        GridSpec {
-            columns: vec![
-                GridColumn::new("name", 120.0),
-                GridColumn::new("value", 80.0),
-                GridColumn::new("trend", 100.0),
-            ],
-            row_height: 24.0,
-            header_height: 28.0,
-            overscan: 2,
-        }
-    }
-
-    struct GridState {
-        scroll: f32,
-        descending: bool,
-        rows: usize,
-    }
-
-    fn view(state: &GridState) -> GridView<GridState, ()> {
-        let rows = state.rows;
-        let descending = state.descending;
-        data_grid(
-            &spec(),
-            rows,
-            300.0,
-            state.scroll,
-            move |r, c| {
-                // Sort order is caller state: ascending shows r, descending
-                // shows the mirrored index.
-                let i = if descending { rows - 1 - r } else { r };
-                if c == 2 {
-                    // Sparkline-in-cell shape: a custom leaf as a cell view.
-                    Box::new(custom_leaf::<GridState, ()>(1000 + i as u64, 96, 16))
-                } else {
-                    Box::new(el::<_, GridState, ()>("span", format!("r{i}c{c}")))
-                }
-            },
-            |s: &mut GridState, _col| s.descending = !s.descending,
-            // Mark row 0 selected, to exercise the per-row class hook.
-            |r| (r == 0).then(|| "grid-row-selected".to_string()),
-        )
-    }
-
-    fn class_of(dom: &ScriptedDom, node: NodeId) -> String {
-        dom.attribute(node, &Namespace::from(""), &LocalName::from("class"))
-            .unwrap_or_default()
-            .to_string()
-    }
-
-    fn find_all(dom: &ScriptedDom, node: NodeId, class: &str, out: &mut Vec<NodeId>) {
-        if class_of(dom, node).split_whitespace().any(|c| c == class) {
-            out.push(node);
-        }
-        for child in dom.dom_children(node) {
-            find_all(dom, child, class, out);
-        }
-    }
-
-    fn texts_under(dom: &ScriptedDom, node: NodeId, out: &mut String) {
-        if let Some(t) = dom.text(node) {
-            out.push_str(t);
-        }
-        for child in dom.dom_children(node) {
-            texts_under(dom, child, out);
-        }
-    }
-
-    /// The composed done conditions: a 10k-row grid materializes only the
-    /// window (sticky header always present), scrolling shifts rows without
-    /// growing the DOM, and a custom leaf rides as a cell view.
-    #[test]
-    fn grid_virtualizes_rows_under_a_sticky_header() {
-        let dom: DomHandle = Rc::new(RefCell::new(ScriptedDom::new()));
-        let mut runner = GenetAppRunner::<_, _, _, ()>::new(
-            dom.clone(),
-            view,
-            GridState {
-                scroll: 0.0,
-                descending: false,
-                rows: 10_000,
-            },
-        );
-        let root = runner.root();
-        {
-            let d = dom.borrow();
-            let mut headers = Vec::new();
-            find_all(&d, root, "grid-header-cell", &mut headers);
-            assert_eq!(headers.len(), 3, "one header cell per column");
-            let mut rows = Vec::new();
-            find_all(&d, root, "grid-row", &mut rows);
-            assert!(
-                rows.len() < 25,
-                "10k rows materialize a window, got {}",
-                rows.len()
-            );
-            // The per-row class hook rides on the row's class: row 0 is the
-            // window's first row at scroll 0 and the view marks it selected.
-            let mut selected = Vec::new();
-            find_all(&d, root, "grid-row-selected", &mut selected);
-            assert_eq!(selected.len(), 1, "row_class marks exactly row 0 selected");
-            assert!(
-                class_of(&d, selected[0]).contains("grid-row"),
-                "hook appends to the zebra base"
-            );
-            let mut leaves = Vec::new();
-            find_all(&d, root, "grid-cell", &mut leaves);
-            assert_eq!(
-                leaves.len(),
-                rows.len() * 3,
-                "three cells per materialized row"
-            );
-        }
-
-        runner.update(|s| s.scroll = 4800.0);
-        let d = dom.borrow();
-        let mut rows = Vec::new();
-        find_all(&d, root, "grid-row", &mut rows);
-        assert!(rows.len() < 25, "window stays a sliver after scroll");
-        let first_row_class = d
-            .attribute(rows[0], &Namespace::from(""), &LocalName::from("data-row"))
-            .unwrap_or_default();
-        assert_eq!(
-            first_row_class, "198",
-            "window starts at scroll/24 minus overscan"
-        );
-        // The sparkline cell rides along: a custom leaf inside the row.
-        let mut text = String::new();
-        texts_under(&d, rows[0], &mut text);
-        assert!(
-            text.contains("r198c0"),
-            "cell content reflects the row: {text}"
-        );
-    }
-
-    /// A one-row window shift moves rows rather than rewriting them: the rows
-    /// in both windows keep their nodes and none of their attributes or text
-    /// is written; the DOM sees the arriving and leaving rows.
-    #[test]
-    fn a_window_shift_keeps_the_surviving_rows() {
-        use layout_dom_api::{DomMutation, LayoutDomMut as _};
-        let dom: DomHandle = Rc::new(RefCell::new(ScriptedDom::new()));
-        let mut runner = GenetAppRunner::<_, _, _, ()>::new(
-            dom.clone(),
-            view,
-            GridState {
-                scroll: 240.0,
-                descending: false,
-                rows: 10_000,
-            },
-        );
-        let root = runner.root();
-        let rows_by_index = |d: &ScriptedDom| {
-            let mut rows = Vec::new();
-            find_all(d, root, "grid-row", &mut rows);
-            rows.into_iter()
-                .map(|node| {
-                    let index = d
-                        .attribute(node, &Namespace::from(""), &LocalName::from("data-row"))
-                        .unwrap_or_default()
-                        .to_string();
-                    (index, node)
-                })
-                .collect::<std::collections::HashMap<_, _>>()
-        };
-        let before = rows_by_index(&dom.borrow());
-        // Every node under the window's rows before the shift.
-        let mut existing = std::collections::HashSet::new();
-        {
-            let d = dom.borrow();
-            let mut pending: Vec<_> = before.values().copied().collect();
-            while let Some(node) = pending.pop() {
-                existing.insert(node);
-                pending.extend(d.dom_children(node));
-            }
-        }
-        dom.borrow_mut().drain_mutations(&mut Vec::new());
-        runner.update(|s| s.scroll = 264.0);
-        let mut mutations = Vec::new();
-        dom.borrow_mut().drain_mutations(&mut mutations);
-        let after = rows_by_index(&dom.borrow());
-        let kept: Vec<_> = before.keys().filter(|k| after.contains_key(*k)).collect();
-        assert_eq!(
-            kept.len(),
-            before.len() - 1,
-            "one row leaves, the rest stay"
-        );
-        for index in kept {
-            assert_eq!(before[index], after[index], "row {index} kept its node");
-        }
-        let rewrites = mutations
-            .iter()
-            .filter(|m| match m {
-                DomMutation::AttributeChanged { node, .. }
-                | DomMutation::CharacterDataChanged { node } => existing.contains(node),
-                _ => false,
-            })
-            .count();
-        assert_eq!(rewrites, 0, "no surviving row is rewritten: {mutations:?}");
-    }
-
-    /// Header click routes through the grid's on_click wiring into caller
-    /// state: the sort flips and the same materialized window shows the
-    /// mirrored order.
-    #[test]
-    fn header_click_flips_the_sort() {
-        let dom: DomHandle = Rc::new(RefCell::new(ScriptedDom::new()));
-        let mut runner = GenetAppRunner::<_, _, _, ()>::new(
-            dom.clone(),
-            view,
-            GridState {
-                scroll: 0.0,
-                descending: false,
-                rows: 100,
-            },
-        );
-        let root = runner.root();
-        let (header, first_row) = {
-            let d = dom.borrow();
-            let mut headers = Vec::new();
-            find_all(&d, root, "grid-header-cell", &mut headers);
-            let mut rows = Vec::new();
-            find_all(&d, root, "grid-row", &mut rows);
-            (headers[0], rows[0])
-        };
-        {
-            let d = dom.borrow();
-            let mut text = String::new();
-            texts_under(&d, first_row, &mut text);
-            assert!(text.contains("r0c0"), "ascending starts at row 0: {text}");
-        }
-
-        runner.dispatch_click(header, PointerClick::at((1.0, 1.0)));
-
-        let d = dom.borrow();
-        let mut rows = Vec::new();
-        find_all(&d, root, "grid-row", &mut rows);
-        let mut text = String::new();
-        texts_under(&d, rows[0], &mut text);
-        assert!(
-            text.contains("r99c0"),
-            "descending shows the mirrored index in the same window: {text}",
-        );
-    }
-}
+mod tests;

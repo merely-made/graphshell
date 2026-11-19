@@ -138,6 +138,11 @@ pub enum EditorAction {
     SetReading(Reading),
     /// Replace the reading's sort. Each one is its own undo step.
     SetSort(Vec<scenograph::SortKey>),
+    /// Replace the reading's filter: conditions that all hold. Its own step.
+    SetFilter(Vec<scenograph::filter::Condition>),
+    /// Replace the reading's grouping, one heading level per key. Its own
+    /// step.
+    SetGroup(Vec<scenograph::SortKey>),
     SetEncoding(Encoding),
     SetMarks(scenograph::MarkSlots),
     SetFrame(Option<scenograph::Frame>),
@@ -231,8 +236,13 @@ impl ProjectionEditor {
             return ReduceResult::PanelChanged;
         }
         let before = (self.draft.clone(), self.panel);
-        // A sort is a single gesture: no key, so it never joins a run.
-        let key = (!matches!(action, EditorAction::SetSort(_))).then(|| discriminant(&action));
+        // A sort, filter or grouping is a single gesture: no key, so it never
+        // joins a run.
+        let single = matches!(
+            action,
+            EditorAction::SetSort(_) | EditorAction::SetFilter(_) | EditorAction::SetGroup(_)
+        );
+        let key = (!single).then(|| discriminant(&action));
         let result = self.apply_draft(action);
         if self.draft != before.0 {
             self.history.record(before, key, now_ms);
@@ -312,6 +322,14 @@ impl ProjectionEditor {
             },
             EditorAction::SetSort(value) => {
                 self.draft.reading.sort = value;
+                ReduceResult::Changed
+            },
+            EditorAction::SetFilter(value) => {
+                self.draft.reading.filter = value;
+                ReduceResult::Changed
+            },
+            EditorAction::SetGroup(value) => {
+                self.draft.reading.group = value;
                 ReduceResult::Changed
             },
             EditorAction::SetEncoding(value) => {

@@ -41,8 +41,12 @@ pub(super) fn compile_inner(
     let target = resolve_target(compiler, definition).expect("validated arrangement");
     let channels = target.channels();
 
+    let mut groups = Vec::new();
     let occurrences: Vec<_> = if channels == Some(ChannelUse::Order) {
-        reading_order(definition, dataset, x_field)
+        let reading = table_reading(definition, dataset, x_field);
+        groups = reading.groups;
+        reading
+            .rows
             .into_iter()
             .map(|index| &dataset.occurrences[index])
             .collect()
@@ -69,7 +73,7 @@ pub(super) fn compile_inner(
             .flatten(),
         columns: definition.fields.len().max(1),
     };
-    let arrangement = match &target {
+    let mut arrangement = match &target {
         Target::Builtin(family) => family
             .arrangement(&definition.arrangement.options, &measure)
             .map_err(option_issues)?,
@@ -85,6 +89,9 @@ pub(super) fn compile_inner(
             ),
         },
     };
+    if let ScenoArrangement::Table(table) = &mut arrangement {
+        table.headings = headings(definition, &groups);
+    }
     let grid_ranks = (channels == Some(ChannelUse::Cells)).then(|| {
         (
             dense_ranks(&occurrences, x_field),
@@ -315,24 +322,72 @@ fn by_id(dataset: &ProjectionDataset) -> Vec<usize> {
     indices
 }
 
-/// Dataset indices in the order an order-placing family places them: by the
-/// reading's sort when it has one, by x otherwise, occurrence id breaking
-/// ties. The table realization re-sorts through this same function.
-pub(super) fn reading_order(
+/// A reading as an order-placing family places it (table projection plan,
+/// T5): the rows it reads, as dataset indices in placed order, and its
+/// group bands, outer before inner.
+#[derive(Clone, Debug, Default, PartialEq)]
+pub struct TableReading {
+    pub rows: Vec<usize>,
+    pub groups: Vec<scenograph::group::GroupBand>,
+}
+
+/// The rows the filter keeps, ordered by the group keys and then the sort
+/// (by x when there is none), occurrence id breaking ties, with a band
+/// wherever a group starts. The table realization reads through this same
+/// function, so its rows agree with a compile.
+pub(super) fn table_reading(
     definition: &ProjectionDefinition,
     dataset: &ProjectionDataset,
     x_field: &str,
-) -> Vec<usize> {
-    let ids = by_id(dataset);
+) -> TableReading {
+    let reading = &definition.reading;
+    let matcher = scenograph::filter::Matcher::new(&reading.filter, &dataset.fields)
+        .expect("validated filter");
+    let values = |index: usize| &dataset.occurrences[index].values;
+    let mut ids = by_id(dataset);
+    if !matcher.is_empty() {
+        ids.retain(|&index| matcher.matches(values(index)));
+    }
     let by_x = [scenograph::SortKey::ascending(x_field)];
-    let keys = if definition.reading.sort.is_empty() {
+    let sort = if reading.sort.is_empty() {
         &by_x[..]
     } else {
-        &definition.reading.sort[..]
+        &reading.sort[..]
     };
-    scenograph::sort::order(keys, ids.iter().map(|&index| &dataset.occurrences[index].values))
+    let keys = scenograph::group::order_keys(&reading.group, sort);
+    let rows: Vec<usize> = scenograph::sort::order(&keys, ids.iter().map(|&index| values(index)))
         .into_iter()
         .map(|rank| ids[rank])
+        .collect();
+    let groups = if reading.group.is_empty() {
+        Vec::new()
+    } else {
+        scenograph::group::bands(&reading.group, rows.iter().map(|&index| values(index)))
+    };
+    TableReading { rows, groups }
+}
+
+/// The table's headings for `groups`, each named by its field's name.
+pub(super) fn headings(
+    definition: &ProjectionDefinition,
+    groups: &[scenograph::group::GroupBand],
+) -> Vec<sceno::TableHeading> {
+    groups
+        .iter()
+        .map(|band| {
+            let path = band.path.0.last().map_or("", |step| step.field.as_str());
+            let name = definition
+                .fields
+                .iter()
+                .find(|field| field.path == path)
+                .map_or(path, |field| field.name.as_str());
+            sceno::TableHeading {
+                position: band.start,
+                level: band.level,
+                label: band.label(name),
+                count: band.count,
+            }
+        })
         .collect()
 }
 

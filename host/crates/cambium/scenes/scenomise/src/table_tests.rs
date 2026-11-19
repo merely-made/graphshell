@@ -69,10 +69,10 @@ pub(super) fn definition(fields: &[(&str, &str)]) -> ProjectionDefinition {
         label: "Table".into(),
         source: data.source.clone(),
         reading: Reading {
-            sort: Vec::new(),
             kind: "nodes".into(),
             key: "id".into(),
             value: None,
+            ..Default::default()
         },
         encoding: Encoding {
             x: Channel::Field("rank".into()),

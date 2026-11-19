@@ -113,27 +113,14 @@ impl Default for TableViewers {
     }
 }
 
-/// A value in plain words: the default viewer for every type.
+/// A value in plain words: the default viewer for every type. A reference
+/// shows its source identity until reference cells show the entity (T7).
 pub fn plain_text(value: &ProjectionValue) -> String {
-    match value {
-        ProjectionValue::Text(text) | ProjectionValue::Date(text) => text.clone(),
-        ProjectionValue::DateTime(text) => text.clone(),
-        ProjectionValue::Number(number) => number_text(*number),
-        ProjectionValue::Boolean(true) => "Yes".into(),
-        ProjectionValue::Boolean(false) => "No".into(),
-        // The source identity until reference cells show the entity (T7).
-        ProjectionValue::Reference(source) => source.id.clone(),
-        ProjectionValue::List(items) => items.iter().map(plain_text).collect::<Vec<_>>().join(", "),
-    }
+    scenograph::dataset::value_words(value)
 }
 
-/// A number without a trailing `.0` when it is whole.
 fn number_text(number: f64) -> String {
-    if number.is_finite() && number.fract() == 0.0 && number.abs() < 1e15 {
-        format!("{}", number as i64)
-    } else {
-        format!("{number}")
-    }
+    plain_text(&ProjectionValue::Number(number))
 }
 
 fn plain(value: Option<&ProjectionValue>, _: &ColumnFacts) -> CellContent {

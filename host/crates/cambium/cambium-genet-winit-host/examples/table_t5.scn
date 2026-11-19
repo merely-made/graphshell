@@ -1,0 +1,41 @@
+# The table's sort, filter and group pictures (table projection plan, T5),
+# driven through the host's own routing. Run as examples/table.rs says, with
+# TABLE_SCENARIO pointing here.
+
+log table: t5 opened
+settle 2
+
+# A three-key sort: a click on Read, then Shift+Enter on Pages and Added
+# adds each as the next key; the headers show 1, 2 and 3.
+click .grid-header-cell @aria-colindex=3
+settle 2
+key Tab
+key ArrowRight
+key Shift+Enter
+key ArrowRight
+key ArrowRight
+key Shift+Enter
+settle 2
+assert snap sort == read,pages,added
+capture three-key-sort
+
+# Two levels of grouping, each heading with its count.
+group read:desc author
+settle 2
+assert snap groups >= 3
+capture grouped
+
+# A collapsed group: the first inner heading, clicked.
+click .grid-heading @data-row=1
+settle 2
+assert snap collapsed == 1
+capture collapsed
+
+# A filter applied, with the grouping taken off.
+group-clear
+filter pages ge 450
+filter title contains harbour
+settle 2
+assert snap filter == 2
+capture filtered
+log table: t5 done

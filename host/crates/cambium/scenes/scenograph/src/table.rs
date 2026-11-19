@@ -12,6 +12,8 @@
 
 use serde::{Deserialize, Serialize};
 
+use crate::group::GroupPath;
+
 /// One selected row, or one cell of it when `field` is set.
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -100,9 +102,73 @@ impl TableSelection {
     }
 }
 
+/// Which groups are collapsed (table D29): view state saved beside the
+/// selection, keyed by group value, never in the recipe and never an undo
+/// step. A collapsed group keeps its heading and hides its rows and the
+/// groups inside it.
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct CollapsedGroups {
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub groups: Vec<GroupPath>,
+}
+
+impl CollapsedGroups {
+    pub fn is_empty(&self) -> bool {
+        self.groups.is_empty()
+    }
+
+    pub fn is_collapsed(&self, path: &GroupPath) -> bool {
+        self.groups.iter().any(|held| held.same(path))
+    }
+
+    /// Whether a group lies inside a collapsed one, so its heading is hidden.
+    pub fn hides(&self, path: &GroupPath) -> bool {
+        self.groups
+            .iter()
+            .any(|held| held.0.len() < path.0.len() && path.within(held))
+    }
+
+    /// Collapse a group, or expand it when it is collapsed.
+    pub fn toggle(&mut self, path: GroupPath) {
+        match self.groups.iter().position(|held| held.same(&path)) {
+            Some(index) => {
+                self.groups.remove(index);
+            },
+            None => self.groups.push(path),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::dataset::ProjectionValue;
+    use crate::group::GroupStep;
+
+    #[test]
+    fn collapsed_groups_are_saved_by_value_and_hide_what_they_hold() {
+        let step = |field: &str, value: Option<&str>| GroupStep {
+            field: field.into(),
+            value: value.map(|v| ProjectionValue::Text(v.into())),
+        };
+        let shelf = GroupPath(vec![step("shelf", Some("art"))]);
+        let inner = GroupPath(vec![step("shelf", Some("art")), step("year", None)]);
+        let mut collapsed = CollapsedGroups::default();
+        collapsed.toggle(shelf.clone());
+        assert!(collapsed.is_collapsed(&shelf) && !collapsed.is_collapsed(&inner));
+        assert!(collapsed.hides(&inner) && !collapsed.hides(&shelf));
+        let json = serde_json::to_string(&collapsed).unwrap();
+        assert_eq!(
+            json,
+            r#"{"groups":[[{"field":"shelf","value":{"kind":"text","value":"art"}}]]}"#
+        );
+        let back: CollapsedGroups = serde_json::from_str(&json).unwrap();
+        assert_eq!(back, collapsed);
+        collapsed.toggle(shelf);
+        assert!(collapsed.is_empty());
+        assert_eq!(serde_json::to_string(&collapsed).unwrap(), "{}");
+    }
 
     #[test]
     fn a_selection_is_saved_as_row_and_field() {

@@ -7,8 +7,9 @@
 //! Keyboard reach: every header and cell, by the ARIA grid pattern. One tab
 //! stop; arrows move it, Home and End go to the row's ends (with Control, to
 //! the table's corners), Page Up and Page Down move a body's height. The
-//! header row sits above the first body row. The body scrolls to keep the
-//! focused row in view.
+//! header row sits above the first body band. A group heading is a band the
+//! arrows stop on; Enter or Space there collapses or expands it. The body
+//! scrolls to keep the focused band in view.
 
 use crate::grid::GridFocus;
 use crate::{Key, NamedKey};
@@ -21,7 +22,10 @@ impl ProjectionTable {
         let Key::Named(named) = key else {
             return false;
         };
-        let last_row = self.rows.len().checked_sub(1);
+        if matches!(named, NamedKey::Enter | NamedKey::Space) {
+            return self.focus.row.is_some_and(|row| self.toggle_band(row));
+        }
+        let last_row = self.bands.len().checked_sub(1);
         let last_col = self.columns.len().saturating_sub(1);
         let page = ((self.viewport_height / self.row_height.max(1.0)).floor() as usize).max(1);
         let GridFocus { row, col, .. } = self.focus;
@@ -57,7 +61,7 @@ impl ProjectionTable {
     /// Put the focus on a cell, as a click on it does.
     pub fn focus_cell(&mut self, row: Option<usize>, col: usize) {
         self.focus = GridFocus {
-            row: row.filter(|r| *r < self.rows.len()),
+            row: row.filter(|r| *r < self.bands.len()),
             col: col.min(self.columns.len().saturating_sub(1)),
             requested: true,
         };

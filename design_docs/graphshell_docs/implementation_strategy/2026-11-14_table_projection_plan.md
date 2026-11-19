@@ -1,7 +1,8 @@
 # Table Projection Plan
 
 **Status:** 2026-11-19: T1, T2 and T3 done. T4 is on main with its speed gate open (D21);
-T5 to T8 not started. Opened by `primitive-representations D18`
+T5 written in two stages, the second staged on its branch with the person's filter and
+grouping control left; T6 to T8 not started. Opened by `primitive-representations D18`
 (table is the first missing projection), with D20 (an ordered fields list) and D21 (a feed
 is a reading).
 
@@ -120,6 +121,16 @@ Calls made while building, standing until ruled otherwise:
 - **Where the table lives (T4).** `cambium::projection_table`; mere-view or a crate of its
   own were the alternatives.
 - **The realization's name (T4).** `table`, accepted for the table arrangement only.
+
+- **Date-time groups (T5).** Two date-times group together when they are the same instant,
+  whatever offset each was written with.
+- **Nested headings (T5).** A heading at any level is a row of the grid, indented by its
+  level; the grid's role does not change to a tree grid.
+- **Frozen form (T5).** A frozen table shows every group open; collapse is not carried.
+- **Grouping elsewhere (T5).** A reading's grouping is accepted on any arrangement that
+  places by order and orders the rows there, without headings.
+- **No control in the view (T5).** Filter and grouping are set through the recipe and the
+  editor actions; the table itself offers no control for them yet.
 
 Left from the headed pages (T4):
 
@@ -432,6 +443,45 @@ Left from the headed pages (T4):
 
   *Applies D22.*
 
+- **D35. A grouped field's header shows the group's direction (Mark, 2026-11-19):** "The
+  group's direction". The header of a field the table is grouped by shows the grouping's
+  direction and a group mark, not a sort rank.
+
+  Links: summary A grouped field's column header shows the grouping's direction and a group mark.
+
+  *Refines D26.*
+
+- **D36. A list has its own contains (Mark, 2026-11-19):** "contains_item, separate". Text
+  contains matches a substring; a list is tested with `contains_item`, which matches one
+  whole item.
+
+  Links: summary List membership is the contains_item operator, separate from text contains.
+
+  *Refines D31.*
+
+- **D37. Ordered operators (Mark, 2026-11-19):** "Number, date, date-time". Less than,
+  greater than and between are accepted on those three kinds and refused on the rest.
+
+  Links: summary Ordered filter operators apply to number, date and date-time fields only.
+
+  *Applies D23.*
+
+- **D38. A missing value (Mark, 2026-11-19):** "Passes is-not; empty includes blank". A row
+  with no value for the field passes is not and fails every other comparison; is empty holds
+  for a missing value, blank text and an empty list.
+
+  Links: summary A missing value passes is-not, and is-empty also holds for blank text and an empty list.
+
+  *Applies D23.*
+
+- **D39. Ranks count the keys still sorting (Mark, 2026-11-19):** "Renumber: 1 and 2". With
+  a table sorted by three fields and grouped by the first, the other two show ranks 1 and 2.
+  The saved sort keeps all three, so ungrouping brings back 1, 2, 3.
+
+  Links: summary Sort ranks number only the keys that order rows inside the groups.
+
+  *Refines D35.*
+
 ## Findings
 
 - 2026-11-15: adding a slot to a recipe type breaks every repository that builds one as a
@@ -582,6 +632,29 @@ Left from the headed pages (T4):
   the tree is read every frame as before.
 - 2026-11-19 (D33): a window shift's remaining DOM mutations are the arriving row's own
   construction, 81 per row of six cells; the rows that stay are not written.
+- 2026-11-19 (T5 stage 2): through the table's own calls, with no compile, at 10,000
+  rows (release): a three-condition filter 4.7 ms, a grouping by one field 26.8 ms
+  and by two 31.0 ms, a three-key sort 14.8 ms, collapsing a group under 0.1 ms. At
+  100,000: 50, 396, 445 and 257 ms
+  ([receipts](../../archive_docs/receipts/2026-11-14_table_projection_plan_receipts.md)).
+  Each is inside D8's 100 ms at 10,000 before the frame (about 95 ms today, D21).
+- 2026-11-19 (T5 stage 2): one sort serves sort and grouping: the group keys lead the
+  sort keys (`scenograph::group::order_keys`), and the filter runs first, so fewer
+  rows are sorted (`scenomise/src/projection/compilation.rs`, `table_reading`). The
+  compile and the view read through that one function; tests compare them.
+- 2026-11-19 (T5 stage 2): serde reads a struct from a list of its fields' values, so
+  an untagged filter value tried as a reference before a list read `["2020-01-01",
+  "2024-01-01"]` as a reference; the list form is tried first
+  (`scenograph/src/filter.rs`, `FilterValue`).
+- 2026-11-19 (T5 stage 2): ARIA's grid role has no group level; a heading row is a
+  `row` with one `rowheader` spanning the columns (`aria-colspan`) and
+  `aria-expanded`, and its level shows only by indent and words
+  (`cambium/src/grid/heading.rs`). A `treegrid` would carry `aria-level`; Genet's
+  role lowering has neither yet (see Open questions).
+- 2026-11-19 (T5 stage 2): HTML cannot nest a `<tbody>`, so the frozen form gives
+  each innermost group a body; an outer heading leads its first inner group's body,
+  and each inner `<th scope="rowgroup">` names its outer heading with `headers`
+  (`graphshell-client/src/frozen_table.rs`).
 
 ## Progress
 
@@ -685,3 +758,25 @@ Left from the headed pages (T4):
   control passed when run), cambium-a11y 53 and 10, sprigging 30, cambium-desktop 26.
   Speed gate still open
   ([receipts](../../archive_docs/receipts/2026-11-14_table_projection_plan_receipts.md)).
+- 2026-11-19: T5 stage 2 written (branch `t5-sort-filter-group`, staged, not
+  committed). A reading carries `filter` (`scenograph::filter::Condition`: field, op,
+  value; D23, D31) and `group` (`SortKey`s, D24), absent when empty in TOML and JSON.
+  The compiler refuses a condition or group key on an undisclosed field, an operator
+  the field's kind does not take, a value of the wrong kind, a field grouped twice and
+  either on an arrangement that does not place by order, naming the field. The compile
+  and the table read through one function (`ProjectionCompiler::table_reading`): the
+  filter, then one sort with the group keys leading, then a band per group, "No
+  value" last (D27, D28). `sceno::Table` carries `headings` and rows move past them;
+  `TableLayout::pick` returns `TableHit::Heading` (D25). `EditorAction::SetFilter` and
+  `SetGroup` are one undo step each. The grid draws a heading as a row with one
+  spanning `rowheader`, its count and `aria-expanded`, counted in `aria-rowcount`
+  (`grid::data_grid_banded`); a click, Enter or Space collapses it, saved as
+  `scenograph::table::CollapsedGroups` beside the selection (D29). `PointerClick`
+  carries modifiers from both hosts; Shift+click and Shift+Enter add or flip a sort
+  key and the headers show each key's priority (D26). The status line states the
+  filter and grouping in words; the frozen form puts each innermost group in a
+  `<tbody>` with `<th scope="rowgroup">` headings. A date is parsed once before a
+  sort. Pictures under `testing/graphshell/table-t5/desktop-10k/`. Not built: a
+  person's control for adding a filter or a grouping; the example's scenario sets
+  them. Tests: sceno 44, scenograph 112 with `--features toml`, scenomise 286 with
+  `--features authoring`, cambium 446, graphshell-client 73.

@@ -45,10 +45,10 @@ pub(super) fn valid_draft() -> ProjectionDraft {
             resource: "graph:notes".into(),
         },
         reading: Reading {
-            sort: Vec::new(),
             kind: "nodes".into(),
             key: "topic".into(),
             value: None,
+            ..Default::default()
         },
         encoding: Encoding {
             x: Channel::Field("topic_x".into()),

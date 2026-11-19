@@ -19,6 +19,11 @@
 //! `sort-next <column>` sorts at the top of one frame and records the time
 //! until that frame is drawn. `TABLE_STALL_MS` adds a sleep to every timed
 //! frame: the positive control that shows the gate can fail.
+//!
+//! The reading's other parameters (T5) have verbs too, each one undo step on
+//! the recipe: `filter <field> <op> [value]` adds a condition, `filter-clear`
+//! drops them all, `group <field>[:desc] ...` sets the grouping and
+//! `group-clear` drops it. `table_t5.scn` drives them.
 
 #[path = "../../cambium/examples/support/table_fixture.rs"]
 mod table_fixture;
@@ -138,6 +143,10 @@ impl mandrake::Product for TableLane {
                 ),
             )
             .with_field("autoscroll", app.autoscroll.is_some().to_string())
+            .with_field("bands", table.band_count().to_string())
+            .with_field("groups", table.group_count().to_string())
+            .with_field("filter", table.draft().reading.filter.len().to_string())
+            .with_field("collapsed", table.collapsed().groups.len().to_string())
     }
 
     fn drain_events(&mut self, ctx: &mut AppCtx<'_, TableApp, Logic, Child>) -> Vec<String> {
@@ -169,6 +178,34 @@ impl mandrake::Product for TableLane {
             ["idle", frames] => {
                 let frames: u32 = frames.parse().map_err(|_| format!("bad frames {frames}"))?;
                 ctx.runner.update(|app| app.idle = frames);
+                Ok(())
+            },
+            ["filter", field, op, value @ ..] => {
+                let condition = table_fixture::condition(field, op, &value.join(" "))?;
+                ctx.runner.update(|app| {
+                    let mut conditions = app.table.draft().reading.filter.clone();
+                    conditions.push(condition);
+                    app.table.apply_filter(conditions, 0);
+                    app.events.push("filtered".into());
+                });
+                Ok(())
+            },
+            ["filter-clear"] => {
+                ctx.runner
+                    .update(|app| app.table.apply_filter(Vec::new(), 0));
+                Ok(())
+            },
+            ["group", keys @ ..] => {
+                let keys = table_fixture::keys(keys);
+                ctx.runner.update(|app| {
+                    app.table.apply_group(keys, 0);
+                    app.events.push("grouped".into());
+                });
+                Ok(())
+            },
+            ["group-clear"] => {
+                ctx.runner
+                    .update(|app| app.table.apply_group(Vec::new(), 0));
                 Ok(())
             },
             ["undo"] => {

@@ -368,6 +368,8 @@ impl Family {
                     columns: vec![column; measure.columns.max(1)],
                     row_height,
                     header: read.finite("header", row_height).max(0.0),
+                    // The compiler places a grouped reading's headings.
+                    headings: Vec::new(),
                 })
             },
         }

@@ -5,7 +5,8 @@
 // SPDX-License-Identifier: MPL-2.0
 
 //! The table family: each item in reading order takes the next row, and the
-//! row's rectangle is its assigned footprint.
+//! row's rectangle is its assigned footprint. Rows move down past the
+//! headings of a grouped reading (table D25).
 
 use sceno::{Footprint, ScoreItem, Table, Vec2};
 
@@ -39,6 +40,7 @@ mod tests {
             columns: vec![100.0, 60.0],
             row_height: 20.0,
             header: 30.0,
+            headings: Vec::new(),
         };
         let shape = shape(&config, &items(&owned));
         assert_eq!(
@@ -54,5 +56,27 @@ mod tests {
         };
         assert!(shape.footprints.iter().all(|f| f.as_ref() == Some(&row)));
         assert!(shape.regions.is_empty());
+    }
+
+    #[test]
+    fn a_heading_takes_a_row_and_pushes_its_group_down() {
+        let owned: Vec<_> = (0..2).map(card).collect();
+        let config = Table {
+            origin: Vec2::ZERO,
+            columns: vec![100.0],
+            row_height: 20.0,
+            header: 30.0,
+            headings: vec![sceno::TableHeading {
+                position: 1,
+                level: 0,
+                label: "second".into(),
+                count: 1,
+            }],
+        };
+        let shape = shape(&config, &items(&owned));
+        assert_eq!(
+            shape.positions,
+            [Vec2::new(50.0, 40.0), Vec2::new(50.0, 80.0)]
+        );
     }
 }

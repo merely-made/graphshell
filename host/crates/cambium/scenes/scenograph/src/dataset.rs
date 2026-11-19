@@ -181,6 +181,30 @@ impl ProjectionValue {
     }
 }
 
+/// A value in plain words: a number without a trailing `.0` when whole, true
+/// and false as Yes and No, a reference by its source id, a list's items
+/// joined by commas.
+pub fn value_words(value: &ProjectionValue) -> String {
+    match value {
+        ProjectionValue::Text(text)
+        | ProjectionValue::Date(text)
+        | ProjectionValue::DateTime(text) => text.clone(),
+        ProjectionValue::Number(number) => {
+            if number.is_finite() && number.fract() == 0.0 && number.abs() < 1e15 {
+                format!("{}", *number as i64)
+            } else {
+                format!("{number}")
+            }
+        },
+        ProjectionValue::Boolean(true) => "Yes".into(),
+        ProjectionValue::Boolean(false) => "No".into(),
+        ProjectionValue::Reference(source) => source.id.clone(),
+        ProjectionValue::List(items) => {
+            items.iter().map(value_words).collect::<Vec<_>>().join(", ")
+        },
+    }
+}
+
 fn item_type(value: &ProjectionValue) -> Option<ProjectionItemType> {
     Some(match value {
         ProjectionValue::Text(_) => ProjectionItemType::Text,

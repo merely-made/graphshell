@@ -37,6 +37,9 @@ pub enum TableHit {
     Header { field: String },
     /// A cell: a row and the field under the point.
     Cell(TableTarget),
+    /// A group heading, by its index in the table's headings. A heading is
+    /// not an instance, so it selects nothing (table D25).
+    Heading(usize),
 }
 
 /// A compiled table's geometry, with the frame applied.
@@ -85,8 +88,9 @@ impl TableLayout {
         Some(Self { table, columns })
     }
 
-    /// The row and field under `world`, or the header of the column there.
-    /// Rows outrank the header band; a miss is `None`, never the nearest.
+    /// The row and field under `world`, the group heading there, or the
+    /// header of the column there. Rows outrank headings and the header
+    /// band; a miss is `None`, never the nearest.
     pub fn pick(&self, compiled: &CompiledProjection, world: Vec2) -> Option<TableHit> {
         let hit_row = compiled
             .scene
@@ -111,6 +115,15 @@ impl TableLayout {
                 row.clone(),
                 self.columns.get(column)?.field.clone(),
             )));
+        }
+        let across =
+            world.x >= self.table.origin.x && world.x < self.table.origin.x + self.table.width();
+        if across
+            && let Some(sceno::TableBand::Heading(index)) = self
+                .table
+                .band_at(world.y, compiled.occurrence_by_instance.len())
+        {
+            return Some(TableHit::Heading(index));
         }
         let header = self.table.header_rect();
         let inside = world.y >= header.origin.y && world.y < header.origin.y + header.size.h;
@@ -155,6 +168,11 @@ impl TableLayout {
         Some(Rect::new(min, Size2::new(max.x - min.x, max.y - min.y)))
     }
 
+    /// Where group heading `index` is in the world.
+    pub fn heading_rect(&self, index: usize) -> Option<Rect> {
+        self.table.heading_rect(index)
+    }
+
     /// Keep the targets whose row this compile still reads and whose field
     /// is still a column, returning the rest.
     pub fn restore(
@@ -176,3 +194,7 @@ mod tests;
 #[cfg(test)]
 #[path = "table_sort_tests.rs"]
 mod sort_tests;
+
+#[cfg(test)]
+#[path = "table_group_tests.rs"]
+mod group_tests;

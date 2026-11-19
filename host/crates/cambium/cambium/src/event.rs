@@ -34,7 +34,8 @@ const ON_CLICK_ID: ViewId = ViewId::new(0x5546_2453);
 
 /// A native pointer-click event payload.
 ///
-/// Carries the element-local hit point. It is [`Clone`] because one dispatch may
+/// Carries the element-local hit point and the modifier keys held, so a
+/// Shift+click can mean more than a click. It is [`Clone`] because one dispatch may
 /// fire it to multiple listeners up the ancestor chain (bubble phase), and
 /// [`Debug`] so it satisfies [`AnyDebug`](meristem::anymore::AnyDebug) as a
 /// [`DynMessage`](meristem::DynMessage) body.
@@ -42,6 +43,8 @@ const ON_CLICK_ID: ViewId = ViewId::new(0x5546_2453);
 pub struct PointerClick {
     /// The hit point in the target element's local coordinate space.
     pub local: (f32, f32),
+    /// Modifier keys held at the click.
+    pub modifiers: crate::Modifiers,
     /// Shared cancellation state (`stopPropagation` / `preventDefault`).
     /// Clones share one cell, so a handler's call is seen by the dispatch loop
     /// and the host — the native twin of the JS `Event`'s `__stop`/`__canceled`.
@@ -54,8 +57,15 @@ impl PointerClick {
     pub fn at(local: (f32, f32)) -> Self {
         Self {
             local,
+            modifiers: crate::Modifiers::default(),
             prop: crate::Propagation::new(),
         }
+    }
+
+    /// The same click with `modifiers` held.
+    pub fn with_modifiers(mut self, modifiers: crate::Modifiers) -> Self {
+        self.modifiers = modifiers;
+        self
     }
 
     /// Stop the event reaching later nodes in the propagation path

@@ -130,3 +130,36 @@ Genet lowers `row` and `gridcell` but not `grid` or `columnheader` (finding abov
 test reads row and cell roles and the header names.
 
 Gate (D8): still not met. Scroll p95 50.6 to 66.5 ms against 16.7 ms.
+
+## 2026-11-19: T5 stage 2, compute time through the table's own calls
+
+A temporary integration test in cambium (`tests/t5_timing_tmp.rs`, removed before
+staging) over the desktop and browser examples' fixture
+(`cambium/examples/support/table_fixture.rs`: title, pages missing on every
+eleventh, read, added date, author reference of 40, tags list), run with `cargo test
+--release -p cambium --test t5_timing_tmp -- --ignored --nocapture` and again
+without `--release` (`CARGO_PROFILE_DEV_DEBUG=0`). Each figure is one
+`ProjectionTable` call timed alone, the path a person's change takes: the editor's
+undo step, the draft to a definition, `ProjectionCompiler::table_reading` (filter,
+then one sort with the group keys leading, then the bands) and the band list. No
+compile runs on any of these paths. Median of 9 runs at 10,000 rows and 3 at
+100,000, each from an unsorted, unfiltered, ungrouped reading, on the Windows laptop
+with other lanes building. The filter is pages >= 450, title contains "1", read is
+true (469 of 10,000 kept; 4,698 of 100,000).
+
+| step | 10,000 release | 10,000 dev | 100,000 release | 100,000 dev |
+| --- | --- | --- | --- | --- |
+| open (a compile) | 137.5 ms | 325.7 ms | 1,368.7 ms | 3,554.5 ms |
+| filter, three conditions | 4.7 ms | 8.4 ms | 50.1 ms | 83.2 ms |
+| group by author (40 groups) | 26.8 ms | 47.1 ms | 395.7 ms | 827.7 ms |
+| group by read, then author (82 groups) | 31.0 ms | 65.3 ms | 445.1 ms | 1,029.4 ms |
+| sort, one number key | 7.6 ms | 31.6 ms | 129.3 ms | 365.9 ms |
+| sort, one date key | 4.9 ms | 25.7 ms | 67.4 ms | 304.1 ms |
+| sort, three keys (read, added, title) | 14.8 ms | 56.5 ms | 257.0 ms | 832.2 ms |
+| Shift+header adds a third key | 12.0 ms | 54.5 ms | 253.6 ms | 745.2 ms |
+| collapse one group | < 0.1 ms | 0.1 ms | < 0.1 ms | 1.3 ms |
+| filter, then group two levels (two steps) | 9.7 ms | 20.8 ms | 89.2 ms | 221.4 ms |
+
+A date key now costs no more than a number key, with each row's date parsed once
+before sorting; stage 1's 22.1 ms date figure was over a different dataset, so the
+two are not a before and after. Frame cost is not in these figures (D21, D22).

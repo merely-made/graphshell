@@ -127,6 +127,50 @@ note = ""
     }
 
     #[test]
+    fn a_filter_and_a_grouping_read_from_toml_and_round_trip() {
+        use crate::filter::{Condition, FilterOp, FilterValue};
+        let text = RECIPE.replace(
+            "key = \"id\"\n",
+            "key = \"id\"\n\n[[reading.filter]]\nfield = \"pages\"\nop = \"ge\"\nvalue = 450\n\n\
+             [[reading.filter]]\nfield = \"added\"\nop = \"between\"\nvalue = [\"2020-01-01\", \"2024-01-01\"]\n\n\
+             [[reading.filter]]\nfield = \"title\"\nop = \"is_not_empty\"\n\n\
+             [[reading.group]]\nfield = \"state\"\n\n[[reading.group]]\nfield = \"year\"\ndescending = true\n",
+        );
+        let recipe = ProjectionDefinition::from_toml(&text).expect("reads");
+        assert_eq!(
+            recipe.reading.filter,
+            [
+                Condition::new("pages", FilterOp::Ge, Some(FilterValue::Number(450.0))),
+                Condition::new(
+                    "added",
+                    FilterOp::Between,
+                    Some(FilterValue::Many(vec![
+                        FilterValue::Text("2020-01-01".into()),
+                        FilterValue::Text("2024-01-01".into()),
+                    ]))
+                ),
+                Condition::new("title", FilterOp::IsNotEmpty, None),
+            ]
+        );
+        assert_eq!(
+            recipe.reading.group,
+            [SortKey::ascending("state"), SortKey::descending("year")]
+        );
+        let written = recipe.to_toml().expect("writes");
+        let again = ProjectionDefinition::from_toml(&written).expect("reads back");
+        assert_eq!(again, recipe);
+        let json = recipe.to_json_bytes().expect("json");
+        let carried: ProjectionDefinition = serde_json::from_slice(&json).expect("json reads");
+        assert_eq!(carried, recipe);
+        // Empty slots are absent from both saved forms.
+        let plain = ProjectionDefinition::from_toml(RECIPE).expect("reads");
+        let saved = plain.to_toml().expect("writes");
+        assert!(!saved.contains("filter") && !saved.contains("[[reading.group"));
+        let json = String::from_utf8(plain.to_json_bytes().expect("json")).expect("utf8");
+        assert!(!json.contains("\"filter\"") && !json.contains("\"group\""));
+    }
+
+    #[test]
     fn a_recipe_without_fields_writes_no_fields_key() {
         let mut recipe = ProjectionDefinition::from_toml(RECIPE).expect("reads");
         recipe.fields.clear();

@@ -230,21 +230,41 @@ impl ProjectionCompiler {
     }
 
     /// The order a table places `dataset`'s rows in under `definition`'s
-    /// reading, as dataset indices, without placing them: what a sort
-    /// changes, checked as [`Self::compile`] checks it (table plan, T4).
+    /// reading, as dataset indices, without placing them: what a sort, a
+    /// filter or a grouping changes, checked as [`Self::compile`] checks it
+    /// (table plan, T4, T5).
     pub fn reading_order(
         &self,
         definition: &ProjectionDefinition,
         dataset: &ProjectionDataset,
     ) -> Result<Vec<usize>, Vec<CompileIssue>> {
+        Ok(self.table_reading(definition, dataset)?.rows)
+    }
+
+    /// [`Self::reading_order`] with the group bands a compile places as
+    /// headings.
+    ///
+    /// # Errors
+    ///
+    /// The issues a compile would raise over the sort, the filter and the
+    /// grouping, each naming its field.
+    pub fn table_reading(
+        &self,
+        definition: &ProjectionDefinition,
+        dataset: &ProjectionDataset,
+    ) -> Result<TableReading, Vec<CompileIssue>> {
         let issues = fields::sort_issues(self, definition, dataset);
         if !issues.is_empty() {
             return Err(issues);
         }
-        let x_field = validation::field_name(&definition.encoding.x, "encoding.x").ok_or_else(|| {
-            vec![CompileIssue::new("encoding.x", "an ordered reading needs an x field")]
-        })?;
-        Ok(compilation::reading_order(definition, dataset, x_field))
+        let x_field =
+            validation::field_name(&definition.encoding.x, "encoding.x").ok_or_else(|| {
+                vec![CompileIssue::new(
+                    "encoding.x",
+                    "an ordered reading needs an x field",
+                )]
+            })?;
+        Ok(compilation::table_reading(definition, dataset, x_field))
     }
 
     /// Revalidate a reading while retaining solved geometry when all solver
@@ -455,6 +475,7 @@ use validation::number;
 
 #[path = "projection/compilation.rs"]
 mod compilation;
+pub use compilation::TableReading;
 
 #[path = "projection/fields.rs"]
 mod fields;

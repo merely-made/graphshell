@@ -38,45 +38,79 @@ pub(super) fn field_issues(
     issues
 }
 
-/// A recipe's sort: each key names a disclosed field, once, and only an
-/// arrangement that places by order reads it (table projection plan, T4).
+/// A recipe's sort, filter and grouping (table projection plan, T4, T5):
+/// only an arrangement that places by order reads them; each sort or group
+/// key names a disclosed field, once; each condition fits its field's kind.
 pub(super) fn sort_issues(
     compiler: &ProjectionCompiler,
     definition: &ProjectionDefinition,
     dataset: &ProjectionDataset,
 ) -> Vec<CompileIssue> {
-    let sort = &definition.reading.sort;
+    let reading = &definition.reading;
     let mut issues = Vec::new();
-    if sort.is_empty() {
-        return issues;
-    }
     let ordered = resolve_target(compiler, definition)
         .is_some_and(|target| target.channels() == Some(ChannelUse::Order));
-    if !ordered {
-        issues.push(CompileIssue::new(
-            "reading.sort",
-            "this arrangement does not place by order, so it cannot read a sort",
-        ));
+    for (slot, used, what) in [
+        ("reading.sort", !reading.sort.is_empty(), "a sort"),
+        ("reading.filter", !reading.filter.is_empty(), "a filter"),
+        ("reading.group", !reading.group.is_empty(), "a grouping"),
+    ] {
+        if used && !ordered {
+            issues.push(CompileIssue::new(
+                slot,
+                format!("this arrangement does not place by order, so it cannot read {what}"),
+            ));
+        }
     }
-    for (index, key) in sort.iter().enumerate() {
+    key_issues(
+        &mut issues,
+        dataset,
+        &reading.sort,
+        "reading.sort",
+        "the sort",
+    );
+    key_issues(
+        &mut issues,
+        dataset,
+        &reading.group,
+        "reading.group",
+        "the grouping",
+    );
+    if let Err(refusals) = scenograph::filter::Matcher::new(&reading.filter, &dataset.fields) {
+        issues.extend(
+            refusals
+                .into_iter()
+                .map(|(index, why)| CompileIssue::new(format!("reading.filter[{index}]"), why)),
+        );
+    }
+    issues
+}
+
+fn key_issues(
+    issues: &mut Vec<CompileIssue>,
+    dataset: &ProjectionDataset,
+    keys: &[scenograph::SortKey],
+    slot: &str,
+    what: &str,
+) {
+    for (index, key) in keys.iter().enumerate() {
         if !dataset.fields.contains_key(&key.field) {
             issues.push(CompileIssue::new(
-                format!("reading.sort[{index}].field"),
+                format!("{slot}[{index}].field"),
                 format!(
-                    "the sort reads {:?}, which this dataset does not disclose",
+                    "{what} reads {:?}, which this dataset does not disclose",
                     key.field
                 ),
             ));
         }
-        if sort[..index]
+        if keys[..index]
             .iter()
             .any(|earlier| earlier.field == key.field)
         {
             issues.push(CompileIssue::new(
-                format!("reading.sort[{index}].field"),
-                format!("the sort names {:?} twice", key.field),
+                format!("{slot}[{index}].field"),
+                format!("{what} names {:?} twice", key.field),
             ));
         }
     }
-    issues
 }

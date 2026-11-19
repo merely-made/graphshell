@@ -4,15 +4,16 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 // SPDX-License-Identifier: MPL-2.0
 
-//! The table's view: a caption, the data grid over only the visible rows,
-//! and a status line that says how many rows there are and how they sort.
+//! The table's view: a caption, the data grid over only the visible rows
+//! and headings, and a status line that says how many rows are read, which
+//! conditions keep them, how they group and how they sort.
 
 use sprigging::{GridColumn, GridSpec};
 
-use crate::grid::{GridOptions, GridView, data_grid_with};
-use crate::{KeyEvent, PointerClick, WheelEvent, el, on_click, on_wheel};
+use crate::grid::{GridBand, GridHeading, GridOptions, GridView, data_grid_banded};
+use crate::{KeyEvent, Modifiers, PointerClick, WheelEvent, el, on_click, on_wheel};
 
-use super::{CellContent, ProjectionTable};
+use super::{CellContent, ProjectionTable, TableBandView};
 
 /// Rows drawn beyond the body on each side.
 const OVERSCAN: usize = 2;
@@ -25,6 +26,13 @@ pub const PROJECTION_TABLE_CSS: &str = "\
 .grid-sort { display: inline-block; width: 0; height: 0; margin-left: 6px; } \
 .grid-sort-asc { border-left: 4px solid transparent; border-right: 4px solid transparent; border-bottom: 6px solid currentColor; } \
 .grid-sort-desc { border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 6px solid currentColor; } \
+.grid-key-priority { margin-left: 3px; font-size: 11px; } \
+.grid-group-on { display: inline-block; width: 8px; height: 2px; margin-left: 5px; border-top: 2px solid currentColor; border-bottom: 2px solid currentColor; } \
+.grid-heading-cell { display: flex; align-items: center; gap: 6px; box-sizing: border-box; font-weight: bold; white-space: nowrap; overflow: hidden; } \
+.grid-heading-count { font-weight: normal; } \
+.grid-heading-mark { display: inline-block; width: 0; height: 0; } \
+.grid-heading-open { border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 6px solid currentColor; } \
+.grid-heading-closed { border-top: 4px solid transparent; border-bottom: 4px solid transparent; border-left: 6px solid currentColor; } \
 .grid-cell { padding: 2px 8px; box-sizing: border-box; overflow: hidden; white-space: nowrap; } \
 .cell-content { display: flex; align-items: center; gap: 6px; height: 100%; } \
 .cell-chip { padding: 0 6px; border-radius: 8px; } \
@@ -36,7 +44,7 @@ pub const PROJECTION_TABLE_CSS: &str = "\
 fn cell_view<Action: 'static>(
     content: CellContent,
     width: f32,
-    rank: usize,
+    band: usize,
     col: usize,
 ) -> GridView<ProjectionTable, Action> {
     let inner: GridView<ProjectionTable, Action> = match content {
@@ -80,8 +88,32 @@ fn cell_view<Action: 'static>(
     };
     Box::new(on_click(
         el("div", inner).attr("class", "cell-content"),
-        move |table: &mut ProjectionTable, _: PointerClick| table.focus_cell(Some(rank), col),
+        move |table: &mut ProjectionTable, _: PointerClick| table.focus_cell(Some(band), col),
     ))
+}
+
+/// A field's name, by its column, else its path.
+fn name_of<'a>(table: &'a ProjectionTable, field: &'a str) -> &'a str {
+    table
+        .columns()
+        .iter()
+        .find(|column| column.field == field)
+        .map_or(field, |column| column.name.as_str())
+}
+
+/// Keys in words: "Read, descending, then Pages, ascending".
+fn keys_words(table: &ProjectionTable, keys: &[scenograph::SortKey]) -> String {
+    keys.iter()
+        .map(|key| {
+            let way = if key.descending {
+                "descending"
+            } else {
+                "ascending"
+            };
+            format!("{}, {way}", name_of(table, &key.field))
+        })
+        .collect::<Vec<_>>()
+        .join(", then ")
 }
 
 /// What the status line says.
@@ -89,37 +121,34 @@ fn status(table: &ProjectionTable) -> String {
     if let Some(notice) = &table.notice {
         return notice.clone();
     }
+    let reading = &table.draft().reading;
     let rows = table.row_count();
-    let count = if rows == 1 {
-        "1 row".to_owned()
+    let noun = if rows == 1 { "row" } else { "rows" };
+    let mut words = if reading.filter.is_empty() {
+        format!("{rows} {noun}")
     } else {
-        format!("{rows} rows")
+        // Of how many, and the conditions that keep them.
+        let conditions: Vec<String> = reading
+            .filter
+            .iter()
+            .map(|condition| condition.words(name_of(table, &condition.field)))
+            .collect();
+        format!(
+            "{rows} of {} {noun}, where {}",
+            table.source_row_count(),
+            conditions.join(" and ")
+        )
     };
-    // Every key of a several-key sort, in priority order.
-    let keys: Vec<String> = table
-        .draft()
-        .reading
-        .sort
-        .iter()
-        .map(|key| {
-            let name = table
-                .columns()
-                .iter()
-                .find(|column| column.field == key.field)
-                .map_or(key.field.as_str(), |column| column.name.as_str());
-            let way = if key.descending {
-                "descending"
-            } else {
-                "ascending"
-            };
-            format!("{name}, {way}")
-        })
-        .collect();
-    if keys.is_empty() {
-        count
-    } else {
-        format!("{count}, sorted by {}", keys.join(", then "))
+    if !reading.group.is_empty() {
+        words.push_str(&format!(
+            ", grouped by {}",
+            keys_words(table, &reading.group)
+        ));
     }
+    if !reading.sort.is_empty() {
+        words.push_str(&format!(", sorted by {}", keys_words(table, &reading.sort)));
+    }
+    words
 }
 
 /// The table on the data grid. Embed it with a lens onto the host's
@@ -142,18 +171,40 @@ pub fn projection_table<Action: 'static>(
     let focused_row = table.focus().row;
     let options = GridOptions {
         sorted,
+        sort_keys: table.sort_columns(),
+        group_keys: table.group_columns(),
         focus: Some(table.focus()),
         label: Some(table.caption().to_owned()),
     };
-    let grid = data_grid_with(
+    let grid = data_grid_banded(
         &spec,
-        table.row_count(),
+        table.band_count(),
         table.viewport_height,
         table.scroll,
-        |rank, col| cell_view(table.cell(rank, col), widths[col], rank, col),
+        |band, col| {
+            let rank = table.band_row(band).unwrap_or(usize::MAX);
+            cell_view(table.cell(rank, col), widths[col], band, col)
+        },
+        // A row is kept by its rank in the reading, so a collapse above it
+        // moves it rather than rewriting it.
+        |band| match table.band(band) {
+            Some(TableBandView::Heading(heading)) => GridBand::Heading(GridHeading {
+                key: heading.key,
+                label: heading.label,
+                count: heading.count,
+                level: heading.level,
+                expanded: !heading.collapsed,
+            }),
+            Some(TableBandView::Row(rank)) => GridBand::Row(rank),
+            None => GridBand::Row(band),
+        },
         // A sort never joins an undo run, so the clock does not matter here.
-        |table: &mut ProjectionTable, col| table.click_header(col, 0),
-        move |rank| (Some(rank) == focused_row).then(|| "grid-row-focus".to_owned()),
+        |table: &mut ProjectionTable, col, mods: Modifiers| table.press_header(col, mods.shift, 0),
+        |table: &mut ProjectionTable, band| {
+            table.focus_cell(Some(band), table.focus().col);
+            table.toggle_band(band);
+        },
+        move |band| (Some(band) == focused_row).then(|| "grid-row-focus".to_owned()),
         &options,
         |table: &mut ProjectionTable, event: KeyEvent| {
             if table.navigate(&event.key, event.mods.ctrl) {
