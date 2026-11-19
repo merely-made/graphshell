@@ -32,6 +32,7 @@ fn family(arrangement: &Arrangement) -> Option<Family> {
         Arrangement::Setscape(_) => Family::Sets,
         Arrangement::Mosaic(_) => Family::Mosaic,
         Arrangement::Crystal(_) => Family::Crystal,
+        Arrangement::Table(_) => Family::Table,
         Arrangement::Custom { .. } => return None,
     })
 }
@@ -143,9 +144,12 @@ pub(crate) fn prepare(score: &Score) -> Result<Cow<'_, Score>, SolveError> {
             Arrangement::Radial(c) => c.center = *origin,
             Arrangement::Mosaic(c) => c.origin = *origin,
             Arrangement::Crystal(c) => c.origin = *origin,
+            Arrangement::Table(c) => c.origin = *origin,
             Arrangement::Custom { .. } => {},
             _ => unreachable!("frame capability was checked"),
         },
+        // The page width bounds the scene; columns keep their widths.
+        (Arrangement::Table(table), Frame::Flow { origin, .. }) => table.origin = *origin,
         (Arrangement::Grid(grid), Frame::Flow { origin, width }) => {
             configure_grid(score, grid, *origin, *width, None)?;
         },

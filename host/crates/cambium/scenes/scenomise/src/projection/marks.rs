@@ -14,6 +14,7 @@ pub(super) fn resolve(
     occurrences: &[&ProjectionOccurrence],
     selected: Option<&str>,
     extent: Extent,
+    family_mark: Option<NodeMark>,
 ) -> Result<HashMap<InstanceId, ResolvedMarks>, Vec<CompileIssue>> {
     compiler.presentation.validate().map_err(issues)?;
     let state = compiler.sizes.representation_state();
@@ -23,24 +24,32 @@ pub(super) fn resolve(
     };
     let mut resolved = HashMap::new();
     let mut errors = Vec::new();
+    // A host's explicit mark outranks the family's own; the class registry
+    // answers only when neither speaks.
+    let family_mark = family_mark.filter(|_| compiler.class_registry.is_some());
     if occurrences.is_empty() {
-        let mark = definition.marks.node.as_ref().unwrap_or(&compiler.mark);
+        let mark = definition
+            .marks
+            .node
+            .as_ref()
+            .or(family_mark.as_ref())
+            .unwrap_or(&compiler.mark);
         if !mark.accepts(extent) {
             errors.push(extent_issue(definition, mark, extent, "marks.node"));
         }
     }
     for (index, occurrence) in occurrences.iter().enumerate() {
-        let mark =
-            definition
-                .marks
-                .node
-                .clone()
-                .unwrap_or_else(|| match &compiler.class_registry {
-                    Some(registry) => registry
-                        .resolve_classes(occurrence.classes.iter().map(String::as_str))
-                        .mark(state, None),
-                    None => compiler.mark.clone(),
-                });
+        let mark = definition
+            .marks
+            .node
+            .clone()
+            .or_else(|| family_mark.clone())
+            .unwrap_or_else(|| match &compiler.class_registry {
+                Some(registry) => registry
+                    .resolve_classes(occurrence.classes.iter().map(String::as_str))
+                    .mark(state, None),
+                None => compiler.mark.clone(),
+            });
         let defaults = MarkSlots {
             node: Some(mark),
             ..definition.marks.clone()

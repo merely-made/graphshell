@@ -38,6 +38,8 @@ pub enum Arrangement {
     Mosaic(crate::Mosaic),
     /// Loose rectangular tiles that pack immediate links against a pin.
     Crystal(crate::Crystal),
+    /// One row per item in reading order, one column per field.
+    Table(crate::Table),
     /// A solver registered at runtime, named by id, configured opaquely.
     ///
     /// The id is matched against the `scenograph` solver registry. An

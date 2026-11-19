@@ -71,6 +71,7 @@ pub fn arrangement_defaults(
                 count,
                 spacing,
                 coordinates: None,
+                columns: 1,
             })
         })
         .unwrap_or_default()

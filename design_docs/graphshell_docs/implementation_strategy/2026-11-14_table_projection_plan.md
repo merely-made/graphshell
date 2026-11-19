@@ -363,6 +363,20 @@ content hash, and the widget layer composites textures. Nothing puts an image in
 - 2026-11-14: Mere's design docs mention SHACL in twelve files; a tracked-file search found
   no shape reader in code in Mere, Graphshell or Knot.
 
+- 2026-11-19 (T3): the data grid T4 will use sizes a column by a fixed width and every row
+  by one height, under a header height, with no gaps (`sprigging/src/grid.rs:14-50`).
+  `sceno::Table` (`crates/sceno/src/table.rs`) has the same shape: an origin, column
+  widths in field order, a row height and a header band.
+- 2026-11-19 (T3): no family could see the recipe's fields when its arrangement was built;
+  `catalog::Measure` gains `columns`, the field count or one. Knot builds a `Measure` as a
+  struct literal at three sites (`apps/desktop/src/composition/recipe/editor.rs:46,61,423`),
+  which break.
+- 2026-11-19 (T3): the compiler refused every selection mode but single, for every family
+  (`scenomise/src/projection/validation.rs`); a table now takes multiple as well.
+- 2026-11-19 (T3): Turnstone's comparison grid lists every catalog family
+  (`ports/graphshell/src/projection_compare.rs:88`), so a Table swatch appears there with
+  no change in Turnstone.
+
 ## Progress
 
 - 2026-11-14: plan written with Mark; nothing landed.
@@ -409,3 +423,14 @@ content hash, and the widget layer composites textures. Nothing puts an image in
   type, dates by their lexical form, and the compiler names the occurrence and field;
   `dataset::compare_values` is each type's sort order, a missing value last, date-times as
   instants. Tests: scenograph 91 with `--features toml`, scenomise 245.
+- 2026-11-19: T3 written on branch `t3-table-arrangement`, unmerged. A `table` family in the
+  catalog: one row per occurrence in reading order (x orders it, occurrence id breaks
+  ties), each row an assigned rectangle the width of its columns, in a flow or unbounded
+  frame; one column per field in list order, one label column when the recipe lists none;
+  options `column_width`, `row_height` and `header`, measured from the host's item size.
+  Rows default to the row mark (`NodeMark::row`, an open `row` rung that accepts an
+  assigned extent only). `scenomise::table::TableLayout` picks a point to a row and field
+  or a header, and gives a target's rectangle; `scenograph::table::TableSelection` holds
+  rows and cells saved as row and field and keeps them across a sort. Column widths and a
+  per-row height wait on rulings. Tests: sceno 43, scenograph 79 with `--features toml`,
+  scenomise 251.

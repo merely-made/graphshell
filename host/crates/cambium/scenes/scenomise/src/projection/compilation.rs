@@ -54,6 +54,7 @@ pub(super) fn compile_inner(
         &occurrences,
         selected_occurrence,
         target.extent(),
+        target.default_mark(),
     )?;
     let measure = Measure {
         largest: compiler.sizes.card,
@@ -62,6 +63,7 @@ pub(super) fn compile_inner(
         coordinates: (channels == Some(ChannelUse::Coordinate))
             .then(|| coordinate_extent(&occurrences, x_field, y_field.expect("validated y field")))
             .flatten(),
+        columns: definition.fields.len().max(1),
     };
     let arrangement = match &target {
         Target::Builtin(family) => family
@@ -135,7 +137,10 @@ pub(super) fn compile_inner(
     // the placed item without resetting settled or authored geometry.
     let subdivision = matches!(
         score.arrangement,
-        ScenoArrangement::Mosaic(_) | ScenoArrangement::Partition(_) | ScenoArrangement::Crystal(_)
+        ScenoArrangement::Mosaic(_)
+            | ScenoArrangement::Partition(_)
+            | ScenoArrangement::Crystal(_)
+            | ScenoArrangement::Table(_)
     );
     // Compare exact solver inputs, not revision hashes: source revisions can
     // change without affecting placement, and unchanged revisions cannot excuse

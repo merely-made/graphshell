@@ -54,6 +54,7 @@ pub mod relation_forms;
 mod relax;
 mod solve;
 pub mod span_edit;
+pub mod table;
 
 pub use opened_link::{
     OpenedLinkCompileError, OpenedLinkEntry, OpenedLinkLane, OpenedLinkScene, compile_opened_link,

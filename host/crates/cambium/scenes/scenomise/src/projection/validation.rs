@@ -64,14 +64,25 @@ pub(super) fn validation_issues(
         ));
     }
     let target = resolve_target(compiler, definition);
-    if definition.interaction.selection != scenograph::SelectionMode::Single
+    // A table's selection holds several rows and cells.
+    let table = matches!(target, Some(Target::Builtin(Family::Table)));
+    let selection = match definition.interaction.selection {
+        scenograph::SelectionMode::Single => true,
+        scenograph::SelectionMode::Multiple => table,
+        scenograph::SelectionMode::None => false,
+    };
+    if !selection
         || definition.interaction.pan
         || definition.interaction.zoom
             && !matches!(target, Some(Target::Builtin(Family::Partition)))
     {
         issues.push(CompileIssue::new(
             "interaction",
-            "this realization supports single selection with a fitted viewport",
+            if table {
+                "a table supports single or multiple selection with a fitted viewport"
+            } else {
+                "this realization supports single selection with a fitted viewport"
+            },
         ));
     }
     if definition.dynamics.is_some() && matches!(target, Some(Target::Builtin(Family::Crystal))) {
@@ -255,6 +266,7 @@ pub(super) fn validate_arrangement(
                 count: dataset.occurrences.len(),
                 spacing: definition.arrangement.spacing as f32,
                 coordinates: None,
+                columns: definition.fields.len().max(1),
             };
             if let Err(refused) = family.arrangement(&definition.arrangement.options, &measure) {
                 issues.extend(option_issues(refused));

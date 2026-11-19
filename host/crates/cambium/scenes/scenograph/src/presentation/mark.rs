@@ -132,6 +132,9 @@ pub struct Material {
     pub density: f32,
 }
 
+/// The open rung a table row is drawn as.
+pub const ROW_KIND: &str = "row";
+
 /// How a node is drawn, described once.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct NodeMark {
@@ -185,6 +188,19 @@ impl NodeMark {
     /// A card: measured on a canvas, or filling a cell it is given.
     pub fn card() -> Self {
         Self::new(Representation::Card, [Extent::Measured, Extent::Assigned])
+    }
+
+    /// A table row: an open rung the host draws as a row, filling the
+    /// rectangle the table assigns (table projection plan, T3).
+    pub fn row() -> Self {
+        let mut mark = Self::new(
+            Representation::Open {
+                kind: ROW_KIND.into(),
+            },
+            [Extent::Assigned],
+        );
+        mark.paint = Paint::Bare;
+        mark
     }
 
     pub fn accepts(&self, extent: Extent) -> bool {
@@ -276,5 +292,14 @@ mod tests {
         assert!(card.accepts(Extent::Measured) && card.accepts(Extent::Assigned));
         assert!(!card.accepts(Extent::Encoded));
         assert_eq!(card.label(), "card");
+    }
+
+    #[test]
+    fn a_row_fills_the_rectangle_it_is_given() {
+        let row = NodeMark::row();
+        assert!(row.accepts(Extent::Assigned) && !row.accepts(Extent::Measured));
+        assert_eq!(row.label(), ROW_KIND);
+        assert_eq!(row.paint, Paint::Bare);
+        assert!(row.validate().is_ok());
     }
 }

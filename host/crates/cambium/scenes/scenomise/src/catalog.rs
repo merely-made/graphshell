@@ -4,7 +4,7 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 // SPDX-License-Identifier: MPL-2.0
 
-//! The built-in arrangement catalog: sceno's fourteen named families, by id.
+//! The built-in arrangement catalog: sceno's named families, by id.
 //!
 //! An authored recipe names its arrangement by id. An id found here resolves to
 //! the family's typed [`sceno::Arrangement`] variant; any other id falls through
@@ -25,7 +25,8 @@ use sceno::{
     Arrangement, Crystal, Embedded, EmbeddingFallback, Geographic, Grid, Hulls, IterationDepth,
     Kanban, LSystem, LSystemGrammar, Mosaic, Partition, PartitionForm, Penrose, PenroseVariant,
     Radial, RadialAngularPolicy, RadialUnreachablePolicy, Rect, Setscape, Size2, Spiral,
-    SpiralCurve, Stack, SubdivisionCount, Timeline, TimelineFallback, UnusedVertexPolicy, Vec2,
+    SpiralCurve, Stack, SubdivisionCount, Table, Timeline, TimelineFallback, UnusedVertexPolicy,
+    Vec2,
 };
 use scenograph::dataset::ProjectionFieldType;
 use scenograph::options::{OptionDefault, OptionKind, OptionSpec};
@@ -52,10 +53,11 @@ pub enum Family {
     Sets,
     Mosaic,
     Crystal,
+    Table,
 }
 
 /// Every family in the catalog, in a stable order.
-pub const FAMILIES: [Family; 15] = [
+pub const FAMILIES: [Family; 16] = [
     Family::Spiral,
     Family::Grid,
     Family::Geographic,
@@ -71,6 +73,7 @@ pub const FAMILIES: [Family; 15] = [
     Family::Sets,
     Family::Mosaic,
     Family::Crystal,
+    Family::Table,
 ];
 
 /// How a family reads a recipe's x and y encoding.
@@ -123,6 +126,8 @@ pub struct Measure {
     /// The smallest and largest disclosed (x, y), in the source's units, for
     /// families that read coordinates.
     pub coordinates: Option<(Vec2, Vec2)>,
+    /// The recipe's field count, at least one: a table's columns.
+    pub columns: usize,
 }
 
 impl Measure {
@@ -409,6 +414,7 @@ mod option_tests {
             count: 9,
             spacing: 16.0,
             coordinates: Some((Vec2::ZERO, Vec2::new(10.0, 10.0))),
+            columns: 3,
         }
     }
 
@@ -495,3 +501,6 @@ mod option_tests {
 
 #[path = "catalog/families.rs"]
 mod families;
+
+#[path = "catalog/family_options.rs"]
+mod family_options;

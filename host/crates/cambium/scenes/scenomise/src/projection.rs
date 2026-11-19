@@ -367,6 +367,14 @@ impl Target {
             Self::Custom(_) => Extent::Measured,
         }
     }
+
+    /// The mark the family draws its items as when the recipe names none.
+    fn default_mark(&self) -> Option<NodeMark> {
+        match self {
+            Self::Builtin(family) => family.default_mark(),
+            Self::Custom(_) => None,
+        }
+    }
 }
 
 fn resolve_target(

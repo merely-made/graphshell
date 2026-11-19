@@ -24,6 +24,7 @@ mod penrose;
 mod radial;
 pub(crate) mod setscape;
 mod stack;
+mod table;
 
 /// Place every item, in the order given.
 ///
@@ -50,7 +51,8 @@ pub(crate) fn arrange(arrangement: &Arrangement, items: &[&ScoreItem]) -> Option
         Arrangement::Partition(_)
         | Arrangement::Setscape(_)
         | Arrangement::Mosaic(_)
-        | Arrangement::Crystal(_) => shape(arrangement, items, None)?.positions,
+        | Arrangement::Crystal(_)
+        | Arrangement::Table(_) => shape(arrangement, items, None)?.positions,
         Arrangement::Custom { .. } => return None,
     })
 }
@@ -81,8 +83,8 @@ pub(crate) struct ShapedRegion {
     pub members: Vec<usize>,
 }
 
-/// The shape of a family that sizes items and draws regions (Partition,
-/// Sets, Mosaic); `None` for the rest.
+/// The shape of a family that sizes items or draws regions (Partition,
+/// Sets, Mosaic, Crystal, Table); `None` for the rest.
 pub(crate) fn shape(
     arrangement: &Arrangement,
     items: &[&ScoreItem],
@@ -109,6 +111,7 @@ pub(crate) fn shape(
             }
             Some(shape)
         },
+        Arrangement::Table(config) => Some(table::shape(config, items)),
         _ => None,
     }
 }

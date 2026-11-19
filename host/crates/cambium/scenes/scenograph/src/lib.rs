@@ -34,6 +34,7 @@ pub mod seed;
 pub mod suggestion;
 pub mod swatch;
 pub mod temporal;
+pub mod table;
 #[cfg(feature = "toml")]
 mod toml_io;
 

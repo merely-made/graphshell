@@ -65,6 +65,8 @@ pub mod scene;
 pub use relation::{RelationConstraint, RelationConstraintReport, RelationForm};
 pub mod score;
 pub mod subdivision;
+mod table;
+pub use table::Table;
 
 pub use fold::{
     BoundaryBundle, Fold, FoldBoundary, FoldDirection, FoldEffect, FoldError, FoldRule, StandIn,
