@@ -293,6 +293,7 @@ where
                     return (key, heading_row(spec, r, heading, stop, on_heading.clone()));
                 },
                 GridBand::Row(key) => GridRowKey::Row(key),
+                GridBand::Id(id) => GridRowKey::Id(id),
             };
             let cells: Vec<GridView<State, Action>> = spec
                 .columns

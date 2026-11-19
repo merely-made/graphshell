@@ -17,8 +17,11 @@ use crate::{
 /// What one body row of a banded grid is.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum GridBand {
-    /// A row, with the key it is kept by across renders.
+    /// A row kept by its index, for a caller with no identity for it.
     Row(usize),
+    /// A row kept by its identity (a table's occurrence id), so it keeps its
+    /// node through a sort, a filter or a collapse (table D41).
+    Id(String),
     Heading(GridHeading),
 }
 
@@ -26,6 +29,7 @@ pub enum GridBand {
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum GridRowKey {
     Row(usize),
+    Id(String),
     Heading(String),
 }
 

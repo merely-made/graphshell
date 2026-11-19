@@ -600,6 +600,16 @@ title = "Ranks count the keys still sorting (Mark, 2026-11-19)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
 summary = "Sort ranks number only the keys that order rows inside the groups."
 
+[decisions."table-projection D40"]
+title = "The status line names the keys still sorting (Mark, 2026-11-19)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "A grouped table's status line lists the grouping and only the sort keys still ordering rows."
+
+[decisions."table-projection D41"]
+title = "A row is keyed by its occurrence (Mark, 2026-11-19)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "A table row's node is keyed by its occurrence id, so it survives sort, filter and collapse."
+
 [decisions."uxtree-spine D1"]
 title = "The spine is federated (Mark, 2026-11-11)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-11_uxtree_spine_plan.md"

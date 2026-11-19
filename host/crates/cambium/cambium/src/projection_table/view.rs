@@ -145,8 +145,16 @@ fn status(table: &ProjectionTable) -> String {
             keys_words(table, &reading.group)
         ));
     }
-    if !reading.sort.is_empty() {
-        words.push_str(&format!(", sorted by {}", keys_words(table, &reading.sort)));
+    // Under a grouping, only the keys that still order rows inside the
+    // groups (table D40).
+    let sorting: Vec<scenograph::SortKey> = reading
+        .sort
+        .iter()
+        .filter(|key| !reading.group.iter().any(|g| g.field == key.field))
+        .cloned()
+        .collect();
+    if !sorting.is_empty() {
+        words.push_str(&format!(", sorted by {}", keys_words(table, &sorting)));
     }
     words
 }
@@ -185,8 +193,8 @@ pub fn projection_table<Action: 'static>(
             let rank = table.band_row(band).unwrap_or(usize::MAX);
             cell_view(table.cell(rank, col), widths[col], band, col)
         },
-        // A row is kept by its rank in the reading, so a collapse above it
-        // moves it rather than rewriting it.
+        // A row is kept by its occurrence id, so a sort, a filter or a
+        // collapse moves it rather than rewriting it (table D41).
         |band| match table.band(band) {
             Some(TableBandView::Heading(heading)) => GridBand::Heading(GridHeading {
                 key: heading.key,
@@ -195,7 +203,9 @@ pub fn projection_table<Action: 'static>(
                 level: heading.level,
                 expanded: !heading.collapsed,
             }),
-            Some(TableBandView::Row(rank)) => GridBand::Row(rank),
+            Some(TableBandView::Row(rank)) => {
+                GridBand::Id(table.row_id(rank).unwrap_or_default().to_owned())
+            },
             None => GridBand::Row(band),
         },
         // A sort never joins an undo run, so the clock does not matter here.

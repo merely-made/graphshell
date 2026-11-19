@@ -482,6 +482,22 @@ Left from the headed pages (T4):
 
   *Refines D35.*
 
+- **D40. The status line names the keys still sorting (Mark, 2026-11-19):** "Only keys still
+  sorting". The line under a grouped table lists the grouping, then only the sort keys that
+  order rows inside the groups; a saved sort key on a grouped field is not mentioned.
+
+  Links: summary A grouped table's status line lists the grouping and only the sort keys still ordering rows.
+
+  *Applies D39.*
+
+- **D41. A row is keyed by its occurrence (Mark, 2026-11-19):** "Occurrence id". A table row
+  keeps its node by the occurrence's id, through sort, filter and collapse; the plain grid
+  follows.
+
+  Links: summary A table row's node is keyed by its occurrence id, so it survives sort, filter and collapse.
+
+  *Refines D33.*
+
 ## Findings
 
 - 2026-11-15: adding a slot to a recipe type breaks every repository that builds one as a
@@ -780,3 +796,10 @@ Left from the headed pages (T4):
   person's control for adding a filter or a grouping; the example's scenario sets
   them. Tests: sceno 44, scenograph 112 with `--features toml`, scenomise 286 with
   `--features authoring`, cambium 446, graphshell-client 73.
+- 2026-11-19: D40 and D41 written (staged, not committed). Under a grouping the
+  status line names only the sort keys that order rows inside the groups. A table row
+  is kept by its occurrence id (`GridBand::Id`, `GridRowKey::Id`), so a re-sort, a
+  filter or a collapse moves its node and writes none of its text; the plain grid
+  keeps the row index. A one-row scroll is still 83 mutations, the arriving row's
+  construction. Tests: cambium 452, graphshell-client 73, cambium-rootstock run
+  serially.

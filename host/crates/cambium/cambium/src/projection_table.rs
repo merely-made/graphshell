@@ -444,3 +444,6 @@ mod tests;
 
 #[cfg(test)]
 mod group_tests;
+
+#[cfg(test)]
+mod key_tests;

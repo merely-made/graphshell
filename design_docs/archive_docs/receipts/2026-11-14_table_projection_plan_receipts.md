@@ -163,3 +163,19 @@ true (469 of 10,000 kept; 4,698 of 100,000).
 A date key now costs no more than a number key, with each row's date parsed once
 before sorting; stage 1's 22.1 ms date figure was over a different dataset, so the
 two are not a before and after. Frame cost is not in these figures (D21, D22).
+
+## 2026-11-19: table rows kept by occurrence id (D41)
+
+`cambium` lib tests in `projection_table/key_tests.rs`, dev build, over the shared
+`ScriptedDom` with its mutation log drained before each step.
+
+- One-row scroll of the 10,000-row table at 2,400 px, body 240 px: 83 mutations, the
+  same as with index keys (the arriving row's construction); every row in both
+  windows keeps its node.
+- A re-sort of 20 rows all drawn (Pages descending): every row keeps its node and no
+  text inside a row is written; the rows are moved and their place attributes
+  (`style`, `aria-rowindex`, `data-row`, zebra class) change. Positive control: with
+  the rows keyed by band index the same test fails ("Title 17… kept its node").
+- A collapse with headings keyed by group path: the moved heading and every row still
+  drawn keep their nodes (positive control with positional keys fails, as recorded
+  for the stage 2 merge).
