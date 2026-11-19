@@ -10,6 +10,7 @@ mod action_tails;
 mod activation_tests;
 mod outcome_tests;
 mod publication_tests;
+mod republish_tests;
 
 use std::cell::RefCell;
 use std::rc::Rc;

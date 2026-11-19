@@ -45,6 +45,11 @@ impl ProducerRegistry {
         Ok(())
     }
 
+    /// No registration: nothing can contribute semantics.
+    pub fn is_empty(&self) -> bool {
+        self.entries.is_empty()
+    }
+
     pub fn contains(&self, key: u64) -> bool {
         self.entries.contains_key(&key)
     }

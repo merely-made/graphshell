@@ -155,11 +155,56 @@ where
         self.record_a11y_publication(crate::A11yPublication::skipped(adapter, reason));
     }
 
+    /// Everything the adapter's projection reads, or `None` when part of it
+    /// has no change signal: leaves and producers describe themselves through
+    /// callbacks, so while any is registered every publication reads again.
+    fn a11y_inputs(&self) -> Option<A11yInputs> {
+        if !self.s.shared.leaves.is_empty() || !self.s.shared.producers.is_empty() {
+            return None;
+        }
+        let adapter = self.s.a11y.as_deref()?;
+        let runner = self.s.runner.as_ref()?;
+        let layout = self.s.layout.as_ref()?;
+        let dom = runner.dom();
+        let dom_ref = dom.borrow();
+        let view = crate::WindowDom::new(&dom_ref, runner.mount());
+        Some(A11yInputs {
+            adapter: std::ptr::from_ref(adapter).cast::<()>() as usize,
+            adapter_state: adapter.adapter_state(),
+            dom: std::rc::Rc::downgrade(&dom),
+            layout: layout.semantic_stamp(&view),
+            focus: runner.focus().map(|node| view.opaque_id(node)),
+            layout_scale: self.layout_scale().to_bits(),
+        })
+    }
+
     fn sync_a11y_tree(&mut self) -> Vec<crate::A11yDispatch> {
         if let Some(reason) = self.a11y_publication_skip() {
             self.record_a11y_skip(reason);
             return Vec::new();
         }
+        let inputs = self.a11y_inputs();
+        if inputs.is_some() && inputs == self.s.a11y_published_inputs {
+            // The accepted tree is current. Serve its actions; the latest
+            // observation stays the publication that is still standing.
+            let started = crate::Instant::now();
+            let owner = crate::A11yOwner::new(&self.s.a11y_owner);
+            let requests = self
+                .s
+                .a11y
+                .as_mut()
+                .and_then(|a11y| a11y.drain_actions(&owner));
+            if let Some(requests) = requests {
+                let results = self.apply_a11y_requests(&requests);
+                if let Some(profile) = self.s.last_frame_profile.as_mut() {
+                    profile.a11y_actions_us = profile
+                        .a11y_actions_us
+                        .saturating_add(elapsed_us(started.elapsed()));
+                }
+                return results;
+            }
+        }
+        self.s.a11y_published_inputs = None;
         let layout_scale = self.layout_scale();
         let started = crate::Instant::now();
         let requests = {
@@ -187,6 +232,13 @@ where
                 )
         };
         let publish_us = elapsed_us(started.elapsed());
+        if matches!(
+            requests.publication.outcome,
+            crate::A11yPublicationOutcome::Submitted { .. }
+                | crate::A11yPublicationOutcome::Mirrored { .. }
+        ) {
+            self.s.a11y_published_inputs = inputs;
+        }
         self.record_a11y_publication(requests.publication);
         let started = crate::Instant::now();
         let results = self.apply_a11y_requests(&requests.requests);
@@ -382,5 +434,29 @@ where
             return Err(Refusal::StaleTarget);
         }
         Ok(node)
+    }
+}
+
+/// The inputs of one accepted publication (table plan D33). The adapter is
+/// compared by its data address: a replacement is allocated while its
+/// predecessor is still held, so the two cannot share one.
+#[derive(Clone, Debug)]
+pub(crate) struct A11yInputs {
+    adapter: usize,
+    adapter_state: crate::A11yAdapterState,
+    dom: std::rc::Weak<std::cell::RefCell<crate::ScriptedDom>>,
+    layout: crate::owned_layout::SemanticStamp,
+    focus: Option<u64>,
+    layout_scale: u64,
+}
+
+impl PartialEq for A11yInputs {
+    fn eq(&self, other: &Self) -> bool {
+        self.adapter == other.adapter
+            && self.adapter_state == other.adapter_state
+            && self.dom.ptr_eq(&other.dom)
+            && self.layout == other.layout
+            && self.focus == other.focus
+            && self.layout_scale == other.layout_scale
     }
 }

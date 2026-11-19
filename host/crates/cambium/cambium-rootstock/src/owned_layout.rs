@@ -30,7 +30,7 @@ mod incremental_tests;
 mod interaction;
 mod presented_input;
 mod producer;
-pub(crate) use presented_input::PresentedInput;
+pub(crate) use presented_input::{PresentedInput, SemanticStamp};
 #[cfg(test)]
 mod tests;
 #[cfg(test)]

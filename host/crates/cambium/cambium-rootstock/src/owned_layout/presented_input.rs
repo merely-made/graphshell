@@ -172,6 +172,46 @@ impl PresentedInput {
     }
 }
 
+/// The DOM and layout a semantic read saw, by the identities `matches_dom` and
+/// `matches_layout` use. Equal stamps read an equal document projection.
+/// Holding the lifetime keeps a recreated session from reusing its address.
+#[derive(Clone, Debug)]
+pub(crate) struct SemanticStamp {
+    source_document: NodeId,
+    document: NodeId,
+    dom_sequence: u64,
+    layout_lifetime: std::sync::Arc<()>,
+    layout_generation: u64,
+    viewport_scroll: (f32, f32),
+    element_scroll: HashMap<NodeId, (f32, f32)>,
+}
+
+impl PartialEq for SemanticStamp {
+    fn eq(&self, other: &Self) -> bool {
+        self.source_document == other.source_document
+            && self.document == other.document
+            && self.dom_sequence == other.dom_sequence
+            && std::sync::Arc::ptr_eq(&self.layout_lifetime, &other.layout_lifetime)
+            && self.layout_generation == other.layout_generation
+            && self.viewport_scroll == other.viewport_scroll
+            && self.element_scroll == other.element_scroll
+    }
+}
+
+impl OwnedLayout {
+    pub(crate) fn semantic_stamp(&self, dom: &WindowDom<'_>) -> SemanticStamp {
+        SemanticStamp {
+            source_document: dom.dom().document(),
+            document: dom.document(),
+            dom_sequence: dom_sequence(dom),
+            layout_lifetime: self.input_lifetime.clone(),
+            layout_generation: self.generation,
+            viewport_scroll: self.viewport_scroll,
+            element_scroll: self.element_scroll.clone(),
+        }
+    }
+}
+
 fn dom_sequence(dom: &WindowDom<'_>) -> u64 {
     let (base, pending) = dom.dom().pending_mutations();
     base.saturating_add(pending.len() as u64)

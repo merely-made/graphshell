@@ -27,7 +27,7 @@ use sprigging::{GridSpec, Placement};
 
 use crate::pod::GenetElement;
 use crate::{
-    AnyView, GenetCtx, Key, KeyEvent, NamedKey, PointerClick, arrangement::placed_with, el,
+    AnyView, GenetCtx, Key, KeyEvent, Keyed, NamedKey, PointerClick, arrangement::placed_with, el,
     on_click, on_key, request_focus,
 };
 
@@ -186,9 +186,11 @@ where
 
     // Virtualized body: only the window's rows exist, each at its own y in a
     // strip that the scroll offsets. A scroll that keeps the window moves the
-    // strip alone, one style change rather than one per row.
+    // strip alone, one style change rather than one per row. Rows are keyed by
+    // row index, so a window shift builds the arriving rows and drops the
+    // leaving ones; the rows in both windows are not rewritten.
     let window = spec.window(total_rows, viewport_height, scroll);
-    let rows: Vec<GridView<State, Action>> = window
+    let rows: Keyed<usize, GridView<State, Action>> = window
         .range()
         .map(|r| {
             let cells: Vec<GridView<State, Action>> = spec
@@ -231,7 +233,7 @@ where
                 Some(extra) => format!("{zebra} {extra}"),
                 None => zebra.to_string(),
             };
-            Box::new(
+            let row = Box::new(
                 placed_with(
                     Placement::new(0.0, r as f32 * spec.row_height),
                     format!("width: {width}px; height: {}px;", spec.row_height),
@@ -241,7 +243,8 @@ where
                 .attr("role", "row")
                 .attr("aria-rowindex", (r + 2).to_string())
                 .attr("data-row", r.to_string()),
-            ) as GridView<State, Action>
+            ) as GridView<State, Action>;
+            (r, row)
         })
         .collect();
     let strip = placed_with(
@@ -417,6 +420,72 @@ mod tests {
             text.contains("r198c0"),
             "cell content reflects the row: {text}"
         );
+    }
+
+    /// A one-row window shift moves rows rather than rewriting them: the rows
+    /// in both windows keep their nodes and none of their attributes or text
+    /// is written; the DOM sees the arriving and leaving rows.
+    #[test]
+    fn a_window_shift_keeps_the_surviving_rows() {
+        use layout_dom_api::{DomMutation, LayoutDomMut as _};
+        let dom: DomHandle = Rc::new(RefCell::new(ScriptedDom::new()));
+        let mut runner = GenetAppRunner::<_, _, _, ()>::new(
+            dom.clone(),
+            view,
+            GridState {
+                scroll: 240.0,
+                descending: false,
+                rows: 10_000,
+            },
+        );
+        let root = runner.root();
+        let rows_by_index = |d: &ScriptedDom| {
+            let mut rows = Vec::new();
+            find_all(d, root, "grid-row", &mut rows);
+            rows.into_iter()
+                .map(|node| {
+                    let index = d
+                        .attribute(node, &Namespace::from(""), &LocalName::from("data-row"))
+                        .unwrap_or_default()
+                        .to_string();
+                    (index, node)
+                })
+                .collect::<std::collections::HashMap<_, _>>()
+        };
+        let before = rows_by_index(&dom.borrow());
+        // Every node under the window's rows before the shift.
+        let mut existing = std::collections::HashSet::new();
+        {
+            let d = dom.borrow();
+            let mut pending: Vec<_> = before.values().copied().collect();
+            while let Some(node) = pending.pop() {
+                existing.insert(node);
+                pending.extend(d.dom_children(node));
+            }
+        }
+        dom.borrow_mut().drain_mutations(&mut Vec::new());
+        runner.update(|s| s.scroll = 264.0);
+        let mut mutations = Vec::new();
+        dom.borrow_mut().drain_mutations(&mut mutations);
+        let after = rows_by_index(&dom.borrow());
+        let kept: Vec<_> = before.keys().filter(|k| after.contains_key(*k)).collect();
+        assert_eq!(
+            kept.len(),
+            before.len() - 1,
+            "one row leaves, the rest stay"
+        );
+        for index in kept {
+            assert_eq!(before[index], after[index], "row {index} kept its node");
+        }
+        let rewrites = mutations
+            .iter()
+            .filter(|m| match m {
+                DomMutation::AttributeChanged { node, .. }
+                | DomMutation::CharacterDataChanged { node } => existing.contains(node),
+                _ => false,
+            })
+            .count();
+        assert_eq!(rewrites, 0, "no surviving row is rewritten: {mutations:?}");
     }
 
     /// Header click routes through the grid's on_click wiring into caller

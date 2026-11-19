@@ -87,3 +87,46 @@ grouping is by shelf, no value last.
 | group as a leading sort key | 29.7 ms | 102.7 ms | 614.6 ms | 2,509.1 ms |
 
 Not measured here: frame time, which T4's runs above put at about 95 ms a frame (D21).
+## 2026-11-19: host frame fixes (D33), before and after
+
+The desktop example `table` (release, debug info off) at 10,000 rows and `table.scn`,
+run twice from each binary in alternation in one session: `before` is main at `9b24775c`,
+`after` adds the accessibility republish rule and keyed grid rows. Both carried the same
+throwaway per-frame profile dump (not committed). No rustc processes were running at the
+start or end of any run. Raw output, scripts (`run.sh`, `classes.py`) and pictures:
+`Code/testing/graphshell/frame-cost-hostfix/`. A strip move is a scroll frame with one
+DOM mutation; a window shift has more. Times are the host's frame time (UI work to
+present, accessibility included); "sort, drawn" is the example's sort-to-drawn figure.
+
+| frame | before p50 / p95 | after p50 / p95 |
+|---|---|---|
+| unchanged (119 frames) | 9.5 / 10.7, 12.7 / 16.5 ms | 3.4 / 5.2, 3.4 / 3.7 ms |
+| strip move (276) | 44.9 / 54.2, 42.8 / 50.7 ms | 44.4 / 53.5, 47.6 / 66.5 ms |
+| window shift (142) | 48.6 / 55.9, 53.3 / 62.1 ms | 45.2 / 50.6, 43.2 / 51.3 ms |
+| sort frame (10) | 56.6 / 71.2, 44.2 / 47.4 ms | 45.0 / 47.6, 49.4 / 61.7 ms |
+| sort, drawn, p95 | 105.6, 78.8 ms | 76.8, 92.8 ms |
+
+Accessibility on an unchanged frame: 6.7 and 8.9 ms (p50) before, 0.3 ms after (the
+action drain alone). Publications per run: 622 before, 439 after. Every strip move, window
+shift and sort still republishes, as each moves the boxes or the rows. Mutations per window
+shift: 155 to 161 before whatever the rows moved; after, 83 for a one-row shift and 165 for
+two (the 40 px a frame stretch). The 83 are the strip's offset, the leaving row's removal
+and the arriving row's own construction; no surviving row is written (grid test
+`a_window_shift_keeps_the_surviving_rows`).
+
+Control: `TABLE_STALL_MS=5` in the same session moved unchanged frames from 3.4 to 8.7 ms
+(after) and from 9.5 and 12.7 to 17.5 ms (before), by the 5 ms slept. Scroll and sort
+spread between runs of one binary (up to 13 ms at p95) is larger than 5 ms, so those rows
+show no change outside noise; the unchanged frame is the one this rule moves.
+
+Pictures (`after-1/*.png`): opened, sorted, focused, wheeled, scrolled and resorted, six
+distinct frames, none blank. Opened and resorted match the before digests exactly; sorted
+and focused differ from them by one or two pixels at most, by one level in one channel, at
+the body's clipped bottom edge and the footer, and differ by as much between the two after
+runs. Timing-dependent frames (wheeled, scrolled) differ between the two before runs too.
+The accessibility check is a test, `the_grid_tree_is_current_after_a_scroll_and_a_sort`:
+it reads the published rows and cells after a strip move, a window shift and a sort.
+Genet lowers `row` and `gridcell` but not `grid` or `columnheader` (finding above), so the
+test reads row and cell roles and the header names.
+
+Gate (D8): still not met. Scroll p95 50.6 to 66.5 ms against 16.7 ms.

@@ -449,6 +449,9 @@ where
     pub a11y_publication_observer: Option<Box<dyn FnMut(crate::A11yPublicationSnapshot)>>,
     pub(crate) a11y_publication: crate::A11yPublication,
     pub(crate) a11y_publication_sequence: u64,
+    /// What the last tree the adapter accepted was read from; `None` until one
+    /// is, or while a contributor is registered.
+    pub(crate) a11y_published_inputs: Option<crate::frame::A11yInputs>,
     pub(crate) a11y_wake: Arc<AtomicBool>,
     /// The platform's file chooser, which answers a view's file request.
     pub files: Option<Box<dyn crate::FileChooser>>,

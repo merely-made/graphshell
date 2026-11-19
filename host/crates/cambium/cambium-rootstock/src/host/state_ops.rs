@@ -59,6 +59,7 @@ where
             a11y_publication_observer: None,
             a11y_publication: crate::A11yPublication::default(),
             a11y_publication_sequence: 0,
+            a11y_published_inputs: None,
             files: None,
             file_answers: Default::default(),
             a11y_wake: Arc::new(AtomicBool::new(false)),

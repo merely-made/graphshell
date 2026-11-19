@@ -344,6 +344,10 @@ impl<K: Eq + Hash> LeafRegistry<K> {
     pub fn contains(&self, key: &K) -> bool {
         self.leaves.contains_key(key)
     }
+
+    pub fn is_empty(&self) -> bool {
+        self.leaves.is_empty()
+    }
 }
 
 /// Rendered Path-A command buffers, keyed by leaf key. This is the **leaf-tier

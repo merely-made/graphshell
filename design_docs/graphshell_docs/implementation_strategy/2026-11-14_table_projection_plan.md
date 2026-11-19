@@ -572,6 +572,16 @@ Left from the headed pages (T4):
 - 2026-11-19 (T5): the saved fields list called a field's set of columns `group`, the
   word D7 keeps for the exchanged shape; no saved recipe in Graphshell, Turnstone,
   Distillery, Knot or Mere carried one.
+- 2026-11-19 (D33): an accessibility publication reads the DOM through its mutation
+  sequence, the retained layout's session, generation and scroll planes (the identities
+  `PresentedInput::matches_dom` and `matches_layout` already use for admission), the focus,
+  the layout scale and the adapter's state (`frame/accessibility.rs`, `A11yInputs`). Leaves
+  and texture producers describe themselves through `Leaf::accessibility` and
+  `TextureProducer::semantics` with no change signal; `SceneProducer` reads an
+  `Rc<RefCell<_>>` source the application also holds. While either registry holds anything,
+  the tree is read every frame as before.
+- 2026-11-19 (D33): a window shift's remaining DOM mutations are the arriving row's own
+  construction, 81 per row of six cells; the rows that stay are not written.
 
 ## Progress
 
@@ -665,3 +675,13 @@ Left from the headed pages (T4):
   full compile is 107 ms at 10,000 rows). Speed: the frame's cost was broken down (receipts
   under `testing/graphshell/frame-cost/`); host fixes go first (D33) and Genet's part is
   handed over (D34).
+- 2026-11-19 (D33): the host republishes the accessibility tree only when something its
+  projection reads moved, and the data grid keys its rows by row index (branch
+  `host-frame-fixes`, staged, not committed). An unchanged frame went from 9.5 and 12.7 ms
+  (p50) to 3.4 ms, its accessibility share from 6.7 and 8.9 ms to 0.3 ms; scroll and sort
+  are within noise. A window shift no longer rewrites the rows that stay (155 to 161
+  mutations before, 83 a row after). With a leaf or producer registered every frame still
+  republishes. Tests: cambium 439, cambium-rootstock 246 (18 ignored; the native tail
+  control passed when run), cambium-a11y 53 and 10, sprigging 30, cambium-desktop 26.
+  Speed gate still open
+  ([receipts](../../archive_docs/receipts/2026-11-14_table_projection_plan_receipts.md)).
