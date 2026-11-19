@@ -133,6 +133,46 @@ where
     )
 }
 
+/// [`data_grid_with`] with rows kept by the caller's key (table D42): a
+/// caller that knows each row's identity passes `row_key(row)`, so a reorder
+/// moves a row's node rather than rewriting it. [`data_grid`] and
+/// [`data_grid_with`] keep the row index.
+#[allow(clippy::too_many_arguments)]
+pub fn data_grid_keyed<State, Action>(
+    spec: &GridSpec,
+    total_rows: usize,
+    viewport_height: f32,
+    scroll: f32,
+    cell: impl Fn(usize, usize) -> GridView<State, Action>,
+    row_key: impl Fn(usize) -> GridRowKey,
+    on_header_click: impl Fn(&mut State, usize) + Clone + 'static,
+    row_class: impl Fn(usize) -> Option<String>,
+    options: &GridOptions,
+    on_key_event: impl Fn(&mut State, KeyEvent) + 'static,
+) -> GridView<State, Action>
+where
+    State: 'static,
+    Action: 'static,
+{
+    data_grid_banded(
+        spec,
+        total_rows,
+        viewport_height,
+        scroll,
+        cell,
+        // A plain grid draws no headings; a heading key is kept as an id.
+        |row| match row_key(row) {
+            GridRowKey::Row(index) => GridBand::Row(index),
+            GridRowKey::Id(id) | GridRowKey::Heading(id) => GridBand::Id(id),
+        },
+        move |s: &mut State, col, _: Modifiers| on_header_click(s, col),
+        |_: &mut State, _| {},
+        row_class,
+        options,
+        on_key_event,
+    )
+}
+
 /// [`data_grid_with`] with group headings: `band(row)` says whether a body
 /// row is a row or a heading, with the key it is kept by, and `on_heading(row)`
 /// hears a press on a heading. A header press carries its modifier keys, so

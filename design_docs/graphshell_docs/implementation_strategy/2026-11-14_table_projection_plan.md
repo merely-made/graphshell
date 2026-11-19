@@ -498,6 +498,14 @@ Left from the headed pages (T4):
 
   *Refines D33.*
 
+- **D42. The plain grid takes keys through its own entry (Mark, 2026-11-19):** "Add
+  data_grid_keyed". A caller with ids calls `data_grid_keyed` with a row-key closure;
+  `data_grid` and `data_grid_with` keep index keys and their signatures.
+
+  Links: summary A plain-grid caller passes row keys through data_grid_keyed, leaving data_grid unchanged.
+
+  *Refines D41.*
+
 ## Findings
 
 - 2026-11-15: adding a slot to a recipe type breaks every repository that builds one as a
@@ -803,3 +811,8 @@ Left from the headed pages (T4):
   keeps the row index. A one-row scroll is still 83 mutations, the arriving row's
   construction. Tests: cambium 452, graphshell-client 73, cambium-rootstock run
   serially.
+- 2026-11-19: D42 written (staged, not committed). `cambium::data_grid_keyed` takes
+  a `row_key(row) -> GridRowKey`, so a plain grid whose caller knows each row's
+  identity keeps a row's node through a reorder; `data_grid` and `data_grid_with`
+  keep the row index and their signatures. No sibling repository changed. Tests:
+  cambium 453.

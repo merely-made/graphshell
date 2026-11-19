@@ -259,3 +259,64 @@ fn header_click_flips_the_sort() {
         "descending shows the mirrored index in the same window: {text}",
     );
 }
+
+/// A plain grid kept by the caller's keys: a reorder moves each row's node
+/// and writes none of its text (table D42).
+#[test]
+fn a_keyed_plain_grid_keeps_row_nodes_across_a_reorder() {
+    use layout_dom_api::{DomMutation, LayoutDomMut as _};
+    struct Items {
+        order: Vec<usize>,
+    }
+    fn keyed(state: &Items) -> GridView<Items, ()> {
+        let order = state.order.clone();
+        let keys = order.clone();
+        data_grid_keyed(
+            &spec(),
+            order.len(),
+            300.0,
+            0.0,
+            move |r, c| Box::new(el::<_, Items, ()>("span", format!("item{}c{c}", order[r]))),
+            move |r| GridRowKey::Id(format!("item{}", keys[r])),
+            |_: &mut Items, _| {},
+            |_| None,
+            &GridOptions::default(),
+            |_: &mut Items, _: KeyEvent| {},
+        )
+    }
+    let dom: DomHandle = Rc::new(RefCell::new(ScriptedDom::new()));
+    let mut runner = GenetAppRunner::<_, _, _, ()>::new(
+        dom.clone(),
+        keyed as fn(&Items) -> GridView<Items, ()>,
+        Items {
+            order: (0..8).collect(),
+        },
+    );
+    let root = runner.root();
+    let rows_by_text = |d: &ScriptedDom| {
+        let mut rows = Vec::new();
+        find_all(d, root, "grid-row", &mut rows);
+        rows.into_iter()
+            .map(|node| {
+                let mut text = String::new();
+                texts_under(d, node, &mut text);
+                (text, node)
+            })
+            .collect::<std::collections::HashMap<_, _>>()
+    };
+    let before = rows_by_text(&dom.borrow());
+    assert_eq!(before.len(), 8);
+    dom.borrow_mut().drain_mutations(&mut Vec::new());
+    runner.update(|s| s.order.reverse());
+    let mut mutations = Vec::new();
+    dom.borrow_mut().drain_mutations(&mut mutations);
+    let after = rows_by_text(&dom.borrow());
+    for (text, node) in &after {
+        assert_eq!(before.get(text), Some(node), "{text} kept its node");
+    }
+    let written = mutations
+        .iter()
+        .filter(|m| matches!(m, DomMutation::CharacterDataChanged { .. }))
+        .count();
+    assert_eq!(written, 0, "no row's text is written again");
+}

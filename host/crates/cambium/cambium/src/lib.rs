@@ -153,7 +153,7 @@ pub use graph_canvas::{
 };
 pub use grid::{
     GridBand, GridFocus, GridHeading, GridOptions, GridRowKey, GridView, data_grid,
-    data_grid_banded, data_grid_with,
+    data_grid_banded, data_grid_keyed, data_grid_with,
 };
 pub use hest::catalogue;
 pub use hest::menu::{Command, CommandChoices, CommandSet, MenuSession};

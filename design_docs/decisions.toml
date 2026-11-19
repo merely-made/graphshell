@@ -610,6 +610,11 @@ title = "A row is keyed by its occurrence (Mark, 2026-11-19)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
 summary = "A table row's node is keyed by its occurrence id, so it survives sort, filter and collapse."
 
+[decisions."table-projection D42"]
+title = "The plain grid takes keys through its own entry (Mark, 2026-11-19)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "A plain-grid caller passes row keys through data_grid_keyed, leaving data_grid unchanged."
+
 [decisions."uxtree-spine D1"]
 title = "The spine is federated (Mark, 2026-11-11)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-11_uxtree_spine_plan.md"
