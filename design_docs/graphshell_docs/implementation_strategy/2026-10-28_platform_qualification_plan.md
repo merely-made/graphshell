@@ -44,6 +44,7 @@ Cases the sources name as not exercised natively. Turnstone's dirty parent-quit 
 
 ### A1. Human assistive-technology acceptance
 A person using real assistive technology on a real platform, for flows the sources verified only through accessibility projections or automated mirrors. Hest's commands, whose human AT acceptance was part of neither publication nor the H4 receiving; the browser presentation tenants' ARIA mirror (picking, keyboard focus and actions, clipping); the appearance work's live screen-reader validation of custom calculator authoring, Turnstone activation, editable content and full graph workspaces, with physical AT, formal contrast, physical IME and formal OS accessibility; curation's keyboard gestures, live screen-reader interaction and recovery for folds; a VoiceOver check of the Graphshell window tree, where a new checklist would target `turnstone/ports/graphshell` and adapter installation would be separated from OS traversal if VoiceOver cannot enter the tree; and a physical Narrator receipt for tear-out.
+- Added 2026-11-19, the first flow to run across the shared publication path (uxtree P11, Turnstone's Cambium publication): the sortable table (`2026-11-14_table_projection_plan.md`, T4) opened from Turnstone's chrome. Using the keyboard and a screen reader only, a person enters the table, hears a cell's column header, changes the sort, hears the new sort state, and returns to the control that opened it. Where the flow crosses from host chrome into retained guest content, the crossing and the return are part of the run. The web presentation is read against WCAG 2.2 (keyboard, focus order, info and relationships, name, role, value) and the native run against WCAG2ICT; each record names the platform, the screen reader and their versions.
 - Done when: each flow is completed by a person on the named screen reader or input method and recorded as a human run; automated checks do not count.
 - Needs: N1 for the platforms; assistive-technology access
 - Rulings: -
@@ -82,3 +83,4 @@ Curation named Isocosm's VTT campaign as a consumer of folds; its Overmap has no
 ## Progress
 
 - 2026-10-28: cut from the contextual navigation, Hest and source-edit plans and the platform items of the theme, curation, browser tenants and Burn plans and the archived plan tails; nothing new landed.
+- 2026-11-19: A1 gained the sortable table as its first named flow across the shared accessibility publication path, with WCAG 2.2 and WCAG2ICT as the yardsticks; no run has been made.
