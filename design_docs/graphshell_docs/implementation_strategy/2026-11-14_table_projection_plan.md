@@ -1,6 +1,7 @@
 # Table Projection Plan
 
-**Status:** 2026-11-14: plan. Nothing started. Opened by `primitive-representations D18`
+**Status:** 2026-11-19: T1, T2 and T3 done. T4 is on main with its speed gate open (D21);
+T5 to T8 not started. Opened by `primitive-representations D18`
 (table is the first missing projection), with D20 (an ordered fields list) and D21 (a feed
 is a reading).
 
@@ -69,6 +70,9 @@ list are added (D3); media is phase T8.
   the same measured and reported at 100,000 (D5); a headed check shows it in
   Chrome and Firefox.
 - Needs: T1, T3.
+- Left (2026-11-19): the speed gate, fixed by incremental restyle and layout in Genet and
+  the host (D22); the laptop's figures retaken after it, and the iMacs and Linux machines
+  measured; three defects on the headed pages (see Open questions).
 
 ### T5. Sort, filter and group
 - Done when: a recipe's reading carries a sort (several keys), a filter and a grouping; a
@@ -103,6 +107,28 @@ content hash, and the widget layer composites textures. Nothing puts an image in
   or needs the texture path; T2.
 
 ## Open questions
+
+Calls made while building, standing until ruled otherwise:
+
+- **Date-time forms (T2).** A date-time is accepted only in a form both `xsd:dateTime` and
+  RFC 3339 allow, with the offset required. A form one of them alone allows is refused.
+- **Column width and row height (T3).** One `column_width` for every column and one
+  `row_height` for every row. Per-column widths and a per-row height are not built.
+- **Row mark (T3).** A table's rows take the row mark unless the recipe names another.
+- **Where the sort is saved (T4).** On the reading (`Reading.sort`), where T5 puts the
+  filter and the grouping. A top-level recipe slot was the alternative.
+- **Where the table lives (T4).** `cambium::projection_table`; mere-view or a crate of its
+  own were the alternatives.
+- **The realization's name (T4).** `table`, accepted for the table arrangement only.
+
+Defects on the headed pages (T4):
+
+- The sort arrow has no glyph in the font the browser page brings.
+- In Chrome a sliver of a row shows under the header.
+- The browsers' accessibility mirror held no column headers or cells, so the roles are
+  proven on the desktop host only. Taproot has no role names for grid, column header or
+  grid cell.
+- On the desktop a long title is cut without an ellipsis.
 
 
 ## Decisions

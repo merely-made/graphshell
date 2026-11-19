@@ -1,6 +1,7 @@
 # Primitive Representations Plan
 
-**Status:** 2026-11-14: plan. Cut from `2026-06-23_node_body_face_model_plan.md`, archived
+**Status:** 2026-11-19: M1 to M6, Z (Partition zoom), N (Crystal) and X (context scenes)
+are landed; B3 (the body designer), B4 (form parity) and the Tails are open. Cut from `2026-06-23_node_body_face_model_plan.md`, archived
 whole in `archive_docs/2026-11-14/` with B0 to B2 landed. Phases M1
 to M6 no longer wait on a fork of the scene composition brief (F1 to F3 were answered 2026-11-14,
 D5 to D16); B3 and B4 are carried open.
