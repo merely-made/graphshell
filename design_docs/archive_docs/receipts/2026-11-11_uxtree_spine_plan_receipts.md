@@ -564,3 +564,41 @@ passed. Headed private and public-fixture captures each contained 30 nodes
 and 16 envelopes. Only the public fixture contained the synthetic omnibar
 text. The regular push landed `690d6f12cf7032bbf83594f5eeec9bcde0ca4e35`.
 Raw logs, locks, and JSON exports are under Code/testing/graphshell/uxtree-p10/.
+
+## 2026-11-19 P11 native publication and nested guests
+
+Graphshell `559a9bd4ca9b41a31d3fb8fa638335b8bb2b9c71` owns the retained
+guest forest, shared native ID allocator, and cross-thread action queue
+in `cambium-winit-a11y`. The existing typed root host and the forest
+publisher share the allocator and native batch submission. A queued
+request bears the observed source admission. Turnstone checks it against
+the live supplier and placement before dispatch. The source pair stays
+available to P9 observations and the P10 redacted export.
+
+Turnstone `8e39d0bfd37faf732352d16df3ff755537444347` uses the publisher
+in the main window and lenses. The direct AccessKit publication scan was
+zero, and the old retained forest is gone from Turnstone. The restored
+checks passed 53 Cambium accessibility tests, 32 uxtree tests, 58 Turnstone
+accessibility tests and both focused P10 checks. Removing undeclared-guest
+validation, leaking a source hash, reusing a retired native ID, and
+discarding the supplier node-life witness each failed its control. Both
+repositories passed their usual hooks.
+
+On Windows, UI Automation invoked the fixture target through its native
+window, document and group. The supplier received one Click on tree
+`00000000-0000-a11f-0000-000000000002`, local node 91, with empty action
+data. A sibling has the same local ID. Invoking it in the control produced
+the sibling address and failed the target assertion. The old-hash control
+passed the Invoke check and failed the chrome ID assertion. With the
+restored publisher, the chrome source hash was absent and the observed
+native ID was 19. Both guest controls disappeared after supplier retirement.
+
+The headed U6 replay passed canvas and overview, navigation, Trail and
+Roster, Overmap, and Arrange. The original Arrange fixture used Crystal,
+which Graphshell D26 renamed to Lattice in `843124a0`. The rerun kept the
+same assertions with the current profile name. Turnstone's stock fixture
+uses the current name too. Pelt repeated nine passing cases, the known
+Reader failure, and the Gemtext refusal on a build without `smolweb`.
+The Pelt accessibility capture matched the current-main baseline byte
+for byte. Raw logs, locks and headed captures are under
+Code/testing/graphshell/uxtree-p11/.

@@ -1,9 +1,10 @@
 # uxtree spine plan: a federated tree with one envelope
 
-**Status:** 2026-11-18. P0 to P10 landed. P7 landed on Graphshell at `9f3537ac` and on
+**Status:** 2026-11-19. P0 to P11 landed. P7 landed on Graphshell at `9f3537ac` and on
 Turnstone at `c47ba17a`. P8 landed on Mere at `49d7d473a` and on Graphshell at `4b2ef6c3`.
 P9 landed on Genet at `41e70983a4c`, Graphshell at `f2374e83`, and
-Turnstone at `b72da53f`. P10 landed on Turnstone at `690d6f12`. P11 is under way.
+Turnstone at `b72da53f`. P10 landed on Turnstone at `690d6f12`. P11 landed on Graphshell
+at `559a9bd4` and Turnstone at `8e39d0bf`. The uxtree spine plan is complete.
 The slice 4 cutover moved uxtree, Cambium and E1a to Graphshell's `host/`.
 P0 remains a gate for D1. If it fails, D1 returns to Mark.
 
@@ -400,6 +401,21 @@ supports the nested-tree observation and declines accessibility actions.
 The headed action fixture exercises the native adapter and records the
 supplier address that receives the request.
 
+Graphshell landed the shared publisher at `559a9bd4`. Its focused checks
+passed 53 Cambium accessibility tests and 32 uxtree tests. The Turnstone
+candidate passed 58 accessibility tests against that supplier. Windows
+UI Automation delivered a single Click to the intended tree's local
+node 91. The restored frame reported native chrome ID 19 and contained
+no chrome path hash. Deliberately restoring that hash or invoking the
+sibling tree's node 91 failed the corresponding assertions.
+
+The Windows U6 replay covered all five Turnstone cases. Arrange passed
+after the fixture picked up the earlier Crystal-to-Lattice catalog rename.
+Pelt repeated all nine passing cases, the prior Reader failure, and the
+default build's Gemtext refusal without `smolweb`. Turnstone's direct
+AccessKit publication site count is zero. The original bridge admission
+checks pass through the shared queue.
+
 The largest change in this work, done as its own phase with headed checks. The retained manager for nested foreign
 forests, `foreign_a11y` (799 non-test lines in ten files in Turnstone), moves into `cambium-winit-a11y` as its
 guest-tree support, delivering the guest half of the diagnostics plan's M4 ("the publisher is ROOT-only and refuses
@@ -415,12 +431,13 @@ it. The Cambium publisher takes grafted guests, which moves its address to the `
   - a test asserts that no `NodeId` handed to the OS bridge in a Turnstone frame equals `node_id_for_path` of a known
     chrome path, and fails on the pre-move code first (the instrument is proved before the negative is believed);
   - the stale-admission test from the old bridge passes in its new home;
-  - `foreign_a11y` is gone from Turnstone's source except the admission variants;
+  - the retained `foreign_a11y` implementation is gone from Turnstone. The
+    Inker supplier adapter and product admissions stay with the product;
   - the headed receipts that engine-split P3's done-condition uses (Turnstone and Pelt) pass again, and a nested foreign
     surface is published and its action routed to the supplier, headed;
   - the P6 Findings list shows the Cambium publisher on the pair form.
-- Needs: P5, P6; the slice 4 cutover and the headed pass of engine-split U6 (`mere:engine-split D113`), which give the
-  baseline; open questions 6, 9, 11 and 12.
+- Needs: P5, P6 and the slice 4 cutover. Engine-split U6 (`mere:engine-split D113`) supplies the headed baseline.
+  Questions 6, 9, 11, 12 and 13 are resolved below.
 
 ## Decisions
 
@@ -579,9 +596,8 @@ Each is a question for a later round, with its evidence. None is answered here.
    (first brief F4). D4 calls Derived an address and not a life; no ruling says whether the hash is specified.
 8. **Does NativeIds::prepare call the shared structural core?** P7 shares the structural checks and
    preserves the existing refusal mapping. The extra advisory findings never enter native admission.
-9. **Does Pelt graft?** D3 says the address becomes the pair "as each producer is grafted". The publisher grafts in P11.
-   Pelt mints one tree with a counter from 2^63 per tile; no ruling asks it to graft (app composition AC2 names Pelt's
-   combined tree as a user of the helper).
+9. **Does Pelt graft?** The Cambium publisher now supports grafts and uses the pair. Standalone Pelt
+   keeps its combined tree and existing tile IDs. Its headed checks exercise that path.
 10. **What does the snapshot's schema version promise?** P10 follows D6 by omitting a schema version.
     The file's `kind` identifies a Turnstone tooling capture. It carries no compatibility promise.
 11. **Can inker surfaces fill an envelope?** The pinned surface API supplies an AccessKit tree and actions.
@@ -599,15 +615,15 @@ Each is a question for a later round, with its evidence. None is answered here.
 
 | Producer | Address at this phase |
 |---|---|
-| Cambium native publication | Producer owner and minted `NodeId`, assigned by `NativeIds`. The publisher refuses grafts until P11. |
+| Cambium native publication | Installed `(TreeId, NodeId)` with publisher-minted native node IDs. Source pairs stay in the retained forest and action bindings. The typed root-only host uses the same allocator and submission path. |
 | Retained Genet document read through Pelt core | Producer session and the document projection's local `NodeId`. Scope comes from the engine revision. |
 | Pelt desktop document | Producer window, tile and session with the minted node ID in the window's tree. |
 | Canvas through native publication | Producer owner and minted node ID. The graph member UUID travels separately as the domain reference. |
 | Graphshell mounted scene | Producer session and scene-instance node ID, scoped to the scene epoch. |
-| Turnstone host chrome and shared frame | Producer window root and local projected ID. Lens remapping runs before publication. |
-| Turnstone's pooled retained documents | Installed `(TreeId, NodeId)`. Each placement graft keeps the document's local IDs. Its captured route checks source and placement. |
-| Turnstone foreign surfaces, including nested guests | Installed `(TreeId, NodeId)`. The current owner table selects the surface, then the retained tree resolves the local node. |
-| Turnstone contributed panes | Installed `(TreeId, NodeId)`. The pane fills the address from the subtree it publishes. The source and placement still govern admission. |
+| Turnstone host chrome and shared frame | Source window root and local projected ID. Lens remapping runs before Cambium mints the native node ID. |
+| Turnstone's pooled retained documents | The source pair keeps the document's local ID within its placement graft. The captured route checks source and placement after translation from the native pair. |
+| Turnstone foreign surfaces, including nested guests | Cambium translates the native pair to the supplier's tree and local node. The captured supplier, tree attachment, and node life must still match. |
+| Turnstone contributed panes | The pane supplies the source pair. Cambium translates the native pair back, then the pane's source and placement govern admission. |
 | Document, frozen, Gloss and Platen observation views | Caller-supplied producer instance and path-derived node ID. |
 
 
