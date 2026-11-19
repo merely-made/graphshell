@@ -173,6 +173,59 @@ with and without a scrolled viewport. **Timing gate (T):** rerun the 100/1,000/5
   (`mere:owned_layout/interaction.rs:82-88`); needs its own E receipt since K5h marks interaction
   events unproven.
 
+## Measurements (2026-11-19, release, Windows laptop, a 10,000-row table)
+
+Taken on the table view of the table projection plan (its D21, D22, D33, D34), whose gate is a
+16.7 ms scroll frame at the 95th percentile and a sort shown within 100 ms. Medians; other
+builds were running, so the 95th percentiles are not quoted. Raw runs, scripts and both positive
+controls: `testing/graphshell/frame-cost/`.
+
+| ms | unchanged | scroll, strip moves | scroll, window shifts | sort |
+|---|---|---|---|---|
+| UI total | 21.1 | 75.9 | 111.4 | 73.1 |
+| style | 0 | 20.0 | 30.1 | 7.4 |
+| layout and text | 0 | 24.3 | 32.0 | 22.7 |
+| paint list | 3.3 | 5.6 | 6.8 | 5.0 |
+| accessibility publish | 15.3 | 14.3 | 20.9 | 16.8 |
+| render worker, off the UI thread | 0.1 | 42 | 42 | 39 |
+
+- **Style.** A scroll writes `top` on the strip's `style` attribute. `IncrementalStyle::update`
+  makes that element a hint root and `resolve_subtree` re-cascades its whole subtree: 529 of 543
+  elements, about 37 us each. Nothing checks whether inherited values changed.
+- **Sort hints.** `form_validity_tree_root` walks the document once per inserted or removed
+  node; a sort makes about 190 of them (5.3 of the 7.4 ms).
+- **Layout.** `OwnedLayout::layout_resolved` always calls the full `layout_with_text_system`.
+  K5h's positioned-inset translation route, which is exactly the strip move, lives only inside
+  `LiveryDocument::frame` and cannot be reached from the host. Inside the pass: inline groups
+  18.6 ms, container-relative styles 4.5 ms (whole plane), box tree 1.9 ms.
+- **Accessibility.** `sync_a11y_tree` re-projects the whole document and submits the full tree
+  every presented frame, changed or not (about 21 us a node).
+- **Host view.** `data_grid_with` built rows positionally, so a one-row window shift rewrote
+  about 155 nodes instead of about 14.
+
+Order, with the expected effect of each (estimates until measured):
+
+1. Host, in Graphshell (table plan D33, in hand): no accessibility republish on an unchanged
+   frame (21 to about 6 ms); keyed grid rows.
+2. Genet: the form-tree check once per batch, not per mutation (sort style 7.4 to about 2 ms).
+3. Genet: descend in restyle only when the element's inherited or custom values changed
+   (strip-move style 20 to about 0.5 ms). Open: how exact the test must be for explicit
+   `inherit`/`unset` and `em`/`ch` (descend whenever the sheet uses them, or track per property).
+4. P2 and P3 here, carrying the positioned-inset route, with P4's whole-plane passes
+   (strip-move layout 24 to about 1 to 2 ms).
+5. Genet: a retained route for inserting or removing an absolutely positioned row in a
+   positioned containing block, two roots a frame (window-shift layout 32 to about 2 to 3 ms).
+6. Incremental accessibility updates (needs a changed-node set from Genet's layout) and
+   paint-list reuse. Without these a scroll frame stays near 30 ms; with them about 12 to 17.
+
+Not diagnosed: the render worker's 40 ms a changed frame, in presentation and netrender; it
+counts toward a sort being shown.
+
+State of the Genet side on 2026-11-19: P0 is on Genet's main (9a0e91074cd). Genet's main checkout
+holds uncommitted work toward P2 (`layout/retained_session.rs`, `relayout_borrowed_dom` for text
+mutations, changes to `invalidation.rs`, `frame.rs` and eight more files), not this plan's
+author's and not touched. Steps 2 to 5 belong with whoever holds it (table plan D34).
+
 ## Decisions for the owner
 
 1. Approve the Genet extraction (P2) as the route, versus owning a Rootstock-side copy of the
