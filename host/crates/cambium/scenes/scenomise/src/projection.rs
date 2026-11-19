@@ -107,6 +107,10 @@ mod relationship_tests;
 #[path = "projection_catalog_tests.rs"]
 mod catalog_tests;
 
+#[cfg(test)]
+#[path = "projection_field_type_tests.rs"]
+mod field_type_tests;
+
 use scenograph::presentation::{
     Extent, GraphRepresentationRegistry, NodeMark, RepresentationState,
     default_graph_representation_registry,
@@ -378,11 +382,7 @@ fn resolve_target(
     })
 }
 
-const ANY_FIELD_TYPE: &[ProjectionFieldType] = &[
-    ProjectionFieldType::Text,
-    ProjectionFieldType::Number,
-    ProjectionFieldType::Boolean,
-];
+const ANY_FIELD_TYPE: &[ProjectionFieldType] = &ProjectionFieldType::ALL;
 
 pub(crate) fn stable_generation(dataset: &ProjectionDataset) -> u64 {
     let mut value = 0xcbf2_9ce4_8422_2325u64;

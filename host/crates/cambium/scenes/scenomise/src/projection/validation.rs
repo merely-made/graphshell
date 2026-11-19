@@ -319,11 +319,14 @@ pub(super) fn validate_occurrences(
         }
         for (name, value) in &occurrence.values {
             match dataset.fields.get(name) {
-                Some(field_type) if *field_type == value.field_type() => {},
-                Some(_) => issues.push(CompileIssue::new(
-                    format!("{prefix}.values.{name}"),
-                    "value does not match the disclosed field type",
-                )),
+                Some(field_type) => {
+                    if let Some(refusal) = value.refusal(*field_type) {
+                        issues.push(CompileIssue::new(
+                            format!("{prefix}.values.{name}"),
+                            refusal,
+                        ));
+                    }
+                },
                 None => issues.push(CompileIssue::new(
                     format!("{prefix}.values.{name}"),
                     "value names a field absent from the disclosed schema",

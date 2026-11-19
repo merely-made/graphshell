@@ -295,17 +295,13 @@ pub(super) fn disclose(
     }
 }
 
-/// Order two occurrences by their x value; validation keeps one type per field.
+/// Order two occurrences by their x value, in the dataset's sort order.
 pub(super) fn order_cmp(
     left: &ProjectionOccurrence,
     right: &ProjectionOccurrence,
     field: &str,
 ) -> std::cmp::Ordering {
-    match (left.values.get(field), right.values.get(field)) {
-        (Some(ProjectionValue::Number(a)), Some(ProjectionValue::Number(b))) => a.total_cmp(b),
-        (Some(ProjectionValue::Text(a)), Some(ProjectionValue::Text(b))) => a.cmp(b),
-        _ => std::cmp::Ordering::Equal,
-    }
+    scenograph::dataset::compare_values(left.values.get(field), right.values.get(field))
 }
 
 /// The smallest and largest disclosed coordinate, in the source's units.

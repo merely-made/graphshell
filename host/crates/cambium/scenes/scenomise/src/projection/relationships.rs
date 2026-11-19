@@ -301,6 +301,29 @@ pub(crate) fn relationship_disclosure_issues(
     issues
 }
 
+/// Count a value's text against the limits and refuse a non-finite number,
+/// inside lists too.
+fn bound_value(
+    value: &ProjectionValue,
+    check: &mut impl FnMut(&str) -> Result<(), Vec<CompileIssue>>,
+) -> Result<(), Vec<CompileIssue>> {
+    match value {
+        ProjectionValue::Text(text)
+        | ProjectionValue::Date(text)
+        | ProjectionValue::DateTime(text) => check(text),
+        ProjectionValue::Reference(source) => {
+            check(&source.adapter)?;
+            check(&source.id)
+        },
+        ProjectionValue::Number(number) if !number.is_finite() => Err(vec![CompileIssue::new(
+            "dataset.values",
+            "all disclosed numbers must be finite",
+        )]),
+        ProjectionValue::Number(_) | ProjectionValue::Boolean(_) => Ok(()),
+        ProjectionValue::List(items) => items.iter().try_for_each(|item| bound_value(item, check)),
+    }
+}
+
 pub(super) fn relationship_bounds(
     snapshot: &RelationshipSnapshot,
     disclosure: &RelationshipDataset,
@@ -364,16 +387,7 @@ pub(super) fn relationship_bounds(
         }
         for (name, value) in &occurrence.values {
             check(name)?;
-            match value {
-                ProjectionValue::Text(text) => check(text)?,
-                ProjectionValue::Number(number) if !number.is_finite() => {
-                    return Err(vec![CompileIssue::new(
-                        "dataset.values",
-                        "all disclosed numbers must be finite",
-                    )]);
-                },
-                _ => (),
-            }
+            bound_value(value, &mut check)?;
         }
     }
     for relationship in &disclosure.relationships {

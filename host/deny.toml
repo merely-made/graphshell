@@ -245,6 +245,10 @@ crate = "linux-raw-sys@0.4.15"
 reason = "held by rustix 0.38.44; gone when its holders move to linux-raw-sys 0.12.1 (rustix 0.38.44 in the graph, 1.1.6 newest)"
 
 [[bans.skip]]
+crate = "lru@0.18.5"
+reason = "held by n0-dns-resolver 0.1.1, cryoglyph 0.1.0; gone when its holders move to lru 0.19.0 (both are their latest releases)"
+
+[[bans.skip]]
 crate = "miniz_oxide@0.8.9"
 reason = "held by exr 1.74.3, png 0.17.16, png 0.18.1; gone when its holders move to miniz_oxide 0.9.1 (exr 1.74.3 is its latest release; png 0.17.16 in the graph, 0.18.1 newest)"
 

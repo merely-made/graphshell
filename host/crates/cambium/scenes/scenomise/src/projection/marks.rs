@@ -51,13 +51,19 @@ pub(super) fn resolve(
             facts: occurrence
                 .values
                 .iter()
-                .map(|(key, value)| {
+                .filter_map(|(key, value)| {
+                    // Rules test scalars only; references, dates and lists
+                    // are not facts a rule can read yet.
                     let scalar = match value {
                         ProjectionValue::Text(text) => Scalar::Text(text.clone()),
                         ProjectionValue::Number(number) => Scalar::Number(*number),
                         ProjectionValue::Boolean(value) => Scalar::Bool(*value),
+                        ProjectionValue::Reference(_)
+                        | ProjectionValue::Date(_)
+                        | ProjectionValue::DateTime(_)
+                        | ProjectionValue::List(_) => return None,
                     };
-                    (key.clone(), scalar)
+                    Some((key.clone(), scalar))
                 })
                 .collect(),
             states: if selected == Some(occurrence.occurrence_id.as_str()) {

@@ -313,6 +313,17 @@ content hash, and the widget layer composites textures. Nothing puts an image in
   published and nothing was pushed to Eidetic. The brief for the Eidetic session is at
   `Code/testing/eidetic_version_stamp_brief.md`.
 
+- 2026-11-19 (T2): `xsd:dateTime` and RFC 3339 disagree at the edges. XSD allows a
+  date-time with no offset, which names no instant, and `24:00:00`; RFC 3339 allows lower-case
+  `t` and `z`, a leap second `:60` and offsets up to 23:59, where XSD stops at fourteen hours.
+  T2 accepts only the forms both allow (`scenograph/src/temporal.rs`), and a date only as
+  `YYYY-MM-DD`, though `xsd:date` also allows a time zone on a date. No date library was
+  needed: about seventy lines read both forms and turn a date-time into an instant.
+- 2026-11-19 (T2): presentation rules read an occurrence's values as scalars
+  (`scenomise/src/projection/marks.rs`); references, dates and lists are left out of a
+  rule's facts, so no rule can test them yet. Turnstone keeps its own copy of that mapping
+  (`ports/graphshell/src/host_presenter.rs:200`).
+
 - 2026-11-14 (T1): today's recipe survives TOML with no special handling; an absent
   optional value is left out on writing and read back as absent
   (`scenograph/src/toml_io.rs`, test `a_recipe_written_by_hand_reads_and_round_trips`).
@@ -391,3 +402,10 @@ content hash, and the widget layer composites textures. Nothing puts an image in
   its two Git dependency floors. The definition-to-draft conversion preserves the ordered
   fields through edit, save and reopen. Three projection tests and the Windows check
   with authoring enabled passed against Graphshell `1bdb2ce3`.
+- 2026-11-19: T2 written (branch `t2-field-types`, unpushed). The dataset discloses
+  reference (a `sceno::SourceRef`), date, date-time and a list of one item type
+  (`{"list": "<item>"}`; a list of lists cannot be disclosed); the first three types keep
+  their saved spelling. `ProjectionValue::refusal` checks a value against its disclosed
+  type, dates by their lexical form, and the compiler names the occurrence and field;
+  `dataset::compare_values` is each type's sort order, a missing value last, date-times as
+  instants. Tests: scenograph 91 with `--features toml`, scenomise 245.

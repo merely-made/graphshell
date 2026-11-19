@@ -15,7 +15,7 @@ use scenograph::{
     SelectionMode,
 };
 
-fn sizes(w: f32, h: f32) -> ItemSizes {
+pub(super) fn sizes(w: f32, h: f32) -> ItemSizes {
     ItemSizes {
         card: Size2::new(w, h),
     }
@@ -54,7 +54,7 @@ fn disclosed_classes_round_trip_and_set_detail_per_occurrence() {
 }
 
 /// Three occurrences carrying every kind of value a family might read.
-fn dataset() -> ProjectionDataset {
+pub(super) fn dataset() -> ProjectionDataset {
     let occurrence = |id: &str, x: f64, y: f64, lane: &str, layer: f64| ProjectionOccurrence::new(
         id,
         SourceRef::new("fixture", id),
@@ -90,7 +90,7 @@ fn dataset() -> ProjectionDataset {
     }
 }
 
-fn definition(kind: &str, x: &str) -> ProjectionDefinition {
+pub(super) fn definition(kind: &str, x: &str) -> ProjectionDefinition {
     let data = dataset();
     ProjectionDefinition {
         frame: None,
@@ -151,7 +151,7 @@ fn position(compiled: &CompiledProjection, occurrence: &str) -> Vec2 {
     compiled.scene.items[instance.0 as usize].transform.translate
 }
 
-fn fields(issues: &[CompileIssue]) -> Vec<&str> {
+pub(super) fn fields(issues: &[CompileIssue]) -> Vec<&str> {
     issues.iter().map(|issue| issue.field.as_str()).collect()
 }
 
