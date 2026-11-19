@@ -15,12 +15,12 @@ fn sample() -> Vec<FieldSpec> {
             ..FieldSpec::new("title", "Title")
         },
         FieldSpec {
-            group: Some("Status".into()),
+            section: Some("Status".into()),
             viewer: Some("chip".into()),
             ..FieldSpec::new("state", "State")
         },
         FieldSpec {
-            group: Some("Status".into()),
+            section: Some("Status".into()),
             viewer: Some("bar".into()),
             ..FieldSpec::new("done ratio/2", "Done")
         },

@@ -35,9 +35,10 @@ pub struct FieldSpec {
     pub name: String,
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub description: String,
-    /// The section of columns this field belongs to.
+    /// The section of columns this field belongs to; exported as SHACL's
+    /// `sh:group` (table D7).
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub group: Option<String>,
+    pub section: Option<String>,
     /// A registered viewer id; absent means [`DEFAULT_VIEWER`].
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub viewer: Option<String>,
@@ -49,7 +50,7 @@ impl FieldSpec {
             path: path.into(),
             name: name.into(),
             description: String::new(),
-            group: None,
+            section: None,
             viewer: None,
         }
     }
@@ -135,8 +136,9 @@ pub fn to_shape(fields: &[FieldSpec], base: &str) -> Value {
             if !field.description.is_empty() {
                 property["sh:description"] = json!(field.description);
             }
-            if let Some(group) = &field.group {
-                property["sh:group"] = json!({ "@type": "sh:PropertyGroup", "rdfs:label": group });
+            if let Some(section) = &field.section {
+                property["sh:group"] =
+                    json!({ "@type": "sh:PropertyGroup", "rdfs:label": section });
             }
             if let Some(viewer) = &field.viewer {
                 property["dash:viewer"] = json!({ "@id": viewer_iri(viewer) });
@@ -174,7 +176,7 @@ pub fn from_shape(shape: &Value, base: &str) -> Result<Vec<FieldSpec>, String> {
                 .map_or_else(|| path.to_owned(), unescape),
             name: name.to_owned(),
             description: text("sh:description").unwrap_or_default().to_owned(),
-            group: property
+            section: property
                 .get("sh:group")
                 .and_then(|g| g.get("rdfs:label"))
                 .and_then(Value::as_str)

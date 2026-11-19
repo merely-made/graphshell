@@ -62,3 +62,28 @@ descending". The sort arrow draws as a missing glyph: the page brings only Robot
 has no U+2193. Firefox's first-run terms dialog covers the right of the table; it was
 not accepted. The page's DOM accessibility mirror held no `columnheader` or `gridcell`
 element (0 of each), so the browser check proves the picture, not the mirrored roles.
+
+## 2026-11-19: T5 stage 1, compute time outside the frame
+
+A temporary integration test in scenomise (`tests/t5_timing_tmp.rs`, removed before
+staging), run with `cargo test --release -p scenomise --features authoring --test
+t5_timing_tmp -- --ignored --nocapture` and again without `--release`
+(`CARGO_PROFILE_DEV_DEBUG=0`). Dataset: books with id, title, pages (missing on every
+seventh), read, added (a date) and shelf (twelve values, missing on every eleventh), six
+fields listed. Median of 9 runs at 10,000 rows and 3 at 100,000, on the Windows laptop
+with other lanes building. The filter and grouping are stand-ins, not a chosen form: the
+filter keeps pages >= 450, a title containing "1" and read (511 of 10,000 kept); the
+grouping is by shelf, no value last.
+
+| step | 10,000 release | 10,000 dev | 100,000 release | 100,000 dev |
+| --- | --- | --- | --- | --- |
+| compile | 107.2 ms | 202.6 ms | 1,285.8 ms | 2,110.3 ms |
+| re-sort, one number key | 6.8 ms | 21.5 ms | 141.5 ms | 334.0 ms |
+| re-sort, one date key | 22.1 ms | | 524.2 ms | |
+| re-sort, three keys (read, added, title) | 36.8 ms | 125.2 ms | 626.4 ms | 2,217.2 ms |
+| filter pass over the sorted rows | 4.2 ms | 5.3 ms | 62.7 ms | 105.1 ms |
+| filtered dataset compiled again | 60.3 ms | 44.8 ms | 427.8 ms | 858.8 ms |
+| group: stable partition with counts | 37.9 ms | 45.1 ms | 506.2 ms | 985.1 ms |
+| group as a leading sort key | 29.7 ms | 102.7 ms | 614.6 ms | 2,509.1 ms |
+
+Not measured here: frame time, which T4's runs above put at about 95 ms a frame (D21).
