@@ -71,6 +71,7 @@ mod keyed;
 mod menu;
 mod multi;
 mod opened_link;
+pub mod projection_table;
 mod optional_action;
 mod overlay;
 mod overlay_surface;
@@ -150,7 +151,7 @@ pub use graph_canvas::{
     graph_canvas_swatch_with_focus_and_drag, graph_canvas_swatch_with_focus_and_drag_and_relations,
     graph_canvas_with_wheel,
 };
-pub use grid::{GridView, data_grid};
+pub use grid::{GridFocus, GridOptions, GridView, data_grid, data_grid_with};
 pub use hest::catalogue;
 pub use hest::menu::{Command, CommandChoices, CommandSet, MenuSession};
 pub use hest::{EffectClass, Invocation, Outcome};

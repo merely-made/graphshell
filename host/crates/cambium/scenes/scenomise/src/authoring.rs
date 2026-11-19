@@ -136,6 +136,8 @@ pub enum EditorAction {
     SetLabel(String),
     SetSource(SourceBinding),
     SetReading(Reading),
+    /// Replace the reading's sort. Each one is its own undo step.
+    SetSort(Vec<scenograph::SortKey>),
     SetEncoding(Encoding),
     SetMarks(scenograph::MarkSlots),
     SetFrame(Option<scenograph::Frame>),
@@ -229,10 +231,11 @@ impl ProjectionEditor {
             return ReduceResult::PanelChanged;
         }
         let before = (self.draft.clone(), self.panel);
-        let key = discriminant(&action);
+        // A sort is a single gesture: no key, so it never joins a run.
+        let key = (!matches!(action, EditorAction::SetSort(_))).then(|| discriminant(&action));
         let result = self.apply_draft(action);
         if self.draft != before.0 {
-            self.history.record(before, Some(key), now_ms);
+            self.history.record(before, key, now_ms);
         }
         result
     }
@@ -305,6 +308,10 @@ impl ProjectionEditor {
             },
             EditorAction::SetReading(value) => {
                 self.draft.reading = value;
+                ReduceResult::Changed
+            },
+            EditorAction::SetSort(value) => {
+                self.draft.reading.sort = value;
                 ReduceResult::Changed
             },
             EditorAction::SetEncoding(value) => {

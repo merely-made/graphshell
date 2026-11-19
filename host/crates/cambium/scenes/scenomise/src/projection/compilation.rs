@@ -41,13 +41,17 @@ pub(super) fn compile_inner(
     let target = resolve_target(compiler, definition).expect("validated arrangement");
     let channels = target.channels();
 
-    let mut occurrences: Vec<_> = dataset.occurrences.iter().collect();
-    occurrences.sort_by(|left, right| left.occurrence_id.cmp(&right.occurrence_id));
-    if channels == Some(ChannelUse::Order) {
-        // Order-only families place by ordinal, so x decides the order; the
-        // stable sort keeps occurrence ids as the tiebreak.
-        occurrences.sort_by(|left, right| order_cmp(left, right, x_field));
-    }
+    let occurrences: Vec<_> = if channels == Some(ChannelUse::Order) {
+        reading_order(definition, dataset, x_field)
+            .into_iter()
+            .map(|index| &dataset.occurrences[index])
+            .collect()
+    } else {
+        by_id(dataset)
+            .into_iter()
+            .map(|index| &dataset.occurrences[index])
+            .collect()
+    };
     let node_marks = super::marks::resolve(
         compiler,
         definition,
@@ -300,13 +304,36 @@ pub(super) fn disclose(
     }
 }
 
-/// Order two occurrences by their x value, in the dataset's sort order.
-pub(super) fn order_cmp(
-    left: &ProjectionOccurrence,
-    right: &ProjectionOccurrence,
-    field: &str,
-) -> std::cmp::Ordering {
-    scenograph::dataset::compare_values(left.values.get(field), right.values.get(field))
+/// Dataset indices in occurrence id order.
+fn by_id(dataset: &ProjectionDataset) -> Vec<usize> {
+    let mut indices: Vec<usize> = (0..dataset.occurrences.len()).collect();
+    indices.sort_by(|&l, &r| {
+        dataset.occurrences[l]
+            .occurrence_id
+            .cmp(&dataset.occurrences[r].occurrence_id)
+    });
+    indices
+}
+
+/// Dataset indices in the order an order-placing family places them: by the
+/// reading's sort when it has one, by x otherwise, occurrence id breaking
+/// ties. The table realization re-sorts through this same function.
+pub(super) fn reading_order(
+    definition: &ProjectionDefinition,
+    dataset: &ProjectionDataset,
+    x_field: &str,
+) -> Vec<usize> {
+    let ids = by_id(dataset);
+    let by_x = [scenograph::SortKey::ascending(x_field)];
+    let keys = if definition.reading.sort.is_empty() {
+        &by_x[..]
+    } else {
+        &definition.reading.sort[..]
+    };
+    scenograph::sort::order(keys, ids.iter().map(|&index| &dataset.occurrences[index].values))
+        .into_iter()
+        .map(|rank| ids[rank])
+        .collect()
 }
 
 /// The smallest and largest disclosed coordinate, in the source's units.

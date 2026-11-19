@@ -11,6 +11,7 @@ pub mod core;
 pub mod driver;
 pub mod fold;
 pub mod frozen;
+pub mod frozen_table;
 #[cfg(feature = "pump")]
 pub mod pump;
 pub mod remote;

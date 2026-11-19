@@ -21,14 +21,14 @@ use scenograph::{
 
 const ORIGIN: Vec2 = Vec2 { x: 40.0, y: 100.0 };
 
-fn compiler() -> ProjectionCompiler {
+pub(super) fn compiler() -> ProjectionCompiler {
     ProjectionCompiler::new(ItemSizes {
         card: Size2::new(120.0, 30.0),
     })
 }
 
 /// Three rows; `rank` decides the reading order.
-fn dataset(rank: [f64; 3]) -> ProjectionDataset {
+pub(super) fn dataset(rank: [f64; 3]) -> ProjectionDataset {
     let row = |id: &str, rank: f64, score: f64| {
         ProjectionOccurrence::new(
             id,
@@ -62,13 +62,14 @@ fn dataset(rank: [f64; 3]) -> ProjectionDataset {
     }
 }
 
-fn definition(fields: &[(&str, &str)]) -> ProjectionDefinition {
+pub(super) fn definition(fields: &[(&str, &str)]) -> ProjectionDefinition {
     let data = dataset([0.0, 1.0, 2.0]);
     ProjectionDefinition {
         id: "table".into(),
         label: "Table".into(),
         source: data.source.clone(),
         reading: Reading {
+            sort: Vec::new(),
             kind: "nodes".into(),
             key: "id".into(),
             value: None,
@@ -117,7 +118,7 @@ fn definition(fields: &[(&str, &str)]) -> ProjectionDefinition {
     }
 }
 
-const FIELDS: &[(&str, &str)] = &[("title", "Title"), ("score", "Score"), ("id", "Id")];
+pub(super) const FIELDS: &[(&str, &str)] = &[("title", "Title"), ("score", "Score"), ("id", "Id")];
 
 fn row_center(compiled: &CompiledProjection, occurrence: &str) -> Vec2 {
     let instance = compiled.instance_by_occurrence[occurrence];

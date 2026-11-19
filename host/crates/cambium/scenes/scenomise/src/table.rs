@@ -172,3 +172,7 @@ impl TableLayout {
 #[cfg(test)]
 #[path = "table_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "table_sort_tests.rs"]
+mod sort_tests;

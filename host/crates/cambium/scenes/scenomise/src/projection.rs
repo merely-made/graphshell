@@ -123,6 +123,10 @@ pub const GRID_ARRANGEMENT_ID: &str = "grid.default";
 pub const SCATTER_ARRANGEMENT_ID: &str = "scatter.default";
 const COORDINATES_DIRECTION: &str = "coordinates";
 const NODES_READING_ID: &str = "nodes";
+/// Realization ids the compiler accepts. The canvas draws every family; the
+/// table realization is the data grid and draws only the table arrangement.
+pub const CANVAS_REALIZATION_ID: &str = "canvas";
+pub const TABLE_REALIZATION_ID: &str = "table";
 
 pub use scenograph::dataset::{
     ProjectionDataset, ProjectionFieldType, ProjectionOccurrence, ProjectionValue,
@@ -223,6 +227,24 @@ impl ProjectionCompiler {
         dataset: &ProjectionDataset,
     ) -> Result<CompiledProjection, Vec<CompileIssue>> {
         compile_inner(self, definition, dataset, None, None, None)
+    }
+
+    /// The order a table places `dataset`'s rows in under `definition`'s
+    /// reading, as dataset indices, without placing them: what a sort
+    /// changes, checked as [`Self::compile`] checks it (table plan, T4).
+    pub fn reading_order(
+        &self,
+        definition: &ProjectionDefinition,
+        dataset: &ProjectionDataset,
+    ) -> Result<Vec<usize>, Vec<CompileIssue>> {
+        let issues = fields::sort_issues(self, definition, dataset);
+        if !issues.is_empty() {
+            return Err(issues);
+        }
+        let x_field = validation::field_name(&definition.encoding.x, "encoding.x").ok_or_else(|| {
+            vec![CompileIssue::new("encoding.x", "an ordered reading needs an x field")]
+        })?;
+        Ok(compilation::reading_order(definition, dataset, x_field))
     }
 
     /// Revalidate a reading while retaining solved geometry when all solver

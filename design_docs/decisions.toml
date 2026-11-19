@@ -505,6 +505,16 @@ title = "A family row names a floor only (Mark, 2026-11-15)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
 summary = "A family git row names a floor with no cap, raised after a break is fixed."
 
+[decisions."table-projection D21"]
+title = "T4 lands with its speed gate open (Mark, 2026-11-19)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "The table lands on main with D8's speed gate recorded as unmet and still required."
+
+[decisions."table-projection D22"]
+title = "The speed fix is at the cause (Mark, 2026-11-19)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "The table's frame cost is fixed by incremental restyle and layout in Genet and the host, not by painting cells."
+
 [decisions."uxtree-spine D1"]
 title = "The spine is federated (Mark, 2026-11-11)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-11_uxtree_spine_plan.md"

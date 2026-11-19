@@ -310,6 +310,7 @@ fn definition(data: &HostDatasetV1, kind: &str, x: &str) -> ProjectionDefinition
         label: "Host view".into(),
         source: data.dataset.source.clone(),
         reading: Reading {
+            sort: Vec::new(),
             kind: "nodes".into(),
             key: "occurrence_id".into(),
             value: None,

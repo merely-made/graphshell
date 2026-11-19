@@ -93,6 +93,10 @@ console_error_panic_hook = "0.1"
 tabard.workspace = true
 serde_json.workspace = true
 sha2.workspace = true
+# The table page opens a recipe over the scenes crates.
+sceno.workspace = true
+scenograph.workspace = true
+scenomise.workspace = true
 
 [[example]]
 name = "a11y_page"
@@ -105,6 +109,12 @@ crate-type = ["cdylib"]
 name = "ctor_once"
 path = "examples/ctor_once/main.rs"
 crate-type = ["cdylib"]
+
+[[example]]
+name = "table_page"
+path = "examples/table_page/main.rs"
+crate-type = ["cdylib"]
+required-features = ["webgl"]
 
 [[example]]
 name = "presentation_page"

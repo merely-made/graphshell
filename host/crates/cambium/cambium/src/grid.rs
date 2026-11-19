@@ -27,11 +27,33 @@ use sprigging::{GridSpec, Placement};
 
 use crate::pod::GenetElement;
 use crate::{
-    AnyView, GenetCtx, Key, NamedKey, PointerClick, arrangement::placed_with, el, on_click, on_key,
+    AnyView, GenetCtx, Key, KeyEvent, NamedKey, PointerClick, arrangement::placed_with, el,
+    on_click, on_key, request_focus,
 };
 
 /// The erased view type grid cells (and the grid itself) use.
 pub type GridView<State, Action> = Box<dyn AnyView<State, Action, GenetCtx, GenetElement>>;
+
+/// Where keyboard focus sits in a grid: a header cell (`row: None`) or a body
+/// cell. Only that cell is a tab stop; arrows move it (the ARIA grid pattern).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct GridFocus {
+    pub row: Option<usize>,
+    pub col: usize,
+    /// Move platform focus onto the cell when it changes.
+    pub requested: bool,
+}
+
+/// What a grid shows beyond geometry and content.
+#[derive(Clone, Debug, Default, PartialEq)]
+pub struct GridOptions {
+    /// The sorted column and whether it runs descending, for `aria-sort`.
+    pub sorted: Option<(usize, bool)>,
+    /// The roving focus; `None` keeps every header a tab stop and no cell one.
+    pub focus: Option<GridFocus>,
+    /// The grid's accessible name.
+    pub label: Option<String>,
+}
 
 /// Build a data grid. `cell(row, col)` supplies each materialized cell's view;
 /// `scroll` is the caller's scroll offset into the body (device px);
@@ -50,7 +72,46 @@ where
     State: 'static,
     Action: 'static,
 {
+    data_grid_with(
+        spec,
+        total_rows,
+        viewport_height,
+        scroll,
+        cell,
+        on_header_click,
+        row_class,
+        &GridOptions::default(),
+        |_: &mut State, _: KeyEvent| {},
+    )
+}
+
+/// [`data_grid`] with sort state, a roving focus and a grid-level key handler
+/// (`on_key_event` sees every key that reaches the grid; it owns navigation).
+#[allow(clippy::too_many_arguments)]
+pub fn data_grid_with<State, Action>(
+    spec: &GridSpec,
+    total_rows: usize,
+    viewport_height: f32,
+    scroll: f32,
+    cell: impl Fn(usize, usize) -> GridView<State, Action>,
+    on_header_click: impl Fn(&mut State, usize) + Clone + 'static,
+    row_class: impl Fn(usize) -> Option<String>,
+    options: &GridOptions,
+    on_key_event: impl Fn(&mut State, KeyEvent) + 'static,
+) -> GridView<State, Action>
+where
+    State: 'static,
+    Action: 'static,
+{
     let width = spec.total_width();
+    let focus = options.focus;
+    // The tab stop and focus request for one cell, or `None` with no focus.
+    let stop = |row: Option<usize>, col: usize| {
+        focus.map(|focus| {
+            let here = focus.row == row && focus.col == col;
+            (if here { "0" } else { "-1" }, here && focus.requested)
+        })
+    };
 
     // Sticky header: one relative strip that never scrolls.
     let header_cells: Vec<GridView<State, Action>> = spec
@@ -60,6 +121,14 @@ where
         .map(|(c, col)| {
             let click_handler = on_header_click.clone();
             let key_handler = on_header_click.clone();
+            let sort = match options.sorted {
+                Some((sorted, true)) if sorted == c => "descending",
+                Some((sorted, false)) if sorted == c => "ascending",
+                _ => "none",
+            };
+            let (tabindex, requested) = stop(None, c).unwrap_or(("0", false));
+            // Only the tab stop takes Tab focus; the arrows reach the rest.
+            let tab_stop = tabindex == "0";
             let header_cell = placed_with(
                 Placement::new(spec.col_x(c), 0.0),
                 format!("width: {}px; height: {}px;", col.width, spec.header_height),
@@ -68,17 +137,22 @@ where
             .attr("class", "grid-header-cell")
             .attr("role", "columnheader")
             .attr("aria-colindex", (c + 1).to_string())
-            .attr("tabindex", "0");
-            Box::new(on_key(
-                on_click(header_cell, move |s: &mut State, _: PointerClick| {
-                    click_handler(s, c)
-                }),
-                move |s: &mut State, event| {
-                    if matches!(event.key, Key::Named(NamedKey::Enter | NamedKey::Space)) {
-                        key_handler(s, c);
-                        event.prevent_default();
-                    }
-                },
+            .attr("aria-sort", sort)
+            .attr("tabindex", tabindex);
+            Box::new(request_focus(
+                on_key(
+                    on_click(header_cell, move |s: &mut State, _: PointerClick| {
+                        click_handler(s, c)
+                    }),
+                    move |s: &mut State, event| {
+                        if matches!(event.key, Key::Named(NamedKey::Enter | NamedKey::Space)) {
+                            key_handler(s, c);
+                            event.prevent_default();
+                        }
+                    },
+                )
+                .focusable(tab_stop),
+                requested,
             )) as GridView<State, Action>
         })
         .collect();
@@ -94,8 +168,9 @@ where
             ),
         );
 
-    // Virtualized body: only the window's rows exist; each is placed at its
-    // viewport-relative y (row y minus scroll), cells placed by column.
+    // Virtualized body: only the window's rows exist, each at its own y in a
+    // strip that the scroll offsets. A scroll that keeps the window moves the
+    // strip alone, one style change rather than one per row.
     let window = spec.window(total_rows, viewport_height, scroll);
     let rows: Vec<GridView<State, Action>> = window
         .range()
@@ -105,16 +180,28 @@ where
                 .iter()
                 .enumerate()
                 .map(|(c, col)| {
-                    Box::new(
-                        placed_with(
-                            Placement::new(spec.col_x(c), 0.0),
-                            format!("width: {}px; height: {}px;", col.width, spec.row_height),
-                            cell(r, c),
-                        )
-                        .attr("class", "grid-cell")
-                        .attr("role", "gridcell")
-                        .attr("aria-colindex", (c + 1).to_string()),
-                    ) as GridView<State, Action>
+                    let placed = placed_with(
+                        Placement::new(spec.col_x(c), 0.0),
+                        format!("width: {}px; height: {}px;", col.width, spec.row_height),
+                        cell(r, c),
+                    )
+                    .attr("class", "grid-cell")
+                    .attr("role", "gridcell")
+                    .attr("aria-colindex", (c + 1).to_string());
+                    match stop(Some(r), c) {
+                        // A passive key listener makes the tab stop focusable;
+                        // its keys bubble to the grid's handler.
+                        Some((tabindex, requested)) => Box::new(request_focus(
+                            on_key(
+                                placed.attr("tabindex", tabindex),
+                                |_: &mut State, _: KeyEvent| {},
+                            )
+                            .focusable(tabindex == "0"),
+                            requested,
+                        ))
+                            as GridView<State, Action>,
+                        None => Box::new(placed) as GridView<State, Action>,
+                    }
                 })
                 .collect();
             let zebra = if r % 2 == 0 {
@@ -130,7 +217,7 @@ where
             };
             Box::new(
                 placed_with(
-                    Placement::new(0.0, r as f32 * spec.row_height - scroll),
+                    Placement::new(0.0, r as f32 * spec.row_height),
                     format!("width: {width}px; height: {}px;", spec.row_height),
                     cells,
                 )
@@ -141,21 +228,33 @@ where
             ) as GridView<State, Action>
         })
         .collect();
-    let body = el::<_, State, Action>("div", rows).attr("class", "grid-body").attr(
+    let strip = placed_with(
+        Placement::new(0.0, -scroll),
+        format!("width: {width}px; height: 0px;"),
+        rows,
+    )
+    .attr("class", "grid-rows");
+    let body = el::<_, State, Action>("div", strip).attr("class", "grid-body").attr(
         "style",
         format!(
             "position: relative; overflow-x: hidden; overflow-y: hidden; width: {width}px; height: {viewport_height}px;"
         ),
     );
 
-    Box::new(
-        el::<_, State, Action>("div", (header, body))
-            .attr("class", "grid")
-            .attr("role", "grid")
-            .attr("aria-rowcount", (total_rows + 1).to_string())
-            .attr("aria-colcount", spec.columns.len().to_string())
-            .attr("style", format!("display: block; width: {width}px;")),
-    )
+    let grid = el::<_, State, Action>("div", (header, body))
+        .attr("class", "grid")
+        .attr("role", "grid")
+        .attr("aria-rowcount", (total_rows + 1).to_string())
+        .attr("aria-colcount", spec.columns.len().to_string())
+        .attr("style", format!("display: block; width: {width}px;"));
+    // The grid hears every key from its cells but is not a tab stop itself.
+    let handler = move |s: &mut State, event: KeyEvent| on_key_event(s, event);
+    match &options.label {
+        Some(label) => {
+            Box::new(on_key(grid.attr("aria-label", label.clone()), handler).focusable(false))
+        },
+        None => Box::new(on_key(grid, handler).focusable(false)),
+    }
 }
 
 #[cfg(test)]

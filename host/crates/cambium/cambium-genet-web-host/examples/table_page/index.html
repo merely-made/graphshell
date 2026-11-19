@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Graphshell table</title>
+<style>
+  body { margin: 0; background: #f6f5f1; }
+  #table { display: block; width: 960px; height: 600px; }
+</style>
+</head>
+<body>
+<canvas id="table"></canvas>
+<script type="module">
+  import init, { mount_table, report } from './table_page.js';
+  const rows = Number(new URLSearchParams(location.search).get('rows') ?? 10000);
+  try {
+    await init();
+    await mount_table('table', rows);
+    document.body.dataset.mounted = 'yes';
+    // Post the page's own report once its script has run, if a sink listens.
+    const poll = setInterval(async () => {
+      const result = JSON.parse(report());
+      if (!result.done) return;
+      clearInterval(poll);
+      result.columnheaders = document.querySelectorAll('[role="columnheader"]').length;
+      result.gridcells = document.querySelectorAll('[role="gridcell"]').length;
+      result.headers = [...document.querySelectorAll('[role="columnheader"]')]
+        .map(node => node.getAttribute('aria-label') ?? node.textContent);
+      result.sorted = [...document.querySelectorAll('[aria-sort]')]
+        .map(node => node.getAttribute('aria-sort'));
+      document.body.dataset.report = JSON.stringify(result);
+      await fetch('/report', { method: 'POST', body: JSON.stringify(result) }).catch(() => {});
+    }, 250);
+  } catch (error) {
+    document.body.dataset.mounted = 'failed';
+    document.body.dataset.error = String(error);
+    console.error(error);
+  }
+</script>
+</body>
+</html>

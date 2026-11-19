@@ -105,6 +105,7 @@ pub(super) fn definition(kind: &str, x: &str) -> ProjectionDefinition {
             kind: "nodes".into(),
             key: "occurrence_id".into(),
             value: None,
+            sort: Vec::new(),
         },
         encoding: Encoding {
             x: Channel::Field(x.into()),

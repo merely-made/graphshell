@@ -1,0 +1,84 @@
+# The table's headed receipt (table projection plan, T4), driven by role and
+# label through the host's own routing. See examples/table.rs for the command.
+
+log table: opened
+assert text Title
+assert text Pages
+capture opened
+
+# A header click sorts and writes the sort onto the recipe as one undo step.
+click .grid-header-cell @aria-colindex=2
+settle 2
+assert snap sort == pages
+assert snap undo == true
+click .grid-header-cell @aria-colindex=2
+settle 2
+assert snap sort == pages desc
+capture sorted
+undo
+settle 1
+assert snap sort == pages
+
+# The keyboard: Tab enters at a header, arrows walk into the body.
+key Tab
+key ArrowDown
+key ArrowRight
+key ArrowRight
+settle 1
+assert snap focus == 0:2
+capture focused
+
+# The wheel scrolls the body through the host's wheel path.
+wheel 0 600 on .grid-body
+settle 2
+assert snap scroll >= 1
+capture wheeled
+
+# The control: frames drawn with nothing changed, timed the same way.
+idle 120
+wait 300
+
+# Timed scrolling: 2 px a frame for 300 frames, then 40 px for 120.
+cost-begin scroll
+autoscroll 2 300
+wait 900
+autoscroll 40 120
+wait 400
+cost-end
+capture scrolled
+
+# Timed sorts: each sorts at the top of a frame and is timed to that frame.
+cost-begin sort
+sort-next 0
+wait 30
+settle 1
+sort-next 1
+wait 30
+settle 1
+sort-next 3
+wait 30
+settle 1
+sort-next 4
+wait 30
+settle 1
+sort-next 5
+wait 30
+settle 1
+sort-next 0
+wait 30
+settle 1
+sort-next 1
+wait 30
+settle 1
+sort-next 3
+wait 30
+settle 1
+sort-next 4
+wait 30
+settle 1
+sort-next 5
+wait 30
+settle 1
+cost-end
+capture resorted
+log table: done

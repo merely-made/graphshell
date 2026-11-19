@@ -285,6 +285,24 @@ content hash, and the widget layer composites textures. Nothing puts an image in
 
   *Refines D17.*
 
+- **D21. T4 lands with its speed gate open (Mark, 2026-11-19):** "Land it, gate stays
+  open". The table is on main; the 16.7 ms and 100 ms figures of D8 stand and are not met
+  (scroll 104.9 ms, sort 133.8 ms at 10,000 rows on the laptop). T4 is not done until they
+  are.
+
+  Links: summary The table lands on main with D8's speed gate recorded as unmet and still required.
+
+  *Applies D8.*
+
+- **D22. The speed fix is at the cause (Mark, 2026-11-19):** "Incremental restyle and
+  layout". A change to one node should cost one node in Genet and the cambium host; the
+  table does not paint its cells as a layer to get around it. The work is its own lane,
+  outside this plan's repository where it is Genet's.
+
+  Links: summary The table's frame cost is fixed by incremental restyle and layout in Genet and the host, not by painting cells.
+
+  *New.*
+
 ## Findings
 
 - 2026-11-15: adding a slot to a recipe type breaks every repository that builds one as a
@@ -377,6 +395,30 @@ content hash, and the widget layer composites textures. Nothing puts an image in
   (`ports/graphshell/src/projection_compare.rs:88`), so a Table swatch appears there with
   no change in Turnstone.
 
+- 2026-11-19 (T4): before T4 nothing in Graphshell opened a recipe on screen: the
+  compiler's only callers outside the scenes crates were cartography's tests and examples,
+  and the compiler refused every realization but `canvas`
+  (`scenomise/src/projection/validation.rs`). Turnstone's `ports/graphshell` is where a
+  projection workspace runs. T4's table is a Cambium component,
+  `cambium::projection_table`, beside `opened_link`, drawn by the desktop host and the
+  browser host from one fixture (`cambium/examples/support/table_fixture.rs`).
+- 2026-11-19 (T4): a scene's source interning searched the source list once per item
+  (`sceno::Scene::intern_source`, called from `scenomise/src/solve.rs`), which made a
+  compile quadratic: 752 ms at 10,000 rows. The solver now keeps an index; 101 ms.
+- 2026-11-19 (T4): any DOM change in a Cambium host restyles and lays out the whole
+  document and republishes its accessibility tree. One scroll frame of the 480 px table
+  costs about 95 ms of UI time with one mutation and 97 ms with 24; a frame with nothing
+  changed costs 21 to 23 ms. The table's speed gate cannot be met by the table alone
+  ([receipts](../../archive_docs/receipts/2026-11-14_table_projection_plan_receipts.md)).
+- 2026-11-19 (T4): Taproot's role selectors have no token for `grid`, `columnheader` or
+  `gridcell` (Genet's `accesskit_role_token`), so a scenario reaches the table by class
+  and attribute (`click .grid-header-cell @aria-colindex=2`).
+- 2026-11-19 (T4): in Chrome and Firefox the browser host's accessibility mirror held no
+  `columnheader` or `gridcell` element for the table, and Roboto, the only face the page
+  brings, has no arrow glyph for the sorted header.
+- 2026-11-19 (T4): Cambium's runner takes focus from key listeners, not `tabindex`; the
+  grid's roving tab stop marks only the stop's key listener focusable.
+
 ## Progress
 
 - 2026-11-14: plan written with Mark; nothing landed.
@@ -434,3 +476,19 @@ content hash, and the widget layer composites textures. Nothing puts an image in
   rows and cells saved as row and field and keeps them across a sort. Column widths and a
   per-row height wait on rulings. Tests: sceno 43, scenograph 79 with `--features toml`,
   scenomise 251.
+- 2026-11-19: T4 landed with its speed gate open (D21). A reading carries `sort`
+  (`scenograph::SortKey`, field and direction, absent when empty); order-placing families
+  place by it, and a sort on an undisclosed or repeated field, or on a family that does
+  not place by order, is refused. The compiler accepts the `table` realization for the
+  table arrangement. `EditorAction::SetSort` is one undo step and never coalesces.
+  `cambium::projection_table` opens a recipe on `data_grid_with` (sort state, a roving
+  focus, a grid key handler): headers from the fields' names in list order, only the
+  window's rows, header click or Enter sorts, arrows, Home, End and Page keys reach
+  every header and cell, the four viewers draw, and a sort alone re-sorts through the
+  compiler's reading order. `graphshell_client::frozen_table::FrozenTable` is the frozen
+  form. Not met: the speed gate (scroll p95 104.9 ms, sort 133.8 ms at 10,000 rows on
+  the laptop); iMacs and Linux not measured. Headed in Chrome 157 and Firefox 160: scroll
+  frame interval p95 106.8 and 206.0 ms.
+  Distillery's reading literal defaults its later slots first, so the new slot does not
+  break it. Open on the headed pages: the sort arrow has no glyph in the page's font, and
+  the browsers' accessibility mirror showed no column headers or cells.

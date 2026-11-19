@@ -31,6 +31,8 @@ pub mod options;
 pub mod presentation;
 pub mod relationship;
 pub mod seed;
+pub mod sort;
+pub use sort::SortKey;
 pub mod suggestion;
 pub mod swatch;
 pub mod temporal;
@@ -125,6 +127,9 @@ pub struct Reading {
     pub key: String,
     /// The value field for a value-oriented reading.
     pub value: Option<String>,
+    /// Sort keys in priority order; empty keeps the arrangement's own order.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub sort: Vec<SortKey>,
 }
 
 impl Default for Reading {
@@ -133,6 +138,7 @@ impl Default for Reading {
             kind: "nodes".into(),
             key: String::new(),
             value: None,
+            sort: Vec::new(),
         }
     }
 }

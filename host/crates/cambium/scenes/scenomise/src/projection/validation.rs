@@ -91,11 +91,18 @@ pub(super) fn validation_issues(
             "Crystal moves tiles through pin, drop and slide edits",
         ));
     }
-    if definition.appearance.realization != "canvas" {
-        issues.push(CompileIssue::new(
+    // The data grid realizes only a table; the canvas realizes every family.
+    match definition.appearance.realization.as_str() {
+        CANVAS_REALIZATION_ID => {},
+        TABLE_REALIZATION_ID if table => {},
+        TABLE_REALIZATION_ID => issues.push(CompileIssue::new(
             "appearance.realization",
-            "supported realization is canvas",
-        ));
+            "the table realization draws only the table arrangement",
+        )),
+        _ => issues.push(CompileIssue::new(
+            "appearance.realization",
+            "supported realizations are canvas, and table for a table arrangement",
+        )),
     }
     if definition.appearance.theme != "slate" {
         issues.push(CompileIssue::new(
@@ -168,6 +175,7 @@ pub(super) fn validation_issues(
         ));
     }
     issues.extend(super::fields::field_issues(compiler, definition, dataset));
+    issues.extend(super::fields::sort_issues(compiler, definition, dataset));
     issues.extend(occurrence_identity_issues(dataset));
     validate_occurrences(&mut issues, definition, dataset, target.as_ref());
     issues

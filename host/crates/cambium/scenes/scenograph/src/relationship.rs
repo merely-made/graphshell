@@ -94,7 +94,7 @@ pub fn relationship_recipe(
             fields: Vec::new(),
             dynamics: None,
         version: PROJECTION_DEFINITION_VERSION, id: id.into(), label: label.clone(), sources,
-            reading: Reading { kind: "nodes".into(), key: "occurrence_id".into(), value: None },
+            reading: Reading { sort: Vec::new(), kind: "nodes".into(), key: "occurrence_id".into(), value: None },
             encoding: Encoding { x: Channel::Field("order".into()), y: Channel::Constant("0".into()), color: None, label: Some(Channel::Field("label".into())) },
             arrangement: Arrangement { kind: "grid.default".into(), direction: "coordinates".into(), spacing: 16, options: BTreeMap::new() },
             interaction: Interaction { selection: SelectionMode::Single, pan: false, zoom: false },

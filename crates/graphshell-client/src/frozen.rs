@@ -453,7 +453,7 @@ fn summarize(instances: usize, relations: usize, unmet: usize) -> String {
 ///
 /// Names arrive from an adapter and may contain anything; a projection whose
 /// accessible form can be broken by a node called `<b>` is not accessible.
-fn escape(value: &str) -> String {
+pub(crate) fn escape(value: &str) -> String {
     let mut out = String::with_capacity(value.len());
     for character in value.chars() {
         match character {
