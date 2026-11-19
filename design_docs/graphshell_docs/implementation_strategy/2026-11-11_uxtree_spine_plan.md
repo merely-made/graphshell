@@ -3,7 +3,7 @@
 **Status:** 2026-11-18. P0 to P10 landed. P7 landed on Graphshell at `9f3537ac` and on
 Turnstone at `c47ba17a`. P8 landed on Mere at `49d7d473a` and on Graphshell at `4b2ef6c3`.
 P9 landed on Genet at `41e70983a4c`, Graphshell at `f2374e83`, and
-Turnstone at `b72da53f`. P10 landed on Turnstone at `690d6f12`. P11 remains open.
+Turnstone at `b72da53f`. P10 landed on Turnstone at `690d6f12`. P11 is under way.
 The slice 4 cutover moved uxtree, Cambium and E1a to Graphshell's `host/`.
 P0 remains a gate for D1. If it fails, D1 returns to Mark.
 
@@ -387,6 +387,19 @@ exposes the snapshot as a resource and adds no tool that invokes an action.
 
 ### P11. Promotion: `foreign_a11y` and the generic bridge parts move into `cambium-winit-a11y` (touches turnstone.git)
 
+P11 started on 2026-11-19 from Graphshell `e964db7e` and Turnstone `b5cb2fee`.
+Cambium retains the source forest and mints native node IDs, addressing
+each tree and node as a pair. It captures the source admission when the
+platform queues a request. Turnstone owns placement, supplier delivery,
+and the text policy used by diagnostics and P10 exports.
+
+The Windows headed qualification repeats the U6 baseline and adds a
+nested fixture supplier that advertises Click. The Inker surface API at
+`1194c74a` exposes AccessKit updates and requests. Its Servo supplier
+supports the nested-tree observation and declines accessibility actions.
+The headed action fixture exercises the native adapter and records the
+supplier address that receives the request.
+
 The largest change in this work, done as its own phase with headed checks. The retained manager for nested foreign
 forests, `foreign_a11y` (799 non-test lines in ten files in Turnstone), moves into `cambium-winit-a11y` as its
 guest-tree support, delivering the guest half of the diagnostics plan's M4 ("the publisher is ROOT-only and refuses
@@ -571,15 +584,14 @@ Each is a question for a later round, with its evidence. None is answered here.
    combined tree as a user of the helper).
 10. **What does the snapshot's schema version promise?** P10 follows D6 by omitting a schema version.
     The file's `kind` identifies a Turnstone tooling capture. It carries no compatibility promise.
-11. **Can inker surfaces fill an envelope?** The suppliers behind `foreign_a11y` publish AccessKit trees only, and the
-    second brief did not read inker's surface side. Whether a supplier tree's nodes are Scoped, Life or unenveloped
-    (and so reported by the lint) is not known. Also open: the 174-line `turnstone/shell/foreign_a11y.rs`, the supplier
-    side, which D9's 799 lines do not include.
-12. **Which platforms count as headed for P11?** Windows is the primary machine; macOS and Linux are validatable on
-    the other machines. The headed set is not ruled.
+11. **Can inker surfaces fill an envelope?** The pinned surface API supplies an AccessKit tree and actions.
+    Supplier nodes remain unenveloped for lint. Cambium tracks each mounted source and reachable node for
+    action admission. Turnstone owns the supplier lifecycle and placement.
+12. **Which platforms count as headed for P11?** The P11 qualification uses Windows, where the U6 Turnstone
+    and Pelt baselines ran. The nested action check uses that machine's UI Automation adapter.
 13. **Does P11 land before or after the Cambium publish?** The [cambium publish plan](2026-11-05_cambium_publish_plan.md)
-    (D7) publishes the Cambium chain once, from Graphshell, after engine-split P3. P11 changes `cambium-a11y`'s public
-    surface.
+    (D7) covers the registry chain. `cambium-a11y` is a source-only package because it takes the native Genet
+    adapter. P11 can land in Graphshell and Turnstone independently of the registry release.
 
 ## Findings
 

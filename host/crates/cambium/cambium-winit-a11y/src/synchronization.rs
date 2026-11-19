@@ -100,7 +100,7 @@ impl A11yHost {
             contribution_issues,
         };
         if !self.installed {
-            match self.bridge.install(&window, tree) {
+            match crate::forest_publisher::install_native(&mut self.bridge, &window, tree) {
                 Ok(()) => {
                     self.installed = true;
                     self.requests = next;
@@ -124,8 +124,15 @@ impl A11yHost {
             // Keep the app usable on adapter failure; retry installation on the
             // next sync rather than claiming that a failed install succeeded.
             window.set_visible(true);
+        } else if let Err(error) = crate::forest_publisher::submit_root(&mut self.bridge, tree) {
+            self.requests.clear();
+            self.envelopes.clear();
+            self.namespace.clear();
+            outcome = A11yPublicationOutcome::Refused {
+                reason: A11yPublicationRefusal::InvalidTree,
+            };
+            eprintln!("[cambium-winit] accessibility publication refused: {error}");
         } else {
-            self.bridge.update(tree);
             self.requests = next;
             self.envelopes = envelopes;
             self.namespace = namespace;

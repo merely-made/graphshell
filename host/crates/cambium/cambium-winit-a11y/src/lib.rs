@@ -31,20 +31,30 @@ use std::collections::HashMap;
 use accesskit::{Action, ActionData, Affine, NodeId as A11yNodeId, TreeUpdate};
 use cambium_rootstock::{ProducedAction, ProducerRegistry};
 use genet_scripted_dom::NodeId;
-use genet_winit_host::{AccessKitBridge, BridgeStatus};
+use genet_winit_host::AccessKitBridge;
 use layout_dom_api::LayoutDom;
 use sprigging::LeafRegistry;
 use winit::window::Window;
 
 mod action_drain;
 mod bootstrap;
+mod forest_namespace;
+mod forest_publisher;
+mod forest_replay;
+pub mod guest;
 #[cfg(test)]
 mod namespace_tests;
+mod native_addresses;
+mod native_queue;
 mod publication;
 #[cfg(test)]
 mod publication_tests;
 mod remap;
 mod synchronization;
+
+pub use forest_publisher::ForestPublisher;
+pub use genet_winit_host::BridgeStatus;
+pub use native_queue::{ActionQueue, QueuedAction};
 
 /// The screen-reader request vocabulary, re-exported from the neutral seam.
 ///

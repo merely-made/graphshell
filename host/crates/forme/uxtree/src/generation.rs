@@ -36,13 +36,23 @@ impl<K: Eq + Hash, A> GenerationMap<K, A> {
     /// Replace the whole published set. A retained, equivalent admission keeps
     /// its generation. Changed or returning admissions get fresh generations.
     pub fn publish(&mut self, admissions: HashMap<K, A>, mut same: impl FnMut(&A, &A) -> bool) {
+        self.publish_by_key(admissions, |_, old, next| same(old, next));
+    }
+
+    /// Use the publisher's equivalence result for each address. The publisher
+    /// can share that result with its native identity allocator.
+    pub fn publish_by_key(
+        &mut self,
+        admissions: HashMap<K, A>,
+        mut same: impl FnMut(&K, &A, &A) -> bool,
+    ) {
         self.current = admissions
             .into_iter()
             .map(|(key, admission)| {
                 let generation = self
                     .current
                     .get(&key)
-                    .filter(|old| same(&old.admission, &admission))
+                    .filter(|old| same(&key, &old.admission, &admission))
                     .map_or_else(
                         || {
                             self.next_generation = self

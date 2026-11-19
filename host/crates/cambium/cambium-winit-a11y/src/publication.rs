@@ -4,22 +4,17 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 // SPDX-License-Identifier: MPL-2.0
 
-//! Native ROOT publication namespace. Source IDs never enter native routing.
+//! The typed semantic ROOT host's adapter to native address assignment.
 use accesskit::{NodeId, TreeId, TreeUpdate};
 use cambium_rootstock::{A11yRequest, SemanticEnvelope, SemanticNodeIdentity, SemanticPublication};
 use std::collections::HashMap;
-use std::sync::atomic::{AtomicU64, Ordering};
 use uxtree::lint::{FindingKind, StructureIssue};
 
-#[derive(Clone)]
-struct Entry {
-    id: NodeId,
-    identity: SemanticNodeIdentity,
-}
+use crate::native_addresses::NativeAddresses;
 
 #[derive(Default)]
 pub(super) struct NativeIds {
-    entries: HashMap<NodeId, Entry>,
+    entries: NativeAddresses<SemanticNodeIdentity>,
 }
 
 pub(super) struct Prepared {
@@ -38,16 +33,6 @@ pub(super) enum Refusal {
     DanglingReference(NodeId),
     NotATree(NodeId),
     UnreachableNode,
-}
-
-fn allocate_id() -> NodeId {
-    // Process-wide, including across adapter/host destruction and recreation.
-    // Unpublished drafts may consume IDs; no ended publication may recycle one.
-    static NEXT: AtomicU64 = AtomicU64::new(1);
-    NodeId(
-        NEXT.fetch_update(Ordering::Relaxed, Ordering::Relaxed, |id| id.checked_add(1))
-            .expect("native accessibility IDs exhausted"),
-    )
 }
 
 impl NativeIds {
@@ -85,24 +70,18 @@ impl NativeIds {
                 _ => Refusal::IncompleteTree,
             });
         }
-        let mut entries = HashMap::new();
+        let mut entries = NativeAddresses::default();
         for (source, _) in &tree.nodes {
             let identity = bindings
                 .envelopes
                 .get(source)
                 .map(|envelope| envelope.provenance.clone())
                 .ok_or(Refusal::MissingIdentity(*source))?;
-            let id = self
-                .entries
-                .get(source)
-                .filter(|old| old.identity == identity)
-                .map_or_else(allocate_id, |old| old.id);
-            entries.insert(*source, Entry { id, identity });
+            entries.bind(&self.entries, (TreeId::ROOT, *source), identity, false);
         }
         let map = |source: NodeId| {
             entries
-                .get(&source)
-                .map(|entry| entry.id)
+                .get((TreeId::ROOT, source))
                 .ok_or(Refusal::DanglingReference(source))
         };
         for (id, node) in &mut tree.nodes {
@@ -123,10 +102,10 @@ impl NativeIds {
         for (source, mut envelope) in bindings.envelopes {
             // Extra identities without routes were ignored before this change.
             // The request remap above still refuses every dangling route.
-            if let Some(entry) = entries.get(&source) {
-                envelope.address.local = entry.id;
+            if let Some(native) = entries.get((TreeId::ROOT, source)) {
+                envelope.address.local = native;
                 envelope.stability = uxtree::envelope::Stability::Life;
-                envelopes.insert(entry.id, envelope);
+                envelopes.insert(native, envelope);
             }
         }
         Ok(Prepared {
