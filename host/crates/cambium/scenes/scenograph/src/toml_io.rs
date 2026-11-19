@@ -29,7 +29,7 @@ toml_io!(AuthoredProjectionDefinition);
 
 #[cfg(test)]
 mod tests {
-    use crate::{FieldSpec, ProjectionDefinition};
+    use crate::{FieldSpec, ProjectionDefinition, SortKey};
 
     const RECIPE: &str = r#"
 version = 1
@@ -63,7 +63,7 @@ description = "What the note is called"
 [[fields]]
 path = "state"
 name = "State"
-group = "Status"
+section = "Status"
 viewer = "chip"
 
 [interaction]
@@ -92,7 +92,7 @@ note = ""
                     ..FieldSpec::new("title", "Title")
                 },
                 FieldSpec {
-                    group: Some("Status".into()),
+                    section: Some("Status".into()),
                     viewer: Some("chip".into()),
                     ..FieldSpec::new("state", "State")
                 },
@@ -100,12 +100,30 @@ note = ""
         );
         // An absent optional value is absent, not an error, both ways.
         assert_eq!(recipe.reading.value, None);
-        let again = ProjectionDefinition::from_toml(&recipe.to_toml().expect("writes"));
+        let written = recipe.to_toml().expect("writes");
+        // A set of columns is a section; SHACL's `group` is the shape's word (table D7).
+        assert!(written.contains("section = \"Status\"") && !written.contains("group"));
+        let again = ProjectionDefinition::from_toml(&written);
         assert_eq!(again.expect("reads back"), recipe);
         // The carried form holds the same recipe.
         let json = recipe.to_json_bytes().expect("json");
         let carried: ProjectionDefinition = serde_json::from_slice(&json).expect("json reads");
         assert_eq!(carried, recipe);
+    }
+
+    #[test]
+    fn a_several_key_sort_reads_in_priority_order_and_round_trips() {
+        let text = RECIPE.replace(
+            "key = \"id\"\n",
+            "key = \"id\"\n\n[[reading.sort]]\nfield = \"state\"\ndescending = true\n\n[[reading.sort]]\nfield = \"title\"\n",
+        );
+        let recipe = ProjectionDefinition::from_toml(&text).expect("reads");
+        assert_eq!(
+            recipe.reading.sort,
+            [SortKey::descending("state"), SortKey::ascending("title")]
+        );
+        let again = ProjectionDefinition::from_toml(&recipe.to_toml().expect("writes"));
+        assert_eq!(again.expect("reads back"), recipe);
     }
 
     #[test]

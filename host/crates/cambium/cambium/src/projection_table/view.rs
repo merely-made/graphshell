@@ -95,17 +95,30 @@ fn status(table: &ProjectionTable) -> String {
     } else {
         format!("{rows} rows")
     };
-    match table.sorted() {
-        Some((col, descending)) => format!(
-            "{count}, sorted by {}, {}",
-            table.columns()[col].name,
-            if descending {
+    // Every key of a several-key sort, in priority order.
+    let keys: Vec<String> = table
+        .draft()
+        .reading
+        .sort
+        .iter()
+        .map(|key| {
+            let name = table
+                .columns()
+                .iter()
+                .find(|column| column.field == key.field)
+                .map_or(key.field.as_str(), |column| column.name.as_str());
+            let way = if key.descending {
                 "descending"
             } else {
                 "ascending"
-            }
-        ),
-        None => count,
+            };
+            format!("{name}, {way}")
+        })
+        .collect();
+    if keys.is_empty() {
+        count
+    } else {
+        format!("{count}, sorted by {}", keys.join(", then "))
     }
 }
 

@@ -481,6 +481,41 @@ fn a_resort_places_rows_exactly_as_a_fresh_compile_does() {
 }
 
 #[test]
+fn a_several_key_sort_is_one_step_names_every_key_and_drives_the_frozen_form() {
+    let keys = vec![SortKey::descending("read"), SortKey::ascending("pages")];
+    let (dom, mut runner) = runner(open(40));
+    runner.update(|table| table.apply_sort(keys.clone(), 0));
+    {
+        let d = dom.borrow();
+        let mut status = Vec::new();
+        find_role(&d, runner.root(), "status", &mut status);
+        assert_eq!(
+            text(&d, status[0]),
+            "40 rows, sorted by Read, descending, then Pages, ascending"
+        );
+    }
+    let table = runner.state();
+    assert_eq!(table.sorted(), Some((2, true)), "the lead key");
+    let frozen = table.frozen();
+    let ids: Vec<_> = (0..table.row_count())
+        .map(|rank| table.row_id(rank).unwrap().to_owned())
+        .collect();
+    let frozen_ids: Vec<_> = frozen
+        .rows
+        .iter()
+        .map(|row| row.source.id.clone())
+        .collect();
+    assert_eq!(frozen_ids, ids);
+    // ARIA puts aria-sort on one header at a time: the lead key's.
+    let html = frozen.to_html("shelf");
+    assert_eq!(html.matches("aria-sort=").count(), 1);
+    assert!(html.contains("aria-sort=\"descending\">Read</th>"));
+    runner.update(|table| assert!(table.undo()));
+    assert!(runner.state().draft().reading.sort.is_empty());
+    assert!(!runner.state().editor().can_undo());
+}
+
+#[test]
 fn a_refused_sort_is_stepped_back_and_noticed() {
     let mut table = open(10);
     table.apply_sort(vec![SortKey::ascending("colour")], 0);

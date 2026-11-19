@@ -332,6 +332,106 @@ Left from the headed pages (T4):
 
   *New.*
 
+- **D23. A filter is conditions that all hold (Mark, 2026-11-19):** "Conditions that all
+  hold". Each condition is a field, an operator and a value. Every kind takes is, is not, is
+  empty and is not empty; ordered kinds take less than, at most, greater than, at least and
+  between, by the dataset's own order; text takes contains and starts with; a list takes
+  contains an item. There is no OR yet; an any block can be added without changing the saved
+  form.
+
+  Links: summary A reading's filter is a list of field conditions that must all hold.
+
+  *New.*
+
+- **D24. Grouping takes several levels (Mark, 2026-11-19):** "Several levels". Saved as a
+  list of field and direction like the sort, one heading level per key.
+
+  Links: summary A reading's grouping is an ordered list of fields, one heading level each.
+
+  *New.*
+
+- **D25. A group heading is a band in the arrangement (Mark, 2026-11-19):** "Bands in the
+  arrangement". The table arrangement carries each heading's position, label and count and
+  rows skip past it; picking can hit a heading; the grid draws it as a row with one spanning
+  header cell. A heading is not an instance and selecting one selects nothing.
+
+  Links: summary Group headings are bands the table arrangement places, not instances.
+
+  *Applies D1.*
+
+- **D26. Shift adds a sort key (Mark, 2026-11-19):** "Shift+click adds a key". Shift+click
+  or Shift+Enter on a header adds the column as the next key, or flips it if it is already
+  one; a plain click replaces the sort as before. Headers show each key's priority. Pointer
+  clicks carry modifier keys.
+
+  Links: summary Shift+click on a header adds or flips a sort key and a plain click replaces the sort.
+
+  *New.*
+
+- **D27. Groups follow the field's order (Mark, 2026-11-19):** "Field's order, 'No value'
+  last". Ascending or descending by the grouping field's own order, with the rows that have
+  no value in a last group named No value.
+
+  Links: summary Groups are ordered by the grouping field, with a No value group last.
+
+  *New.*
+
+- **D28. A list groups by its whole value (Mark, 2026-11-19):** "Whole value". Each distinct
+  list is one group and a row appears once. A date groups by its exact value; month and year
+  buckets wait for the calendar plan's binning.
+
+  Links: summary Grouping by a list or a date uses the whole value, so a row appears in one group.
+
+  *Applies D1.*
+
+- **D29. Collapse is view state (Mark, 2026-11-19):** "Collapse, as view state". Groups
+  collapse. Which are collapsed is saved beside the table's selection, keyed by group value;
+  it is not in the recipe and not an undo step.
+
+  Links: summary Collapsed groups are view state saved beside the selection, not recipe state.
+
+  *New.*
+
+- **D30. The filter stays in the recipe (Mark, 2026-11-19):** "No, recipe only". The
+  exchanged shape stays the fields list; filter, sort and grouping travel only in the
+  recipe.
+
+  Links: summary Filter, sort and grouping are not written into the exchanged SHACL shape.
+
+  *Applies D2 and D12.*
+
+- **D31. Text matching (Mark, 2026-11-19):** "contains ignores case, is is exact". Contains
+  and starts with ignore case by simple lowercasing; is matches exact bytes.
+
+  Links: summary Text contains and starts-with ignore case; is compares exact bytes.
+
+  *New.*
+
+- **D32. The saved key is section (Mark, 2026-11-19):** "Yes, rename the saved key". A
+  field's `group` is `section` in code and in the saved recipe; `sh:group` is written only
+  in the exchanged shape. No alias for the old key.
+
+  Links: summary A field's column set is saved as section, and sh:group appears only on export.
+
+  *Applies D7.*
+
+- **D33. Host speed fixes first (Mark, 2026-11-19):** "Yes, both now". The accessibility
+  tree is not republished when nothing changed, and the grid's rows are keyed. Both are in
+  Graphshell and are measured again after.
+
+  Links: summary The unchanged-frame accessibility republish and unkeyed grid rows are fixed first, in Graphshell.
+
+  *Applies D22.*
+
+- **D34. Genet's part goes to the session that holds it (Mark, 2026-11-19):** "Hand findings
+  to the Genet session". The measured breakdown and the ordered list go into the incremental
+  relayout adoption plan (`cambium_docs`, 2026-10-17) and to the session holding the
+  uncommitted retained-session work in Genet; no second lane starts beside it.
+
+  Links: summary The Genet speed work is carried by the session already holding the retained-session work.
+
+  *Applies D22.*
+
 ## Findings
 
 - 2026-11-15: adding a slot to a recipe type breaks every repository that builds one as a
@@ -448,6 +548,31 @@ Left from the headed pages (T4):
 - 2026-11-19 (T4): Cambium's runner takes focus from key listeners, not `tabindex`; the
   grid's roving tab stop marks only the stop's key listener focusable.
 
+- 2026-11-19 (T5): a several-key sort is already whole below the headers: the reading holds
+  `Vec<SortKey>`, `sort::order` breaks ties key by key, the compiler refuses an undisclosed
+  or repeated key, `EditorAction::SetSort` takes any list as one step, and the view's
+  sort-only path re-sorts without a compile. Only the header sets one key
+  (`scenograph/src/sort.rs`, `header_click`), and a click cannot ask for more:
+  `PointerClick` carries no modifiers (`cambium/src/event.rs:42`); `KeyEvent` does.
+- 2026-11-19 (T5): ARIA puts `aria-sort` on one header at a time, so the grid and the
+  frozen table mark the lead key only; the status line now names every key.
+- 2026-11-19 (T5): timed outside the frame, median of 9 runs (3 at 100,000), release
+  build on the laptop with other lanes building (dev build in brackets). At 10,000 rows: a
+  compile 107 ms (203); a one-key re-sort 6.8 ms (21.5); a date key 22.1 ms; three keys
+  36.8 ms (125); one filtering pass over the sorted rows 4.2 ms (5.3); a compile of the
+  filtered dataset (511 rows kept) 60 ms (45); grouping by one field as a stable partition
+  38 ms (45), or as a leading sort key 30 ms (103). At 100,000: compile 1,286 ms, one key
+  142 ms, three keys 626 ms, filter pass 63 ms, filtered compile 428 ms, group 506 to 615
+  ms. So a filter or grouping that compiles again cannot meet D8's 100 ms at 10,000 on its
+  own; one applied over the reading order, as the sort is, can. Frame cost is separate
+  (D21, D22) and adds about 95 ms a frame today.
+- 2026-11-19 (T5): a date or date-time is parsed on every comparison
+  (`dataset::compare_values`, `parsed_cmp`), which makes a date key about three times a
+  number key; parsing each row's key once before sorting would remove it.
+- 2026-11-19 (T5): the saved fields list called a field's set of columns `group`, the
+  word D7 keeps for the exchanged shape; no saved recipe in Graphshell, Turnstone,
+  Distillery, Knot or Mere carried one.
+
 ## Progress
 
 - 2026-11-14: plan written with Mark; nothing landed.
@@ -528,3 +653,15 @@ Left from the headed pages (T4):
   the desktop, not a clipping fault; the browser mirror lowers `row` and `cell` but not
   `grid`, `columnheader`, `aria-sort` or the index attributes, a gap in Genet's role
   vocabulary.
+- 2026-11-19: T5 stage 1 landed; when it was written the filter,
+  the grouping, heading rows and a several-key header gesture waited on rulings. A field's
+  set of columns is saved as `section` and written as `sh:group` only in the shape (D7).
+  The table's status line names every sort key in priority order. New tests: a
+  several-key sort read from TOML and round-tripped; one undo step, the status line and
+  the frozen form's order for a several-key sort. Totals: scenograph 100 with `--features toml`,
+  scenomise 278 with `--features authoring`, cambium 438, graphshell-client 72.
+- 2026-11-19: T5's forms ruled (D23 to D32). A filter or grouping change takes the table's
+  no-compile path, as the sort does: one shared reading order, then filter, then group (a
+  full compile is 107 ms at 10,000 rows). Speed: the frame's cost was broken down (receipts
+  under `testing/graphshell/frame-cost/`); host fixes go first (D33) and Genet's part is
+  handed over (D34).

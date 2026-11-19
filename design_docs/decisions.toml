@@ -515,6 +515,66 @@ title = "The speed fix is at the cause (Mark, 2026-11-19)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
 summary = "The table's frame cost is fixed by incremental restyle and layout in Genet and the host, not by painting cells."
 
+[decisions."table-projection D23"]
+title = "A filter is conditions that all hold (Mark, 2026-11-19)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "A reading's filter is a list of field conditions that must all hold."
+
+[decisions."table-projection D24"]
+title = "Grouping takes several levels (Mark, 2026-11-19)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "A reading's grouping is an ordered list of fields, one heading level each."
+
+[decisions."table-projection D25"]
+title = "A group heading is a band in the arrangement (Mark, 2026-11-19)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "Group headings are bands the table arrangement places, not instances."
+
+[decisions."table-projection D26"]
+title = "Shift adds a sort key (Mark, 2026-11-19)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "Shift+click on a header adds or flips a sort key and a plain click replaces the sort."
+
+[decisions."table-projection D27"]
+title = "Groups follow the field's order (Mark, 2026-11-19)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "Groups are ordered by the grouping field, with a No value group last."
+
+[decisions."table-projection D28"]
+title = "A list groups by its whole value (Mark, 2026-11-19)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "Grouping by a list or a date uses the whole value, so a row appears in one group."
+
+[decisions."table-projection D29"]
+title = "Collapse is view state (Mark, 2026-11-19)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "Collapsed groups are view state saved beside the selection, not recipe state."
+
+[decisions."table-projection D30"]
+title = "The filter stays in the recipe (Mark, 2026-11-19)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "Filter, sort and grouping are not written into the exchanged SHACL shape."
+
+[decisions."table-projection D31"]
+title = "Text matching (Mark, 2026-11-19)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "Text contains and starts-with ignore case; is compares exact bytes."
+
+[decisions."table-projection D32"]
+title = "The saved key is section (Mark, 2026-11-19)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "A field's column set is saved as section, and sh:group appears only on export."
+
+[decisions."table-projection D33"]
+title = "Host speed fixes first (Mark, 2026-11-19)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "The unchanged-frame accessibility republish and unkeyed grid rows are fixed first, in Graphshell."
+
+[decisions."table-projection D34"]
+title = "Genet's part goes to the session that holds it (Mark, 2026-11-19)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "The Genet speed work is carried by the session already holding the retained-session work."
+
 [decisions."uxtree-spine D1"]
 title = "The spine is federated (Mark, 2026-11-11)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-11_uxtree_spine_plan.md"
