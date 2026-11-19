@@ -280,6 +280,41 @@ fn clicking_a_header_sorts_saves_on_the_recipe_and_is_one_undo_step() {
 }
 
 #[test]
+fn the_sort_indicator_is_a_drawn_box_and_no_glyph() {
+    let (dom, mut runner) = runner(open(200));
+    let pages = {
+        let d = dom.borrow();
+        let mut headers = Vec::new();
+        find_role(&d, runner.root(), "columnheader", &mut headers);
+        headers[1]
+    };
+    let marks = |runner: &GenetAppRunner<_, _, _, ()>| {
+        let d = dom.borrow();
+        let _ = runner;
+        let mut out = Vec::new();
+        let mut stack = vec![pages];
+        while let Some(node) = stack.pop() {
+            if attr(&d, node, "class").starts_with("grid-sort") {
+                out.push(attr(&d, node, "class"));
+            }
+            stack.extend(d.dom_children(node));
+        }
+        (out, text(&d, pages))
+    };
+    assert_eq!(marks(&runner), (vec!["grid-sort".to_owned()], "Pages".to_owned()));
+    runner.dispatch_click(pages, PointerClick::at((1.0, 1.0)));
+    assert_eq!(
+        marks(&runner),
+        (vec!["grid-sort grid-sort-asc".to_owned()], "Pages".to_owned())
+    );
+    runner.dispatch_click(pages, PointerClick::at((1.0, 1.0)));
+    assert_eq!(
+        marks(&runner),
+        (vec!["grid-sort grid-sort-desc".to_owned()], "Pages".to_owned())
+    );
+}
+
+#[test]
 fn the_keyboard_reaches_every_header_and_cell() {
     let (_dom, mut runner) = runner(open(30));
     let key = |runner: &mut GenetAppRunner<_, _, _, ()>, named: NamedKey, ctrl: bool| {

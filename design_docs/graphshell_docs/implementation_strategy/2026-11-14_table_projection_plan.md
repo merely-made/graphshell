@@ -121,14 +121,17 @@ Calls made while building, standing until ruled otherwise:
   own were the alternatives.
 - **The realization's name (T4).** `table`, accepted for the table arrangement only.
 
-Defects on the headed pages (T4):
+Left from the headed pages (T4):
 
-- The sort arrow has no glyph in the font the browser page brings.
-- In Chrome a sliver of a row shows under the header.
-- The browsers' accessibility mirror held no column headers or cells, so the roles are
-  proven on the desktop host only. Taproot has no role names for grid, column header or
-  grid cell.
-- On the desktop a long title is cut without an ellipsis.
+- A long title is cut without an ellipsis. Genet parses `text-overflow` and draws nothing
+  for it; its line-breaking plan (`2026-10-02_livery_line_breaking_plan.md`) holds it as
+  T4 behind S1.3.
+- The browser's accessibility mirror shows rows and cells but no grid, no column header
+  and no `aria-sort`: Genet's role lowering (`genet-render/src/a11y.rs`) has no entry for
+  grid or column header and lowers a grid cell to a cell. Taproot has no role names for
+  them either. Both are Genet's to change.
+- A row partly scrolled out shows as a strip under the header. It is clipped correctly;
+  whether scrolling snaps to whole rows is not ruled.
 
 
 ## Decisions
@@ -518,3 +521,10 @@ Defects on the headed pages (T4):
   Distillery's reading literal defaults its later slots first, so the new slot does not
   break it. Open on the headed pages: the sort arrow has no glyph in the page's font, and
   the browsers' accessibility mirror showed no column headers or cells.
+- 2026-11-19 (T4 defects): the sorted header's arrow is a drawn box (`grid-sort`, CSS borders),
+  not a glyph, so Chrome shows it with Roboto alone; `aria-sort` is unchanged. Not changed:
+  `text-overflow` has no code in Genet's Livery, so a long title is still cut without an
+  ellipsis; the row "sliver" under the header is the partly scrolled row, drawn the same on
+  the desktop, not a clipping fault; the browser mirror lowers `row` and `cell` but not
+  `grid`, `columnheader`, `aria-sort` or the index attributes, a gap in Genet's role
+  vocabulary.

@@ -23,6 +23,13 @@
       if (!result.done) return;
       clearInterval(poll);
       result.columnheaders = document.querySelectorAll('[role="columnheader"]').length;
+      // What the accessibility mirror holds, by role: the grid roles are not
+      // lowered by the browser host yet, so count what is there.
+      const mirror = document.querySelector('[data-cambium-mirror]');
+      result.mirror_roles = {};
+      for (const node of mirror ? mirror.querySelectorAll('[role]') : [])
+        result.mirror_roles[node.getAttribute('role')] = (result.mirror_roles[node.getAttribute('role')] ?? 0) + 1;
+      result.mirror_elements = mirror ? mirror.querySelectorAll('*').length : -1;
       result.gridcells = document.querySelectorAll('[role="gridcell"]').length;
       result.headers = [...document.querySelectorAll('[role="columnheader"]')]
         .map(node => node.getAttribute('aria-label') ?? node.textContent);

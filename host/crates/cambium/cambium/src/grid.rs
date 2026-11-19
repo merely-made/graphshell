@@ -129,10 +129,26 @@ where
             let (tabindex, requested) = stop(None, c).unwrap_or(("0", false));
             // Only the tab stop takes Tab focus; the arrows reach the rest.
             let tab_stop = tabindex == "0";
+            // The sort indicator is a drawn box, not a glyph a font may lack;
+            // `aria-sort` stays the truth and the box is hidden from readers.
+            let indicator = el::<_, State, Action>("span", ())
+                .attr(
+                    "class",
+                    match sort {
+                        "descending" => "grid-sort grid-sort-desc",
+                        "ascending" => "grid-sort grid-sort-asc",
+                        _ => "grid-sort",
+                    },
+                )
+                .attr("aria-hidden", "true");
             let header_cell = placed_with(
                 Placement::new(spec.col_x(c), 0.0),
                 format!("width: {}px; height: {}px;", col.width, spec.header_height),
-                col.title.clone(),
+                (
+                    el::<_, State, Action>("span", col.title.clone())
+                        .attr("class", "grid-header-title"),
+                    indicator,
+                ),
             )
             .attr("class", "grid-header-cell")
             .attr("role", "columnheader")

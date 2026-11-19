@@ -22,6 +22,9 @@ pub const PROJECTION_TABLE_CSS: &str = "\
 .projection-table { display: flex; flex-direction: column; gap: 6px; } \
 .table-caption { font-weight: bold; } \
 .grid-header-cell { padding: 4px 8px; box-sizing: border-box; overflow: hidden; } \
+.grid-sort { display: inline-block; width: 0; height: 0; margin-left: 6px; } \
+.grid-sort-asc { border-left: 4px solid transparent; border-right: 4px solid transparent; border-bottom: 6px solid currentColor; } \
+.grid-sort-desc { border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 6px solid currentColor; } \
 .grid-cell { padding: 2px 8px; box-sizing: border-box; overflow: hidden; white-space: nowrap; } \
 .cell-content { display: flex; align-items: center; gap: 6px; height: 100%; } \
 .cell-chip { padding: 0 6px; border-radius: 8px; } \
@@ -116,15 +119,7 @@ pub fn projection_table<Action: 'static>(
         columns: table
             .columns()
             .iter()
-            .enumerate()
-            .map(|(col, column)| {
-                let arrow = match sorted {
-                    Some((at, true)) if at == col => " \u{2193}",
-                    Some((at, false)) if at == col => " \u{2191}",
-                    _ => "",
-                };
-                GridColumn::new(format!("{}{arrow}", column.name), column.width)
-            })
+            .map(|column| GridColumn::new(column.name.clone(), column.width))
             .collect(),
         row_height: table.row_height(),
         header_height: table.header_height(),
