@@ -396,7 +396,7 @@ impl From<HostDatasetV1> for HostDatasetV2 {
 const ENVELOPE_KEYS: &[&str] = &["schema", "dataset", "relationships", "revisions"];
 const DATASET_KEYS: &[&str] = &["source", "revision", "fields", "occurrences"];
 const BINDING_KEYS: &[&str] = &["authority", "domain", "resource"];
-const OCCURRENCE_KEYS: &[&str] = &["occurrence_id", "source", "values"];
+const OCCURRENCE_KEYS: &[&str] = &["occurrence_id", "source", "values", "classes"];
 const SOURCE_REF_KEYS: &[&str] = &["adapter", "id"];
 const VALUE_KEYS: &[&str] = &["kind", "value"];
 const RELATIONSHIP_KEYS: &[&str] = &[

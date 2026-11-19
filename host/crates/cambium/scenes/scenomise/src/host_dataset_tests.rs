@@ -27,6 +27,7 @@ fn envelope() -> Value {
                 "x": { "kind": "number", "value": x },
                 "y": { "kind": "number", "value": y },
             },
+            "classes": ["sample"],
         })
     };
     json!({
