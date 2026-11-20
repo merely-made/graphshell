@@ -70,7 +70,7 @@ path = "tests/lib.rs"
 version = "1.16.1"
 
 [dependencies.cubecl]
-version = "0.11.1"
+version = "0.11.4"
 features = ["stdlib"]
 default-features = false
 
@@ -117,7 +117,7 @@ features = [
 default-features = false
 
 [dev-dependencies.cubecl]
-version = "0.11.1"
+version = "0.11.4"
 features = ["test-runtime"]
 default-features = false
 
