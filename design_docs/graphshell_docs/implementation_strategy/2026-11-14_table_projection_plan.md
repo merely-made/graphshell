@@ -567,6 +567,17 @@ Left from the headed pages (T4):
 
   *New.*
 
+- **D50. Restyle stops on the element's own children (Mark, 2026-11-20):** "Check the
+  root's own children". Genet's UA sheet gives every table cell `vertical-align: inherit`
+  and every row and row group `border-*-color: inherit`, so D48's document-wide test never
+  stopped in a document holding an HTML table. The restyle stops at a changed element
+  whose inherited and custom values are unchanged when none of its own children
+  explicitly inherits a non-inherited property.
+
+  Links: summary Genet's restyle stops at an element whose inherited values are unchanged when none of its own children explicitly inherits a non-inherited property.
+
+  *Contradicts D48, which it replaces.*
+
 ## Findings
 
 - 2026-11-15: adding a slot to a recipe type breaks every repository that builds one as a
@@ -889,3 +900,8 @@ Left from the headed pages (T4):
   node stayed painted as focused. The frame now refreshes it after its relayout
   (`focus_style_is_stale`). This was the missing highlight after Shift+Enter and on a
   clicked heading; the scenario driver dispatches keys from the frame hook.
+- 2026-11-20: Genet's restyle stop landed (Genet 06c3630b189, D50). At 10,000 rows a
+  scroll frame is 33.1 ms at the 95th percentile (was 51 to 67) and style in a frame where
+  a row arrives is 1.2 ms (was 20 to 30); the 16.7 ms gate is not met, with layout
+  (11.6 ms) and the accessibility publish (6.6 ms) left. Sort to shown is 84 to 102 ms.
+  Numbers and what is next: the incremental relayout adoption plan.

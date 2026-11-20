@@ -209,8 +209,8 @@ Order, with the expected effect of each (estimates until measured):
    frame (21 to about 6 ms); keyed grid rows.
 2. Genet: the form-tree check once per batch, not per mutation (sort style 7.4 to about 2 ms).
 3. Genet: descend in restyle only when the element's inherited or custom values changed
-   (strip-move style 20 to about 0.5 ms). Descend as before when anything in the document
-   explicitly inherits a non-inherited property (table plan D48).
+   (strip-move style 20 to about 0.5 ms). Descend as before when any of
+   the element's own children explicitly inherits a non-inherited property (table plan D50).
 4. P2 and P3 here, carrying the positioned-inset route, with P4's whole-plane passes
    (strip-move layout 24 to about 1 to 2 ms).
 5. Genet: a retained route for inserting or removing an absolutely positioned row in a
@@ -246,9 +246,30 @@ The uncommitted work in Genet's and Graphshell's main checkouts was taken over a
   portable scene when source identity, revision and size are unchanged; export always asks
   for a full scene.
 
-Step 2 is on Genet's main (48e5524aa07): a batch walks each DOM tree for form dependencies
-once. Its effect on a sort is not re-measured yet. Step 3's open point is ruled (table plan
-D48): a document-wide test. Steps 3 to 5 are open and belong to the table plan's session.
+Steps 2 and 3 are on Genet's main. Step 2 (48e5524aa07): a batch walks each DOM tree for
+form dependencies once. Step 3 (06c3630b189, table plan D50): a change to an element's own
+`style` attribute cascades that element alone when its inherited and custom values are
+unchanged and none of its own children explicitly inherits a non-inherited property; restyle
+roots below it are restyled on their own. Steps 4 and 5 are open and belong to the table
+plan's session.
+
+Measured after both, 2026-11-20, same table, release, one run with the machine otherwise
+quiet (`testing/graphshell/frame-cost/after-genet-step3/`):
+
+| | before | after |
+|---|---|---|
+| scroll frame, 95th percentile | 51 to 67 ms | 33.1 ms |
+| style in a frame where a row arrives | 20 to 30 ms | 1.2 ms |
+| layout and text in that frame | 24 to 32 ms | 11.6 ms |
+| accessibility publish in that frame | 14 to 21 ms | 6.6 ms |
+| unchanged frame, 95th percentile | 21 ms | 5.3 ms |
+| sort to shown | 73 ms median | 84 to 102 ms, ten sorts |
+
+The body now scrolls by whole rows (table plan D46), so every changed frame is a window
+shift of one row (83 mutations). The breakdown is one sampled frame, not a distribution.
+The scroll gate (16.7 ms) is not met: layout and the accessibility publish are what is
+left, which is steps 4 to 6. Sort to shown did not improve and sits at the 100 ms gate;
+its style share was not sampled in this run.
 
 ## Decisions for the owner
 
