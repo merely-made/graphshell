@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Add `ComponentRouteSnapshot::node`, the component's current DOM node (`None`
+  until its element is built), kept current through create, move, reveal and
+  replace; `LifecycleEventSink::route(key)` is the lookup. Add
+  `GenetAppRunner::prepare_components(sink, keys, purpose)` and
+  `PreparationPurpose` (`Move`, `Hide`, `Retire`): for each key with a node it
+  commits an active preedit as `prepare_subtree_move` does, returns
+  `LifecycleRefusal::ActiveInteraction` if the subtree still has an active
+  interaction, and for `Hide` and `Retire` clears focus inside the subtree.
 - Narrow `reactive_diagnostics::MAX_CAUSE_EDGES` to crate visibility (no caller
   outside the crate). Add `SettingRowSnapshot::is_unsettled`, true while a row
   is dirty or has a request pending acknowledgement.
