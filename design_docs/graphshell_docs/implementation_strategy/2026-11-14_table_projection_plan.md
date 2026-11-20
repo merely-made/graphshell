@@ -613,6 +613,46 @@ Left from the headed pages (T4):
 
   *Applies D53.*
 
+  The measurement came the same day: the index and overflow rebuilds were about 10% of the
+  route, so the two primitives now repair the indices in place and overflow is recomputed
+  once a batch.
+
+- **D55. The route reads the style session's restyled set (Mark, 2026-11-20):** "Restyled
+  set from the style session". The whole-plane clone, resolve, compare and drop were 45%
+  of the route (5.2 of 11.3 ms on a 546-element fixture) for about ten restyled elements.
+  `IncrementalStyle` reports the elements it re-cascaded; the route resolves and compares
+  only those and patches the previous plane in place. A full-document restyle refuses the
+  route.
+
+  Links: summary The scroll-batch route resolves and compares only the elements the style session re-cascaded, and patches the plane in place.
+
+  *Applies D51.*
+
+- **D56. The box tree waits on a measurement (Mark, 2026-11-20):** "Decide after the other
+  cuts". Regenerating and reconciling the box tree is 20% (2.3 ms); splicing boxes for the
+  entering rows, or reusing ids while generating, is chosen after D55, D57 and D58 are
+  measured on the table.
+
+  Links: summary Whether the scroll-batch route stops rebuilding the box tree is decided after its other cuts are measured.
+
+  *Applies D51.*
+
+- **D57. Check first, then change in place (Mark, 2026-11-20):** "Check first, then change
+  in place". The route no longer clones the layout for rollback (1.1 ms): every check that
+  can refuse runs before the first mutation, and a debug assertion guards the rest.
+
+  Links: summary The scroll-batch route runs every refusing check before its first mutation and changes the published layout in place.
+
+  *Applies D51.*
+
+- **D58. The text frame merges in place (Mark, 2026-11-20):** "Merge in place". Adding a
+  row's shaped text copied the whole frame (1.3 ms); `TextFrame` removes the leaving
+  sources and adds the entering ones without copying the rest.
+
+  Links: summary TextFrame removes leaving sources and adds entering ones in place rather than copying the frame.
+
+  *Applies D51.*
+
 ## Findings
 
 - 2026-11-15: adding a slot to a recipe type breaks every repository that builds one as a
@@ -946,3 +986,11 @@ Left from the headed pages (T4):
   node, and its local formatter refuses any positioned box
   (`supports_retained_root_formatting`), while every row and cell is absolutely
   positioned. Hence D51.
+- 2026-11-20: the scroll-batch route (D51, D53) is written in Genet's `scroll-batch`
+  worktree, not landed. On the table, same session, a busy machine, mean of 142 changed
+  frames: layout 19.0 ms on Genet main against 8.8 ms on the route, which every changed
+  frame took; the whole frame 46.9 against 35.2 ms; scroll at the 95th percentile 58.7
+  against 40.6 ms (the quiet run that morning was 33.1 on main). The accessibility
+  publish, 10.7 ms in these runs, is now the frame's largest cost. What is left in the
+  route is whole-document work: D55 to D58
+  (`testing/graphshell/frame-cost/scroll-batch/`, `scroll-batch-baseline/`).

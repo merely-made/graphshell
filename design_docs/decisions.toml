@@ -675,6 +675,26 @@ title = "Whole index rebuild first (Mark, 2026-11-20)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
 summary = "Buckram's insert and remove rebuild the fragment indices whole; incremental repair waits on a measurement."
 
+[decisions."table-projection D55"]
+title = "The route reads the style session's restyled set (Mark, 2026-11-20)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "The scroll-batch route resolves and compares only the elements the style session re-cascaded, and patches the plane in place."
+
+[decisions."table-projection D56"]
+title = "The box tree waits on a measurement (Mark, 2026-11-20)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "Whether the scroll-batch route stops rebuilding the box tree is decided after its other cuts are measured."
+
+[decisions."table-projection D57"]
+title = "Check first, then change in place (Mark, 2026-11-20)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "The scroll-batch route runs every refusing check before its first mutation and changes the published layout in place."
+
+[decisions."table-projection D58"]
+title = "The text frame merges in place (Mark, 2026-11-20)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "TextFrame removes leaving sources and adds entering ones in place rather than copying the frame."
+
 [decisions."uxtree-spine D1"]
 title = "The spine is federated (Mark, 2026-11-11)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-11_uxtree_spine_plan.md"
