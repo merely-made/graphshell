@@ -232,3 +232,111 @@ fn input_names_and_vectors_are_validated_and_sorted() {
         CompositionInputError::DuplicateLocalInput
     );
 }
+
+fn owned(source: u64, incarnation: u128, domain: &str, revision: u64) -> DependencyStamp {
+    DependencyStamp::new(source, incarnation, domain, revision).unwrap()
+}
+
+fn deps(stamps: Vec<DependencyStamp>) -> InputVector {
+    InputVector::new(stamps, vec![]).unwrap()
+}
+
+fn changed(next: &InputVector, previous: &InputVector) -> Vec<DependencyStamp> {
+    next.changed_since(previous).cloned().collect()
+}
+
+#[test]
+fn changed_since_reports_nothing_for_an_unchanged_vector() {
+    let vector = deps(vec![owned(1, 1, "a", 5), owned(1, 1, "b", 2)]);
+    assert!(changed(&vector, &vector.clone()).is_empty());
+    assert!(changed(&InputVector::default(), &InputVector::default()).is_empty());
+    let with_local = InputVector::new(
+        vec![owned(1, 1, "a", 5)],
+        vec![LocalInputStamp::new("draft", 9).unwrap()],
+    )
+    .unwrap();
+    assert!(
+        changed(&with_local, &deps(vec![owned(1, 1, "a", 5)])).is_empty(),
+        "local stamps are not dependencies"
+    );
+}
+
+#[test]
+fn changed_since_reports_a_new_axis() {
+    let previous = deps(vec![owned(1, 1, "a", 5)]);
+    let next = deps(vec![owned(1, 1, "a", 5), owned(1, 1, "b", 1)]);
+    assert_eq!(changed(&next, &previous), vec![owned(1, 1, "b", 1)]);
+    assert_eq!(changed(&next, &InputVector::default()).len(), 2);
+}
+
+#[test]
+fn changed_since_treats_another_source_or_incarnation_as_a_new_axis() {
+    let previous = deps(vec![owned(1, 1, "a", 5)]);
+    assert_eq!(
+        changed(&deps(vec![owned(2, 1, "a", 5)]), &previous),
+        vec![owned(2, 1, "a", 5)]
+    );
+    assert_eq!(
+        changed(&deps(vec![owned(1, 2, "a", 5)]), &previous),
+        vec![owned(1, 2, "a", 5)],
+        "a restarted owner is a new axis even at the same revision"
+    );
+}
+
+#[test]
+fn changed_since_reports_a_changed_revision_in_either_direction() {
+    let previous = deps(vec![owned(1, 1, "a", 5), owned(1, 1, "b", 2)]);
+    let next = deps(vec![owned(1, 1, "a", 6), owned(1, 1, "b", 2)]);
+    assert_eq!(changed(&next, &previous), vec![owned(1, 1, "a", 6)]);
+    let rolled_back = deps(vec![owned(1, 1, "a", 4), owned(1, 1, "b", 2)]);
+    assert_eq!(changed(&rolled_back, &previous), vec![owned(1, 1, "a", 4)]);
+}
+
+#[test]
+fn changed_since_does_not_report_a_removed_axis() {
+    let previous = deps(vec![owned(1, 1, "a", 5), owned(1, 1, "b", 2)]);
+    let next = deps(vec![owned(1, 1, "a", 5)]);
+    assert!(changed(&next, &previous).is_empty());
+    assert!(changed(&InputVector::default(), &previous).is_empty());
+}
+
+fn record() -> MutationRecord {
+    MutationRecord {
+        reference: cause(1),
+        subject: Subject {
+            owner_id: 1,
+            slot: 2,
+            route_generation: 3,
+            placement_generation: 4,
+        },
+        mutation_cursor_start: 1,
+        mutation_cursor_end: 2,
+        visible: true,
+    }
+}
+
+#[test]
+fn has_gap_is_false_on_a_fresh_queue_and_true_after_either_counter_moves() {
+    let queue = CompositionInputQueue::new().unwrap();
+    assert!(!queue.has_gap());
+    queue.publish(inputs(1, 1), Some(cause(1))).unwrap();
+    assert!(!queue.has_gap(), "ordinary publication is not a gap");
+
+    let dropped = CompositionInputQueue::new().unwrap();
+    for index in 0..=256 {
+        dropped.record_mutation(
+            ComponentKey::from(format!("row-{index}").as_str()),
+            record(),
+        );
+    }
+    assert_eq!(dropped.dropped_mutation_records(), 1);
+    assert_eq!(dropped.generation_exhaustions(), 0);
+    assert!(dropped.has_gap());
+
+    let exhausted = CompositionInputQueue::new().unwrap();
+    exhausted.0.borrow_mut().generation = u64::MAX;
+    assert!(exhausted.publish(inputs(1, 1), None).is_err());
+    assert_eq!(exhausted.dropped_mutation_records(), 0);
+    assert_eq!(exhausted.generation_exhaustions(), 1);
+    assert!(exhausted.has_gap());
+}

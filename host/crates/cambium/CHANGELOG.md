@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Add `InputVector::changed_since`, the dependencies new or changed against a
+  previous vector (by source, owner incarnation and domain), and
+  `CompositionInputQueue::has_gap`, true once mutation records were dropped or
+  a generation was exhausted.
 - Add `SettingRowSnapshot::revision`: advances by one each time a
   `SettingRowSession` call changes anything else in the snapshot, and never
   otherwise (saturating, like the generations), so a consumer can compare

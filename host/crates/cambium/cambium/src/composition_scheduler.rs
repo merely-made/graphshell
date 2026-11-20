@@ -144,6 +144,27 @@ impl InputVector {
     pub fn local(&self) -> &[LocalInputStamp] {
         &self.local
     }
+
+    /// The dependencies of `self` that are new or changed since `previous`: an
+    /// axis (source id, owner incarnation and domain) absent from `previous`,
+    /// or present there with a different revision. An axis only `previous`
+    /// has is not reported.
+    pub fn changed_since<'a>(
+        &'a self,
+        previous: &'a InputVector,
+    ) -> impl Iterator<Item = &'a DependencyStamp> + 'a {
+        self.dependencies.iter().filter(move |dependency| {
+            previous
+                .dependencies
+                .iter()
+                .find(|old| {
+                    old.source_id == dependency.source_id
+                        && old.owner_incarnation == dependency.owner_incarnation
+                        && old.domain == dependency.domain
+                })
+                .is_none_or(|old| old.revision != dependency.revision)
+        })
+    }
 }
 
 /// One complete input table, captured from one coherent product flush.

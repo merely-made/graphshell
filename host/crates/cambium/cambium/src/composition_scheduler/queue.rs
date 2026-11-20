@@ -236,6 +236,12 @@ impl CompositionInputQueue {
         self.0.borrow().generation_exhaustions
     }
 
+    /// True once the queue has lost coverage: a mutation record was dropped or
+    /// a publication was refused at generation exhaustion.
+    pub fn has_gap(&self) -> bool {
+        self.dropped_mutation_records() > 0 || self.generation_exhaustions() > 0
+    }
+
     pub(crate) fn record_mutation(&self, key: ComponentKey, record: MutationRecord) {
         if record.mutation_cursor_end <= record.mutation_cursor_start {
             return;
