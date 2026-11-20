@@ -144,3 +144,7 @@ impl<B: Backend> MereHost<B> {
 #[cfg(test)]
 #[path = "mere_host_pin_tests.rs"]
 mod tests;
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+#[path = "mere_host_arrangement_tests.rs"]
+mod arrangement_tests;
