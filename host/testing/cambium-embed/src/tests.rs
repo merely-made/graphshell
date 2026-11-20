@@ -10,13 +10,13 @@ struct Producer {
     suspended: Rc<Cell<u32>>,
 }
 impl TextureProducer for Producer {
-    fn render(&mut self, _: &crate::ProducerContext<'_>) -> Option<crate::ProducedTexture> {
+    fn render(&mut self, _: &cambium_rootstock::ProducerContext<'_>) -> Option<cambium_rootstock::ProducedTexture> {
         None
     }
     fn portable_scene(
         &mut self,
         frame: &ProducerFrameInfo,
-    ) -> Result<ProducedScene, crate::PortableProducerError> {
+    ) -> Result<ProducedScene, cambium_rootstock::PortableProducerError> {
         let mut scene = Scene::new(frame.logical_size.0 as u32, frame.logical_size.1 as u32);
         scene.push_rect(1., 2., 5., 7., [1., 0., 0., 1.]);
         Ok(ProducedScene {
@@ -24,7 +24,7 @@ impl TextureProducer for Producer {
             source_identity: 18,
             source_revision: 4,
             alpha: netrender::SourceAlpha::Straight,
-            encoding: crate::SourceEncoding::Srgb,
+            encoding: cambium_rootstock::SourceEncoding::Srgb,
         })
     }
     fn suspend(&mut self) {
@@ -167,7 +167,7 @@ fn caller_clock_wakes_are_bounded_by_visibility_and_disposal() {
     a.request_wake(std::time::Duration::from_millis(80));
     assert_eq!(a.next_wake(), None);
 }
-#[cfg(all(feature = "embedding-egui", not(target_arch = "wasm32")))]
+#[cfg(all(feature = "egui", not(target_arch = "wasm32")))]
 #[test]
 fn egui_ime_character_ranges_are_lowered_to_unicode_byte_ranges() {
     let mut input = super::egui::Input::default();
@@ -205,7 +205,7 @@ fn egui_ime_character_ranges_are_lowered_to_unicode_byte_ranges() {
             .is_err()
     );
 }
-#[cfg(all(feature = "embedding-egui", not(target_arch = "wasm32")))]
+#[cfg(all(feature = "egui", not(target_arch = "wasm32")))]
 #[test]
 fn egui_keyboard_text_and_paste_keep_distinct_owners() {
     use super::egui::toolkit::Event;
@@ -229,7 +229,7 @@ fn egui_keyboard_text_and_paste_keep_distinct_owners() {
             .is_empty()
     );
 }
-#[cfg(all(feature = "embedding-egui", not(target_arch = "wasm32")))]
+#[cfg(all(feature = "egui", not(target_arch = "wasm32")))]
 #[test]
 fn egui_copy_and_cut_write_the_selection_and_cut_deletes_it() {
     use super::egui::{EguiClipboard, toolkit};
@@ -315,7 +315,7 @@ fn egui_copy_and_cut_write_the_selection_and_cut_deletes_it() {
         )))])
     );
 }
-#[cfg(all(feature = "embedding-iced", not(target_arch = "wasm32")))]
+#[cfg(all(feature = "iced", not(target_arch = "wasm32")))]
 #[test]
 fn iced_ime_bytes_and_caller_wheel_units_survive_translation() {
     use super::iced::backend::core::{Event, Point, input_method, mouse};
@@ -363,7 +363,7 @@ fn iced_ime_bytes_and_caller_wheel_units_survive_translation() {
         }]
     );
 }
-#[cfg(all(feature = "embedding-iced", not(target_arch = "wasm32")))]
+#[cfg(all(feature = "iced", not(target_arch = "wasm32")))]
 #[test]
 fn iced_printable_key_pairs_text_without_enter_control_text() {
     use super::iced::backend::core::{Event, keyboard};
@@ -414,7 +414,7 @@ fn iced_printable_key_pairs_text_without_enter_control_text() {
         })]
     ));
 }
-#[cfg(all(feature = "embedding-iced", not(target_arch = "wasm32")))]
+#[cfg(all(feature = "iced", not(target_arch = "wasm32")))]
 #[test]
 fn iced_clipboard_requests_pair_with_their_answers() {
     use super::iced::backend::core::{Clipboard, Event, clipboard, keyboard};

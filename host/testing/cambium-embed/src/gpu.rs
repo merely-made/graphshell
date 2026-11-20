@@ -231,7 +231,7 @@ fn decode(v:vec3<f32>)->vec3<f32> {{
             .placement
             .validate()
             .map_err(GpuError::InvalidConfiguration)?;
-        if frame.produced.encoding != crate::SourceEncoding::Srgb {
+        if frame.produced.encoding != cambium_rootstock::SourceEncoding::Srgb {
             return Err(GpuError::InvalidConfiguration(
                 "embedding requires declared sRGB scene encoding",
             ));

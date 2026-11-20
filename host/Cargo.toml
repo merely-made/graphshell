@@ -43,6 +43,7 @@ members = [
     "crates/system/settings-wit",
     "crates/system/surface-api",
     "crates/system/tabard",
+    "testing/cambium-embed",
     "ports/mere-resident",
     "ports/moot",
     "ports/pelt/core",

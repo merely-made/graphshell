@@ -78,8 +78,6 @@ mod owned_layout;
 /// What [`HostOptions::vector_images`] resolves to.
 pub use genet_livery::VectorImage;
 pub use owned_layout::{HostVectors, OwnedLayout, ScrollAlign, ScrollTarget, SemanticStamp};
-#[cfg(feature = "embedding")]
-pub mod embedding;
 pub mod producer;
 mod scene_producer;
 pub use producer::{
