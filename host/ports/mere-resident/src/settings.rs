@@ -515,6 +515,10 @@ pub struct ReservoirLaneSettings {
     /// Profile-local, opt-in and read at resident startup; no executable paths.
     #[serde(skip_serializing_if = "std::ops::Not::not")]
     pub open_web_addresses: bool,
+    /// Carry standalone Graphshell focus and layout into Turnstone on first
+    /// live session open. Profile-local, opt-in and read at resident startup.
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
+    pub turnstone_view_handoff: bool,
 }
 
 impl ReservoirLaneSettings {
@@ -538,6 +542,7 @@ impl Default for ReservoirLaneSettings {
             enabled: true,
             persona: None,
             open_web_addresses: false,
+            turnstone_view_handoff: false,
         }
     }
 }
@@ -1243,6 +1248,20 @@ mod tests {
             OwnerSettings::load(&path).is_err(),
             "a misspelled lane key must fail loudly; silently ignoring it \
              would leave the owner believing a lane was configured"
+        );
+    }
+
+    #[test]
+    fn turnstone_view_handoff_requires_an_owner_setting() {
+        let old: OwnerSettings = serde_json::from_str(r#"{"reservoir":{"enabled":true}}"#).unwrap();
+        assert!(!old.reservoir.turnstone_view_handoff);
+        let opted_in: OwnerSettings =
+            serde_json::from_str(r#"{"reservoir":{"turnstone_view_handoff":true}}"#).unwrap();
+        assert!(opted_in.reservoir.turnstone_view_handoff);
+        assert_eq!(
+            serde_json::from_value::<OwnerSettings>(serde_json::to_value(&opted_in).unwrap())
+                .unwrap(),
+            opted_in
         );
     }
 

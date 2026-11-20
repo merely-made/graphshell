@@ -145,6 +145,7 @@ struct Routes {
     reserved: BTreeSet<String>,
     unregistered: Unregistered,
     handlers: HandlerRegistry,
+    turnstone_view_handoff: bool,
     profile_lookup: Option<ProfileLookup>,
     /// The dialable projection host's catalog, when one serves these routes
     /// to remote peers (remote mere route admission note, §6).
@@ -252,6 +253,7 @@ impl MereRoutes {
                 reserved: BTreeSet::from(["divination".to_string(), personal_facts::DOMAIN.to_string()]),
                 unregistered: Unregistered::default(),
                 handlers: HandlerRegistry::default(),
+                turnstone_view_handoff: false,
                 profile_lookup: None,
                 remote: None,
                 served: Mutex::new(BTreeMap::new()),
@@ -269,6 +271,14 @@ impl MereRoutes {
         Arc::get_mut(&mut self.inner)
             .expect("configure handlers before serving routes")
             .handlers = handlers;
+        self
+    }
+
+    /// Enable the owner's local Graphshell-to-Turnstone view handoff.
+    pub fn with_turnstone_view_handoff(mut self, enabled: bool) -> Self {
+        Arc::get_mut(&mut self.inner)
+            .expect("configure view handoff before serving routes")
+            .turnstone_view_handoff = enabled;
         self
     }
 
@@ -466,6 +476,8 @@ impl MereRoutes {
             domain: domain.clone(),
             custody_endpoint: self.inner.custody_endpoint.clone(),
             handlers: self.inner.handlers.clone(),
+            turnstone_view_handoff: self.inner.turnstone_view_handoff,
+            attention_write: Mutex::new(()),
             coop_relays: self.inner.coop_relays.clone(),
             validator: installed.map(|installed| installed.validator.clone()),
             admission_validator: installed
@@ -594,7 +606,7 @@ impl AccessEndpoint {
         grants: AppRouteGrants,
         route: &str,
         ambient: bool,
-        retained_ok: bool,
+        local: bool,
     ) -> Result<Self, String> {
         let app = context
             .application()
@@ -609,14 +621,15 @@ impl AccessEndpoint {
             .current()
             .permits(&request.app, &request.route)
             .map_err(|error| error.to_string())?;
+        let handoff = local && !ambient && shared.turnstone_view_handoff && app == "turnstone";
         Ok(Self {
-            endpoint: MereEndpoint::open_mode(shared, context, ambient)?,
+            endpoint: MereEndpoint::open_mode(shared, context, ambient, handoff)?,
             grants,
             request,
             ambient,
             ambient_resources: BTreeMap::new(),
             ambient_disclosed: BTreeSet::new(),
-            retained_ok,
+            retained_ok: local && !ambient,
         })
     }
     fn check(&self) -> Result<(), String> {
@@ -803,6 +816,9 @@ type SharedHost = Arc<Mutex<MereHost<DirectoryBackend>>>;
 struct MereShared {
     custody_endpoint: Option<String>,
     handlers: HandlerRegistry,
+    turnstone_view_handoff: bool,
+    /// Device attention is stored by root graph, which sessions may share.
+    attention_write: Mutex<()>,
     coop_relays: Vec<transport::p2panda_transport::RelayUrl>,
     domain: String,
     validator: Option<pandect::GraphValidator>,
@@ -1088,6 +1104,8 @@ struct MereEndpoint {
     app: String,
     attached: SessionId,
     host: SharedHost,
+    handoff: bool,
+    handoff_checked: Option<SessionId>,
     /// The graph epoch and revision this connection last saw or was told of.
     seen_graph: (SceneEpoch, Revision),
     /// The sessions revision this connection last saw or was told of.
@@ -1107,6 +1125,7 @@ impl MereEndpoint {
         shared: Arc<MereShared>,
         context: &AdmittedEndpointContext,
         ambient: bool,
+        handoff: bool,
     ) -> Result<Self, String> {
         let app = context
             .application()
@@ -1136,6 +1155,8 @@ impl MereEndpoint {
                 app,
                 attached,
                 host,
+                handoff,
+                handoff_checked: None,
                 seen_graph,
                 seen_notes: seen_graph,
                 notes_query: String::new(),
@@ -1818,7 +1839,9 @@ impl MereEndpoint {
     fn invoke_attention(&mut self, intent: IntentInvocation) -> Result<IntentResult, String> {
         let host = Arc::clone(&self.host);
         let app = self.app.clone();
+        let shared = Arc::clone(&self.shared);
         let (result, seen) = run(async move {
+            let _attention = shared.attention_write.lock().await;
             let mut host = host.lock().await;
             if Some(intent.target) != host.session_instance() {
                 let reason = "attention is kept on the session item".to_string();
@@ -1832,10 +1855,14 @@ impl MereEndpoint {
                 return (stale, None);
             }
             let outcome = match serde_json::from_slice::<SetAttentionV1>(&intent.payload) {
-                Ok(payload) if payload.schema == session_item::SET_ATTENTION_SCHEMA => host
-                    .set_attention(&app, &payload.view, payload.state)
+                Ok(payload) if payload.schema == session_item::SET_ATTENTION_SCHEMA => {
+                    async {
+                        host.load_attention().await?;
+                        host.set_attention(&app, &payload.view, payload.state).await
+                    }
                     .await
-                    .map_err(|error| error.to_string()),
+                    .map_err(|error| error.to_string())
+                },
                 Ok(payload) => Err(format!("unknown attention schema {:?}", payload.schema)),
                 Err(error) => Err(format!("invalid attention payload: {error}")),
             };
@@ -2120,11 +2147,28 @@ impl ProjectionSource for MereEndpoint {
             MERE_GRAPH => {
                 let host = Arc::clone(&self.host);
                 let app = self.app.clone();
+                let shared = Arc::clone(&self.shared);
+                let handoff = self.handoff
+                    && self.handoff_checked != Some(self.attached)
+                    && request.version.major == ProtocolVersion::V1.major;
+                let attached = self.attached;
                 let snapshot = run(async move {
+                    let _attention = if handoff {
+                        Some(shared.attention_write.lock().await)
+                    } else {
+                        None
+                    };
                     let mut host = host.lock().await;
+                    if handoff && let Err(error) = host.handoff_turnstone_view().await {
+                        tracing::warn!(session = %attached.as_uuid(), %error,
+                            "could not carry over the standalone view");
+                    }
                     host.through(app, |host| host.snapshot(request))
                         .map_err(|error| error.to_string())
                 })?;
+                if handoff {
+                    self.handoff_checked = Some(attached);
+                }
                 self.seen_graph = (snapshot.scene.epoch, snapshot.scene.revision);
                 Ok(snapshot)
             },

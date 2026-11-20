@@ -5,9 +5,9 @@
 //! Acceptance preparation through ordinary admitted application routes.
 //! No direct store writes and no co-op invitation or edit API is used here.
 use chirograph::*;
-use ostiary::app_admission::{AppId, AppRouteId};
 use graphshell_door::projection::AppBrokerClient;
 use mere_overmap::wire::*;
+use ostiary::app_admission::{AppId, AppRouteId};
 use pandect::CapturedDelta;
 use sceno::InstanceId;
 use serde_json::json;
@@ -81,6 +81,111 @@ async fn attach(c: &mut AppBrokerClient, d: &EndpointDescriptor, id: pandect::Se
         "{reply:?}"
     );
 }
+async fn graph_view(
+    command: &str,
+    domain: &str,
+    id: pandect::SessionId,
+    app: &str,
+    choices: &[String],
+) {
+    assert!(matches!(app, "graphshell" | "turnstone"), "fixture app");
+    let route = format!("mere/{domain}");
+    let declaration = if app == graphshell_door::declaration::APP {
+        graphshell_door::declaration::declaration()
+    } else {
+        ostiary::declaration::AppDeclaration {
+            routes: vec![ostiary::declaration::NamePattern::exact(&route)],
+            ..Default::default()
+        }
+    };
+    let mut client = AppBrokerClient::open_declared_route(
+        AppId::new(app),
+        AppRouteId::new(route).unwrap(),
+        declaration,
+    )
+    .await
+    .unwrap();
+    let descriptor = client.open_session().await.unwrap().descriptor;
+    attach(&mut client, &descriptor, id).await;
+    let request = descriptor.projections[1].request.clone();
+    let mut snapshot = client.snapshot(request.clone()).await.unwrap();
+    let view = format!("{app}.mere");
+    if command == "view" {
+        let [focus, layout] = choices else {
+            panic!("view DOMAIN SESSION APP FOCUS_URL LAYOUT");
+        };
+        let state = incipit::view::ViewIntent {
+            strategy: Some(layout.clone()),
+            ..Default::default()
+        };
+        let target = view_item(&snapshot);
+        invoke(
+            &mut client,
+            &snapshot,
+            target,
+            SET_VIEW_INTENT,
+            serde_json::to_vec(&SetViewV1::new(&view, state)).unwrap(),
+        )
+        .await;
+        snapshot = client.snapshot(request.clone()).await.unwrap();
+        let state = incipit::view::AttentionState {
+            focus: Some(focus.clone()),
+            ..Default::default()
+        };
+        let target = view_item(&snapshot);
+        invoke(
+            &mut client,
+            &snapshot,
+            target,
+            SET_ATTENTION_INTENT,
+            serde_json::to_vec(&SetAttentionV1::new(&view, state)).unwrap(),
+        )
+        .await;
+        snapshot = client.snapshot(request).await.unwrap();
+    } else {
+        assert!(choices.is_empty(), "view-read DOMAIN SESSION APP");
+    }
+    let offer = snapshot
+        .presentation
+        .offers_for(view_item(&snapshot))
+        .unwrap();
+    let bytes = client
+        .resource(snapshot.session.clone(), offer[0].resource)
+        .await
+        .unwrap();
+    let card = serde_json::from_slice::<PortableCardV1>(&bytes).unwrap();
+    let bytes = client
+        .resource(snapshot.session.clone(), card.media[0])
+        .await
+        .unwrap();
+    let material = serde_json::from_slice::<SessionGraphV1>(&bytes).unwrap();
+    assert_eq!(material.session, id);
+    assert_eq!(material.application, app);
+    println!(
+        "{}",
+        json!({
+            "session": id.as_uuid().to_string(),
+            "app": app,
+            "focus": material.attention.get(&view).and_then(|state|state.focus.as_deref()),
+            "layout": material.views.get(&view).and_then(|state|state.strategy.as_deref()),
+        }),
+    );
+}
+
+fn view_item(snapshot: &ProjectionSnapshot) -> InstanceId {
+    snapshot
+        .scene
+        .active_items_in_order()
+        .into_iter()
+        .find(|(_, item)| {
+            snapshot.scene.tables.sources[item.source.0 as usize]
+                .as_ref()
+                .is_some_and(|source| source.adapter == SESSION_ITEM_SOURCE)
+        })
+        .map(|(instance, _)| instance)
+        .expect("the graph must disclose one attached session item")
+}
+
 #[tokio::main]
 async fn main() {
     let args = std::env::args().skip(1).collect::<Vec<_>>();
@@ -107,7 +212,10 @@ async fn main() {
             &s,
             InstanceId(0),
             mere_resident::resident_reservoir::RESERVOIR_ENSURE_MERE_INTENT,
-            serde_json::to_vec(&mere_resident::resident_reservoir::EnsureMereV1::new(domain)).unwrap(),
+            serde_json::to_vec(&mere_resident::resident_reservoir::EnsureMereV1::new(
+                domain,
+            ))
+            .unwrap(),
         )
         .await;
         let (mut c, d) = open(&format!("mere/{domain}")).await;
@@ -196,6 +304,15 @@ async fn main() {
             cards.push(card);
         }
         println!("{}", json!({"snapshot":s,"cards":cards,"graphs":graphs}));
+    } else if matches!(args[0].as_str(), "view" | "view-read") {
+        graph_view(
+            &args[0],
+            domain,
+            pandect::SessionId(uuid::Uuid::parse_str(&args[2]).unwrap()),
+            &args[3],
+            &args[4..],
+        )
+        .await;
     } else if args[0] == "ordinary-add" {
         let id = pandect::SessionId(uuid::Uuid::parse_str(&args[2]).unwrap());
         let (mut c, d) = open(&format!("mere/{domain}")).await;
@@ -248,6 +365,8 @@ async fn main() {
         .await;
         println!("saved");
     } else {
-        panic!("grant | seed DOMAIN | read DOMAIN UUID | ordinary-add DOMAIN UUID URL")
+        panic!(
+            "grant | seed DOMAIN | read DOMAIN UUID | ordinary-add DOMAIN UUID URL | view DOMAIN SESSION APP FOCUS_URL LAYOUT | view-read DOMAIN SESSION APP"
+        )
     }
 }

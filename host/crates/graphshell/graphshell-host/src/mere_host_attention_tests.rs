@@ -233,7 +233,17 @@ fn attention_on_one_device_appears_in_nothing_another_reader_of_the_log_sees() {
 fn attention_is_accepted_on_a_read_only_archive_and_the_log_stays_byte_identical() {
     pollster::block_on(async {
         let backend = MemoryBackend::new();
-        let (host, id) = written(&backend).await;
+        let (mut host, id) = written(&backend).await;
+        host.transact_view(
+            "graphshell",
+            "graphshell.mere",
+            arrangement("grid.default", &[]),
+        )
+        .await
+        .unwrap();
+        host.set_attention("graphshell", "graphshell.mere", attention())
+            .await
+            .unwrap();
         drop(host);
         // The shape an opened codicil has: a stored session marked read-only.
         let manifest_key = format!("sessions/{}/manifest.json", id.as_uuid());
@@ -248,6 +258,9 @@ fn attention_is_accepted_on_a_read_only_archive_and_the_log_stays_byte_identical
 
         let mut host = open(backend.clone(), id).await;
         assert!(host.graph_session().manifest().codicil_read_only);
+        host.handoff_turnstone_view().await.unwrap();
+        assert_eq!(host.view("turnstone", "turnstone.mere"), None);
+        assert_eq!(host.attention("turnstone", "turnstone.mere"), None);
         let refused = host
             .set_view("graphshell", "canvas", arrangement("timeline.updated", &[]))
             .await;
@@ -271,5 +284,151 @@ fn attention_is_accepted_on_a_read_only_archive_and_the_log_stays_byte_identical
         drop(host);
         let again = open(backend, id).await;
         assert_eq!(again.attention("graphshell", "canvas"), Some(attention()));
+    });
+}
+
+#[test]
+fn view_handoff_copies_only_layout_and_device_focus_once() {
+    pollster::block_on(async {
+        let backend = MemoryBackend::new();
+        let (mut old, id) = written(&backend).await;
+        old.transact_view(
+            "graphshell",
+            "graphshell.mere",
+            arrangement("grid.default", &["old-hidden"]),
+        )
+        .await
+        .unwrap();
+        // The attached host may have cached attention before another holder
+        // of the graph wrote it. The handoff must read the stored slot.
+        let mut target = open(backend.clone(), id).await;
+        old.set_attention("graphshell", "graphshell.mere", attention())
+            .await
+            .unwrap();
+        target.handoff_turnstone_view().await.unwrap();
+        let mut target = open(backend.clone(), id).await;
+        assert_eq!(
+            target.view("turnstone", "turnstone.mere"),
+            Some(arrangement("grid.default", &[]))
+        );
+        assert_eq!(
+            target.attention("turnstone", "turnstone.mere"),
+            Some(AttentionState {
+                focus: Some(FOCUS.to_string()),
+                ..Default::default()
+            })
+        );
+        assert_eq!(
+            target.attention("graphshell", "graphshell.mere"),
+            Some(attention())
+        );
+        assert_eq!(
+            target.view("graphshell", "graphshell.mere"),
+            Some(arrangement("grid.default", &["old-hidden"]))
+        );
+        target
+            .set_attention("turnstone", "turnstone.mere", AttentionState::default())
+            .await
+            .unwrap();
+        let mut target = open(backend, id).await;
+        target.handoff_turnstone_view().await.unwrap();
+        assert_eq!(target.attention("turnstone", "turnstone.mere"), None);
+    });
+}
+
+#[test]
+fn view_handoff_keeps_existing_turnstone_records_even_if_layout_is_opaque() {
+    pollster::block_on(async {
+        let backend = MemoryBackend::new();
+        let (mut host, id) = written(&backend).await;
+        host.transact_view(
+            "graphshell",
+            "graphshell.mere",
+            arrangement("grid.default", &[]),
+        )
+        .await
+        .unwrap();
+        host.set_attention("graphshell", "graphshell.mere", attention())
+            .await
+            .unwrap();
+        let key = ViewKey::new("turnstone", "turnstone.mere").unwrap();
+        let opaque = ViewState::encode(
+            "mere.view-intent/future",
+            &serde_json::json!({"layout":null}),
+        )
+        .unwrap();
+        let author = host.author();
+        host.graph_session_mut()
+            .transact_view(author, key.clone(), opaque.clone(), wall_clock_now())
+            .await
+            .unwrap();
+        let device_choice = AttentionState {
+            camera: Some(CameraSnapshot::IDENTITY),
+            ..Default::default()
+        };
+        host.set_attention("turnstone", "turnstone.mere", device_choice.clone())
+            .await
+            .unwrap();
+        host.handoff_turnstone_view().await.unwrap();
+        let mut reopened = open(backend.clone(), id).await;
+        assert_eq!(reopened.graph_session().view(&key), Some(&opaque));
+        assert_eq!(
+            reopened.attention("turnstone", "turnstone.mere"),
+            Some(device_choice)
+        );
+        // The marker-only commit prevents a later clear from being undone.
+        reopened
+            .set_attention("turnstone", "turnstone.mere", AttentionState::default())
+            .await
+            .unwrap();
+        let mut reopened = open(backend, id).await;
+        reopened.handoff_turnstone_view().await.unwrap();
+        assert_eq!(reopened.attention("turnstone", "turnstone.mere"), None);
+    });
+}
+
+#[test]
+fn view_handoff_refuses_a_competing_layout_without_writing_focus() {
+    pollster::block_on(async {
+        let backend = MemoryBackend::new();
+        let (mut current, id) = written(&backend).await;
+        current
+            .transact_view(
+                "graphshell",
+                "graphshell.mere",
+                arrangement("grid.default", &[]),
+            )
+            .await
+            .unwrap();
+        current
+            .set_attention("graphshell", "graphshell.mere", attention())
+            .await
+            .unwrap();
+        let mut stale = open(backend.clone(), id).await;
+        current
+            .transact_view("turnstone", "turnstone.mere", ViewIntent::default())
+            .await
+            .unwrap();
+        assert!(stale.handoff_turnstone_view().await.is_err());
+        let mut reopened = open(backend, id).await;
+        assert_eq!(
+            reopened.view("turnstone", "turnstone.mere"),
+            Some(ViewIntent::default())
+        );
+        assert_eq!(reopened.attention("turnstone", "turnstone.mere"), None);
+        // A fresh pass carries the missing focus and leaves the default layout.
+        reopened.handoff_turnstone_view().await.unwrap();
+        assert_eq!(
+            reopened.view("turnstone", "turnstone.mere"),
+            Some(ViewIntent::default())
+        );
+        assert_eq!(
+            reopened
+                .attention("turnstone", "turnstone.mere")
+                .unwrap()
+                .focus
+                .as_deref(),
+            Some(FOCUS)
+        );
     });
 }

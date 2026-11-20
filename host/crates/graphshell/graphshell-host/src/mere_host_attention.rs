@@ -10,6 +10,7 @@
 //! it never replicates, and a read-only archive takes it without forking.
 use super::*;
 use incipit::view::{AttentionState, VIEW_INTENT_SCHEMA_V1};
+use muniment::{Codec, JsonCodec, WriteOp};
 
 /// A view state as a [`ViewIntent`]: the current schema, or the one before C7,
 /// whose camera, focus and mirror keys are dropped.
@@ -81,4 +82,114 @@ impl<B: Backend + Clone> MereHost<B> {
         self.projection_revision = self.projection_revision.wrapping_add(1);
         Ok(())
     }
+}
+
+const STANDALONE: (&str, &str) = ("graphshell", "graphshell.mere");
+const TURNSTONE: (&str, &str) = ("turnstone", "turnstone.mere");
+
+impl<B: LegacyTransactionBackend + Clone> MereHost<B> {
+    /// Carry the standalone viewer's saved layout and this device's focus
+    /// into missing Turnstone view records. Only the resident calls this, on
+    /// first open of an admitted local view under the owner's opt-in.
+    pub async fn handoff_turnstone_view(&mut self) -> Result<(), MereHostError> {
+        if self.is_observing()
+            || self.graph_session.ensure_writable().is_err()
+            || self.graph_session.manifest().trashed.is_some()
+        {
+            return Ok(());
+        }
+
+        let backend = self.slots.backend();
+        let slot = self.attention_slot();
+        let layout_marker = format!(
+            "{slot}-turnstone/layout/{}",
+            self.graph_session.id().as_uuid()
+        );
+        // Focus follows its device-local root, even across sibling sessions.
+        let focus_marker = format!("{slot}-turnstone/focus");
+        let prior = backend.get(&slot).await?;
+        let mut attention: BTreeMap<String, AttentionState> = prior
+            .as_deref()
+            .map(JsonCodec::decode)
+            .transpose()?
+            .unwrap_or_default();
+        let layout = self
+            .view(STANDALONE.0, STANDALONE.1)
+            .and_then(|view| view.strategy);
+        let layout = match layout {
+            Some(layout) if backend.get(&layout_marker).await?.is_none() => Some(layout),
+            _ => None,
+        };
+        let focus = attention
+            .get(&entry(STANDALONE.0, STANDALONE.1)?)
+            .and_then(|state| state.focus.clone());
+        let focus = match focus {
+            Some(focus) if backend.get(&focus_marker).await?.is_none() => Some(focus),
+            _ => None,
+        };
+        if layout.is_none() && focus.is_none() {
+            self.bump_if(self.attention != attention);
+            self.attention = attention;
+            return Ok(());
+        }
+
+        // Compare the bytes read above in the same commit as the view entry.
+        // A refused write cannot install half the handoff or mark it done.
+        let mut extra = CommitExtra {
+            expect: vec![(slot.clone(), prior)],
+            ..CommitExtra::default()
+        };
+        if layout.is_some() {
+            record_handoff(&mut extra, layout_marker);
+        }
+        if focus.is_some() {
+            record_handoff(&mut extra, focus_marker);
+        }
+        let destination = ViewKey::new(TURNSTONE.0, TURNSTONE.1)?;
+        let layout = layout.filter(|_| self.graph_session.view(&destination).is_none());
+        let key = entry(TURNSTONE.0, TURNSTONE.1)?;
+        if let std::collections::btree_map::Entry::Vacant(target) = attention.entry(key)
+            && let Some(focus) = focus
+        {
+            target.insert(AttentionState {
+                focus: Some(focus),
+                ..Default::default()
+            });
+            extra.ops.push(WriteOp::Put {
+                key: slot,
+                value: JsonCodec::encode(&attention)?,
+            });
+        }
+
+        let changed = layout.is_some() || self.attention != attention;
+        let author = author_of(&self.selected_persona, TURNSTONE.0);
+        self.graph_session
+            .transact_change_with(
+                wall_clock_now(),
+                false,
+                |_| extra,
+                |candidate| {
+                    if let Some(strategy) = layout {
+                        let view = ViewIntent {
+                            strategy: Some(strategy),
+                            ..Default::default()
+                        };
+                        candidate.set_view_now(author, destination, encode_view(&view))?;
+                    }
+                    Ok(())
+                },
+            )
+            .await?;
+        self.attention = attention;
+        self.bump_if(changed);
+        Ok(())
+    }
+}
+
+fn record_handoff(extra: &mut CommitExtra, marker: String) {
+    extra.expect.push((marker.clone(), None));
+    extra.ops.push(WriteOp::Put {
+        key: marker,
+        value: b"true".to_vec(),
+    });
 }

@@ -1215,6 +1215,7 @@ async fn run(args: Args, events: EventLog) -> Result<(), Box<dyn std::error::Err
     }
     #[cfg(feature = "personal-sync")]
     let address_handlers = owner.reservoir.handlers();
+    let turnstone_view_handoff = owner.reservoir.turnstone_view_handoff;
     #[cfg(feature = "personal-sync")]
     let mut resident = DjinnResident::open_deferred_inference(
         personae.as_ref(),
@@ -1401,6 +1402,7 @@ async fn run(args: Args, events: EventLog) -> Result<(), Box<dyn std::error::Err
                     grants.clone(),
                 )
                 .with_handlers(address_handlers.clone())
+                .with_turnstone_view_handoff(turnstone_view_handoff)
                 .with_custody_endpoint(args.app_endpoint.clone())
                 .with_coop_relays(coop_relays.clone())
                 .with_profile_subject_authority(personae.clone())
