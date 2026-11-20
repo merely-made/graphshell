@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add placement queries in `composition`: `container_keys`, `keys_in_container`
+  and `hidden_keys` (components under any collapsed container).
 - Add `ComponentRouteSnapshot::node`, the component's current DOM node (`None`
   until its element is built), kept current through create, move, reveal and
   replace; `LifecycleEventSink::route(key)` is the lookup. Add

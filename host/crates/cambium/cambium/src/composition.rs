@@ -568,5 +568,8 @@ fn node_key(node: &PlacementNode) -> String {
     }
 }
 
+mod queries;
+pub use queries::{container_keys, hidden_keys, keys_in_container};
+
 #[cfg(test)]
 mod tests;
