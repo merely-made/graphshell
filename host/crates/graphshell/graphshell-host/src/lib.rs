@@ -40,6 +40,7 @@
 //! | `coop` | [`coop`] (the owner, the guest, `control` and `network`; on top of `native` and `custody-client`) |
 //! | `webrtc-session` | `webrtc_session` and [`projection_host`]'s WebRTC door |
 //! | `mere-host` | [`mere_host`], [`coupling_edit`], [`handlers`], [`session_item`], [`resident_host`] (the mere endpoint closure, engine split D68) |
+//! | `pinned-shacl` | [`pinned_shacl`] (native kept-source validation and evidence revision check) |
 //! | `clip` | [`clip`] (graph insertion for a Fleece clip, engine split D100) |
 //! | `test-support` | `mere_host::placement_test_graph`, for products' tests (a dev-dependency feature only) |
 //!
@@ -87,6 +88,8 @@ pub mod mere_host;
 mod mere_host_fixture;
 #[cfg(all(feature = "native", not(target_arch = "wasm32")))]
 pub mod network_carrier;
+#[cfg(all(feature = "pinned-shacl", not(target_arch = "wasm32")))]
+pub mod pinned_shacl;
 #[cfg(all(feature = "native", not(target_arch = "wasm32")))]
 pub mod policy_projection;
 #[cfg(all(feature = "native", not(target_arch = "wasm32")))]
