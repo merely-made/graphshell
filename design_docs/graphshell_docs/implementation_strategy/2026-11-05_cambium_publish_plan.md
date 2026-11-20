@@ -176,6 +176,13 @@ as a ladder, each repository after the one below it has really published (Findin
 
 ## Progress
 
+- 2026-11-20: Genet's P1 metadata landed (Genet `e75a72ce34b`, manifests only, nothing built):
+  the chain's crates name `merely-made/genet`, with the workspace default left at servo/servo
+  for the vendored media crates; `genet-render`, `genet-presenter` and `genet-winit` are
+  publishable; path dependencies between the chain's crates carry versions. Open for the
+  publish list: `genet-presenter`'s `native-webgl` feature takes optional dependencies on
+  `genet-runtime` and `genet-webgl`, both unpublishable; and Genet takes `netrender`,
+  `paint_list_api` and `paint_list_render` by git with a version, so Netrender publishes first.
 - 2026-11-20: survey taken and D8, D9 ruled. P1's remainder started: the embeddings move (D6)
   first, on Graphshell.
 - 2026-11-20: D6 done (Graphshell `9163ad09`). The embedding module is the probe crate

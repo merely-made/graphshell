@@ -741,8 +741,8 @@ presentation PT1. Needs P1–P5.
 
 State, 2026-11-20. Tests: Turnstone's library suite passes (1,433, with 9 ignored), and
 Graphshell's `cambium` (461), `meristem` (47) and `cambium-rootstock` (280) pass.
-`cambium-desktop` has one failure on main, an accessibility Click that does not reach its
-button's handler (Findings, 2026-11-20); it is being fixed. Headed drive: keyboard focus,
+`cambium-desktop` had one failing test on main; its cause was the test, not the host
+(Findings, 2026-11-20), and it passes since Graphshell `edcbe9f5`. Headed drive: keyboard focus,
 pane custody moves and hidden-row accessibility exclusion each have a Turnstone scenario
 that passes and was shown able to fail (`scenarios/settings_focus.scn`,
 `settings_pane_move.scn`, `settings_hidden_a11y.scn`, Turnstone `569e3096`). A free move of
@@ -794,10 +794,15 @@ into its items.
 
 From the runs that followed the survey, the same day:
 
-- **An accessibility Click does not reach its handler in the desktop host.**
-  `cambium-desktop`'s `scenario::semantic_click_and_accessibility_action_reach_the_same_named_control`
-  fails on main, alone and serially: Focus arrives, Click leaves the count at 1. It fails
-  without any change of this plan's.
+- **A `cambium-desktop` test had failed since 2026-11-05 and nothing ran it.**
+  `scenario::semantic_click_and_accessibility_action_reach_the_same_named_control` sent its
+  accessibility Click to a host whose finished lane had asked its window to close. A closing
+  or hidden host refuses accessibility actions (`cambium-rootstock/src/frame/accessibility.rs`
+  348; `d846a992`, raster retention R5a; pinned by rootstock's
+  `hidden_closing_and_unavailable_contexts_consume_gestures_without_later_replay`), and the
+  test discarded the dispatch result. The host is right. The test now asserts the refusal on
+  the closing host and the Click reaching the handler on an open one (`edcbe9f5`). Turnstone
+  shares the admission code and sends its accessibility requests only to open hosts.
 - **Settings has no text-entry row**, which is why the native IME step could not be run (D16).
 - Seen in the Turnstone scenarios and not established as defects: a torn-out window stays
   open after its pane returns to the primary; keyboard focus lands on Undo, Redo, Save
@@ -852,7 +857,12 @@ PT1 is open; D4's force-commit of IME before a move is unchecked in Genet.
 **Changes, by tier.**
 1. No change in behaviour: narrow the unused public items; give the snapshot the unsettled
    test and use it in the seven places; share the label format written twice in Settings and
-   the choice-row helper written twice in Arrange.
+   the choice-row helper written twice in Arrange. Done in Cambium, 2026-11-20 (`4afa8034`):
+   `SettingRowSnapshot::is_unsettled` exists, and of the ten items only `MAX_CAUSE_EDGES`
+   could be narrowed. The route types are in the lifecycle sink's signatures, `RetainedState`
+   is the composition's view state, the two factory types are in its constructor, and the two
+   session types are return types Turnstone calls; `Producer::dropped_events` is the only
+   reader of its counter. So "public with no caller" overstated what a publish leaves loose.
 2. Additions that remove a workaround: a node on the route snapshot; hidden and container key
    queries; the queue naming changed axes and gaps; Turnstone's own generation counter retired
    for the snapshot's. Each needs its shape ruled.
@@ -1177,6 +1187,18 @@ confirmed it.
 
   Links: summary Tier 2 of the API review lands before the Cambium publish, each shape ruled first; tier 3 waits on Arrange.
 
+- **D18, tier 2 is four additions.** Mark, 2026-11-20, chose all four as shaped, each marked
+  recommended. "Prepare by key": the route snapshot carries the component's node, and the
+  runner takes a set of component keys and a purpose (move, hide or retire), commits any
+  preedit, refuses with `ActiveInteraction`, and releases focus inside a hidden or retired
+  subtree. "Placement queries": the containers in a tree, the keys inside a container and the
+  keys hidden by a set of collapsed containers, moved from Turnstone unchanged. "Row change
+  stamp": the row session advances a revision on every observable change and reports it on
+  its snapshot. "Queue names what changed": an input vector yields its new or changed
+  dependencies against a previous one, and the queue answers whether it has a gap.
+
+  Links: summary Tier 2 is prepare-by-key, placement queries, a row change stamp, and the queue naming what changed.
+
 ## Progress
 
 - 2026-10-29: initial composition plan written.
@@ -1228,3 +1250,6 @@ confirmed it.
 - 2026-11-20: P6's tests rerun and three Settings scenarios landed (Turnstone `569e3096`);
   the embeddings left rootstock (cambium-publish D6, Graphshell `9163ad09`); D16 and D17
   ruled. Open in P6: the accessibility Click failure, tier 1 and tier 2 of the review.
+- 2026-11-20: the failing `cambium-desktop` test was the test's fault and is repaired
+  (`edcbe9f5`); tier 1 is done in Cambium (`4afa8034`); D18 names tier 2, now being built.
+  Turnstone's move onto both follows.

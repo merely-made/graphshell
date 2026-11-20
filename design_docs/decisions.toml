@@ -88,6 +88,11 @@ title = "the API review's tier 2 before the publish, tier 3 later"
 source = "design_docs/cambium_docs/implementation_strategy/2026-10-29_cambium_composition_plan.md"
 summary = "Tier 2 of the API review lands before the Cambium publish, each shape ruled first; tier 3 waits on Arrange."
 
+[decisions."cambium-composition D18"]
+title = "tier 2 is four additions"
+source = "design_docs/cambium_docs/implementation_strategy/2026-10-29_cambium_composition_plan.md"
+summary = "Tier 2 is prepare-by-key, placement queries, a row change stamp, and the queue naming what changed."
+
 [decisions."cambium-publish D1"]
 title = "Publish the app's GUI dependencies first (Mark, 2026-11-05)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-05_cambium_publish_plan.md"
