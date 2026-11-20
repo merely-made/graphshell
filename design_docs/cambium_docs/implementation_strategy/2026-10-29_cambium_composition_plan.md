@@ -739,6 +739,16 @@ including window move, keyboard focus, IME commit on move and hidden
 accessibility exclusion. Whole-pane move qualification is shared with
 presentation PT1. Needs P1–P5.
 
+State, 2026-11-20. Tests: Turnstone's library suite passes (1,433, with 9 ignored), and
+Graphshell's `cambium` (461), `meristem` (47) and `cambium-rootstock` (280) pass.
+`cambium-desktop` has one failure on main, an accessibility Click that does not reach its
+button's handler (Findings, 2026-11-20); it is being fixed. Headed drive: keyboard focus,
+pane custody moves and hidden-row accessibility exclusion each have a Turnstone scenario
+that passes and was shown able to fail (`scenarios/settings_focus.scn`,
+`settings_pane_move.scn`, `settings_hidden_a11y.scn`, Turnstone `569e3096`). A free move of
+a window's position has no scenario verb. The native IME step moved to PT1 (D16). The API
+review is written and its tier 1 and tier 2 changes are in hand (D15, D17).
+
 ## Remaining implementation questions
 
 - P4 now supplies synchronous budgets from the bounded Settings consumer.
@@ -781,6 +791,20 @@ into its items.
   admission. No test shows that a hidden Settings row publishes no nodes, and no scenario verb
   asserts absence; `record-uxtree` with an outside check is the nearest tool.
 - **The API review** had no stated product; D15 settles it.
+
+From the runs that followed the survey, the same day:
+
+- **An accessibility Click does not reach its handler in the desktop host.**
+  `cambium-desktop`'s `scenario::semantic_click_and_accessibility_action_reach_the_same_named_control`
+  fails on main, alone and serially: Focus arrives, Click leaves the count at 1. It fails
+  without any change of this plan's.
+- **Settings has no text-entry row**, which is why the native IME step could not be run (D16).
+- Seen in the Turnstone scenarios and not established as defects: a torn-out window stays
+  open after its pane returns to the primary; keyboard focus lands on Undo, Redo, Save
+  arrangement and the switch, which advertise no Focus action; a role selector for "Hide"
+  matches every row's button, so the hidden-row scenario clicks by window position.
+- A fresh resolve of Turnstone failed for a time that day, while the family's move to
+  p2mere 0.12 was half made; Graphshell's main still asked for 0.11 when this was written.
 
 ## API review (2026-11-20, D15)
 
@@ -1134,6 +1158,25 @@ confirmed it.
 
   Links: summary P6's API review reads the API against the plans' adopters and optimizes it for them.
 
+- **D16, the native IME step moves to presentation PT1.** Put to Mark on 2026-11-20 on
+  finding that Settings has only toggle, choice and number rows, so "IME commit on move"
+  cannot be exercised there even by a person. Mark chose "Move it to PT1 (Recommended)":
+  PT1 already shares headed move, focus and IME qualification with P6 and covers panes that
+  hold text; P6 keeps Cambium's synthetic preedit tests as its evidence and closes without
+  the native step. Over a text row in the scenario fixture, keeping P6 open on it, and
+  striking the item. D4's force-commit question travels with it.
+
+  Links: summary The native IME commit-on-move step is PT1's; P6 closes on the synthetic preedit tests.
+
+- **D17, the API review's tier 2 before the publish, tier 3 later.** Put to Mark on
+  2026-11-20 with the review's three tiers. Mark chose "Tier 2 now, tier 3 later
+  (Recommended)": the additions that remove Settings' workarounds are made before the
+  publish, each shape brought to Mark before it is built; tier 3 waits until Arrange adopts
+  managed rows. Over doing tiers 2 and 3 now, publishing after tier 1 only, and stopping
+  after tier 1.
+
+  Links: summary Tier 2 of the API review lands before the Cambium publish, each shape ruled first; tier 3 waits on Arrange.
+
 ## Progress
 
 - 2026-10-29: initial composition plan written.
@@ -1182,3 +1225,6 @@ confirmed it.
 - 2026-11-20: the API review is written (API review, D15): who the API serves, what a publish
   would fix in place, what Settings does by hand, and changes in three tiers. Tier 1 is taken
   up; tiers 2 and 3 go to Mark.
+- 2026-11-20: P6's tests rerun and three Settings scenarios landed (Turnstone `569e3096`);
+  the embeddings left rootstock (cambium-publish D6, Graphshell `9163ad09`); D16 and D17
+  ruled. Open in P6: the accessibility Click failure, tier 1 and tier 2 of the review.

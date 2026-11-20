@@ -57,7 +57,7 @@ tempfile = "3"
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
 cambium-desktop.workspace = true
 winit.workspace = true
-wgpu = { version = "30.0.1", default-features = false, features = ["std", "wgsl"] }
+wgpu = { version = "30.0.2", default-features = false, features = ["std", "wgsl"] }
 
 # The browser example's host, render core and bindings. genet-presenter above
 # supplies `genet_render_host`.
