@@ -10,7 +10,7 @@
 //! held images. Unsupported scene operations return errors rather than pixels.
 //! CPU session/storage authority never enters the toolkit rendering callback.
 
-use crate::{
+use cambium_rootstock::{
     ProducedScene, ProducerFrameInfo, ProducerSemantics, ResolvedAppearance, TextureProducer,
 };
 use document_session_api::SessionInput;
@@ -20,13 +20,13 @@ mod gpu;
 mod input;
 pub use gpu::{Gpu, GpuError, TargetConfig};
 pub use input::{OwnerInput, ScrollUnits};
-#[cfg(all(feature = "embedding-egui", not(target_arch = "wasm32")))]
+#[cfg(all(feature = "egui", not(target_arch = "wasm32")))]
 pub mod egui;
-#[cfg(all(feature = "embedding-egui", not(target_arch = "wasm32")))]
+#[cfg(all(feature = "egui", not(target_arch = "wasm32")))]
 mod egui_input;
-#[cfg(all(feature = "embedding-iced", not(target_arch = "wasm32")))]
+#[cfg(all(feature = "iced", not(target_arch = "wasm32")))]
 pub mod iced;
-#[cfg(all(feature = "embedding-iced", not(target_arch = "wasm32")))]
+#[cfg(all(feature = "iced", not(target_arch = "wasm32")))]
 mod iced_input;
 
 /// Coordinates supplied by the toolkit, in its logical pixels. Bounds name the
@@ -273,12 +273,12 @@ impl<P: TextureProducer> View<P> {
     pub fn frame(
         &mut self,
         timestamp: Option<std::time::Duration>,
-    ) -> Result<Frame, crate::PortableProducerError> {
+    ) -> Result<Frame, cambium_rootstock::PortableProducerError> {
         if self.disposed || !self.visible {
-            return Err(crate::PortableProducerError::InvalidSource);
+            return Err(cambium_rootstock::PortableProducerError::InvalidSource);
         }
         let info = ProducerFrameInfo {
-            purpose: crate::ProducerFramePurpose::Presentation,
+            purpose: cambium_rootstock::ProducerFramePurpose::Presentation,
             logical_size: (self.placement.bounds[2], self.placement.bounds[3]),
             physical_size: self.placement.physical_size(),
             layout_scale: self.placement.scale,
