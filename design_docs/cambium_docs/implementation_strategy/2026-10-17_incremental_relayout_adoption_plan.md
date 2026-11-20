@@ -271,6 +271,16 @@ The scroll gate (16.7 ms) is not met: layout and the accessibility publish are w
 left, which is steps 4 to 6. Sort to shown did not improve and sits at the 100 ms gate;
 its style share was not sampled in this run.
 
+Steps 4 and 5 are one step (table plan D51). Because a changed scroll frame always carries
+the strip's inset, rows built and rows removed together, an inset-only route never applies.
+The merged route in `relayout_borrowed_dom` admits a batch that is one absolute element's
+inset change plus inserted and removed absolutely positioned subtrees under one positioned
+containing block, and refuses anything else. It needs a local formatter that takes an
+absolute root with absolute children (today `supports_retained_root_formatting` refuses any
+positioned box), and insert and remove, not only replace, for fragments, boxes and the text
+frame. Expected, until measured: layout 11.6 ms to about 1 to 3 ms, which leaves the frame
+near 20 ms until step 6's accessibility publish.
+
 ## Decisions for the owner
 
 1. Approve the Genet extraction (P2) as the route, versus owning a Rootstock-side copy of the

@@ -578,6 +578,16 @@ Left from the headed pages (T4):
 
   *Contradicts D48, which it replaces.*
 
+- **D51. One retained route for a scroll batch (Mark, 2026-11-20):** "Merge steps 4 and
+  5". Since D46 every scroll frame that changes anything moves the strip and swaps rows,
+  so the adoption plan's inset-only step never applies to the table. Genet gets one route
+  for the whole batch: translate the strip, lay out each arriving absolutely positioned
+  row on its own, drop the leaving rows. Anything else falls back to the full layout.
+
+  Links: summary Genet handles a scroll batch (strip moved, rows arrived and left) in one retained route; the adoption plan's steps 4 and 5 are one step.
+
+  *Refines D46.*
+
 ## Findings
 
 - 2026-11-15: adding a slot to a recipe type breaks every repository that builds one as a
@@ -905,3 +915,9 @@ Left from the headed pages (T4):
   a row arrives is 1.2 ms (was 20 to 30); the 16.7 ms gate is not met, with layout
   (11.6 ms) and the accessibility publish (6.6 ms) left. Sort to shown is 84 to 102 ms.
   Numbers and what is next: the incremental relayout adoption plan.
+- 2026-11-20: with whole-row scrolling (D46) no scroll frame only moves the strip: a
+  changed frame carries the strip's `top`, one or two rows built and one or two removed
+  (83 mutations). Genet's inset route admits one changed element and no added or removed
+  node, and its local formatter refuses any positioned box
+  (`supports_retained_root_formatting`), while every row and cell is absolutely
+  positioned. Hence D51.
