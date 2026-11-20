@@ -298,10 +298,43 @@ fn product_click_verbs_share_the_lanes_scroll_and_dispatch_wait() {
     assert_eq!(h.state().count, 1);
 }
 
+/// A harness that has laid out but is still open: a finished lane has asked
+/// its window to close, and a closing host refuses accessibility actions.
+fn open_harness() -> Harness<App, Logic, Child> {
+    let mut h = Harness::with_hooks(
+        Init {
+            state: App::default(),
+            logic: root as Logic,
+            sheet: SHEET.into(),
+            fonts: Vec::new(),
+            images: Vec::new(),
+        },
+        inert_hooks(),
+    );
+    h.layout_at(300.0, 200.0);
+    h
+}
+
+fn shared_action(
+    h: &mut Harness<App, Logic, Child>,
+) -> (accesskit::NodeId, genet_scripted_dom::NodeId) {
+    let (tree, map) = h.a11y_tree();
+    let (id, node) = tree
+        .nodes
+        .iter()
+        .find(|(_, node)| {
+            node.role() == accesskit::Role::Button && node.label() == Some("Shared action")
+        })
+        .expect("the accessible name selected by automation is published to AccessKit");
+    assert!(node.bounds().is_some(), "the control has real host bounds");
+    (*id, map[id])
+}
+
 #[test]
 fn semantic_click_and_accessibility_action_reach_the_same_named_control() {
+    use cambium_rootstock::{A11yDispatch, A11yRejection};
     for json_receipt in [false, true] {
-        let (receipt, mut h) = run_lane(
+        let (receipt, mut finished) = run_lane(
             &scratch(&format!("semantic-name-{json_receipt}")),
             "click role:button Shared action\nassert snap count == 1\n",
             SHEET,
@@ -311,24 +344,32 @@ fn semantic_click_and_accessibility_action_reach_the_same_named_control() {
             receipt.starts_with("RESULT ok") || receipt.contains("\"ok\": true"),
             "{receipt}",
         );
-        let (tree, map) = h.a11y_tree();
-        let (id, node) = tree
-            .nodes
-            .iter()
-            .find(|(_, node)| {
-                node.role() == accesskit::Role::Button && node.label() == Some("Shared action")
-            })
-            .expect("the accessible name selected by automation is published to AccessKit");
-        assert!(node.bounds().is_some(), "the control has real host bounds");
-        let target = map[id];
-        h.a11y_request(cambium_winit_a11y::A11yAction::Focus, target);
-        assert_eq!(h.state().count, 1, "reader focus must not activate");
+        // The lane's last step asks its window to close; that host refuses.
+        assert!(finished.close_requested());
+        let (_, closing) = shared_action(&mut finished);
+        assert_eq!(
+            finished.a11y_request(cambium_winit_a11y::A11yAction::Click, closing),
+            A11yDispatch::Rejected(A11yRejection::Unavailable),
+        );
+        assert_eq!(finished.state().count, 1, "a closing host takes no action");
+
+        // The same control, named the same way, on a host that is open.
+        let mut h = open_harness();
+        let (_, target) = shared_action(&mut h);
+        assert_eq!(
+            h.a11y_request(cambium_winit_a11y::A11yAction::Focus, target),
+            A11yDispatch::Dispatched,
+        );
+        assert_eq!(h.state().count, 0, "reader focus must not activate");
         assert_eq!(h.focus(), Some(target));
-        h.a11y_request(cambium_winit_a11y::A11yAction::Click, target);
+        assert_eq!(
+            h.a11y_request(cambium_winit_a11y::A11yAction::Click, target),
+            A11yDispatch::Dispatched,
+        );
         assert_eq!(
             h.state().count,
-            2,
-            "the accessibility action reaches the same handler"
+            1,
+            "the accessibility action reaches the handler the scenario click reached"
         );
     }
 }
