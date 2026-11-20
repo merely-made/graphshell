@@ -18,7 +18,7 @@ use std::sync::{
 use serde::{Deserialize, Serialize};
 
 pub const REACTIVE_DIAGNOSTIC_SCHEMA_VERSION: u16 = 1;
-pub const MAX_CAUSE_EDGES: usize = 8;
+pub(crate) const MAX_CAUSE_EDGES: usize = 8;
 
 static NEXT_PRODUCER_ID: AtomicU64 = AtomicU64::new(1);
 

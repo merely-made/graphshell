@@ -64,6 +64,13 @@ pub struct SettingRowSnapshot {
     pub failure: Option<String>,
 }
 
+impl SettingRowSnapshot {
+    /// True while the row has an unsaved edit or a request awaiting acknowledgement.
+    pub fn is_unsettled(&self) -> bool {
+        self.dirty || self.pending_generation.is_some()
+    }
+}
+
 impl fmt::Debug for SettingRowSnapshot {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("SettingRowSnapshot")
@@ -82,6 +89,10 @@ impl fmt::Debug for SettingRowSnapshot {
             .finish()
     }
 }
+
+#[cfg(test)]
+#[path = "setting_row_session_tests.rs"]
+mod tests;
 
 #[derive(Clone)]
 pub struct SettingRowSession(Rc<RefCell<SessionState>>);

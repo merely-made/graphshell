@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Narrow `reactive_diagnostics::MAX_CAUSE_EDGES` to crate visibility (no caller
+  outside the crate). Add `SettingRowSnapshot::is_unsettled`, true while a row
+  is dirty or has a request pending acknowledgement.
 - Fix `OnClick` ignoring a change of `.capture()` on rebuild: the listener now
   re-registers in the new phase, as `OnKey` already did.
 - Move click, key and focus listeners onto genet's event layer (native event
