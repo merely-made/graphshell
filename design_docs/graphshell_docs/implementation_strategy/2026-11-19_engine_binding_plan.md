@@ -1,6 +1,6 @@
 # Engine binding plan: a host view names the Mere revision it shows
 
-**Status:** 2026-11-19: plan. Nothing started. The binding's shape is still an open lane of
+**Status:** 2026-11-19: The E5 finding panel is built. The binding's shape is still an open lane of
 `mere:engine-split P8`; this plan holds the host's done-conditions and decides none of that shape.
 
 **For:** Graphshell's half of the engine-to-workspace contract
@@ -80,5 +80,11 @@ milestone: a page's claims to a SHACL finding"), cited and not copied.
 
 ## Progress
 
+- 2026-11-19: The shared Cambium finding panel displays the focus node, path, severity and
+  message beside the evidence offered by its caller. Opening the finding selects its sole
+  match when there is one, or offers a button per candidate when there are several. The
+  caller owns the current selection and resolves the evidence handle. Cambium's 456 Windows
+  library tests pass, including keyboard activation, multiple candidates and a finding with
+  no matching evidence. E5's native product round trip and pinned-view acceptance remain open.
 - 2026-11-19: plan opened from a review's first point, folded in at Mark's word with Mere's shared
   milestone (`mere:engine-split D184` to `D186`). Nothing built.

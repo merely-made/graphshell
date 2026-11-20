@@ -107,6 +107,7 @@ mod tabs;
 mod tags;
 mod text;
 mod title_bar;
+mod validation_finding;
 mod value;
 mod wheel;
 mod workspace;
@@ -278,6 +279,7 @@ pub use tabs::{
 pub use tags::*;
 pub use text::text;
 pub use title_bar::{TITLE_BAR_CSS, TitleBarSlot, title_bar};
+pub use validation_finding::{ValidationEvidence, ValidationFinding, validation_finding_panel};
 pub use value::{OnValue, OnValueState, ValueEvent, on_value};
 pub use wheel::{OnWheel, WheelEvent, on_wheel};
 pub use workspace::{
