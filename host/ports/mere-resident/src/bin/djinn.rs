@@ -1403,7 +1403,7 @@ async fn run(args: Args, events: EventLog) -> Result<(), Box<dyn std::error::Err
                 )
                 .with_handlers(address_handlers.clone())
                 .with_turnstone_view_handoff(turnstone_view_handoff)
-                .with_custody_endpoint(args.app_endpoint.clone())
+                .with_coop_custody(personae.clone())
                 .with_coop_relays(coop_relays.clone())
                 .with_profile_subject_authority(personae.clone())
                 .with_resident_defaults()

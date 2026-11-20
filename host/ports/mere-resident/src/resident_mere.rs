@@ -130,7 +130,7 @@ use crate::domain_registry::{
 };
 
 struct Routes {
-    custody_endpoint: Option<String>,
+    coop_custody: Option<Arc<dyn dramatis_resident::custody_host::ResidentCustody>>,
     coop_relays: Vec<transport::p2panda_transport::RelayUrl>,
     shared_root: PathBuf,
     persona: PersonaId,
@@ -241,7 +241,7 @@ impl MereRoutes {
     ) -> Self {
         Self {
             inner: Arc::new(Routes {
-                custody_endpoint: None,
+                coop_custody: None,
                 coop_relays: Vec::new(),
                 shared_root,
                 persona,
@@ -282,13 +282,15 @@ impl MereRoutes {
         self
     }
 
-    /// The daemon's own custody door. Embedded compositions that do not
-    /// serve custody leave co-op controls absent rather than borrowing another
-    /// resident's identity from process-global configuration.
-    pub fn with_custody_endpoint(mut self, endpoint: String) -> Self {
+    /// Compose the resident's custodian for admitted local co-op commands.
+    /// An embedded mere without this authority serves no owner controls.
+    pub fn with_coop_custody(
+        mut self,
+        custody: Arc<dyn dramatis_resident::custody_host::ResidentCustody>,
+    ) -> Self {
         Arc::get_mut(&mut self.inner)
             .expect("compose custody before serving")
-            .custody_endpoint = Some(endpoint);
+            .coop_custody = Some(custody);
         self
     }
 
@@ -474,7 +476,7 @@ impl MereRoutes {
             .map_err(|error| error.to_string())?;
         let shared = Arc::new(MereShared {
             domain: domain.clone(),
-            custody_endpoint: self.inner.custody_endpoint.clone(),
+            coop_custody: self.inner.coop_custody.clone(),
             handlers: self.inner.handlers.clone(),
             turnstone_view_handoff: self.inner.turnstone_view_handoff,
             attention_write: Mutex::new(()),
@@ -517,7 +519,7 @@ impl MereRoutes {
             register_mere_routes(&mut remote, &route, &ambient, &shared, &grants, false)
                 .map_err(|error| error.to_string())?;
         }
-        if self.inner.custody_endpoint.is_some() {
+        if self.inner.coop_custody.is_some() {
             let coop_route = ResidentEndpointRoute::new(format!("coop/{domain}"), MERE_NOTICE_POLL)
                 .map_err(|e| e.to_string())?;
             let coop_shared = shared.clone();
@@ -814,7 +816,7 @@ type SharedHost = Arc<Mutex<MereHost<DirectoryBackend>>>;
 /// One mere's store, and the host of each of its sessions an application has
 /// attached to.
 struct MereShared {
-    custody_endpoint: Option<String>,
+    coop_custody: Option<Arc<dyn dramatis_resident::custody_host::ResidentCustody>>,
     handlers: HandlerRegistry,
     turnstone_view_handoff: bool,
     /// Device attention is stored by root graph, which sessions may share.
@@ -2375,6 +2377,35 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(endpoint.describe().projections.len(), 1);
+
+        crate::applications::install(
+            &fixture.grants,
+            vec![crate::applications::grant_for(
+                &AppId::new("turnstone"),
+                &mere_client(),
+                None,
+            )],
+        );
+        assert!(
+            fixture
+                .grants
+                .current()
+                .admit(&declared("turnstone", route))
+                .is_ok()
+        );
+        let endpoint = fixture
+            .catalog
+            .update(|catalog| catalog.open(route, &context("turnstone")))
+            .await
+            .unwrap();
+        assert_eq!(endpoint.describe().projections.len(), 1);
+        assert!(
+            remote
+                .lock()
+                .unwrap()
+                .open(route, &context("turnstone"))
+                .is_err()
+        );
     }
 
 

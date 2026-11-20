@@ -4,9 +4,16 @@
 // SPDX-License-Identifier: MPL-2.0
 //! Co-op reuses the one resident host of an existing session.
 use super::*;
+use dramatis_resident::custody_host::ResidentCustody;
 use graphshell_host::coop::{self, GraphAuthority, GraphReading, Owner, control, network};
 use personae::IdentityProvider;
 use std::sync::Mutex as SyncMutex;
+
+const TURNSTONE_APP: &str = "turnstone";
+
+#[path = "resident_mere_coop_identity.rs"]
+mod identity;
+use identity::OwnerIdentity;
 
 struct Attached(SharedHost);
 impl GraphAuthority for Attached {
@@ -46,7 +53,7 @@ impl GraphAuthority for Attached {
 }
 struct Activity {
     owner: coop::SharedOwner<DirectoryBackend>,
-    identity: Arc<castellan_client::custody_identity::CustodyIdentity>,
+    identity: Arc<OwnerIdentity>,
     contact: coop::Card,
     ledger: Arc<std::sync::RwLock<notochord::RevocationLedger>>,
     _stop: tokio::sync::oneshot::Sender<()>,
@@ -62,6 +69,12 @@ impl Activities {
     ) -> Result<control::Reply, String> {
         let graph = request.graph();
         let mut activities = self.0.lock().map_err(|_| "co-op activities lock")?;
+        if activities
+            .get(&graph)
+            .is_some_and(|activity| !activity.identity.current())
+        {
+            activities.remove(&graph);
+        }
         if let std::collections::hash_map::Entry::Vacant(entry) = activities.entry(graph) {
             let manifest = run(shared.sessions().list())
                 .map_err(|e| e.to_string())?
@@ -71,19 +84,11 @@ impl Activities {
             if manifest.trashed.is_some() || manifest.codicil_read_only {
                 return Err("choose a live writable graph".into());
             }
-            let endpoint = shared
-                .custody_endpoint
-                .as_deref()
+            let custody = shared
+                .coop_custody
+                .as_ref()
                 .ok_or("co-op custody is not composed")?;
-            let identity = Arc::new(
-                castellan_client::custody_identity::CustodyIdentity::connect_declared_at_timeout(
-                    endpoint,
-                    graphshell_door::declaration::APP,
-                    graphshell_door::declaration::declaration(),
-                    std::time::Duration::from_secs(10),
-                )
-                .map_err(|e| e.to_string())?,
-            );
+            let identity = Arc::new(OwnerIdentity::bind(Arc::clone(custody), graph)?);
             let host = run(shared.host(graph))?;
             let mut owner = run(Owner::attach(
                 shared.backend.clone(),
@@ -94,7 +99,7 @@ impl Activities {
             let live_identity = identity.clone();
             let live_shared = Arc::downgrade(shared);
             owner.set_access_guard(Arc::new(move || {
-                if live_identity.is_locked() {
+                if !live_identity.current() {
                     return false;
                 }
                 let Some(shared) = live_shared.upgrade() else {
@@ -137,7 +142,7 @@ impl Activities {
             });
         }
         let activity = activities.get(&graph).unwrap();
-        if activity.identity.is_locked() {
+        if !activity.identity.current() {
             return Err("identity locked; unlock before using co-op".into());
         }
         let manifest = run(shared.sessions().list())
@@ -189,23 +194,24 @@ pub(super) fn register(
     let route = format!("coop/{}", shared.domain);
     let route_id = route.clone();
     catalog.register(&route, "Graph co-op owner controls", move |context| {
-        if context.application() != Some("graphshell") {
-            return Err("co-op controls belong to the owner Graphshell application".into());
-        }
+        let app = match context.application() {
+            Some(app @ (graphshell_door::declaration::APP | TURNSTONE_APP)) => AppId::new(app),
+            _ => return Err("co-op controls require an admitted local owner application".into()),
+        };
         let shared = shared.clone();
         let grants = grants.clone();
         let route_id = route_id.clone();
         let domain = shared.domain.clone();
         let authorize = Arc::new(move || {
-            let app = AppId::new(graphshell_door::declaration::APP);
+            let policy = grants.current();
             for route in [mere_route_id(&domain), route_id.clone()] {
-                grants
-                    .current()
+                policy
                     .permits(&app, &AppRouteId::new(route).map_err(|e| e.to_string())?)
                     .map_err(|_| "owner application access ended".to_string())?;
             }
             Ok(())
         });
+        authorize()?;
         Ok(control::Endpoint::new(
             context.session().clone(),
             authorize,

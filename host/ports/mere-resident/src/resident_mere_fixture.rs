@@ -158,7 +158,7 @@ pub(super) async fn fixture_inner(
         vec![
             crate::applications::grant_for(&AppId::new("turnstone"), &crate::resident_reservoir::mere_client_declaration(), None),
             crate::applications::grant_for(&AppId::new("knot-editor"), &crate::resident_reservoir::mere_client_declaration(), None),
-            // Graphshell alone holds the co-op routes.
+            // Only Graphshell has a co-op grant in this fixture.
             crate::applications::grant_for(&AppId::new("graphshell"), &mere_client(), None),
         ],
     );
@@ -182,7 +182,7 @@ pub(super) async fn fixture_inner(
         dramatis::view::VaultProtectionView::Ephemeral,
     ));
     let routes = routes
-        .with_custody_endpoint("unused-in-unit-tests".into())
+        .with_coop_custody(owner.clone())
         .with_profile_subject_authority(owner);
     // Mere links no application's authority (cycle breaks P3). A fixture that names no
     // validator gets Mere's defaults and, for its domain, a stand-in that refuses a

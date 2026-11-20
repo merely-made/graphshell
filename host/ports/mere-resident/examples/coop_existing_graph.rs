@@ -186,6 +186,52 @@ fn view_item(snapshot: &ProjectionSnapshot) -> InstanceId {
         .expect("the graph must disclose one attached session item")
 }
 
+fn turnstone_coop_declaration(domain: &str) -> ostiary::declaration::AppDeclaration {
+    use ostiary::declaration::{
+        AppDeclaration, CustodyOperation, CustodyUse, NamePattern, SaltPattern, SaltUse,
+    };
+    let salt = std::str::from_utf8(graphshell_host::coop::TRANSPORT_SALT).unwrap();
+    AppDeclaration {
+        routes: vec![
+            NamePattern::exact(castellan_client::custody::CUSTODY_ROUTE),
+            NamePattern::exact(format!("mere/{domain}")),
+            NamePattern::exact(format!("coop/{domain}")),
+        ],
+        custody: CustodyUse {
+            operations: [
+                CustodyOperation::Status,
+                CustodyOperation::WatchLock,
+                CustodyOperation::Release,
+                CustodyOperation::Attest,
+            ]
+            .into(),
+            salts: vec![SaltUse::persona(SaltPattern::Exact(salt.into()))],
+            ..Default::default()
+        },
+        ..Default::default()
+    }
+}
+
+#[cfg(test)]
+#[test]
+fn turnstone_fixture_grants_only_this_mere_and_its_peer_transport() {
+    let grant = mere_resident::applications::grant_for(
+        &AppId::new("turnstone"),
+        &turnstone_coop_declaration("acceptance"),
+        None,
+    );
+    let routes = serde_json::to_value(&grant.routes).unwrap();
+    assert_eq!(
+        routes,
+        json!([{"exact": "custody"}, {"exact": "mere/acceptance"}, {"exact": "coop/acceptance"}])
+    );
+    assert!(grant.custody.acts.is_empty());
+    assert_eq!(
+        serde_json::to_value(&grant.custody.salts).unwrap(),
+        json!([{"source": "persona", "name": {"exact": "graphshell/endpoint-session/coop/v1"}}])
+    );
+}
+
 #[tokio::main]
 async fn main() {
     let args = std::env::args().skip(1).collect::<Vec<_>>();
@@ -194,11 +240,19 @@ async fn main() {
         // What an owner's yes writes for this declaration (D25), from the
         // resident's own `grant_for`; the harness puts it in the owner
         // settings' `applications` before Djinn starts (engine-split D130).
-        let grant = mere_resident::applications::grant_for(
-            &AppId::new(graphshell_door::declaration::APP),
-            &graphshell_door::declaration::declaration(),
-            None,
-        );
+        let (application, declaration) = match args.get(1).map(String::as_str) {
+            None => (
+                graphshell_door::declaration::APP,
+                graphshell_door::declaration::declaration(),
+            ),
+            Some("turnstone") => (
+                "turnstone",
+                turnstone_coop_declaration(args.get(2).expect("grant turnstone DOMAIN")),
+            ),
+            _ => panic!("grant | grant turnstone DOMAIN"),
+        };
+        let grant =
+            mere_resident::applications::grant_for(&AppId::new(application), &declaration, None);
         println!("{}", serde_json::to_string(&grant).unwrap());
     } else if args[0] == "seed" {
         let (mut reservoir, descriptor) =
@@ -366,7 +420,7 @@ async fn main() {
         println!("saved");
     } else {
         panic!(
-            "grant | seed DOMAIN | read DOMAIN UUID | ordinary-add DOMAIN UUID URL | view DOMAIN SESSION APP FOCUS_URL LAYOUT | view-read DOMAIN SESSION APP"
+            "grant [turnstone DOMAIN] | seed DOMAIN | read DOMAIN UUID | ordinary-add DOMAIN UUID URL | view DOMAIN SESSION APP FOCUS_URL LAYOUT | view-read DOMAIN SESSION APP"
         )
     }
 }
