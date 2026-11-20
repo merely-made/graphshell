@@ -588,6 +588,31 @@ Left from the headed pages (T4):
 
   *Refines D46.*
 
+- **D52. An unchanged frame records nothing (Mark, 2026-11-20):** "Record nothing". A
+  frame whose accessibility publish is skipped as unchanged leaves the last publication
+  observation standing; no skip variant and no counter.
+
+  Links: summary A frame skipped as unchanged adds no accessibility publication record; the last one stands.
+
+  *Applies D33.*
+
+- **D53. Fragment insert and remove live in Buckram (Mark, 2026-11-20):** "Add insert and
+  remove to Buckram". `FragmentTree` had push, translate, resize and replace only, and
+  replacing the strip's subtree drops the strip's static-position record. Buckram gains
+  `insert_subtree` and `remove_subtree`, additive, with its own tests.
+
+  Links: summary Buckram's FragmentTree gains insert_subtree and remove_subtree for D51's route; nothing existing changes.
+
+  *Applies D51.*
+
+- **D54. Whole index rebuild first (Mark, 2026-11-20):** "Whole rebuild first, measure".
+  The two primitives rebuild the document's fragment indices as `replace_subtree` does;
+  incremental repair only if the measurement keeps layout above the 1 to 3 ms target.
+
+  Links: summary Buckram's insert and remove rebuild the fragment indices whole; incremental repair waits on a measurement.
+
+  *Applies D53.*
+
 ## Findings
 
 - 2026-11-15: adding a slot to a recipe type breaks every repository that builds one as a

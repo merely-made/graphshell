@@ -660,6 +660,21 @@ title = "One retained route for a scroll batch (Mark, 2026-11-20)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
 summary = "Genet handles a scroll batch (strip moved, rows arrived and left) in one retained route; the adoption plan's steps 4 and 5 are one step."
 
+[decisions."table-projection D52"]
+title = "An unchanged frame records nothing (Mark, 2026-11-20)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "A frame skipped as unchanged adds no accessibility publication record; the last one stands."
+
+[decisions."table-projection D53"]
+title = "Fragment insert and remove live in Buckram (Mark, 2026-11-20)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "Buckram's FragmentTree gains insert_subtree and remove_subtree for D51's route; nothing existing changes."
+
+[decisions."table-projection D54"]
+title = "Whole index rebuild first (Mark, 2026-11-20)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "Buckram's insert and remove rebuild the fragment indices whole; incremental repair waits on a measurement."
+
 [decisions."uxtree-spine D1"]
 title = "The spine is federated (Mark, 2026-11-11)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-11_uxtree_spine_plan.md"
