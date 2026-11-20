@@ -89,10 +89,12 @@ bans check on `host/` with `host/deny.toml`.
 
 ## What is not here
 
-The engine (Mere's five crates) is in mere.git. The reference application
-(`ports/graphshell`, with `graphshell-mere`, `graphshell-blocks`,
-`graphshell-dramatis-pane` and `graphshell-mcp`) is in Turnstone. `pictograph` is
-in emblem, and `athanor` (`mere-athanor`) is in Distillery.
+The engine (Mere's five crates) is in mere.git. Turnstone is the native
+resident graph application. Its `ports/graphshell` workspace area contains
+`graphshell-blocks`, `graphshell-dramatis-pane`, the browser companion and
+the reference fixtures. `graphshell-mcp` also lives in Turnstone. Djinn
+provides the companion's `graphshell_native_host` relay.
+`pictograph` is in emblem, and `athanor` (`mere-athanor`) is in Distillery.
 
 ## History
 
