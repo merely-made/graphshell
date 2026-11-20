@@ -61,6 +61,22 @@ pub struct SceneSnapshot {
     pub epoch: SceneEpoch,
     pub revision: Revision,
     pub tables: SceneTables,
+    /// The engine revision the scene was built from, beside the projection's
+    /// epoch and counter (engine split D188, D189). Absent from the wire when
+    /// unset, so older readers and writers see the snapshot they knew. A diff
+    /// applied on top does not restamp it.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub engine_revision: Option<EngineRevision>,
+}
+
+/// An engine's graph revision: its session, journal cursor and the v2 digest
+/// of the journal prefix at that cursor (engine split D148). The session is
+/// the engine's session id in text form; scenotime does not interpret it.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct EngineRevision {
+    pub session: String,
+    pub cursor: u64,
+    pub digest: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -79,6 +95,7 @@ impl SceneSnapshot {
         let snapshot = Self {
             epoch,
             revision,
+            engine_revision: None,
             tables: SceneTables {
                 frame: scene.frame,
                 sources: scene.sources.into_iter().map(Some).collect(),
@@ -99,6 +116,12 @@ impl SceneSnapshot {
         };
         snapshot.validate()?;
         Ok(snapshot)
+    }
+
+    /// This snapshot, stamped with the engine revision it was built from.
+    pub fn with_engine_revision(mut self, engine_revision: EngineRevision) -> Self {
+        self.engine_revision = Some(engine_revision);
+        self
     }
 
     pub fn active_item(&self, id: InstanceId) -> Option<&ProjectedItem> {
