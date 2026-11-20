@@ -78,9 +78,13 @@ pub struct ProjectionTable {
     columns: Vec<TableColumnView>,
     row_height: f32,
     header_height: f32,
-    /// The scroll offset into the body, in px.
+    /// The scroll offset into the body, in px: always a whole number of rows
+    /// (table D46).
     pub scroll: f32,
-    /// The body's height, in px; the header sits above it.
+    /// Wheel travel not yet spent on a whole row.
+    wheel_carry: f32,
+    /// The height the body may use, in px; the header sits above it. The
+    /// body itself is [`Self::body_height`].
     pub viewport_height: f32,
     focus: GridFocus,
     /// The definition the rows were last placed from.
@@ -111,6 +115,7 @@ impl ProjectionTable {
             row_height: 0.0,
             header_height: 0.0,
             scroll: 0.0,
+            wheel_carry: 0.0,
             viewport_height: 480.0,
             focus: GridFocus::default(),
             placed: None,
@@ -125,8 +130,10 @@ impl ProjectionTable {
     /// compiler's own reading order, which is the order a compile places
     /// them in; anything else compiles again.
     fn rebuild(&mut self) -> Result<(), Vec<CompileIssue>> {
+        let anchor = self.focus_anchor();
         self.rebuild_rows()?;
         self.rebuild_bands();
+        self.restore_focus(anchor);
         Ok(())
     }
 
@@ -342,6 +349,8 @@ impl ProjectionTable {
         } else {
             scenograph::sort::header_click(current, &field)
         };
+        // The pressed header takes the focus, as a click on a cell does.
+        self.focus_cell(None, col);
         self.apply_sort(keys, now_ms);
     }
 
@@ -393,14 +402,37 @@ impl ProjectionTable {
         }
     }
 
-    /// The largest scroll that still fills the body.
-    pub fn max_scroll(&self) -> f32 {
-        (self.bands.len() as f32 * self.row_height - self.viewport_height).max(0.0)
+    /// The body's height: the whole rows that fit the viewport, one at least.
+    pub fn body_height(&self) -> f32 {
+        let row = self.row_height.max(1.0);
+        (self.viewport_height / row).floor().max(1.0) * row
     }
 
-    /// Scroll by `dy` px, clamped to the rows.
+    /// The largest scroll that still fills the body.
+    pub fn max_scroll(&self) -> f32 {
+        (self.bands.len() as f32 * self.row_height - self.body_height()).max(0.0)
+    }
+
+    /// Scroll to the row boundary nearest `target` px, clamped to the rows.
+    pub fn scroll_to(&mut self, target: f32) {
+        let row = self.row_height.max(1.0);
+        self.scroll = ((target / row).round() * row).clamp(0.0, self.max_scroll());
+    }
+
+    /// Scroll by `dy` px of wheel travel. The body moves in whole rows;
+    /// travel short of a row is carried to the next call, so a fine wheel
+    /// still moves it.
     pub fn scroll_by(&mut self, dy: f32) {
-        self.scroll = (self.scroll + dy).clamp(0.0, self.max_scroll());
+        let row = self.row_height.max(1.0);
+        self.wheel_carry += dy;
+        let rows = (self.wheel_carry / row).trunc();
+        self.wheel_carry -= rows * row;
+        let before = self.scroll;
+        self.scroll_to(self.scroll + rows * row);
+        // Travel against an end is not saved up.
+        if rows != 0.0 && self.scroll == before {
+            self.wheel_carry = 0.0;
+        }
     }
 
     /// The same table frozen: a caption, one column header per field, a row

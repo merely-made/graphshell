@@ -64,3 +64,37 @@ fn key_dispatch_relayouts_inserted_focused_control_before_focus_restyle() {
         .unwrap();
     assert_eq!(rect.3, 80.0);
 }
+
+#[test]
+fn focus_set_outside_an_input_path_is_seen_as_stale_until_restyled() {
+    let mut state: crate::HostState<App, Logic, Child> = crate::HostState::new();
+    state.shared.sheet = "main { display:block; } button { display:block; width:100px; height:30px; } button:focus { height:80px; }".into();
+    state.runner = Some(crate::Runner::new(
+        Rc::new(RefCell::new(crate::ScriptedDom::new())),
+        view as Logic,
+        App { reveal: false },
+    ));
+    let hooks: crate::HostHooks<App, Logic, Child> = crate::HostHooks::inert();
+    let wake = crate::HostWake::new(state.wake_pending.clone(), Arc::new(|| {}));
+    let mut host = crate::Host::new(crate::HostOptions::default(), None, hooks, state, wake);
+    host.relayout(320.0, 180.0);
+    assert!(!host.focus_style_is_stale());
+    // As a frame hook or a view's focus request does: no key, no pointer.
+    let first = host.s.runner.as_ref().unwrap().focusables()[0];
+    host.s.runner.as_mut().unwrap().set_focus(Some(first));
+    assert!(host.focus_style_is_stale());
+    host.hover();
+    assert!(!host.focus_style_is_stale());
+    let runner = host.s.runner.as_ref().unwrap();
+    let dom = runner.dom();
+    let dom = dom.borrow();
+    let window = crate::WindowDom::new(&dom, runner.mount());
+    let rect = host
+        .s
+        .layout
+        .as_ref()
+        .unwrap()
+        .painted_rect(&window, first)
+        .unwrap();
+    assert_eq!(rect.3, 80.0);
+}

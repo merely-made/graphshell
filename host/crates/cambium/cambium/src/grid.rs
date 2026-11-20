@@ -330,7 +330,11 @@ where
                         (here, here && focus.requested)
                     });
                     let key = GridRowKey::Heading(heading.key.clone());
-                    return (key, heading_row(spec, r, heading, stop, on_heading.clone()));
+                    let extra = row_class(r);
+                    return (
+                        key,
+                        heading_row(spec, r, heading, stop, extra, on_heading.clone()),
+                    );
                 },
                 GridBand::Row(key) => GridRowKey::Row(key),
                 GridBand::Id(id) => GridRowKey::Id(id),

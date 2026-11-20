@@ -14,7 +14,7 @@
 use crate::grid::GridFocus;
 use crate::{Key, NamedKey};
 
-use super::ProjectionTable;
+use super::{ProjectionTable, bands::Band};
 
 impl ProjectionTable {
     /// Move the focus for `key`; `false` when the key is not the grid's.
@@ -27,7 +27,7 @@ impl ProjectionTable {
         }
         let last_row = self.bands.len().checked_sub(1);
         let last_col = self.columns.len().saturating_sub(1);
-        let page = ((self.viewport_height / self.row_height.max(1.0)).floor() as usize).max(1);
+        let page = ((self.body_height() / self.row_height.max(1.0)).round() as usize).max(1);
         let GridFocus { row, col, .. } = self.focus;
         let (row, col) = match named {
             NamedKey::ArrowLeft => (row, col.saturating_sub(1)),
@@ -76,10 +76,50 @@ impl ProjectionTable {
         let top = row as f32 * self.row_height;
         let bottom = top + self.row_height;
         if top < self.scroll {
-            self.scroll = top;
-        } else if bottom > self.scroll + self.viewport_height {
-            self.scroll = bottom - self.viewport_height;
+            self.scroll_to(top);
+        } else if bottom > self.scroll + self.body_height() {
+            self.scroll_to(bottom - self.body_height());
         }
-        self.scroll = self.scroll.clamp(0.0, self.max_scroll());
     }
+
+    /// What the focus is on, by identity: a row's occurrence or a heading's
+    /// group path.
+    pub(super) fn focus_anchor(&self) -> Option<FocusAnchor> {
+        match self.bands.get(self.focus.row?)? {
+            Band::Row(rank) => self
+                .row_id(*rank as usize)
+                .map(|id| FocusAnchor::Row(id.to_owned())),
+            Band::Heading(group) => self
+                .groups
+                .get(*group as usize)
+                .map(|group| FocusAnchor::Heading(group.path.clone())),
+        }
+    }
+
+    /// Put the focus back on what it was on before the bands changed and
+    /// show it (table D47). What is no longer shown leaves the focus where
+    /// the bands' rebuild put it.
+    pub(super) fn restore_focus(&mut self, anchor: Option<FocusAnchor>) {
+        let Some(anchor) = anchor else {
+            return;
+        };
+        let found = self.bands.iter().position(|band| match (band, &anchor) {
+            (Band::Row(rank), FocusAnchor::Row(id)) => self.row_id(*rank as usize) == Some(id),
+            (Band::Heading(group), FocusAnchor::Heading(path)) => self
+                .groups
+                .get(*group as usize)
+                .is_some_and(|group| &group.path == path),
+            _ => false,
+        });
+        if let Some(band) = found {
+            self.focus.row = Some(band);
+            self.reveal_focus();
+        }
+    }
+}
+
+/// The focused band's identity across a change to the bands.
+pub(super) enum FocusAnchor {
+    Row(String),
+    Heading(scenograph::group::GroupPath),
 }

@@ -71,7 +71,7 @@ impl ProjectionTable {
         if self.focus.row.is_some_and(|row| row >= self.bands.len()) {
             self.focus.row = self.bands.len().checked_sub(1);
         }
-        self.scroll = self.scroll.clamp(0.0, self.max_scroll());
+        self.scroll_to(self.scroll);
     }
 
     /// How many bands the body holds: visible headings and rows.
@@ -129,8 +129,10 @@ impl ProjectionTable {
     /// undo history do not change.
     pub fn toggle_group(&mut self, group: usize) {
         if let Some(band) = self.groups.get(group) {
+            let anchor = self.focus_anchor();
             self.collapsed.toggle(band.path.clone());
             self.rebuild_bands();
+            self.restore_focus(anchor);
         }
     }
 

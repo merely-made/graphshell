@@ -382,7 +382,10 @@ fn the_keyboard_reaches_every_header_and_cell() {
     assert_eq!((focus.row, focus.col), (Some(rows - 1), columns - 1));
     // The last row is scrolled into the body.
     let table = runner.state();
-    assert!(table.scroll + table.viewport_height >= rows as f32 * table.row_height());
+    assert_eq!(
+        table.scroll + table.body_height(),
+        rows as f32 * table.row_height()
+    );
 }
 
 #[test]

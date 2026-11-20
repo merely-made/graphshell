@@ -139,6 +139,12 @@ where
         let layout = measured.then(WorkTimer::start);
         let phase = crate::Instant::now();
         let anim_active = self.relayout(lw, lh);
+        // A frame hook, a timer or a view's focus request can move the focus
+        // outside the input paths that refresh `:focus`; the frame must not
+        // paint the old node as focused.
+        if self.focus_style_is_stale() {
+            self.hover();
+        }
         work.model_layout = layout.and_then(WorkTimer::finish);
         profile.relayout_us = micros(phase.elapsed());
         profile.layout_update_us = self.s.last_layout_update_us;

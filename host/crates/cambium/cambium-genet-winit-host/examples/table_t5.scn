@@ -5,12 +5,11 @@
 log table: t5 opened
 settle 2
 
-# A three-key sort: a click on Read, then Shift+Enter on Pages and Added
-# adds each as the next key; the headers show 1, 2 and 3.
+# A three-key sort: a click on Read, which takes the focus, then Shift+Enter
+# on Pages and Added adds each as the next key; the headers show 1, 2 and 3.
 click .grid-header-cell @aria-colindex=3
 settle 2
-key Tab
-key ArrowRight
+key ArrowLeft
 key Shift+Enter
 key ArrowRight
 key ArrowRight
@@ -38,4 +37,12 @@ filter title contains harbour
 settle 2
 assert snap filter == 2
 capture filtered
+# Scrolling lands on whole rows (table D46): the body shows whole rows and
+# the wheel moves it by rows.
+filter-clear
+settle 1
+wheel 0 610 on .grid-body
+settle 2
+assert snap scroll >= 26
+capture snapped
 log table: t5 done

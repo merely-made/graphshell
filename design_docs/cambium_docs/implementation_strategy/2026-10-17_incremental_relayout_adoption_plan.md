@@ -209,8 +209,8 @@ Order, with the expected effect of each (estimates until measured):
    frame (21 to about 6 ms); keyed grid rows.
 2. Genet: the form-tree check once per batch, not per mutation (sort style 7.4 to about 2 ms).
 3. Genet: descend in restyle only when the element's inherited or custom values changed
-   (strip-move style 20 to about 0.5 ms). Open: how exact the test must be for explicit
-   `inherit`/`unset` and `em`/`ch` (descend whenever the sheet uses them, or track per property).
+   (strip-move style 20 to about 0.5 ms). Descend as before when anything in the document
+   explicitly inherits a non-inherited property (table plan D48).
 4. P2 and P3 here, carrying the positioned-inset route, with P4's whole-plane passes
    (strip-move layout 24 to about 1 to 2 ms).
 5. Genet: a retained route for inserting or removing an absolutely positioned row in a
@@ -246,7 +246,9 @@ The uncommitted work in Genet's and Graphshell's main checkouts was taken over a
   portable scene when source identity, revision and size are unchanged; export always asks
   for a full scene.
 
-Steps 2 to 5 above are open and belong to the table plan's session.
+Step 2 is on Genet's main (48e5524aa07): a batch walks each DOM tree for form dependencies
+once. Its effect on a sort is not re-measured yet. Step 3's open point is ruled (table plan
+D48): a document-wide test. Steps 3 to 5 are open and belong to the table plan's session.
 
 ## Decisions for the owner
 

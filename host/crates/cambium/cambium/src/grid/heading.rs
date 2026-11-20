@@ -53,6 +53,7 @@ pub(super) fn heading_row<State: 'static, Action: 'static>(
     r: usize,
     band: GridHeading,
     stop: Option<(bool, bool)>,
+    extra: Option<String>,
     on_heading: impl Fn(&mut State, usize) + 'static,
 ) -> GridView<State, Action> {
     let width = spec.total_width();
@@ -107,7 +108,15 @@ pub(super) fn heading_row<State: 'static, Action: 'static>(
         )
         .attr(
             "class",
-            format!("grid-row grid-heading grid-heading-level-{}", band.level),
+            match extra {
+                Some(extra) => {
+                    format!(
+                        "grid-row grid-heading grid-heading-level-{} {extra}",
+                        band.level
+                    )
+                },
+                None => format!("grid-row grid-heading grid-heading-level-{}", band.level),
+            },
         )
         .attr("role", "row")
         .attr("aria-rowindex", (r + 2).to_string())

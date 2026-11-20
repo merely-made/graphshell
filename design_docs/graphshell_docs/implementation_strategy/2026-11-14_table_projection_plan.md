@@ -130,7 +130,7 @@ Calls made while building, standing until ruled otherwise:
 - **Grouping elsewhere (T5).** A reading's grouping is accepted on any arrangement that
   places by order and orders the rows there, without headings.
 - **No control in the view (T5).** Filter and grouping are set through the recipe and the
-  editor actions; the table itself offers no control for them yet.
+  editor actions until the header menu is built (D49).
 
 Left from the headed pages (T4):
 
@@ -141,8 +141,6 @@ Left from the headed pages (T4):
   and no `aria-sort`: Genet's role lowering (`genet-render/src/a11y.rs`) has no entry for
   grid or column header and lowers a grid cell to a cell. Taproot has no role names for
   them either. Both are Genet's to change.
-- A row partly scrolled out shows as a strip under the header. It is clipped correctly;
-  whether scrolling snaps to whole rows is not ruled.
 
 
 ## Decisions
@@ -525,6 +523,50 @@ Left from the headed pages (T4):
 
   *Applies D33.*
 
+- **D45. A leaf or producer says when its meaning changed (Mark, 2026-11-20):** "Explicit
+  hook". A custom leaf or producer raises a semantic revision when what it means changes
+  with no DOM change; the host compares revisions before it skips an accessibility
+  republish. Not built yet.
+
+  Links: summary A leaf or producer raises a semantic revision when its meaning changes, and the host compares it before skipping a republish.
+
+  *Refines D33.*
+
+- **D46. The body scrolls by whole rows (Mark, 2026-11-20):** "Snap to whole rows". The
+  scroll offset is always a row boundary and the body is as tall as the whole rows that
+  fit; wheel travel short of a row is carried to the next turn.
+
+  Links: summary The table body shows whole rows and scrolls by whole rows.
+
+  *New.*
+
+- **D47. The focus follows its row (Mark, 2026-11-20):** "Follow the row, scroll to it".
+  Through a sort, a filter, a grouping or a collapse the focus stays on the same occurrence
+  or heading, and the body scrolls the least that shows it; a row no longer shown leaves
+  the focus at its position.
+
+  Links: summary Through a change to the reading the focus stays on the same occurrence or heading and is scrolled into view.
+
+  *Applies D41.*
+
+- **D48. Restyle stops on a document-wide test (Mark, 2026-11-20):** "Document-wide flag".
+  Genet's restyle does not descend from a changed element whose inherited and custom
+  properties are unchanged, unless anything in the document explicitly inherits a
+  non-inherited property; then it descends as before. Step 3 of the adoption plan's order.
+
+  Links: summary Genet's restyle stops at an element whose inherited values are unchanged unless the document explicitly inherits a non-inherited property.
+
+  *Applies D43.*
+
+- **D49. Filter and grouping from the column header (Mark, 2026-11-20):** "Header menu per
+  column", built "After the speed gate". Each header opens a menu: sort either way, group
+  by the field, filter the field with the operators its kind takes; conditions join with
+  and, and the status line says what is applied.
+
+  Links: summary A column header's menu sets sort, grouping and a filter on its field; it is built after the speed gate.
+
+  *New.*
+
 ## Findings
 
 - 2026-11-15: adding a slot to a recipe type breaks every repository that builds one as a
@@ -837,3 +879,13 @@ Left from the headed pages (T4):
   cambium 453.
 - 2026-11-20: the rescued work landed (D43, D44); what it holds is in the incremental
   relayout adoption plan under "State on 2026-11-20".
+- 2026-11-20: D46 and D47 written (staged, not committed), with two focus fixes: a
+  pressed header takes the focus, and a focused heading row carries the row's focus
+  class. The fixture's caption no longer counts its rows; the status line does. Genet's
+  form-tree check runs once per batch (Genet 48e5524aa07, step 2 of the adoption plan's
+  order). Tests: cambium 459.
+- 2026-11-20: a focus moved from a frame hook, a timer or a view's focus request was never
+  restyled: only the key, pointer and accessibility paths refreshed `:focus`, so the old
+  node stayed painted as focused. The frame now refreshes it after its relayout
+  (`focus_style_is_stale`). This was the missing highlight after Shift+Enter and on a
+  clicked heading; the scenario driver dispatches keys from the frame hook.

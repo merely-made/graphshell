@@ -187,7 +187,7 @@ pub fn projection_table<Action: 'static>(
     let grid = data_grid_banded(
         &spec,
         table.band_count(),
-        table.viewport_height,
+        table.body_height(),
         table.scroll,
         |band, col| {
             let rank = table.band_row(band).unwrap_or(usize::MAX);

@@ -172,7 +172,7 @@ pub fn draft(rows: usize) -> ProjectionDraft {
     };
     draft.appearance = Appearance {
         realization: TABLE_REALIZATION_ID.into(),
-        title: format!("Reading list, {rows} books"),
+        title: "Reading list".into(),
         theme: "slate".into(),
     };
     draft.provenance = Provenance {
@@ -254,7 +254,6 @@ pub fn sheet() -> String {
 .grid-header-cell {{ font-weight: bold; }} \
 .grid-header-cell:focus {{ background: #c6d8ee; }} \
 .grid-row-odd {{ background: #f3f2ee; }} \
-.grid-row-focus {{ background: #dde8f5; }} \
 .grid-cell:focus {{ background: #c6d8ee; }} \
 .cell-chip {{ background: #d9e6d2; color: #22401a; }} \
 .cell-bar-track {{ background: #e2e0da; }} \
@@ -263,6 +262,7 @@ pub fn sheet() -> String {
 .cell-check-on {{ background: #3d7a46; border-color: #3d7a46; }} \
 .grid-heading {{ background: #e3ddcf; color: #2b2a26; }} \
 .grid-heading-level-1 {{ background: #eeeae0; }} \
+.grid-row-focus {{ background: #dde8f5; }} \
 .grid-heading-cell:focus {{ background: #c6d8ee; }} \
 .grid-key-priority {{ color: #4c5058; }} \
 .table-status {{ color: #4c5058; }}"

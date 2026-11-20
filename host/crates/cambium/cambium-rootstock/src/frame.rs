@@ -473,6 +473,18 @@ where
         self.s.last_frame_profile = Some(profile);
     }
 
+    /// Whether the focus moved since `:focus` was last styled.
+    pub(crate) fn focus_style_is_stale(&self) -> bool {
+        let Some(runner) = self.s.runner.as_ref() else {
+            return false;
+        };
+        let dom = runner.dom();
+        let dom = dom.borrow();
+        let view = crate::WindowDom::new(&dom, runner.mount());
+        let focused = runner.focus();
+        focused.map(|n| layout_dom_api::LayoutDom::opaque_id(&view, n)) != self.s.last_focus
+    }
+
     /// Drive `:hover` / `:focus` restyles on target change. The retained layout
     /// skips the cascade when no rule can depend on that state, and skips
     /// text layout when the cascade leaves the computed styles unchanged.

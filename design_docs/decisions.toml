@@ -625,6 +625,31 @@ title = "One layout stamp (Mark, 2026-11-20)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
 summary = "SemanticStamp is the one layout stamp, public with matches, for the native republish skip and the browser label patch."
 
+[decisions."table-projection D45"]
+title = "A leaf or producer says when its meaning changed (Mark, 2026-11-20)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "A leaf or producer raises a semantic revision when its meaning changes, and the host compares it before skipping a republish."
+
+[decisions."table-projection D46"]
+title = "The body scrolls by whole rows (Mark, 2026-11-20)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "The table body shows whole rows and scrolls by whole rows."
+
+[decisions."table-projection D47"]
+title = "The focus follows its row (Mark, 2026-11-20)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "Through a change to the reading the focus stays on the same occurrence or heading and is scrolled into view."
+
+[decisions."table-projection D48"]
+title = "Restyle stops on a document-wide test (Mark, 2026-11-20)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "Genet's restyle stops at an element whose inherited values are unchanged unless the document explicitly inherits a non-inherited property."
+
+[decisions."table-projection D49"]
+title = "Filter and grouping from the column header (Mark, 2026-11-20)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "A column header's menu sets sort, grouping and a filter on its field; it is built after the speed gate."
+
 [decisions."uxtree-spine D1"]
 title = "The spine is federated (Mark, 2026-11-11)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-11_uxtree_spine_plan.md"

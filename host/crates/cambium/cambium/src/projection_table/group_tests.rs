@@ -168,7 +168,9 @@ fn shift_adds_a_sort_key_a_plain_click_replaces_and_headers_show_priority() {
             "ARIA marks the lead key"
         );
     }
-    // Shift+Enter on a focused header adds too.
+    // Shift+Enter on a focused header adds too. The last pressed header
+    // holds the focus, so move it to one that is not yet a key.
+    runner.update(|table| table.focus_cell(None, 0));
     runner.focus_traverse(true);
     runner.dispatch_key(KeyEvent::with_mods(Key::Named(NamedKey::Enter), shift));
     assert_eq!(runner.state().draft().reading.sort.len(), 4);

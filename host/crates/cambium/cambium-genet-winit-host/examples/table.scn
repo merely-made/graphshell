@@ -19,10 +19,8 @@ undo
 settle 1
 assert snap sort == pages
 
-# The keyboard: Tab enters at a header, arrows walk into the body.
-key Tab
+# The keyboard: the clicked header holds the focus, arrows walk into the body.
 key ArrowDown
-key ArrowRight
 key ArrowRight
 settle 1
 assert snap focus == 0:2

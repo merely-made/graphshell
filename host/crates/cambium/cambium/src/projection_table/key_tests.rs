@@ -108,3 +108,84 @@ fn a_one_row_scroll_builds_only_the_arriving_row() {
     println!("one-row shift: {} mutations", mutations.len());
     assert!(mutations.len() < 120, "{}", mutations.len());
 }
+
+#[test]
+fn scrolling_lands_on_whole_rows_and_the_body_holds_whole_rows() {
+    let mut table = open(100);
+    let row = table.row_height();
+    table.viewport_height = row * 10.0 + 7.0;
+    assert_eq!(table.body_height(), row * 10.0);
+    // Fine wheel travel adds up to a row.
+    table.scroll_by(row * 0.4);
+    assert_eq!(table.scroll, 0.0);
+    table.scroll_by(row * 0.4);
+    table.scroll_by(row * 0.4);
+    assert_eq!(table.scroll, row);
+    table.scroll_by(row * 2.6);
+    assert_eq!(table.scroll % row, 0.0);
+    // The end shows the last row whole.
+    table.scroll_by(1.0e9);
+    assert_eq!(table.scroll, table.max_scroll());
+    assert_eq!(table.scroll + table.body_height(), 100.0 * row);
+    table.scroll_to(row * 3.3);
+    assert_eq!(table.scroll, row * 3.0);
+}
+
+#[test]
+fn the_focus_follows_its_row_through_a_sort_and_is_shown() {
+    let mut table = open(200);
+    table.focus_cell(Some(3), 1);
+    let id = table.row_id(3).expect("a row").to_owned();
+    table.apply_sort(vec![SortKey::descending("pages")], 0);
+    let band = table.focus().row.expect("still on a row");
+    assert_eq!(
+        table.band_row(band).and_then(|rank| table.row_id(rank)),
+        Some(id.as_str())
+    );
+    let top = band as f32 * table.row_height();
+    assert!(top >= table.scroll && top + table.row_height() <= table.scroll + table.body_height());
+    // Grouping puts headings between the rows; ungrouping takes them away.
+    table.apply_group(vec![SortKey::ascending("read")], 0);
+    let band = table.focus().row.expect("still on a row");
+    assert_eq!(
+        table.band_row(band).and_then(|rank| table.row_id(rank)),
+        Some(id.as_str())
+    );
+    table.apply_group(Vec::new(), 0);
+    let band = table.focus().row.expect("still on a row");
+    assert_eq!(
+        table.band_row(band).and_then(|rank| table.row_id(rank)),
+        Some(id.as_str())
+    );
+}
+
+#[test]
+fn a_pressed_header_takes_the_focus_and_a_focused_heading_is_marked() {
+    let mut table = open(20);
+    table.viewport_height = 720.0;
+    table.focus_cell(Some(2), 0);
+    table.press_header(1, false, 0);
+    let focus = table.focus();
+    assert_eq!((focus.row, focus.col, focus.requested), (None, 1, true));
+    table.apply_group(vec![SortKey::ascending("read")], 0);
+    table.focus_cell(Some(0), 0);
+    assert!(table.toggle_band(0), "band 0 is a heading");
+    assert_eq!(
+        table.focus().row,
+        Some(0),
+        "the toggled heading keeps the focus"
+    );
+    let (dom, runner) = runner(table);
+    let d = dom.borrow();
+    let mut rows = Vec::new();
+    find_role(&d, runner.root(), "row", &mut rows);
+    let heading = rows
+        .into_iter()
+        .find(|&row| attr(&d, row, "aria-rowindex") == "2")
+        .expect("the first band");
+    let class = attr(&d, heading, "class");
+    assert!(
+        class.contains("grid-heading") && class.contains("grid-row-focus"),
+        "{class}"
+    );
+}
