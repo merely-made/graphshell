@@ -122,7 +122,7 @@ async fn page_and_binary_limits_fail_before_an_unfinished_response_can_be_buffer
             let (url, server) = spartan_reply(expected.clone(), extra != 0).await;
             let result = tokio::time::timeout(Duration::from_secs(1), async {
                 if binary {
-                    fetch_bytes(&url, &Stores::in_memory(), policy).await
+                    fetch_bytes(&url, &Stores::in_memory(), policy, None).await
                 } else {
                     fetch_page_with_policy(&url, policy)
                         .await
@@ -158,6 +158,7 @@ async fn explicit_submit_has_independent_request_and_response_budgets() {
                     body: b"sent".to_vec(),
                 },
                 policy,
+                None,
             ),
         )
         .await
@@ -180,6 +181,7 @@ async fn explicit_submit_has_independent_request_and_response_budgets() {
             body: b"extra".to_vec(),
         },
         policy,
+        None,
     )
     .await;
     assert!(
@@ -191,6 +193,64 @@ async fn explicit_submit_has_independent_request_and_response_budgets() {
     assert!(
         matches!(listener.accept(), Err(error) if error.kind() == std::io::ErrorKind::WouldBlock)
     );
+}
+
+#[tokio::test]
+async fn hop_admission_refuses_redirects_before_page_or_resource_contact() {
+    for binary in [false, true] {
+        let target = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        target.set_nonblocking(true).unwrap();
+        let destination = target.local_addr().unwrap();
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let source = listener.local_addr().unwrap();
+        let fixture = tokio::spawn(async move {
+            let (stream, _) = listener.accept().await.unwrap();
+            let mut stream = BufReader::new(stream);
+            let mut line = String::new();
+            stream.read_line(&mut line).await.unwrap();
+            assert_eq!(line, "127.0.0.1 /first 0\r\n");
+            let reply = format!("3 finger://{destination}/user\r\n");
+            stream.get_mut().write_all(reply.as_bytes()).await.unwrap();
+            stream.get_mut().shutdown().await.unwrap();
+        });
+        let seen = std::sync::Arc::new(std::sync::Mutex::new(Vec::<String>::new()));
+        let recorded = seen.clone();
+        let admit = move |scheme: &str| {
+            recorded.lock().unwrap().push(scheme.to_string());
+            if scheme == "finger" {
+                Err("Finger is disabled".into())
+            } else {
+                Ok(())
+            }
+        };
+        let url = format!("spartan://{source}/first");
+        let stores = Stores::in_memory();
+        let policy = ClientFetchPolicy::default();
+        let error = if binary {
+            fetch_bytes(&url, &stores, policy, Some(&admit))
+                .await
+                .unwrap_err()
+        } else {
+            fetch_page_interactive_capped(
+                &url,
+                policy.max_page_bytes,
+                None,
+                &stores,
+                policy,
+                Some(&admit),
+                |_, _, _| {},
+            )
+            .await
+            .unwrap_err()
+            .to_string()
+        };
+        assert_eq!(error, "Finger is disabled");
+        fixture.await.unwrap();
+        assert_eq!(*seen.lock().unwrap(), ["spartan", "finger"]);
+        assert!(
+            matches!(target.accept(), Err(error) if error.kind() == std::io::ErrorKind::WouldBlock)
+        );
+    }
 }
 
 #[tokio::test]

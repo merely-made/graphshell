@@ -11,6 +11,7 @@ use super::*;
 pub(super) async fn submit_smolweb(
     submission: SmolwebSubmission,
     policy: ClientFetchPolicy,
+    hop_admission: Option<&SmolwebHopAdmission>,
 ) -> Result<SubmissionAnswer, FetchFailure> {
     policy.validate().map_err(FetchFailure::Failed)?;
     if match &submission {
@@ -46,6 +47,7 @@ pub(super) async fn submit_smolweb(
                     "Titan submission requires a titan:// URL".to_string(),
                 ));
             }
+            admit_smolweb_hop(hop_admission, &parsed)?;
             let exchange = async {
                 match identity
                     .as_ref()
@@ -95,6 +97,7 @@ pub(super) async fn submit_smolweb(
                     "Spartan submission requires a spartan:// URL".to_string(),
                 ));
             }
+            admit_smolweb_hop(hop_admission, &parsed)?;
             let response = tokio::time::timeout(
                 policy.timeout,
                 errand::spartan_submit_with_options(&parsed, &body, &options),

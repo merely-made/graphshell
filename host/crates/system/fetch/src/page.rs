@@ -38,6 +38,7 @@ pub async fn fetch_page_with_policy(
         None,
         session_stores(),
         policy,
+        None,
         |_, _, _| {},
     )
     .await
@@ -53,6 +54,7 @@ pub(super) async fn fetch_page_interactive_capped<F>(
     identity: Option<&GeminiClientIdentity>,
     stores: &Stores,
     policy: ClientFetchPolicy,
+    hop_admission: Option<&SmolwebHopAdmission>,
     mut on_progress: F,
 ) -> Result<Fetched, FetchFailure>
 where
@@ -62,7 +64,7 @@ where
     preflight_read(url)?;
     let operation = async {
         #[cfg(not(feature = "smolweb"))]
-        let _ = (identity, &mut on_progress);
+        let _ = (identity, hop_admission, &mut on_progress);
         #[cfg(feature = "smolweb")]
         if let Some(scheme) = scheme_of(url).and_then(errand::Scheme::parse) {
             {
@@ -74,6 +76,7 @@ where
                     identity,
                     max_bytes,
                     policy,
+                    hop_admission,
                     |response_url, content_type, bytes| {
                         streamed_bytes = streamed_bytes.saturating_add(bytes.len());
                         if streamed_bytes <= max_bytes {

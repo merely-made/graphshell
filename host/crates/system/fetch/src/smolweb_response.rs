@@ -16,13 +16,21 @@ pub(super) async fn smolweb_fetch<F>(
     identity: Option<&GeminiClientIdentity>,
     max_bytes: usize,
     policy: ClientFetchPolicy,
+    hop_admission: Option<&SmolwebHopAdmission>,
     mut on_progress: F,
 ) -> Result<Fetched, FetchFailure>
 where
     F: FnMut(&url::Url, Option<&str>, &[u8]),
 {
-    let (current, response) =
-        smolweb_fetch_response(url, identity, max_bytes, policy, &mut on_progress).await?;
+    let (current, response) = smolweb_fetch_response(
+        url,
+        identity,
+        max_bytes,
+        policy,
+        hop_admission,
+        &mut on_progress,
+    )
+    .await?;
     let content_type = smolweb_content_type(&current, &response);
     let bytes = response.body;
     let body = String::from_utf8_lossy(&bytes).into_owned();
@@ -46,6 +54,7 @@ pub(super) async fn smolweb_fetch_response<F>(
     identity: Option<&GeminiClientIdentity>,
     max_bytes: usize,
     policy: ClientFetchPolicy,
+    hop_admission: Option<&SmolwebHopAdmission>,
     on_progress: &mut F,
 ) -> Result<(url::Url, errand::Response), FetchFailure>
 where
@@ -61,6 +70,7 @@ where
         // Check every redirect before transport, so read acquisition never
         // borrows the authority of the separate explicit Submit command.
         admit_smolweb_read(&current)?;
+        admit_smolweb_hop(hop_admission, &current)?;
         let response_url = current.clone();
         let remaining = deadline.saturating_duration_since(tokio::time::Instant::now());
         if remaining.is_zero() {

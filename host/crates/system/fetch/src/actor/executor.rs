@@ -45,6 +45,7 @@ pub(super) async fn execute(
     command: FetchCommand,
     stores: Stores,
     policy: ClientFetchPolicy,
+    hop_admission: Option<&SmolwebHopAdmission>,
     completion: Arc<Completion>,
 ) -> FetchUpdate {
     match command {
@@ -61,6 +62,7 @@ pub(super) async fn execute(
                 identity.as_ref(),
                 &stores,
                 policy,
+                hop_admission,
                 move |response_url, content_type, bytes| {
                     if !progress.terminal.load(Ordering::Acquire) {
                         progress.out.emit(FetchUpdate::PageProgress(PageProgress {
@@ -81,12 +83,12 @@ pub(super) async fn execute(
             })
         },
         FetchCommand::Subresource(url) => {
-            let result = fetch_bytes(&url, &stores, policy).await;
+            let result = fetch_bytes(&url, &stores, policy, hop_admission).await;
             FetchUpdate::Subresource(SubresourceOutcome { url, result })
         },
         FetchCommand::Favicon { request, url } => FetchUpdate::Favicon(FaviconOutcome {
             request,
-            result: fetch_bytes(&url, &stores, policy).await,
+            result: fetch_bytes(&url, &stores, policy, hop_admission).await,
         }),
         FetchCommand::Submit {
             request,
@@ -94,7 +96,7 @@ pub(super) async fn execute(
         } => {
             let url = submission.url().into();
             #[cfg(feature = "smolweb")]
-            let result = submit_smolweb(submission, policy).await;
+            let result = submit_smolweb(submission, policy, hop_admission).await;
             #[cfg(not(feature = "smolweb"))]
             let result = Err(FetchFailure::Failed(
                 "small-web submissions are not built into this host".into(),

@@ -6,6 +6,22 @@
 
 use std::time::Duration;
 
+/// Host admission for an actual small-web transport hop. The callback receives
+/// the parsed scheme before dialing, including after a redirect. Returning a
+/// reason refuses the operation through its ordinary correlated completion.
+pub type SmolwebHopAdmission = dyn Fn(&str) -> Result<(), String> + Send + Sync;
+
+#[cfg(feature = "smolweb")]
+pub(super) fn admit_smolweb_hop(
+    admission: Option<&SmolwebHopAdmission>,
+    target: &url::Url,
+) -> Result<(), super::FetchFailure> {
+    if let Some(admit) = admission {
+        admit(target.scheme()).map_err(super::FetchFailure::Failed)?;
+    }
+    Ok(())
+}
+
 /// Caller-owned acquisition budgets. Each operation takes one snapshot; its
 /// timeout covers the complete redirect chain and body, rather than each hop.
 /// Bodies which exceed a cap fail instead of returning a successful prefix.

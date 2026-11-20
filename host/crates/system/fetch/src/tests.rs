@@ -417,6 +417,7 @@ mod read_effects {
                     None,
                     &stores,
                     ClientFetchPolicy::default(),
+                    None,
                     |_, _, _| {
                         progress = true;
                     }
@@ -432,7 +433,7 @@ mod read_effects {
             );
             assert_eq!(fetch_page_crawler(&url).await, Err(message.into()));
             assert_eq!(
-                fetch_bytes(&url, &stores, ClientFetchPolicy::default()).await,
+                fetch_bytes(&url, &stores, ClientFetchPolicy::default(), None).await,
                 Err(message.into())
             );
             assert_uncontacted(&listener);
@@ -490,6 +491,7 @@ mod read_effects {
                 body: body.clone(),
             },
             ClientFetchPolicy::default(),
+            None,
         )
         .await
         .unwrap();
@@ -572,6 +574,7 @@ mod read_effects {
                     identity: Some(identity),
                 },
                 ClientFetchPolicy::default(),
+                None,
             )
             .await
             .unwrap();

@@ -44,7 +44,9 @@ mod kept_page;
 pub use kept_page::capture_kept_page;
 
 mod policy;
-pub use policy::ClientFetchPolicy;
+pub use policy::{ClientFetchPolicy, SmolwebHopAdmission};
+#[cfg(feature = "smolweb")]
+use policy::admit_smolweb_hop;
 
 /// Host-side cap on a fetched page body (§A5): a hard ceiling enforced *while*
 /// streaming the body, so a malicious or runaway server cannot OOM the host by
@@ -315,7 +317,7 @@ mod actor;
 #[cfg(feature = "actor")]
 pub use actor::{
     FetchActor, FetchActorPolicy, FetchActorReport, spawn_fetcher, spawn_fetcher_with,
-    spawn_fetcher_with_admission, spawn_fetcher_with_policy,
+    spawn_fetcher_with_admission, spawn_fetcher_with_hop_admission, spawn_fetcher_with_policy,
 };
 
 /// Pin Gemini certificates for the lifetime of this process. This is stronger
@@ -469,10 +471,13 @@ async fn fetch_bytes(
     url: &str,
     stores: &Stores,
     policy: ClientFetchPolicy,
+    hop_admission: Option<&SmolwebHopAdmission>,
 ) -> Result<Vec<u8>, String> {
     policy.validate()?;
     preflight_read(url).map_err(|error| error.to_string())?;
     let operation = async {
+        #[cfg(not(feature = "smolweb"))]
+        let _ = hop_admission;
         #[cfg(feature = "smolweb")]
         if is_smolweb(url) {
             let (_final_url, response) = smolweb_fetch_response(
@@ -480,6 +485,7 @@ async fn fetch_bytes(
                 None,
                 policy.max_subresource_bytes,
                 policy,
+                hop_admission,
                 &mut |_, _, _| {},
             )
             .await

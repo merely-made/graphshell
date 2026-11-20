@@ -131,9 +131,21 @@ pub fn spawn_fetcher_with_admission(
     policy: ClientFetchPolicy,
     admission: FetchActorPolicy,
 ) -> Result<(FetchActor, Receiver<FetchUpdate>), String> {
+    spawn_fetcher_with_hop_admission(wake, stores, policy, admission, None)
+}
+
+/// Spawn a bounded fetcher with optional host policy for each small-web
+/// transport hop. The callback runs on the fetch worker.
+pub fn spawn_fetcher_with_hop_admission(
+    wake: Wake,
+    stores: Stores,
+    policy: ClientFetchPolicy,
+    admission: FetchActorPolicy,
+    hop_admission: Option<Arc<SmolwebHopAdmission>>,
+) -> Result<(FetchActor, Receiver<FetchUpdate>), String> {
     policy.validate()?;
     admission.validate()?;
-    let shared = Arc::new(Shared::new(admission));
+    let shared = Arc::new(Shared::new(admission, hop_admission));
     let state = shared.clone();
     let (ready, started) = mpsc::channel();
     let (worker, updates) = spawn_named("fetch", wake, move |commands: Receiver<Job>, out| {
@@ -190,7 +202,7 @@ pub fn spawn_fetcher_with_policy(
 ) -> (ActorHandle<FetchCommand>, Receiver<FetchUpdate>) {
     spawn_named("fetch", wake, move |commands, out| {
         let runtime = build_runtime().expect("build the fetch runtime");
-        let shared = Arc::new(Shared::new(FetchActorPolicy::default()));
+        let shared = Arc::new(Shared::new(FetchActorPolicy::default(), None));
         run_jobs(
             &runtime,
             &shared,
@@ -218,6 +230,7 @@ struct Shared {
     active: Arc<Semaphore>,
     pending: Arc<Semaphore>,
     policy: FetchActorPolicy,
+    hop_admission: Option<Arc<SmolwebHopAdmission>>,
     closed: AtomicBool,
     stop: watch::Sender<bool>,
     pages: Mutex<HashMap<FetchRequestId, Weak<Completion>>>,
@@ -235,11 +248,12 @@ enum Admission {
 }
 
 impl Shared {
-    fn new(policy: FetchActorPolicy) -> Self {
+    fn new(policy: FetchActorPolicy, hop_admission: Option<Arc<SmolwebHopAdmission>>) -> Self {
         Self {
             active: Arc::new(Semaphore::new(policy.max_active)),
             pending: Arc::new(Semaphore::new(policy.max_pending)),
             policy,
+            hop_admission,
             closed: AtomicBool::new(false),
             stop: watch::channel(false).0,
             pages: Mutex::new(HashMap::new()),
@@ -519,7 +533,7 @@ impl Job {
         tokio::select! {
             // Preserve an operation's already-ready result before observing stop.
             biased;
-            update = execute(command, stores, policy, self.completion.clone()) => self.completion.finish(update),
+            update = execute(command, stores, policy, self.shared.hop_admission.as_deref(), self.completion.clone()) => self.completion.finish(update),
             _ = stopped(&mut cancel) => {},
             _ = stopped(&mut closing) => {},
         }
