@@ -59,7 +59,7 @@ pub use a11y_publication::{
 };
 pub use semantics::{
     ProducerSemanticIssue, PublicationIssue, SemanticEnvelope, SemanticProjection,
-    SemanticPublication, project_semantics,
+    SemanticPublication, project_semantics, project_semantics_retaining_list,
 };
 
 mod files;
@@ -69,26 +69,28 @@ mod presentation;
 pub use presentation::NativePresentedImage;
 pub use presentation::{
     ContextGeneration, FrameContentMode, NativePresentationFailure, PendingPresentationCapture,
-    PortableMaterializer, PreparedFrame, PreparedPaint, PreparedPresentationObserver,
-    PresentationBackend, PresentationChoice, PresentationDriver, PresentationFailure,
-    PresentationLifetime, PresentationState, WgpuDriver, WgpuSurfaceFactory, backend_attempts,
+    PortableMaterializer, PortableSceneCache, PreparedFrame, PreparedPaint,
+    PreparedPresentationObserver, PresentationBackend, PresentationChoice, PresentationDriver,
+    PresentationFailure, PresentationLifetime, PresentationState, WgpuDriver, WgpuSurfaceFactory,
+    backend_attempts,
 };
 mod owned_layout;
 /// What [`HostOptions::vector_images`] resolves to.
 pub use genet_livery::VectorImage;
-pub use owned_layout::{HostVectors, OwnedLayout, ScrollAlign, ScrollTarget};
+pub use owned_layout::{HostVectors, OwnedLayout, ScrollAlign, ScrollTarget, SemanticStamp};
 #[cfg(feature = "embedding")]
 pub mod embedding;
 pub mod producer;
 mod scene_producer;
 pub use producer::{
-    PortableCaptureError, PortablePaintCapture, PortableProducerError, ProducedAction,
-    ProducedScene, ProducedTexture, ProducerAction, ProducerActionDispatch, ProducerChildLifetime,
-    ProducerChildToken, ProducerContext, ProducerError, ProducerFrameInfo, ProducerFramePurpose,
-    ProducerFrameStats, ProducerGpuRemapError, ProducerImageIdentity, ProducerNode,
-    ProducerRegistrationError, ProducerRegistry, ProducerRenderFailure, ProducerRole,
-    ProducerSemantics, ProducerSource, ResolvedAppearance, SourceAlpha, SourceEncoding,
-    TextureProducer,
+    PortableCaptureError, PortablePaintCapture, PortableProducerError, PortableSceneUpdate,
+    ProducedAction, ProducedScene, ProducedTexture, ProducerAction, ProducerActionDispatch,
+    ProducerChildLifetime, ProducerChildToken, ProducerContext, ProducerError, ProducerFrameInfo,
+    ProducerFramePurpose, ProducerFrameStats, ProducerGpuRemapError, ProducerImageIdentity,
+    ProducerLabelRevision, ProducerNode, ProducerRegistrationError, ProducerRegistry,
+    ProducerSemanticGeometry,
+    ProducerRenderFailure, ProducerRole, ProducerSemantics, ProducerSource, ResolvedAppearance,
+    SourceAlpha, SourceEncoding, TextureProducer,
 };
 pub use scene_producer::SceneProducer;
 

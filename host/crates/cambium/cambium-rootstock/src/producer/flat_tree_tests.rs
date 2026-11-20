@@ -156,7 +156,7 @@ fn capture(
         .expect("the rendered slot has a portable source");
     let mut env = envelope(&plan);
     env.commands = commands;
-    registry.admit_portable(plan, env).unwrap()
+    std::sync::Arc::unwrap_or_clone(registry.admit_portable(plan, env).unwrap())
 }
 #[test]
 fn captured_shadow_and_slotted_owner_matches_semantics_once() {

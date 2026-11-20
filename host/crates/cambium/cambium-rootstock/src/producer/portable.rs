@@ -7,6 +7,7 @@
 //! Staged portable capture. Admission precedes registry lifecycle/cache changes.
 use super::*;
 use paint_list_render::bundle::{BundleError, ResourceAlpha, ResourceEncoding};
+use std::sync::Arc;
 
 #[derive(Debug)]
 pub enum PortableCaptureError {
@@ -32,7 +33,8 @@ mod tests;
 pub(super) struct PortableSlot {
     pub(super) owner: NodeId,
     pub(super) active: bool,
-    source: Option<ProducerSource>,
+    source: Option<Arc<ProducerSource>>,
+    digest: Option<[u8; 32]>,
 }
 
 pub(crate) struct PortablePlan {
@@ -40,6 +42,19 @@ pub(crate) struct PortablePlan {
     retire: Vec<u64>,
     rebound: Vec<u64>,
     next_stamp: u64,
+    purpose: ProducerFramePurpose,
+}
+
+fn same_sources<'a>(
+    sources: impl Iterator<Item = &'a ProducerSource>,
+    capture: &PortablePaintCapture,
+) -> bool {
+    sources
+        .map(|source| (source.texture_key, source.content_generation))
+        .eq(capture
+            .producers
+            .iter()
+            .map(|source| (source.texture_key, source.content_generation)))
 }
 
 impl PortablePlan {
@@ -91,6 +106,7 @@ impl ProducerRegistry {
             retire: Vec::new(),
             rebound: Vec::new(),
             next_stamp: self.next_stamp,
+            purpose,
         };
         for (&key, entry) in &mut self.entries {
             let previous_owner = entry
@@ -119,6 +135,7 @@ impl ProducerRegistry {
                         owner,
                         active: false,
                         source: None,
+                        digest: None,
                     },
                 );
                 continue;
@@ -131,6 +148,7 @@ impl ProducerRegistry {
                         owner,
                         active: false,
                         source: None,
+                        digest: None,
                     },
                 );
                 continue;
@@ -146,28 +164,66 @@ impl ProducerRegistry {
             if u64::from(size[0]) * u64::from(size[1]) > limits.max_pixels as u64 {
                 return Err(PortableCaptureError::InvalidExtent { texture_key: key });
             }
-            let old = entry
-                .portable
-                .as_ref()
-                .filter(|slot| slot.owner == owner)
-                .and_then(|slot| slot.source.as_ref());
+            let old_slot = entry.portable.as_ref().filter(|slot| slot.owner == owner);
+            let old = old_slot.and_then(|slot| slot.source.as_ref());
             let frame = ProducerFrameInfo {
                 purpose,
                 logical_size: logical,
                 physical_size: size,
                 layout_scale: scale,
-                needs_frame: old.is_none_or(|source| {
-                    source.physical_size != size || source.layout_scale != scale
-                }),
+                needs_frame: old_slot.is_none_or(|slot| !slot.active)
+                    || old.is_none_or(|source| {
+                        source.logical_size != [logical.0, logical.1]
+                            || source.physical_size != size
+                            || source.layout_scale != scale
+                    }),
                 timestamp: self.timestamp,
                 appearance: layout.resolved_appearance(owner, &entry.properties),
             };
-            let output = entry.producer.portable_scene(&frame).map_err(|error| {
-                PortableCaptureError::Producer {
-                    texture_key: key,
-                    error,
-                }
+            let output = match purpose {
+                ProducerFramePurpose::Presentation => entry.producer.portable_scene_update(
+                    &frame,
+                    old.map(|source| (source.source_identity, source.source_revision)),
+                ),
+                ProducerFramePurpose::Export => entry
+                    .producer
+                    .portable_scene(&frame)
+                    .map(PortableSceneUpdate::Produced),
+            }
+            .map_err(|error| PortableCaptureError::Producer {
+                texture_key: key,
+                error,
             })?;
+            let output = match output {
+                PortableSceneUpdate::Produced(output) => output,
+                PortableSceneUpdate::Retain {
+                    source_identity,
+                    source_revision,
+                } if !frame.needs_frame
+                    && old.is_some_and(|source| {
+                        source.source_identity == source_identity
+                            && source.source_revision == source_revision
+                    }) =>
+                {
+                    let old = old_slot.expect("a retained extent has an admitted slot");
+                    plan.slots.insert(
+                        key,
+                        PortableSlot {
+                            owner,
+                            active: true,
+                            source: old.source.clone(),
+                            digest: old.digest,
+                        },
+                    );
+                    continue;
+                },
+                PortableSceneUpdate::Retain { .. } => {
+                    return Err(PortableCaptureError::Producer {
+                        texture_key: key,
+                        error: PortableProducerError::InvalidSource,
+                    });
+                },
+            };
             if output.source_identity == 0 {
                 return Err(PortableCaptureError::Producer {
                     texture_key: key,
@@ -191,7 +247,7 @@ impl ProducerRegistry {
                             .portable
                             .as_ref()
                             .is_some_and(|slot| slot.owner == owner && slot.active),
-                    source: Some(ProducerSource {
+                    source: Some(Arc::new(ProducerSource {
                         texture_key: key,
                         content_generation: 0,
                         source_identity: output.source_identity,
@@ -202,38 +258,51 @@ impl ProducerRegistry {
                         alpha,
                         encoding,
                         scene: output.scene,
-                    }),
+                    })),
+                    digest: None,
                 },
             );
         }
         let limits = paint_list_render::bundle::BundleLimits::default();
         // Own the callbacks' outputs first. The entire borrowed plan must fit
         // its aggregate budget before a digest clones or serializes any Scene.
-        paint_list_render::bundle::validate_source_scenes(
+        let sources = || {
             plan.slots
                 .values()
-                .filter_map(|slot| slot.source.as_ref().map(|source| &source.scene)),
-            limits,
-        )
-        .map_err(PortableCaptureError::Bundle)?;
+                .filter_map(|slot| slot.source.as_deref())
+        };
+        let already_admitted = self.portable_capture.as_ref().is_some_and(|capture| {
+            plan.slots
+                .values()
+                .all(|slot| slot.source.is_none() || slot.digest.is_some())
+                && same_sources(sources(), capture)
+        });
+        if !already_admitted {
+            paint_list_render::bundle::validate_source_scenes(
+                sources().map(|source| &source.scene),
+                limits,
+            )
+            .map_err(PortableCaptureError::Bundle)?;
+        }
         for (&key, slot) in &mut plan.slots {
+            if slot.digest.is_some() {
+                continue;
+            }
             let Some(source) = slot.source.as_mut() else {
                 continue;
             };
-            let old = self.entries[&key]
+            let source =
+                Arc::get_mut(source).expect("a newly produced source is owned by the plan");
+            let old_slot = self.entries[&key]
                 .portable
                 .as_ref()
-                .filter(|previous| previous.owner == slot.owner)
-                .and_then(|previous| previous.source.as_ref());
+                .filter(|previous| previous.owner == slot.owner);
+            let old = old_slot.and_then(|slot| slot.source.as_ref());
             let digest =
                 paint_list_render::bundle::bounded_source_scene_digest(&source.scene, limits)
                     .map_err(PortableCaptureError::Bundle)?;
-            let old_digest = old
-                .map(|old| {
-                    paint_list_render::bundle::bounded_source_scene_digest(&old.scene, limits)
-                })
-                .transpose()
-                .map_err(PortableCaptureError::Bundle)?;
+            let old_digest = old_slot.and_then(|slot| slot.digest);
+            slot.digest = Some(digest);
             let unchanged = old.filter(|old| {
                 old.source_identity == source.source_identity
                     && old.source_revision == source.source_revision
@@ -261,7 +330,7 @@ impl ProducerRegistry {
         &mut self,
         mut plan: PortablePlan,
         envelope: paint_list_api::PaintEnvelope,
-    ) -> Result<PortablePaintCapture, PortableCaptureError> {
+    ) -> Result<Arc<PortablePaintCapture>, PortableCaptureError> {
         let referenced: std::collections::BTreeSet<_> = envelope
             .commands
             .iter()
@@ -273,26 +342,48 @@ impl ProducerRegistry {
                 }
             })
             .collect();
-        // Filter borrowed slots before moving only referenced Scenes into the
-        // capture. No Scene clone precedes whole-envelope resource admission.
-        let producers = plan
-            .slots
-            .iter_mut()
-            .filter(|(key, _)| referenced.contains(*key))
-            .filter_map(|(_, slot)| slot.source.take())
-            .collect();
-        let capture = PortablePaintCapture {
-            envelope,
-            producers,
-        };
-        paint_list_render::bundle::validate_capture(&capture)
-            .map_err(PortableCaptureError::Bundle)?;
-        // Admission succeeded: retain copies for repeat/lifecycle comparison.
-        for source in &capture.producers {
+        let presentation = plan.purpose == ProducerFramePurpose::Presentation;
+        let sources = || {
             plan.slots
-                .get_mut(&source.texture_key)
-                .expect("source came from plan")
-                .source = Some(source.clone());
+                .iter()
+                .filter(|(key, _)| referenced.contains(*key))
+                .filter_map(|(_, slot)| slot.source.as_deref())
+        };
+        let previous = self.portable_capture.as_ref().filter(|previous| {
+            presentation && previous.envelope == envelope && same_sources(sources(), previous)
+        });
+        let capture = if let Some(previous) = previous {
+            previous.clone()
+        } else {
+            let producers = plan
+                .slots
+                .iter_mut()
+                .filter(|(key, _)| referenced.contains(*key))
+                .filter_map(|(_, slot)| slot.source.take())
+                .map(Arc::unwrap_or_clone)
+                .collect();
+            let capture = PortablePaintCapture {
+                envelope,
+                producers,
+            };
+            paint_list_render::bundle::validate_capture(&capture)
+                .map_err(PortableCaptureError::Bundle)?;
+            for source in &capture.producers {
+                plan.slots
+                    .get_mut(&source.texture_key)
+                    .expect("source came from plan")
+                    .source = Some(Arc::new(source.clone()));
+            }
+            Arc::new(capture)
+        };
+        for (key, slot) in &mut plan.slots {
+            if !referenced.contains(key) {
+                slot.source = None;
+                slot.digest = None;
+            }
+        }
+        if presentation {
+            self.portable_capture = Some(capture.clone());
         }
         self.commit_portable(plan);
         Ok(capture)

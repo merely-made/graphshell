@@ -44,7 +44,10 @@ use sceno::InstanceId;
 use crate::action_draft::{ActionDraft, ActionDraftTarget};
 use crate::core::{Outcome, Progress};
 use crate::driver::{Advance, SessionDriver};
-use crate::{AccessibilityTree, ClientState, LocalActionError, LocalActions, MountedScene};
+use crate::{
+    AcceptedLabelUpdate, AccessibilityTree, ClientState, LocalActionError, LocalActions,
+    MountedScene,
+};
 
 /// The operation whose answer is awaited.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -270,6 +273,18 @@ impl RemoteSession {
 
     pub fn mounted(&self) -> Option<&MountedScene> {
         self.client()?.mounted(self.session.as_ref()?)
+    }
+
+    /// A local generation that advances on every accepted snapshot replacement,
+    /// including one at the current epoch and revision.
+    pub fn snapshot_generation(&self) -> u64 {
+        self.client().map_or(0, ClientState::snapshot_generation)
+    }
+
+    /// A label update is usable by a view of the same session and epoch at
+    /// its exact base revision.
+    pub fn accepted_label_update(&self) -> Option<&AcceptedLabelUpdate> {
+        self.client()?.accepted_label_update(self.session()?)
     }
 
     /// The acknowledged revision, if mounted.

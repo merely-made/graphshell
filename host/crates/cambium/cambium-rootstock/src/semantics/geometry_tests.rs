@@ -84,7 +84,7 @@ fn batch_producer_geometry_preserves_content_edges_translation_and_hidden_ancest
     dom.set_attribute(scroll, cambium::attr_qual("style"),
         "display:block;width:100px;height:100px;overflow:auto;visibility:hidden;transform:translate(13px,17px)");
     dom.drain_mutations(&mut mutations);
-    layout.rebuild(&dom, 300.0, 200.0, &mutations);
+    layout.rebuild(&dom, 300.0, 200.0, &mutations, true);
     let projected = project_semantics(&dom, &layout, &LeafRegistry::new(), &producers, None);
     let access = &projected
         .tree

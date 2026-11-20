@@ -221,10 +221,32 @@ Order, with the expected effect of each (estimates until measured):
 Not diagnosed: the render worker's 40 ms a changed frame, in presentation and netrender; it
 counts toward a sort being shown.
 
-State of the Genet side on 2026-11-19: P0 is on Genet's main (9a0e91074cd). Genet's main checkout
-holds uncommitted work toward P2 (`layout/retained_session.rs`, `relayout_borrowed_dom` for text
-mutations, changes to `invalidation.rs`, `frame.rs` and eight more files), not this plan's
-author's and not touched. Steps 2 to 5 belong with whoever holds it (table plan D34).
+### State on 2026-11-20
+
+The uncommitted work in Genet's and Graphshell's main checkouts was taken over and landed
+(table plan D43, D44).
+
+- **Genet (6225f4690b5).** P0 was already on main (9a0e91074cd). `relayout_borrowed_dom`
+  in `layout/retained_session.rs` is P2 for one case: a batch of text mutations at an
+  unchanged viewport, refused under container queries. The positioned-inset route is not
+  carried yet.
+- **P3, text only.** `OwnedLayout::rebuild` takes `retain` and calls
+  `relayout_borrowed_dom` when a batch is text edits at an unchanged viewport; a refusal
+  falls back to the full layout. Receipt:
+  `cards_title_edits_use_retained_layout_and_match_fresh_paint`. The T gate is not run, and
+  a table scroll is not a text edit, so the table's numbers above do not move.
+- **Label-only accessibility updates** (a first part of step 6). A producer reports a
+  semantic revision and the label changes since an earlier one; the browser mirror patches
+  list-item text in place, or moves the items together on a camera change, instead of
+  rebuilding. The client derives the update when a diff only replaces offer labels. The
+  mirror's path has no test; wasm check and clippy only.
+- **Board culling.** Cartography's board emits no fill, card or title outside the viewport
+  plus one pixel.
+- **Portable scene reuse.** A producer may tell presentation to keep the last admitted
+  portable scene when source identity, revision and size are unchanged; export always asks
+  for a full scene.
+
+Steps 2 to 5 above are open and belong to the table plan's session.
 
 ## Decisions for the owner
 

@@ -87,6 +87,7 @@ where
         let mut layout_with_text_us = 0;
         let mut content_extent_us = 0;
         let mut rebuilt = false;
+        let mut retained = false;
         match self.s.layout.as_mut() {
             Some(layout) if muts.is_empty() && !size_changed && !titlebar_moved => {
                 let phase = crate::Instant::now();
@@ -96,7 +97,8 @@ where
             Some(layout) if !size_changed && !titlebar_moved => {
                 rebuilt = true;
                 let phase = crate::Instant::now();
-                layout.rebuild(&view, lw, lh, &muts);
+                retained =
+                    layout.rebuild(&view, lw, lh, &muts, !self.options.force_full_dom_layout);
                 rebuild_us = elapsed_us(phase.elapsed());
             },
             _ => {
@@ -202,6 +204,12 @@ where
         self.s.last_content_extent_us = content_extent_us;
         self.s.last_layout_mutations = mutation_count;
         self.s.last_layout_rebuilt = rebuilt;
+        self.s.last_layout_retained = retained;
+        self.s.last_restyled_elements = if rebuilt {
+            layout.restyled_elements()
+        } else {
+            0
+        };
         self.s.last_leaf_boxes_us = leaf_boxes_us;
         self.s.last_leaf_render_us = elapsed_us(leaf_render_started.elapsed());
         self.s.last_leaf_repaints = leaf_repaints as u64;

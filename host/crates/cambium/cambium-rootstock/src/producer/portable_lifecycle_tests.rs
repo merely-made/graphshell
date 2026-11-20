@@ -8,6 +8,96 @@
 use super::*;
 
 #[test]
+fn retained_source_reuses_the_capture_and_requires_the_admitted_revision() {
+    use std::{cell::Cell, rc::Rc, sync::Arc};
+    struct Source(Rc<Cell<u64>>);
+    impl TextureProducer for Source {
+        fn render(&mut self, _: &ProducerContext<'_>) -> Option<ProducedTexture> {
+            None
+        }
+        fn portable_scene_update(
+            &mut self,
+            frame: &ProducerFrameInfo,
+            _: Option<(u64, u64)>,
+        ) -> Result<PortableSceneUpdate, PortableProducerError> {
+            if frame.needs_frame {
+                return Ok(PortableSceneUpdate::Produced(ProducedScene {
+                    scene: netrender::Scene::new(8, 6),
+                    source_identity: 7,
+                    source_revision: 1,
+                    alpha: SourceAlpha::Straight,
+                    encoding: SourceEncoding::Srgb,
+                }));
+            }
+            Ok(PortableSceneUpdate::Retain {
+                source_identity: 7,
+                source_revision: self.0.get(),
+            })
+        }
+    }
+    let (dom, layout) = fixture();
+    let revision = Rc::new(Cell::new(1));
+    let mut registry = ProducerRegistry::new();
+    registry.register(7, Source(revision.clone()), &[]).unwrap();
+    let plan = |registry: &mut ProducerRegistry| {
+        registry.plan_portable_for(
+            &layout,
+            &dom,
+            1.0,
+            &|_, _| false,
+            ProducerFramePurpose::Presentation,
+        )
+    };
+    let prepared = plan(&mut registry).unwrap();
+    let paint = envelope(&prepared);
+    let first = registry.admit_portable(prepared, paint.clone()).unwrap();
+    let prepared = plan(&mut registry).unwrap();
+    let repeated = registry.admit_portable(prepared, paint.clone()).unwrap();
+    assert!(Arc::ptr_eq(&first, &repeated));
+
+    let mut materialized = crate::PortableSceneCache::default();
+    let build = || Ok::<_, ()>(netrender::Scene::new(160, 120));
+    assert!(
+        !materialized
+            .materialize(&first, [160, 120], 1.0, build)
+            .unwrap()
+            .1
+    );
+    assert!(
+        materialized
+            .materialize::<()>(&repeated, [160, 120], 1.0, || panic!("same capture"))
+            .unwrap()
+            .1
+    );
+    assert!(
+        !materialized
+            .materialize(&repeated, [320, 240], 2.0, build)
+            .unwrap()
+            .1
+    );
+
+    let prepared = plan(&mut registry).unwrap();
+    let changed = registry
+        .admit_portable(
+            prepared,
+            PaintEnvelope {
+                generation: 2,
+                ..paint
+            },
+        )
+        .unwrap();
+    assert!(!Arc::ptr_eq(&changed, &first));
+    revision.set(2);
+    assert!(matches!(
+        plan(&mut registry),
+        Err(PortableCaptureError::Producer {
+            texture_key: 7,
+            error: PortableProducerError::InvalidSource
+        })
+    ));
+}
+
+#[test]
 fn portable_presentation_advances_once_and_export_only_observes() {
     use std::{cell::Cell, rc::Rc};
     struct CountingSource(Rc<Cell<u64>>);

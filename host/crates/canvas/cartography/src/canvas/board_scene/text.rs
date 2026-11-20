@@ -6,6 +6,17 @@
 
 use super::*;
 
+/// A title's line height, px; it is centred in its card.
+const TITLE_LINE: f32 = 16.0;
+// The title's family names Tabard's interface role. A host publishes the
+// role through `BoardText::set_font_roles`; until it does, the fallback is
+// the face that renders: Plex Sans where the host lends it (Graphshell),
+// else whatever the generic sans-serif resolves to among the lent faces.
+pub(super) const TITLE_SHEET: &str = "\
+    .board-title { position: absolute; margin: 0; padding: 0 6px; box-sizing: border-box; \
+      font-family: var(--tabard-font-interface, IBM Plex Sans), sans-serif; font-size: 13px; line-height: 16px; \
+      color: #f0dfb8; text-align: center; white-space: nowrap; overflow: hidden; }";
+
 impl BoardText {
     pub fn new() -> Self {
         Self {
@@ -39,13 +50,17 @@ impl BoardText {
     }
 
     /// Lay the titles out over their card rectangles and paint them.
-    pub(super) fn titles(
+    pub(super) fn titles<'a>(
         &mut self,
-        cards: &[(String, String, BoardRect)],
+        cards: impl Iterator<Item = (&'a BoardCard, BoardRect)>,
         width: u32,
         height: u32,
     ) -> Option<genet_livery::LiveryPaintList> {
-        self.labels(cards, width, height, TITLE_SHEET)
+        let visible: Vec<_> = cards
+            .filter(|(_, rect)| title_intersects_viewport(*rect, width, height))
+            .map(|(card, rect)| (card.id.clone(), card.labelled(), rect))
+            .collect();
+        self.labels(&visible, width, height, TITLE_SHEET)
     }
 
     /// Shared label shaping for independent surfaces; appearance belongs to the host.
@@ -71,7 +86,7 @@ impl BoardText {
                 &format!(
                     "left: {:.1}px; top: {:.1}px; width: {:.1}px;",
                     rect.x,
-                    rect.y + (rect.height - TITLE_LINE) * 0.5,
+                    title_top(*rect),
                     rect.width
                 ),
             );
@@ -106,4 +121,26 @@ impl BoardText {
             &mut self.text,
         ))
     }
+}
+
+fn title_top(card: BoardRect) -> f32 {
+    card.y + (card.height - TITLE_LINE) * 0.5
+}
+
+pub(super) fn title_intersects_viewport(card: BoardRect, width: u32, height: u32) -> bool {
+    let top = title_top(card);
+    // The title is clipped to its own line box, which can extend beyond a
+    // short card. Its border-box width is at least its two 6 px paddings.
+    let right = card.x + card.width.max(12.0);
+    let bottom = top + TITLE_LINE;
+    // Keep edge cases where the authored CSS rounds a position or width to
+    // one decimal. Let Livery decide the paint for nonfinite input as before.
+    let rounding = 0.1;
+    ![card.x, top, right, bottom, card.width]
+        .iter()
+        .all(|v| v.is_finite())
+        || (card.x < width as f32 + rounding
+            && right > -rounding
+            && top < height as f32 + rounding
+            && bottom > -rounding)
 }

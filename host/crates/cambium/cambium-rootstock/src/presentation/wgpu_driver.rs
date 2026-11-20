@@ -22,6 +22,7 @@ pub type PortableMaterializer = Box<
 pub struct WgpuDriver {
     surface: Option<Box<dyn Surface>>,
     portable: Option<PortableMaterializer>,
+    portable_scene: PortableSceneCache,
     owner: Arc<SharedRenderCore>,
     factory: WgpuSurfaceFactory,
     lifetime: PresentationLifetime,
@@ -40,6 +41,7 @@ impl WgpuDriver {
         Self {
             surface: Some(surface),
             portable: None,
+            portable_scene: PortableSceneCache::default(),
             owner,
             factory,
             lifetime: PresentationLifetime::new(generation),
@@ -127,19 +129,29 @@ impl PresentationDriver for WgpuDriver {
         let result = match (&frame.paint, &self.portable) {
             (PreparedPaint::Portable(capture), Some(materialize)) => {
                 let phase = crate::Instant::now();
-                let scene = materialize(capture, frame.width, frame.height, frame.scale).map_err(
-                    |(producer_key, message)| {
-                        let mut failure = self.failure(message);
-                        failure.producer_key = producer_key;
-                        failure
-                    },
-                )?;
+                let materialized = self.portable_scene.materialize(
+                    capture,
+                    [frame.width, frame.height],
+                    frame.scale,
+                    || materialize(capture, frame.width, frame.height, frame.scale),
+                );
+                let (scene, reused) =
+                    materialized.map_err(|(producer_key, message)| PresentationFailure {
+                        backend: PresentationBackend::Wgpu,
+                        generation: frame.generation,
+                        producer_key,
+                        message,
+                        native: None,
+                    })?;
+                profile.portable_materialization_reused = reused;
+                profile.portable_materialize_us =
+                    phase.elapsed().as_micros().min(u64::MAX as u128) as u64;
                 profile.emit_scene_us = profile
                     .emit_scene_us
-                    .saturating_add(phase.elapsed().as_micros().min(u64::MAX as u128) as u64);
+                    .saturating_add(profile.portable_materialize_us);
                 presenter.present_scene(
                     frame,
-                    &scene,
+                    scene,
                     &[],
                     1.0,
                     &mut profile,
@@ -177,6 +189,7 @@ impl PresentationDriver for WgpuDriver {
             });
         self.output = None;
         self.raster_cache.clear();
+        self.portable_scene.clear();
         self.surface = None;
         self.lifetime.lose();
     }
@@ -233,6 +246,7 @@ impl PresentationDriver for WgpuDriver {
         self.captures.scope().dispose();
         self.output = None;
         self.raster_cache.clear();
+        self.portable_scene.clear();
         self.surface = None;
         self.lifetime.dispose();
     }

@@ -6,10 +6,55 @@
 
 //! CPU frame packets and the host-owned presentation boundary.
 use super::{ContextGeneration, PresentationBackend};
+use std::sync::{Arc, Weak};
 
 pub enum PreparedPaint {
     Native(paint_list_api::PaintEnvelope),
-    Portable(crate::PortablePaintCapture),
+    Portable(Arc<crate::PortablePaintCapture>),
+}
+
+/// One CPU materialization of an admitted, immutable portable capture.
+#[derive(Default)]
+pub struct PortableSceneCache {
+    entry: Option<MaterializedCapture>,
+}
+
+struct MaterializedCapture {
+    source: Weak<crate::PortablePaintCapture>,
+    size: [u32; 2],
+    scale: f32,
+    scene: netrender::Scene,
+}
+
+impl PortableSceneCache {
+    pub fn materialize<E>(
+        &mut self,
+        source: &Arc<crate::PortablePaintCapture>,
+        size: [u32; 2],
+        scale: f32,
+        build: impl FnOnce() -> Result<netrender::Scene, E>,
+    ) -> Result<(&netrender::Scene, bool), E> {
+        let key = Arc::downgrade(source);
+        let reused = self.entry.as_ref().is_some_and(|entry| {
+            entry.source.ptr_eq(&key) && entry.size == size && entry.scale == scale
+        });
+        if !reused {
+            self.entry = Some(MaterializedCapture {
+                source: key,
+                size,
+                scale,
+                scene: build()?,
+            });
+        }
+        Ok((
+            &self.entry.as_ref().expect("materialized above").scene,
+            reused,
+        ))
+    }
+
+    pub fn clear(&mut self) {
+        self.entry = None;
+    }
 }
 
 pub struct PreparedFrame {

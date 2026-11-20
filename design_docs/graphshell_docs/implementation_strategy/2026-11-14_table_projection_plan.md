@@ -506,6 +506,25 @@ Left from the headed pages (T4):
 
   *Refines D41.*
 
+- **D43. The unlanded retained-session work is taken over (Mark, 2026-11-19):** "eh,
+  probably codex, maybe inactive or refocused on something else. you can take ownership of
+  it". The uncommitted work in Genet's and Graphshell's main checkouts is brought forward
+  and landed by this plan's session, which then carries the Genet steps of the adoption
+  plan's ordered list.
+
+  Links: summary The uncommitted retained-session work in Genet and Graphshell is landed by the table plan's session, which carries the Genet speed steps.
+
+  *Contradicts D34, which it replaces.*
+
+- **D44. One layout stamp (Mark, 2026-11-20):** "Keep SemanticStamp". The rescued
+  `SemanticLayoutStamp` held the same seven fields; `SemanticStamp` is public, gains
+  `matches(layout, dom)`, and serves both the native republish skip and the browser
+  mirror's label-only patch.
+
+  Links: summary SemanticStamp is the one layout stamp, public with matches, for the native republish skip and the browser label patch.
+
+  *Applies D33.*
+
 ## Findings
 
 - 2026-11-15: adding a slot to a recipe type breaks every repository that builds one as a
@@ -816,3 +835,5 @@ Left from the headed pages (T4):
   identity keeps a row's node through a reorder; `data_grid` and `data_grid_with`
   keep the row index and their signatures. No sibling repository changed. Tests:
   cambium 453.
+- 2026-11-20: the rescued work landed (D43, D44); what it holds is in the incremental
+  relayout adoption plan under "State on 2026-11-20".

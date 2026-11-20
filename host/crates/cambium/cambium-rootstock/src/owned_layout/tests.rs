@@ -21,7 +21,7 @@ impl OwnedLayout {
     pub(super) fn rebuild_drained(&mut self, dom: &mut ScriptedDom, width: f32, height: f32) {
         let mut mutations = Vec::new();
         dom.drain_mutations(&mut mutations);
-        self.rebuild(dom, width, height, &mutations);
+        self.rebuild(dom, width, height, &mutations, true);
     }
 }
 

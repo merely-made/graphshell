@@ -6,6 +6,7 @@
 
 //! Transport-independent, endpoint-scoped projection state.
 
+mod accepted_labels;
 pub mod action_draft;
 pub mod core;
 pub mod driver;
@@ -17,6 +18,7 @@ pub mod pump;
 pub mod remote;
 pub mod session;
 
+pub use accepted_labels::{AcceptedLabelChange, AcceptedLabelUpdate};
 pub use action_draft::{ActionDraft, ActionDraftSemantics, ActionDraftTarget};
 pub use core::{Outcome, Progress, RESUME_ATTEMPTS, SessionCore};
 pub use driver::{Advance, LineDriven, SessionDriver};
@@ -35,8 +37,10 @@ use chirograph::{
     ResourceRequest, ResourceResponse, ResumeReply, ResumeRequest, SemanticRole, SessionStatus,
 };
 use sceno::InstanceId;
-use scenotime::{ApplyOutcome, DiffError, SceneSnapshot, SnapshotError};
+use scenotime::{ApplyOutcome, DiffError, Revision, SceneSnapshot, SnapshotError};
 use serde::{Deserialize, Serialize};
+
+use accepted_labels::{AcceptedLabels, LabelChanges};
 
 /// The local cache entry for one disclosed remote projection.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -259,6 +263,8 @@ struct PersistedResource {
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct ClientState {
     mounted: BTreeMap<ProjectionSession, MountedScene>,
+    labels: BTreeMap<ProjectionSession, AcceptedLabels>,
+    snapshot_generation: u64,
     // Disclosure stays session-scoped even when two endpoints advertise the
     // same content hash. Cross-session reuse requires an explicit later policy.
     resources: BTreeMap<ProjectionSession, BTreeMap<ContentHash, Vec<u8>>>,
@@ -292,7 +298,10 @@ impl ClientState {
         if let Some(resources) = self.resources.get_mut(&session) {
             resources.retain(|hash, _| advertised.contains(hash));
         }
+        self.labels
+            .insert(session.clone(), AcceptedLabels::new(&mounted.presentation));
         self.mounted.insert(session, mounted);
+        self.snapshot_generation = self.snapshot_generation.wrapping_add(1);
         Ok(())
     }
 
@@ -310,11 +319,14 @@ impl ClientState {
             .get(&diff.session)
             .cloned()
             .ok_or(ClientDiffError::UnknownSession)?;
+        let base = next.scene.revision;
         let mut resources = ResourceChanges::default();
-        let outcome = stage_diff(&mut next, diff, &mut resources)?;
+        let mut labels = LabelChanges::default();
+        let outcome = stage_diff(&mut next, diff, &mut resources, &mut labels)?;
         if matches!(outcome, DiffApplication::Applied(_)) {
-            // All fallible validation precedes both commits. Resource bytes are
-            // never copied and unrelated sessions are never traversed.
+            // All fallible validation precedes commit. Resource bytes are
+            // kept in place and unrelated sessions are skipped.
+            self.commit_label_changes(&diff.session, &next, base, labels);
             self.mounted.insert(diff.session.clone(), next);
             resources.commit(&diff.session, &mut self.resources);
         }
@@ -594,12 +606,14 @@ impl ClientState {
                     .cloned()
                     .ok_or(ResumeApplyError::UnknownSession)?;
                 let mut resources = ResourceChanges::default();
+                let mut labels = LabelChanges::default();
                 let mut last_ack = self.acknowledgement(session).unwrap();
+                let base = last_ack.revision;
                 for diff in diffs {
                     if &diff.session != session {
                         return Err(ResumeApplyError::WrongSession);
                     }
-                    match stage_diff(&mut next, &diff, &mut resources)
+                    match stage_diff(&mut next, &diff, &mut resources, &mut labels)
                         .map_err(ResumeApplyError::InvalidDiff)?
                     {
                         DiffApplication::Applied(ack) | DiffApplication::AlreadyApplied(ack) => {
@@ -615,6 +629,7 @@ impl ClientState {
                 }
                 resources.purge |=
                     next.status == SessionStatus::Revoked && next.cache_policy.purge_on_revocation;
+                self.commit_label_changes(session, &next, base, labels);
                 self.mounted.insert(session.clone(), next);
                 resources.commit(session, &mut self.resources);
                 Ok(ResumeApplication::Applied(last_ack))
@@ -690,8 +705,49 @@ impl ClientState {
         self.mounted.get(session)
     }
 
+    pub(crate) fn snapshot_generation(&self) -> u64 {
+        self.snapshot_generation
+    }
+
+    pub fn accepted_label_update(
+        &self,
+        session: &ProjectionSession,
+    ) -> Option<&AcceptedLabelUpdate> {
+        self.labels.get(session)?.update.as_ref()
+    }
+
+    fn commit_label_changes(
+        &mut self,
+        session: &ProjectionSession,
+        next: &MountedScene,
+        base: Revision,
+        labels: LabelChanges,
+    ) {
+        match labels {
+            LabelChanges::Unchanged => {},
+            LabelChanges::Full => {
+                self.labels
+                    .insert(session.clone(), AcceptedLabels::new(&next.presentation));
+            },
+            LabelChanges::Keys(keys) => {
+                self.labels
+                    .get_mut(session)
+                    .expect("mounted projection has a presentation binding index")
+                    .update(
+                        keys,
+                        &next.presentation,
+                        session,
+                        next.scene.epoch,
+                        base,
+                        next.scene.revision,
+                    );
+            },
+        }
+    }
+
     pub fn forget_session(&mut self, session: &ProjectionSession) {
         self.mounted.remove(session);
+        self.labels.remove(session);
         self.resources.remove(session);
     }
 
@@ -783,8 +839,13 @@ impl ClientState {
             restored.mounted.get_mut(session).unwrap().status = restored_status;
         }
         self.forget_session(session);
+        self.labels.insert(
+            session.clone(),
+            AcceptedLabels::new(&restored.mounted[session].presentation),
+        );
         self.mounted.extend(restored.mounted);
         self.resources.extend(restored.resources);
+        self.snapshot_generation = self.snapshot_generation.wrapping_add(1);
         Ok(())
     }
 
@@ -825,6 +886,7 @@ fn stage_diff(
     next: &mut MountedScene,
     diff: &ProjectionDiff,
     resources: &mut ResourceChanges,
+    labels: &mut LabelChanges,
 ) -> Result<DiffApplication, ClientDiffError> {
     if diff.version.major != chirograph::ProtocolVersion::V1.major {
         return Err(ClientDiffError::UnsupportedVersion);
@@ -848,6 +910,7 @@ fn stage_diff(
     if outcome == ApplyOutcome::AlreadyApplied {
         return Ok(DiffApplication::AlreadyApplied(ack));
     }
+    labels.record(&next.presentation, diff);
     for change in &diff.presentation {
         match change {
             PresentationChange::Bind(binding) => {

@@ -293,7 +293,7 @@ impl BoardScene {
     /// card's footprint at its slot, so a margin is a margin from the cards'
     /// edges rather than from their centres.
     pub fn frame(&self) -> BoardRect {
-        let mut extents: Vec<BoardRect> = self
+        let mut extents = self
             .cards
             .iter()
             .filter_map(|card| {
@@ -305,16 +305,13 @@ impl BoardScene {
                     local.height,
                 ))
             })
-            .collect();
-        if self.bounds.width > 0.0 || self.bounds.height > 0.0 {
-            extents.push(self.bounds);
-        }
-        let Some(first) = extents.first().copied() else {
+            .chain((self.bounds.width > 0.0 || self.bounds.height > 0.0).then_some(self.bounds));
+        let Some(first) = extents.next() else {
             return self.bounds;
         };
         let (mut x0, mut y0) = (first.x, first.y);
         let (mut x1, mut y1) = (first.x + first.width, first.y + first.height);
-        for rect in &extents[1..] {
+        for rect in extents {
             x0 = x0.min(rect.x);
             y0 = y0.min(rect.y);
             x1 = x1.max(rect.x + rect.width);
@@ -344,24 +341,53 @@ impl BoardScene {
         height: u32,
         fit: BoardFit,
     ) -> Vec<(String, String, BoardRect)> {
+        self.card_placements(board, width, height, fit)
+            .map(|(card, rect)| (card.id.clone(), card.labelled(), rect))
+            .collect()
+    }
+
+    fn card_placements<'a>(
+        &'a self,
+        board: &'a PhysicsBoard,
+        width: u32,
+        height: u32,
+        fit: BoardFit,
+    ) -> impl Iterator<Item = (&'a BoardCard, BoardRect)> + 'a {
         let transform = fit.transform(self.framed(fit, board), width as f32, height as f32);
         self.cards
             .iter()
-            .map(|card| {
-                let (center_x, center_y) = transform.to_viewport(self.position(card, board));
-                let (card_w, card_h) = card_size(card, fit.card_scale.unwrap_or(transform.scale));
-                (
-                    card.id.clone(),
-                    card.labelled(),
-                    BoardRect::new(
-                        center_x - card_w * 0.5,
-                        center_y - card_h * 0.5,
-                        card_w,
-                        card_h,
-                    ),
-                )
-            })
-            .collect()
+            .map(move |card| (card, self.card_placement(board, card, fit, transform)))
+    }
+
+    fn card_placement(
+        &self,
+        board: &PhysicsBoard,
+        card: &BoardCard,
+        fit: BoardFit,
+        transform: BoardTransform,
+    ) -> BoardRect {
+        let (center_x, center_y) = transform.to_viewport(self.position(card, board));
+        let (width, height) = card_size(card, fit.card_scale.unwrap_or(transform.scale));
+        BoardRect::new(
+            center_x - width * 0.5,
+            center_y - height * 0.5,
+            width,
+            height,
+        )
+    }
+
+    /// Whether a card's title would pass the same viewport cull as paint.
+    /// `transform` is the viewport transform of the current fit and frame.
+    pub fn title_intersects_viewport(
+        &self,
+        board: &PhysicsBoard,
+        card: &BoardCard,
+        (width, height): (u32, u32),
+        fit: BoardFit,
+        transform: BoardTransform,
+    ) -> bool {
+        let rect = self.card_placement(board, card, fit, transform);
+        text::title_intersects_viewport(rect, width, height)
     }
 
     /// The ground, the backdrops and the cards as filled rectangles in
@@ -393,60 +419,36 @@ impl BoardScene {
                 fills.push(Fill([x1 - stroke, y0, x1, y1], COLLIDABLE_EDGE));
             }
         }
+        fills.retain(|fill| fill.intersects_viewport(width, height));
         fills
     }
 
     /// The cards, over the edges.
-    fn card_fills(
-        &self,
-        board: &PhysicsBoard,
+    fn card_fills<'a>(
+        &'a self,
+        board: &'a PhysicsBoard,
         width: u32,
         height: u32,
         fit: BoardFit,
-    ) -> Vec<Fill> {
-        let mut fills = Vec::new();
-        if self.cards.is_empty() {
-            return fills;
-        }
-        let transform = fit.transform(self.framed(fit, board), width as f32, height as f32);
-        let scale = transform.scale;
-        for card in &self.cards {
-            let (center_x, center_y) = transform.to_viewport(self.position(card, board));
-            let (card_w, card_h) = card_size(card, fit.card_scale.unwrap_or(scale));
-            let (half_w, half_h) = (card_w * 0.5, card_h * 0.5);
-            if card.pinned {
+    ) -> impl Iterator<Item = Fill> + 'a {
+        self.card_placements(board, width, height, fit)
+            .flat_map(|(card, rect)| {
+                let (left, top) = (rect.x, rect.y);
+                let (right, bottom) = (rect.x + rect.width, rect.y + rect.height);
                 // Outside the card, so it reads as something done to the
                 // item rather than part of it.
-                fills.push(Fill(
-                    [
-                        center_x - half_w - 3.0,
-                        center_y - half_h - 3.0,
-                        center_x + half_w + 3.0,
-                        center_y + half_h + 3.0,
-                    ],
+                let held = card.pinned.then_some(Fill(
+                    [left - 3.0, top - 3.0, right + 3.0, bottom + 3.0],
                     HELD_EDGE,
                 ));
-            }
-            fills.push(Fill(
-                [
-                    center_x - half_w - 5.0,
-                    center_y - half_h + 6.0,
-                    center_x + half_w + 5.0,
-                    center_y + half_h + 11.0,
-                ],
-                SHADOW,
-            ));
-            fills.push(Fill(
-                [
-                    center_x - half_w,
-                    center_y - half_h,
-                    center_x + half_w,
-                    center_y + half_h,
-                ],
-                if card.lead { LEAD_CARD } else { CARD },
-            ));
-        }
-        fills
+                let shadow = Fill([left - 5.0, top + 6.0, right + 5.0, bottom + 11.0], SHADOW);
+                let body = Fill(
+                    [left, top, right, bottom],
+                    if card.lead { LEAD_CARD } else { CARD },
+                );
+                [held, Some(shadow), Some(body)].into_iter().flatten()
+            })
+            .filter(move |fill| fill.intersects_viewport(width, height))
     }
 
     /// Paint the ground, the backdrops and the cards at the board's
@@ -494,13 +496,13 @@ impl BoardScene {
                 .iter()
                 .map(Edge::command),
         );
-        rects.extend(
-            self.card_fills(board, width, height, fit)
-                .into_iter()
-                .map(rect),
-        );
+        rects.extend(self.card_fills(board, width, height, fit).map(rect));
         let viewport = DeviceIntSize::new(width as i32, height as i32);
-        let titles = text.titles(&self.card_rects(board, width, height, fit), width, height);
+        let titles = text.titles(
+            self.card_placements(board, width, height, fit),
+            width,
+            height,
+        );
         let mut layers = vec![CompositeLayer::commands_only(&rects)];
         if let Some(titles) = titles.as_ref() {
             layers.push(CompositeLayer {
@@ -536,6 +538,19 @@ pub(crate) fn card_size(card: &BoardCard, scale: f32) -> (f32, f32) {
 /// One filled rectangle, `[x0, y0, x1, y1]` in viewport px, and its colour.
 pub(crate) struct Fill([f32; 4], [f32; 4]);
 
+impl Fill {
+    fn intersects_viewport(&self, width: u32, height: u32) -> bool {
+        let [x0, y0, x1, y1] = self.0;
+        // Keep a pixel for antialiasing at the viewport edge and let the
+        // renderer continue to handle nonfinite geometry.
+        !self.0.iter().all(|value| value.is_finite())
+            || (x0.min(x1) <= width as f32 + 1.0
+                && x0.max(x1) >= -1.0
+                && y0.min(y1) <= height as f32 + 1.0
+                && y0.max(y1) >= -1.0)
+    }
+}
+
 /// The faces a board sets its card titles in, and the retained shaping state.
 /// A browser lends no system faces, so a host registers the ones it ships.
 pub struct BoardText {
@@ -549,17 +564,6 @@ impl Default for BoardText {
         Self::new()
     }
 }
-
-/// A title's line height, px; it is centred in its card.
-const TITLE_LINE: f32 = 16.0;
-// The title's family names Tabard's interface role. A host publishes the
-// role through `BoardText::set_font_roles`; until it does, the fallback is
-// the face that renders: Plex Sans where the host lends it (Graphshell),
-// else whatever the generic sans-serif resolves to among the lent faces.
-const TITLE_SHEET: &str = "\
-    .board-title { position: absolute; margin: 0; padding: 0 6px; box-sizing: border-box; \
-      font-family: var(--tabard-font-interface, IBM Plex Sans), sans-serif; font-size: 13px; line-height: 16px; \
-      color: #f0dfb8; text-align: center; white-space: nowrap; overflow: hidden; }";
 
 /// A stable fallback paint for an open backdrop kind: an unfamiliar scene
 /// still gets a distinct, deterministic face from its own data. Hosts with

@@ -12,13 +12,13 @@ use castellan::{
         wallet::{bootstrap_wallet_state, create_wallet_padlock_with_passphrase},
     },
 };
+use castellan_client::custody_client::CustodyClient;
+use djinn::door::app_admission::{AllowedAppRoutes, AppRouteGrants};
+use dramatis::view::VaultProtectionView;
+use dramatis_resident::keeper::Keeper;
 use mere_resident::door::app_broker::AppEndpointCatalog;
 use mere_resident::door::app_broker::serve_app_broker;
-use dramatis_resident::keeper::Keeper;
-use djinn::door::app_admission::{AllowedAppRoutes, AppRouteGrants};
 use ostiary::app_admission::AppId;
-use castellan_client::custody_client::CustodyClient;
-use dramatis::view::VaultProtectionView;
 use personae::{Ed25519Keypair, PersonaId, ProfileId};
 use std::{path::PathBuf, sync::Arc, time::Duration};
 
@@ -31,14 +31,14 @@ async fn main() {
     assert_eq!(
         args.len(),
         3,
-        "usage: tucket-custody-receipt-host <endpoint> <new-root> <unlocked|locked|no-wallet>"
+        "usage: tucket-custody-receipt-host <endpoint> <new-root> <unlocked|locked|no-wallet|woodshed-practice>"
     );
     let endpoint = args[0].clone();
     let root = PathBuf::from(&args[1]);
     assert!(!root.exists(), "fixture root must be new");
     assert!(matches!(
         args[2].as_str(),
-        "unlocked" | "locked" | "no-wallet"
+        "unlocked" | "locked" | "no-wallet" | "woodshed-practice"
     ));
     std::fs::create_dir_all(&root).unwrap();
     std::fs::write(
@@ -57,7 +57,7 @@ async fn main() {
     );
     storage.save_profile(&profile).unwrap();
     let wallet_root = root.join("wallet");
-    let has_wallet = args[2] != "no-wallet";
+    let has_wallet = matches!(args[2].as_str(), "unlocked" | "locked");
     if has_wallet {
         // The wallet lives only in this process: a passphrase padlock, held
         // open for it, keys it on every platform (custody D5, D9).
@@ -76,10 +76,37 @@ async fn main() {
         Arc::new(Keeper::new(host.clone()).with_wallet_root(has_wallet.then_some(wallet_root)));
     let grants = AppRouteGrants::new(AllowedAppRoutes::none());
     mere_resident::custody::grant(&grants).unwrap();
-    // Signalman, granted what it declares (`station_custody::declaration`),
-    // and the receipt's other application, granted the whole Signalman
-    // wallet namespace, which still does not reach a station's keys.
-    {
+    let policy = if args[2] == "woodshed-practice" {
+        use ostiary::declaration::{
+            AppDeclaration, CustodyOperation as Op, CustodyUse, NamePattern, SaltPattern, SaltUse,
+        };
+        let woodshed = AppDeclaration {
+            routes: vec![NamePattern::exact("custody")],
+            custody: CustodyUse {
+                operations: [
+                    Op::Status,
+                    Op::Roster,
+                    Op::WatchLock,
+                    Op::Release,
+                    Op::ChooseProfile,
+                ]
+                .into(),
+                salts: vec![SaltUse::persona(SaltPattern::Exact(
+                    "woodshed.practice-session.seal.v1".into(),
+                ))],
+                ..CustodyUse::default()
+            },
+            ..AppDeclaration::default()
+        };
+        vec![mere_resident::applications::grant_for(
+            &AppId::new("woodshed"),
+            &woodshed,
+            None,
+        )]
+    } else {
+        // Signalman, granted what it declares (`station_custody::declaration`),
+        // and the receipt's other application, granted the whole Signalman
+        // wallet namespace, which still does not reach a station's keys.
         use ostiary::declaration::{
             AppDeclaration, CustodyOperation as Op, CustodyUse, NamePattern, SaltPattern, SaltUse,
         };
@@ -96,7 +123,13 @@ async fn main() {
             ..AppDeclaration::default()
         };
         let signalman = declared(
-            vec![Op::Status, Op::WatchLock, Op::Release, Op::IssueStationGrant, Op::RevokeDevice],
+            vec![
+                Op::Status,
+                Op::WatchLock,
+                Op::Release,
+                Op::IssueStationGrant,
+                Op::RevokeDevice,
+            ],
             &[
                 "mere.castellan.reticulum.station/v1",
                 "mere.castellan.reticulum.controller/v1",
@@ -106,15 +139,16 @@ async fn main() {
                 "mere.signalman.sennet.station/v1/",
             ],
         );
-        let broad = declared(vec![Op::Release, Op::Attest, Op::Sign], &["mere.signalman."]);
-        mere_resident::applications::install(
-            &grants,
-            vec![
-                mere_resident::applications::grant_for(&AppId::new("signalman"), &signalman, None),
-                mere_resident::applications::grant_for(&AppId::new("turnstone"), &broad, None),
-            ],
+        let broad = declared(
+            vec![Op::Release, Op::Attest, Op::Sign],
+            &["mere.signalman."],
         );
-    }
+        vec![
+            mere_resident::applications::grant_for(&AppId::new("signalman"), &signalman, None),
+            mere_resident::applications::grant_for(&AppId::new("turnstone"), &broad, None),
+        ]
+    };
+    mere_resident::applications::install(&grants, policy);
     let serving = endpoint.clone();
     let mut server = tokio::spawn(async move {
         serve_app_broker(

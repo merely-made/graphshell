@@ -57,6 +57,96 @@ struct List {
     sheet: &'static str,
 }
 
+#[test]
+fn cards_title_edits_use_retained_layout_and_match_fresh_paint() {
+    const SHEET: &str = "
+        .tools-cards { width:210px; margin:2px 0 4px; padding:0 0 0 16px; font-size:12px; }
+        .tools-cards li { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:18px; }
+        .tools-cards li[title='changes style'] { padding-top:4px; }";
+    let mut dom = ScriptedDom::new();
+    let root = dom.document();
+    let list = dom.create_element(name("ul"));
+    dom.set_attribute(list, name("class"), "tools-cards");
+    dom.append_child(root, list);
+    let mut rows = Vec::new();
+    for index in 0..12 {
+        let node = dom.create_element(name("li"));
+        let title = format!("Card {index:05} A");
+        let label = dom.create_text(&title);
+        dom.set_attribute(node, name("title"), &title);
+        dom.append_child(node, label);
+        dom.append_child(list, node);
+        rows.push(Row { node, label });
+    }
+    dom.drain_mutations(&mut Vec::new());
+    let mut cards = List {
+        dom,
+        list,
+        rows,
+        sheet: SHEET,
+    };
+    let mut layout = cards.session();
+    let Row { node, label } = cards.rows[5];
+    for (text, expected_retained) in [
+        ("Card 00005 B", true),
+        (
+            "A long card title that overflows its row and is painted with an ellipsis",
+            true,
+        ),
+        ("changes style", false),
+    ] {
+        cards.dom.set_text(label, text);
+        cards.dom.set_attribute(node, name("title"), text);
+        let mut mutations = Vec::new();
+        cards.dom.drain_mutations(&mut mutations);
+        assert_eq!(
+            layout.rebuild(&cards.dom, VIEWPORT.0, VIEWPORT.1, &mutations, true),
+            expected_retained,
+            "{text}"
+        );
+        cards.assert_equivalent(&mut layout, true, text);
+    }
+}
+
+#[test]
+fn card_label_metadata_ignores_unrelated_structural_selectors() {
+    let mut list = List::new(
+        12,
+        ".row:nth-child(odd) { color: red; } \
+        .row + .row { margin-top:2px; }",
+    );
+    let form = list.dom.create_element(QualName::new(
+        None,
+        Namespace::from("http://www.w3.org/1999/xhtml"),
+        LocalName::from("form"),
+    ));
+    list.dom.append_child(list.dom.document(), form);
+    list.dom.drain_mutations(&mut Vec::new());
+    let mut layout = list.session();
+    let row = &list.rows[5];
+    let owner = list.dom.parent(row.label).unwrap();
+    list.dom.set_text(row.label, "edited");
+    list.dom.set_attribute(owner, name("title"), "edited");
+    assert_eq!(list.frame(&mut layout, false, "text and title"), 0);
+}
+
+#[test]
+fn text_and_title_dependencies_still_invalidate_the_cascade() {
+    let mut list = List::new(
+        12,
+        "span:empty { background-color: red; } \
+        span::before { content: attr(title); }",
+    );
+    let mut layout = list.session();
+    let label = list.rows[5].label;
+    let owner = list.dom.parent(label).unwrap();
+    list.dom.set_text(label, "");
+    assert!(list.frame(&mut layout, false, "empty text") > 0);
+    list.dom.set_attribute(owner, name("title"), "generated");
+    assert!(list.frame(&mut layout, false, "generated title") > 0);
+    assert_eq!(layout.generated_text(&list.dom, owner).0, "generated");
+}
+
 impl List {
     fn new(count: usize, sheet: &'static str) -> Self {
         let mut dom = ScriptedDom::new();
@@ -119,7 +209,7 @@ impl List {
         let mut mutations = Vec::new();
         self.dom.drain_mutations(&mut mutations);
         assert!(!mutations.is_empty(), "{stage}: the stage mutated nothing");
-        layout.rebuild(&self.dom, VIEWPORT.0, VIEWPORT.1, &mutations);
+        layout.rebuild(&self.dom, VIEWPORT.0, VIEWPORT.1, &mutations, true);
         self.assert_equivalent(layout, scrolled, stage);
         layout.style.last_stats().restyled_elements
     }
@@ -319,7 +409,7 @@ fn incremental_style_equals_a_fresh_session_under_a_window_root() {
     let mut mutations = Vec::new();
     list.dom.drain_mutations(&mut mutations);
     let view = WindowDom::new(&list.dom, window);
-    layout.rebuild(&view, VIEWPORT.0, VIEWPORT.1, &mutations);
+    layout.rebuild(&view, VIEWPORT.0, VIEWPORT.1, &mutations, true);
     let fresh = build(&list);
     let resolved = resolve_styles(
         &view,
@@ -348,7 +438,7 @@ fn a_viewport_change_falls_back_to_a_full_restyle() {
     list.dom.set_text(label, "changed");
     let mut mutations = Vec::new();
     list.dom.drain_mutations(&mut mutations);
-    layout.rebuild(&list.dom, 600.0, VIEWPORT.1, &mutations);
+    layout.rebuild(&list.dom, 600.0, VIEWPORT.1, &mutations, true);
     assert!(layout.style.last_stats().device_invalidated);
     let fresh = OwnedLayout::new(
         &list.dom,

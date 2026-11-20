@@ -587,3 +587,7 @@ reason = "held by wasmtime-internal-cache 45.0.3; gone when its holders move to 
 [[bans.skip]]
 crate = "zstd-safe@7.4.1"
 reason = "held by zstd 0.13.5; gone when its holders move to zstd-safe 8.3.0 (zstd 0.13.5 in the graph, 0.14.4 newest)"
+
+[[bans.skip]]
+crate = "unicode-width@0.1.14"
+reason = "held by codespan-reporting 0.13.1 (naga 30.0.2); wast 263.0.0 brought unicode-width 0.2.3; goes when codespan-reporting moves to 0.2"

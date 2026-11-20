@@ -5,9 +5,9 @@
 // SPDX-License-Identifier: MPL-2.0
 //! A context owned by one browser appearance, independently of wgpu.
 use cambium_rootstock::{
-    CaptureRefusal, ContextGeneration, FrameContentMode, PendingPresentationCapture, PreparedFrame,
-    PreparedPaint, PresentationBackend, PresentationDriver, PresentationFailure,
-    PresentationLifetime, PresentationState, PresentedFrame, Surface,
+    CaptureRefusal, ContextGeneration, FrameContentMode, PendingPresentationCapture,
+    PortableSceneCache, PreparedFrame, PreparedPaint, PresentationBackend, PresentationDriver,
+    PresentationFailure, PresentationLifetime, PresentationState, PresentedFrame, Surface,
 };
 use netrender::vello_backends::{SparseResourceLimits, WebGlSession, WebGlSessionInit};
 use std::{cell::Cell, rc::Rc};
@@ -21,6 +21,7 @@ pub struct WebGlPresentation {
     rebuilding: Option<WebGlSessionInit>,
     lifetime: PresentationLifetime,
     limits: SparseResourceLimits,
+    portable_scene: PortableSceneCache,
     readbacks: Vec<super::readback::PendingBuffers>,
     readback_bytes: Rc<Cell<usize>>,
     capture_turn: Rc<Cell<Option<PresentedFrame>>>,
@@ -51,6 +52,7 @@ impl WebGlPresentation {
                     rebuilding: None,
                     lifetime: PresentationLifetime::new(ContextGeneration(1)),
                     limits,
+                    portable_scene: PortableSceneCache::default(),
                     readbacks: Vec::new(),
                     readback_bytes: Rc::new(Cell::new(0)),
                     capture_turn: Rc::new(Cell::new(None)),
@@ -143,18 +145,29 @@ impl PresentationDriver for WebGlPresentation {
                 &capture.envelope.commands.len().to_string(),
             );
         }
-        let scene = crate::portable::materialize(
-            capture,
-            frame.width,
-            frame.height,
-            frame.scale,
-            self.limits,
-        )
-        .map_err(|e| self.failure(e.message, e.source_key))?;
         let generation = self.generation();
+        let limits = self.limits;
+        let (scene, _) = self
+            .portable_scene
+            .materialize(capture, [frame.width, frame.height], frame.scale, || {
+                crate::portable::materialize(
+                    capture,
+                    frame.width,
+                    frame.height,
+                    frame.scale,
+                    limits,
+                )
+            })
+            .map_err(|error| PresentationFailure {
+                backend: PresentationBackend::WebGl2,
+                generation,
+                producer_key: error.source_key,
+                message: error.message,
+                native: None,
+            })?;
         let result = (|| {
             let session = self.session.as_mut().expect("ready context owns session");
-            let recording = session.prepare(&scene, generation.0, frame.clear)?;
+            let recording = session.prepare(scene, generation.0, frame.clear)?;
             if self.canvas.width() != frame.width {
                 self.canvas.set_width(frame.width);
             }
@@ -183,6 +196,7 @@ impl PresentationDriver for WebGlPresentation {
         Ok(Some(stamp))
     }
     fn lose(&mut self) {
+        self.portable_scene.clear();
         self.capture_turn.set(None);
         super::readback::cancel(&mut self.readbacks);
         self.lifetime.lose();
@@ -259,6 +273,7 @@ impl PresentationDriver for WebGlPresentation {
         Ok(capture)
     }
     fn dispose(&mut self) {
+        self.portable_scene.clear();
         if self.state() == PresentationState::Disposed {
             return;
         }

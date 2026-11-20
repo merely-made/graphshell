@@ -176,7 +176,7 @@ impl PresentedInput {
 /// `matches_layout` use. Equal stamps read an equal document projection.
 /// Holding the lifetime keeps a recreated session from reusing its address.
 #[derive(Clone, Debug)]
-pub(crate) struct SemanticStamp {
+pub struct SemanticStamp {
     source_document: NodeId,
     document: NodeId,
     dom_sequence: u64,
@@ -198,8 +198,21 @@ impl PartialEq for SemanticStamp {
     }
 }
 
+impl SemanticStamp {
+    /// Whether `layout` and `dom` are still what this stamp read.
+    pub fn matches(&self, layout: &OwnedLayout, dom: &WindowDom<'_>) -> bool {
+        self.source_document == dom.dom().document()
+            && self.document == dom.document()
+            && self.dom_sequence == dom_sequence(dom)
+            && std::sync::Arc::ptr_eq(&self.layout_lifetime, &layout.input_lifetime)
+            && self.layout_generation == layout.generation
+            && self.viewport_scroll == layout.viewport_scroll
+            && self.element_scroll == layout.element_scroll
+    }
+}
+
 impl OwnedLayout {
-    pub(crate) fn semantic_stamp(&self, dom: &WindowDom<'_>) -> SemanticStamp {
+    pub fn semantic_stamp(&self, dom: &WindowDom<'_>) -> SemanticStamp {
         SemanticStamp {
             source_document: dom.dom().document(),
             document: dom.document(),

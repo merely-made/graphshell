@@ -18,8 +18,10 @@ pub use netrender::SourceAlpha;
 
 mod bridge;
 mod child_lifetime;
+mod semantic_geometry;
 mod submission;
 pub use child_lifetime::{ProducerChildLifetime, ProducerChildToken};
+pub use semantic_geometry::ProducerSemanticGeometry;
 
 /// Producer dispatch, not durable or asynchronous operation completion.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -31,7 +33,9 @@ pub enum ProducerActionDispatch {
 pub(crate) mod registry;
 pub use paint_list_render::bundle::{PortablePaintCapture, ProducerSource};
 pub use registry::PortableCaptureError;
-pub use registry::{ProducerGpuRemapError, ProducerImageIdentity, ProducerRegistry};
+pub use registry::{
+    ProducerGpuRemapError, ProducerImageIdentity, ProducerLabelRevision, ProducerRegistry,
+};
 
 /// Application-owned portable scene; its viewport is the same rounded logical
 /// extent used by the producer's GPU callback. Identity changes on source rebind.
@@ -42,6 +46,15 @@ pub struct ProducedScene {
     pub source_revision: u64,
     pub alpha: SourceAlpha,
     pub encoding: SourceEncoding,
+}
+
+pub enum PortableSceneUpdate {
+    Produced(ProducedScene),
+    /// Keep the scene last admitted for this slot and extent.
+    Retain {
+        source_identity: u64,
+        source_revision: u64,
+    },
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -186,6 +199,17 @@ pub trait TextureProducer {
         Err(PortableProducerError::Unsupported)
     }
 
+    /// Presentation may reuse the last admitted source. Exports always ask
+    /// for a complete scene through `portable_scene`.
+    fn portable_scene_update(
+        &mut self,
+        frame: &ProducerFrameInfo,
+        _admitted_source: Option<(u64, u64)>,
+    ) -> Result<PortableSceneUpdate, PortableProducerError> {
+        self.portable_scene(frame)
+            .map(PortableSceneUpdate::Produced)
+    }
+
     /// Once on entering a non-painted or surface-suspended state. Releasing
     /// transient targets is optional; retained geometry can stay cached.
     fn suspend(&mut self) {}
@@ -206,6 +230,28 @@ pub trait TextureProducer {
     /// leaves the slot's DOM/Sprigging semantics alone. Reading and activation
     /// are separate calls, without a snapshot or transaction guarantee.
     fn semantics(&self) -> Option<ProducerSemantics> {
+        None
+    }
+
+    /// Opt in to retained browser semantics. Equal revisions assert equal
+    /// contributions, including geometry, actions and child lifetimes.
+    fn semantic_revision(&self) -> Option<u64> {
+        None
+    }
+
+    /// An optional common scale and translation of the current semantic
+    /// contribution. Equal geometry revisions promise identical names, roles,
+    /// child keys/lifetimes, actions and rectangles before that transform.
+    /// Advance the revision for any other change, including physics motion.
+    /// This does not replace `semantic_revision`: viewport changes still
+    /// change that complete-contribution revision.
+    fn semantic_geometry(&self) -> Option<ProducerSemanticGeometry> {
+        None
+    }
+
+    /// Describe the changes from an exact prior revision when only labels of
+    /// existing, action-free list items changed. Keys are `ProducerNode::key`.
+    fn semantic_label_changes(&self, _base: u64) -> Option<Vec<(u64, String)>> {
         None
     }
 
@@ -373,6 +419,14 @@ impl<P: TextureProducer> TextureProducer for Rc<RefCell<P>> {
     ) -> Result<ProducedScene, PortableProducerError> {
         self.borrow_mut().portable_scene(frame)
     }
+    fn portable_scene_update(
+        &mut self,
+        frame: &ProducerFrameInfo,
+        admitted_source: Option<(u64, u64)>,
+    ) -> Result<PortableSceneUpdate, PortableProducerError> {
+        self.borrow_mut()
+            .portable_scene_update(frame, admitted_source)
+    }
     fn suspend(&mut self) {
         self.borrow_mut().suspend();
     }
@@ -381,6 +435,15 @@ impl<P: TextureProducer> TextureProducer for Rc<RefCell<P>> {
     }
     fn semantics(&self) -> Option<ProducerSemantics> {
         self.borrow().semantics()
+    }
+    fn semantic_revision(&self) -> Option<u64> {
+        self.borrow().semantic_revision()
+    }
+    fn semantic_geometry(&self) -> Option<ProducerSemanticGeometry> {
+        self.borrow().semantic_geometry()
+    }
+    fn semantic_label_changes(&self, base: u64) -> Option<Vec<(u64, String)>> {
+        self.borrow().semantic_label_changes(base)
     }
     fn child_lifetime(&self, key: u64) -> Option<ProducerChildToken> {
         self.borrow().child_lifetime(key)

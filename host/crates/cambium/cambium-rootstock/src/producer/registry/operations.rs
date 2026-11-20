@@ -104,6 +104,71 @@ impl ProducerRegistry {
         entry.producer.semantics()
     }
 
+    pub(crate) fn producer_content_rect(
+        &self,
+        key: u64,
+        layout: &crate::OwnedLayout,
+        dom: &crate::WindowDom<'_>,
+    ) -> Option<(f32, f32, f32, f32)> {
+        let slot = self.entries.get(&key)?.portable.as_ref().filter(|slot| slot.active)?;
+        let mut rect = None;
+        layout.walk_painted_geometry(dom, |node, geometry| {
+            if node == slot.owner && geometry.placement_visible {
+                rect = geometry.content_rect;
+            }
+        });
+        rect
+    }
+
+    /// A narrow browser fast path. Every other contributor must be covered
+    /// by the ordinary full publication.
+    pub fn producer_label_revision(
+        &self,
+        dom: &crate::WindowDom<'_>,
+    ) -> Option<ProducerLabelRevision> {
+        if self.entries.len() != 1 {
+            return None;
+        }
+        let (&key, entry) = self.entries.first_key_value()?;
+        let slot = entry.portable.as_ref().filter(|slot| slot.active)?;
+        Some(ProducerLabelRevision {
+            key,
+            registration: entry.renderer_key,
+            owner: dom.opaque_id(slot.owner),
+            node: slot.owner,
+            revision: entry.producer.semantic_revision()?,
+            geometry: entry.producer.semantic_geometry().filter(|value| value.is_valid()),
+        })
+    }
+
+    /// Resolve only names of known action-free children into mirror IDs.
+    pub fn producer_label_changes(
+        &self,
+        previous: &ProducerLabelRevision,
+        current: &ProducerLabelRevision,
+    ) -> Option<Vec<(u64, String)>> {
+        if !previous.same_registration(current) {
+            return None;
+        }
+        if previous.revision == current.revision {
+            return Some(Vec::new());
+        }
+        let producer = &self.entries.get(&current.key)?.producer;
+        let labels = producer.semantic_label_changes(previous.revision)?;
+        let owner = accesskit::NodeId(current.owner);
+        Some(
+            labels
+                .into_iter()
+                .map(|(key, label)| {
+                    (
+                        crate::semantics::produced_node_id(owner, key, None).0,
+                        label,
+                    )
+                })
+                .collect(),
+        )
+    }
+
     pub(crate) fn child_lifetime(
         &self,
         slot: u64,

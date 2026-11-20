@@ -301,7 +301,7 @@ fn semantic_geometry_tracks_nested_translation_scroll_windows_and_retained_chang
     );
     dom.drain_mutations(&mut mutations);
     let first_view = WindowDom::new(&dom, first);
-    layout.rebuild(&first_view, 300.0, 200.0, &mutations);
+    layout.rebuild(&first_view, 300.0, 200.0, &mutations, true);
     let changed = document_projection(&first_view, &layout, Some(dom.opaque_id(target)));
     let fragment = layout.fragments().get(target).unwrap();
     assert_eq!(
@@ -325,7 +325,7 @@ fn semantic_geometry_tracks_nested_translation_scroll_windows_and_retained_chang
     dom.append_child(first, target);
     dom.drain_mutations(&mut mutations);
     let first_view = WindowDom::new(&dom, first);
-    layout.rebuild(&first_view, 300.0, 200.0, &mutations);
+    layout.rebuild(&first_view, 300.0, 200.0, &mutations, true);
     let moved = document_projection(&first_view, &layout, Some(dom.opaque_id(target)));
     let fragment = layout.fragments().get(target).unwrap();
     assert_eq!(

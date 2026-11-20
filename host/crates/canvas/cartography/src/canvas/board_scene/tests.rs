@@ -4,6 +4,7 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 // SPDX-License-Identifier: MPL-2.0
 
+use super::text::TITLE_SHEET;
 use super::*;
 use netrender::SceneOp;
 
@@ -288,6 +289,162 @@ fn titled_paint_sets_each_title_and_untitled_paint_sets_none() {
         .paint_titled(&board, 800, 400, page_fit(), &mut text)
         .unwrap();
     assert_eq!(glyphs(&untitled), 0);
+}
+
+#[test]
+fn titled_paint_culls_offscreen_titles_and_reads_current_title_after_pan() {
+    let mut scene = BoardScene {
+        bounds: BoardRect::new(0.0, 0.0, 800.0, 400.0),
+        cards: vec![
+            card("visible", 400.0, 200.0),
+            card("distant", 1800.0, 200.0),
+        ],
+        ..BoardScene::default()
+    };
+    let mut edge = card("edge", 300.0, -2.0);
+    edge.footprint = BoardFootprint::Rect {
+        width: 280.0,
+        height: 2.0,
+    };
+    scene.cards.push(edge);
+    let board = PhysicsBoard::new();
+    let fit = BoardFit::new(0.0, 0.0, 0.0, 0.0).framing_bounds();
+    let mut text = BoardText::new();
+    let mut glyph_ids = |scene: &BoardScene, fit| {
+        scene
+            .paint_titled(&board, 800, 400, fit, &mut text)
+            .unwrap()
+            .ops
+            .into_iter()
+            .filter_map(|op| match op {
+                SceneOp::GlyphRun(run) => Some(
+                    run.glyphs
+                        .into_iter()
+                        .map(|glyph| glyph.id)
+                        .collect::<Vec<_>>(),
+                ),
+                _ => None,
+            })
+            .collect::<Vec<_>>()
+    };
+    let before = glyph_ids(&scene, fit);
+    let mut without_distant = scene.clone();
+    without_distant.cards.remove(1);
+    assert_eq!(before, glyph_ids(&without_distant, fit));
+    without_distant.cards.pop();
+    assert!(
+        before.len() > glyph_ids(&without_distant, fit).len(),
+        "the title line can intersect the viewport even when a short card does not"
+    );
+
+    let panned = fit.camera(1.0, (-1400.0, 0.0));
+    let old_title = glyph_ids(&scene, panned);
+    scene.cards[1].title = "The edited card".into();
+    assert_eq!(glyph_ids(&scene, fit), before);
+    let new_title = glyph_ids(&scene, panned);
+    assert!(!new_title.is_empty());
+    assert_ne!(new_title, old_title);
+    assert_eq!(
+        scene.card_rects(&board, 800, 400, fit)[1].1,
+        "The edited card"
+    );
+}
+
+#[test]
+fn geometry_culling_keeps_visible_shadows_and_held_edges() {
+    let mut held = card("held", 400.0, 480.0);
+    held.pinned = true;
+    let scene = BoardScene {
+        bounds: BoardRect::new(0.0, 0.0, 800.0, 400.0),
+        cards: vec![
+            card("visible", 400.0, 200.0),
+            card("shadow", 943.0, 200.0),
+            held,
+            card("distant", 2400.0, 200.0),
+        ],
+        ..BoardScene::default()
+    };
+    let fit = BoardFit::new(0.0, 0.0, 0.0, 0.0).framing_bounds();
+    let board = PhysicsBoard::new();
+    let drawn = rects(&scene.paint(&board, 800, 400, fit));
+    assert_eq!(
+        drawn.iter().map(|(_, color)| *color).collect::<Vec<_>>(),
+        vec![BOARD_GROUND, SHADOW, CARD, SHADOW, HELD_EDGE]
+    );
+    let titled = scene
+        .paint_titled(&board, 800, 400, fit, &mut BoardText::new())
+        .unwrap();
+    assert_eq!(
+        rects(&titled)
+            .iter()
+            .map(|(bounds, _)| *bounds)
+            .collect::<Vec<_>>(),
+        drawn.iter().map(|(bounds, _)| *bounds).collect::<Vec<_>>()
+    );
+    let panned = scene.paint(&board, 800, 400, fit.camera(2.0, (-4000.0, 0.0)));
+    assert_eq!(
+        rects(&panned)
+            .iter()
+            .map(|(_, color)| *color)
+            .collect::<Vec<_>>(),
+        vec![BOARD_GROUND, SHADOW, CARD]
+    );
+}
+
+#[test]
+fn offscreen_card_count_does_not_grow_emitted_geometry() {
+    let board = PhysicsBoard::new();
+    let fit = BoardFit::new(0.0, 0.0, 0.0, 0.0).framing_bounds();
+    for count in [1000, 5000] {
+        let scene = BoardScene {
+            bounds: BoardRect::new(0.0, 0.0, 800.0, 400.0),
+            cards: (0..count)
+                .map(|index| {
+                    let x = if index < 12 {
+                        400.0
+                    } else {
+                        2400.0 + index as f32 * 400.0
+                    };
+                    card(&index.to_string(), x, 200.0)
+                })
+                .collect(),
+            ..BoardScene::default()
+        };
+        assert_eq!(rects(&scene.paint(&board, 800, 400, fit)).len(), 25);
+        assert_eq!(scene.card_rects(&board, 800, 400, fit).len(), count);
+    }
+}
+
+#[test]
+fn backdrop_culling_keeps_crossing_rectangles_and_fractional_edges() {
+    let scene = BoardScene {
+        bounds: BoardRect::new(0.0, 0.0, 800.0, 400.0),
+        backdrops: vec![
+            BoardBackdrop {
+                rect: BoardRect::new(1800.0, 0.0, 100.0, 100.0),
+                kind: "distant".into(),
+                collidable: true,
+            },
+            BoardBackdrop {
+                rect: BoardRect::new(-100.0, 20.0, 1000.0, 100.0),
+                kind: "crossing".into(),
+                collidable: true,
+            },
+            BoardBackdrop {
+                rect: BoardRect::new(800.5, 20.0, 50.0, 50.0),
+                kind: "fractional".into(),
+                collidable: false,
+            },
+        ],
+        ..BoardScene::default()
+    };
+    let fit = BoardFit::new(0.0, 0.0, 0.0, 0.0).framing_bounds();
+    let drawn = rects(&scene.paint(&PhysicsBoard::new(), 800, 400, fit));
+    assert_eq!(drawn.len(), 5);
+    assert_eq!(drawn[1].1, backdrop_color("crossing"));
+    assert_eq!(drawn[2].1, COLLIDABLE_EDGE);
+    assert_eq!(drawn[3].1, COLLIDABLE_EDGE);
+    assert_eq!(drawn[4].1, backdrop_color("fractional"));
 }
 
 #[test]

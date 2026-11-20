@@ -615,6 +615,16 @@ title = "The plain grid takes keys through its own entry (Mark, 2026-11-19)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
 summary = "A plain-grid caller passes row keys through data_grid_keyed, leaving data_grid unchanged."
 
+[decisions."table-projection D43"]
+title = "The unlanded retained-session work is taken over (Mark, 2026-11-19)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "The uncommitted retained-session work in Genet and Graphshell is landed by the table plan's session, which carries the Genet speed steps."
+
+[decisions."table-projection D44"]
+title = "One layout stamp (Mark, 2026-11-20)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "SemanticStamp is the one layout stamp, public with matches, for the native republish skip and the browser label patch."
+
 [decisions."uxtree-spine D1"]
 title = "The spine is federated (Mark, 2026-11-11)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-11_uxtree_spine_plan.md"

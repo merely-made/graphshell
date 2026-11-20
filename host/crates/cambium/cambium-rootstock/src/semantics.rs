@@ -56,6 +56,13 @@ impl SemanticProjection {
     pub fn produced_action(&self, id: u64) -> Option<&ProducedAction> {
         self.produced_targets.get(&A11yNodeId(id))
     }
+
+    pub fn is_produced_list_item(&self, id: u64, list: &crate::ProducerLabelRevision) -> bool {
+        matches!(
+            self.produced_nodes.get(&A11yNodeId(id)).map(|metadata| &metadata.target),
+            Some(NodeTarget::Produced { slot, action: None, .. }) if *slot == list.key
+        )
+    }
     /// Lower a DOM observation before optional contributions. The usual host
     /// entry point is `project_semantics`, which binds the current providers.
     pub fn from_document(projection: DocumentA11yProjection) -> Self {
@@ -93,6 +100,32 @@ pub fn project_semantics<D: LayoutDom<NodeId = NodeId>>(
     producers: &ProducerRegistry,
     focus: Option<u64>,
 ) -> SemanticProjection {
+    compose_semantics(dom, layout, leaves, producers, focus, None)
+}
+
+/// Reproject the document while preserving a producer list's already
+/// published children. The browser verifies its retained slot and children
+/// before using this projection.
+pub fn project_semantics_retaining_list(
+    dom: &crate::WindowDom<'_>,
+    layout: &OwnedLayout,
+    leaves: &LeafRegistry<u64>,
+    producers: &ProducerRegistry,
+    focus: Option<u64>,
+    list: &crate::ProducerLabelRevision,
+    label: Option<&str>,
+) -> SemanticProjection {
+    compose_semantics(dom, layout, leaves, producers, focus, Some((list, label)))
+}
+
+fn compose_semantics<D: LayoutDom<NodeId = NodeId>>(
+    dom: &D,
+    layout: &OwnedLayout,
+    leaves: &LeafRegistry<u64>,
+    producers: &ProducerRegistry,
+    focus: Option<u64>,
+    retained_list: Option<(&crate::ProducerLabelRevision, Option<&str>)>,
+) -> SemanticProjection {
     let mut result =
         SemanticProjection::from_document(crate::document_projection(dom, layout, focus));
     let indices: HashMap<_, _> = result
@@ -125,7 +158,19 @@ pub fn project_semantics<D: LayoutDom<NodeId = NodeId>>(
         // Rendering refuses a producer bound to multiple DOM owners. Do not
         // publish actionable children or choose one arbitrary semantic owner.
         if let Some(key) = key.filter(|key| !producers.contains(*key) || slot_counts[key] == 1) {
-            if let Some(semantics) = producers.semantics(key) {
+            let semantics = if let Some((retained, label)) = retained_list
+                && retained.key == key
+                && retained.owner == id.0
+            {
+                Some(ProducerSemantics {
+                    role: Some(ProducerRole::List),
+                    name: label.map(str::to_owned),
+                    children: Vec::new(),
+                })
+            } else {
+                producers.semantics(key)
+            };
+            if let Some(semantics) = semantics {
                 match add_producer_semantics(
                     &mut result.tree,
                     index,
@@ -391,7 +436,7 @@ fn reserve_producer_ids(
 /// node's key and the action, however the producer orders its nodes, in a
 /// high-bit range. Composition checks it against all current DOM and generated
 /// IDs. This hash is not a generation token or a collision-proof identity.
-fn produced_node_id(slot: A11yNodeId, key: u64, action: Option<&str>) -> A11yNodeId {
+pub(crate) fn produced_node_id(slot: A11yNodeId, key: u64, action: Option<&str>) -> A11yNodeId {
     // FNV-1a: fixed, so an id is the same on every frame and every run.
     let mut hash: u64 = 0xcbf2_9ce4_8422_2325;
     let mut eat = |bytes: &[u8]| {
