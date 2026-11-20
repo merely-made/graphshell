@@ -1,7 +1,7 @@
 # Engine binding plan: a host view names the Mere revision it shows
 
-**Status:** 2026-11-19: The E5 finding panel is built. The binding's shape is still an open lane of
-`mere:engine-split P8`; this plan holds the host's done-conditions and decides none of that shape.
+**Status:** 2026-11-20: The E5 finding panel and native kept-source binding are built. The
+general scene binding remains an open lane of `mere:engine-split P8`.
 
 **For:** Graphshell's half of the engine-to-workspace contract
 (`mere/design_docs/mere_docs/technical_architecture/2026-11-16_engine_workspace_contract.md`). The
@@ -64,6 +64,12 @@ milestone: a page's claims to a SHACL finding"), cited and not copied.
   pass, the finding is unchanged in a pinned view after the live graph is edited (needs E1 and E2).
 - Needs: Mere's SHACL call and its finding-to-evidence read (an open question in that plan).
 
+The native L1 slice uses `graphshell_host::pinned_shacl`. It reads one named capture's claims and
+block evidence from a `PinnedView`, validates that capture's graph, and holds the pin with the
+report and engine revision. Before opening evidence, the caller reads its authoritative session
+head and supplies it to Graphshell's revision check. Historical reports stay readable when their
+evidence actions become stale. The scene envelope and its intent routing remain in E1 and E2.
+
 ## Open questions
 
 - **A shape Graphshell already writes.** The table plan's T1 round-trips a fields list through a
@@ -80,6 +86,10 @@ milestone: a page's claims to a SHACL finding"), cited and not copied.
 
 ## Progress
 
+- 2026-11-20: The native host reads a kept source's validation report and block evidence from
+  one pin. The focused regression edits the same source's Resource facet through the journal,
+  reopens the session, and checks that the old pin keeps its evidence while the old action is
+  refused. The native Turnstone round trip is a product gate.
 - 2026-11-19: The shared Cambium finding panel displays the focus node, path, severity and
   message beside the evidence offered by its caller. Opening the finding selects its sole
   match when there is one, or offers a button per candidate when there are several. The

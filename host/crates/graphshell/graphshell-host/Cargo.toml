@@ -113,6 +113,15 @@ mere-host = [
     "dep:url",
     "dep:uuid",
 ]
+# Read one captured source's SHACL report and gate its evidence actions.
+pinned-shacl = [
+    "dep:mere",
+    "dep:mere-shacl",
+    "dep:muniment",
+    "dep:oxrdf",
+    "dep:pandect",
+    "dep:thiserror",
+]
 # Graph insertion for a Fleece clip (engine split D100): `clip::write_clip_node`
 # records the clip and its relation to the source node. Beside the goal surface.
 clip = [
@@ -171,6 +180,9 @@ scenograph = { workspace = true, optional = true }
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 # An invitation's network id and session (`invitation`).
 blake3 = { workspace = true, optional = true }
+mere = { workspace = true, optional = true }
+mere-shacl = { workspace = true, optional = true }
+oxrdf = { version = "0.3", optional = true }
 tokio = { version = "1", features = ["io-util", "macros", "net", "rt-multi-thread", "sync", "time"], optional = true }
 # The one audited `AcceptedSession -> SessionFacts` adapter (Notochord N1).
 transport = { workspace = true, features = ["notochord"], optional = true }
