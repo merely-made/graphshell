@@ -49,6 +49,8 @@ pub struct HostOptions {
     /// composing producer scenes in the page pass instead of sampling their
     /// textures. For applications whose producers supply portable scenes.
     pub wgpu_portable_scene: bool,
+    /// Reformat the full document on mutations for layout comparisons.
+    pub force_full_dom_layout: bool,
     /// The window title.
     pub title: String,
     /// The layer responsible for the window frame.
@@ -181,6 +183,7 @@ impl Default for HostOptions {
         Self {
             presentation_choice: crate::PresentationChoice::Auto,
             wgpu_portable_scene: false,
+            force_full_dom_layout: false,
             title: String::new(),
             window_frame: WindowFrame::Host,
             decorations: true,

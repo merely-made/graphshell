@@ -68,6 +68,10 @@ pub struct BoardItem {
 /// The catalog's physics over a scene's items. See the module docs.
 pub struct PhysicsBoard {
     physics: Physics,
+    /// Inline folding is complete when tick returns. A transport can publish
+    /// another nonsettling snapshot later, so settling alone cannot prove that
+    /// the current positions remain unchanged across frames.
+    synchronous_positions: bool,
     /// What the backend writes positions into, and `position` reads.
     view: LayoutView,
     keys: HashMap<String, NodeKey>,
@@ -120,7 +124,7 @@ impl PhysicsBoard {
         let physics = Physics::remote(Box::new(
             crate::canvas::seiche_bridge::UnavailableTransport::default(),
         ));
-        Self::over(physics)
+        Self::over(physics, cfg!(feature = "physics-engine"))
     }
 
     /// A board whose physics runs on the far side of `transport` (a Web
@@ -129,12 +133,13 @@ impl PhysicsBoard {
     /// folds the layouts that come back, and draws a card at its slot until the
     /// far side has answered. Builds no simulation.
     pub fn with_transport(transport: Box<dyn seiche::Transport>) -> Self {
-        Self::over(Physics::remote(transport))
+        Self::over(Physics::remote(transport), false)
     }
 
-    fn over(physics: Physics) -> Self {
+    fn over(physics: Physics, synchronous_positions: bool) -> Self {
         Self {
             physics,
+            synchronous_positions,
             view: LayoutView::new(),
             keys: HashMap::new(),
             next_key: 0,
@@ -176,9 +181,18 @@ impl PhysicsBoard {
     /// no-op once offloaded). `wake` pokes the host's event loop.
     pub fn offload(&mut self, wake: armillary::Wake) {
         #[cfg(feature = "physics-engine")]
-        self.physics.offload(wake);
+        {
+            self.synchronous_positions = false;
+            self.physics.offload(wake);
+        }
         #[cfg(not(feature = "physics-engine"))]
         let _ = wake;
+    }
+
+    /// Whether this board folds positions synchronously, with no delayed
+    /// transport snapshot able to arrive after a settled frame.
+    pub fn has_synchronous_positions(&self) -> bool {
+        self.synchronous_positions
     }
 
     /// Stage the board's repulsion on the host's device, or (`None`) return
@@ -426,10 +440,11 @@ impl PhysicsBoard {
             let cutoff = 2.0 * seiche::NODE_BODY_RADIUS;
             if self.physics.runs_inline() {
                 #[cfg(feature = "physics-engine")]
-                self.physics.set_forces(vec![Box::new(seiche::NodeExclusion {
-                    cutoff,
-                    ..Default::default()
-                })]);
+                self.physics
+                    .set_forces(vec![Box::new(seiche::NodeExclusion {
+                        cutoff,
+                        ..Default::default()
+                    })]);
             } else {
                 self.physics.set_force_set(seiche::ForceSetDescriptor {
                     contact_cutoff: Some(cutoff),

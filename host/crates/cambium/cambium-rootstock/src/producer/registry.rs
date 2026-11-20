@@ -241,6 +241,7 @@ pub(crate) type Elsewhere<'a> = &'a dyn Fn(u64, Option<NodeId>) -> bool;
 #[derive(Default)]
 pub struct ProducerRegistry {
     entries: BTreeMap<u64, Entry>,
+    portable_capture: Option<std::sync::Arc<PortablePaintCapture>>,
     pending_retire: Vec<u64>,
     device: Option<wgpu::Device>,
     device_generation: Option<u64>,
@@ -253,6 +254,48 @@ pub struct ProducerRegistry {
     pub(super) timestamp: Option<std::time::Duration>,
     #[cfg(not(target_arch = "wasm32"))]
     staged: Option<native::StagedPreparation>,
+}
+
+/// A published revision of the browser's sole registered producer.
+pub struct ProducerLabelRevision {
+    pub(crate) key: u64,
+    registration: u64,
+    pub(crate) owner: u64,
+    pub(crate) node: NodeId,
+    revision: u64,
+    geometry: Option<ProducerSemanticGeometry>,
+}
+
+impl ProducerLabelRevision {
+    /// Equal local keys cannot bridge a registration or DOM-owner lifetime.
+    pub fn same_registration(&self, other: &Self) -> bool {
+        self.key == other.key
+            && self.registration == other.registration
+            && self.owner == other.owner
+            && self.node == other.node
+    }
+
+    pub fn geometry(&self) -> Option<ProducerSemanticGeometry> {
+        self.geometry
+    }
+
+    pub fn slot_id(&self) -> u64 {
+        self.owner
+    }
+
+    pub fn content_rect(
+        &self,
+        layout: &OwnedLayout,
+        dom: &crate::WindowDom<'_>,
+    ) -> Option<(f32, f32, f32, f32)> {
+        let mut rect = None;
+        layout.walk_painted_geometry(dom, |node, geometry| {
+            if node == self.node && geometry.placement_visible {
+                rect = geometry.content_rect;
+            }
+        });
+        rect
+    }
 }
 
 impl Drop for ProducerRegistry {
@@ -342,6 +385,10 @@ mod checked_refusal_tests;
 #[cfg(test)]
 #[path = "registry/namespace_controls.rs"]
 mod namespace_controls;
+
+#[cfg(test)]
+#[path = "registry/geometry_tests.rs"]
+mod geometry_tests;
 
 #[path = "registry/operations.rs"]
 mod operations;

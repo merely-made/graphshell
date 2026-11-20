@@ -33,7 +33,26 @@ fn layout(dom: &ScriptedDom) -> OwnedLayout {
 fn rebuild(layout: &mut OwnedLayout, dom: &mut ScriptedDom) {
     let mut mutations = Vec::new();
     dom.drain_mutations(&mut mutations);
-    layout.rebuild(&WindowDom::document(dom), 300.0, 200.0, &mutations);
+    layout.rebuild(&WindowDom::document(dom), 300.0, 200.0, &mutations, true);
+}
+
+#[test]
+fn semantic_stamp_expires_on_scroll_dom_mutation_or_layout_replacement() {
+    let mut dom = ScriptedDom::new();
+    let root = dom.document();
+    let node = element(&mut dom, root, "div", "");
+    let mut current = layout(&dom);
+    let view = WindowDom::document(&dom);
+    let stamp = current.semantic_stamp(&view);
+    assert!(stamp.matches(&current, &view));
+    assert!(!stamp.matches(&layout(&dom), &view));
+    current.viewport_scroll = (0.0, 8.0);
+    assert!(!stamp.matches(&current, &view));
+    current.viewport_scroll = (0.0, 0.0);
+    dom.set_attribute(node, name("aria-label"), "changed");
+    assert!(!stamp.matches(&current, &WindowDom::document(&dom)));
+    dom.drain_mutations(&mut Vec::new());
+    assert!(!stamp.matches(&current, &WindowDom::document(&dom)));
 }
 
 #[test]

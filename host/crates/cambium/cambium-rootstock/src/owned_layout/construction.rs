@@ -94,18 +94,48 @@ impl OwnedLayout {
     /// Bring the session current with `dom`. `mutations` is every change made
     /// since the last `new` or `rebuild`: the cascade re-resolves only what
     /// they and the device could have touched. A stylesheet change is not a
-    /// mutation; the host builds a fresh session for it. Layout is full.
+    /// mutation; the host builds a fresh session for it. Return whether the
+    /// retained fragments admitted this mutation batch.
     pub(crate) fn rebuild<D: LayoutDom<NodeId = NodeId>>(
         &mut self,
         dom: &D,
         width: f32,
         height: f32,
         mutations: &[DomMutation<NodeId>],
-    ) {
+        retain: bool,
+    ) -> bool {
+        let stable_viewport = self.viewport == (width, height);
         self.viewport = (width, height);
         self.device.set_viewport_size(width, height);
         self.update_style(dom, mutations);
-        self.layout_resolved(dom);
+        let phase = crate::Instant::now();
+        let retained = retain
+            && stable_viewport
+            && self
+                .fragments
+                .relayout_borrowed_dom(
+                    dom,
+                    &self.style_set,
+                    self.style.styles(),
+                    &self.styles,
+                    self.device.viewport_sizes,
+                    mutations,
+                    &mut self.text,
+                    &HostImageLookup {
+                        bytes: &self.images,
+                        vectors: self.vectors.as_ref(),
+                    },
+                )
+                .unwrap_or(false);
+        if retained {
+            self.layout_with_text_us = elapsed_us(phase.elapsed());
+            self.publish_geometry(dom);
+        } else {
+            let attempted_us = elapsed_us(phase.elapsed());
+            self.layout_resolved(dom);
+            self.layout_with_text_us = self.layout_with_text_us.saturating_add(attempted_us);
+        }
+        retained
     }
 
     pub(super) fn update_style<D: LayoutDom<NodeId = NodeId>>(
@@ -143,6 +173,10 @@ impl OwnedLayout {
         self.layout_with_text_us = elapsed_us(phase.elapsed());
         self.styles = styles;
         self.fragments = fragments;
+        self.publish_geometry(dom);
+    }
+
+    fn publish_geometry<D: LayoutDom<NodeId = NodeId>>(&mut self, dom: &D) {
         let phase = crate::Instant::now();
         self.content_extent = content_extent(dom, &self.styles, &self.fragments);
         self.content_extent_us = elapsed_us(phase.elapsed());
@@ -157,6 +191,10 @@ impl OwnedLayout {
             self.layout_with_text_us,
             self.content_extent_us,
         )
+    }
+
+    pub(crate) fn restyled_elements(&self) -> usize {
+        self.style.last_stats().restyled_elements
     }
 
     pub fn fragments(&self) -> &LiveryLayout<NodeId> {

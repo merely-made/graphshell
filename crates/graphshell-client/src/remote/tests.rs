@@ -15,13 +15,13 @@ use chirograph::{
     CacheRetention, CarrierFailure, CarrierNotice, CarrierOutput, CarrierRequest,
     CarrierRequestBody, CarrierResponse, CarrierResponseBody, ContentHash, EndpointDescriptor,
     IntentEffect, IntentReference, NativeGlyphV1, PresentationBinding, PresentationCapability,
-    PresentationCodec, PresentationKey, PresentationManifest, PresentationOffer,
-    PresentationSemantics, ProjectionOffer, ProjectionRequest, ProjectionSnapshot, ProtocolVersion,
-    ResumeReply, SemanticRole, SessionStatus,
+    PresentationChange, PresentationCodec, PresentationKey, PresentationManifest,
+    PresentationOffer, PresentationSemantics, ProjectionDiff, ProjectionOffer, ProjectionRequest,
+    ProjectionSnapshot, ProtocolVersion, ResumeReply, SemanticRole, SessionStatus,
 };
 use sceno::score::{Arrangement, Score};
 use sceno::{Footprint, ProjectedItem, Representation, Scene, Size2, SourceRef, Transform2};
-use scenotime::{Revision, SceneEpoch, SceneSnapshot};
+use scenotime::{Revision, SceneDiff, SceneEpoch, SceneSnapshot};
 
 use super::*;
 
@@ -61,6 +61,7 @@ struct Board {
     revision: u64,
     cards: usize,
     notices: VecDeque<CarrierNotice>,
+    resume_reply: Option<ResumeReply>,
     /// The verbs answered, in order.
     log: Vec<&'static str>,
 }
@@ -72,6 +73,7 @@ impl Board {
             revision: 1,
             cards: 1,
             notices: VecDeque::new(),
+            resume_reply: None,
             log: Vec::new(),
         }
     }
@@ -195,7 +197,9 @@ impl Board {
             },
             CarrierRequestBody::Resume(request) => {
                 self.log.push("resume");
-                if request.session == self.session
+                if let Some(reply) = self.resume_reply.take() {
+                    Ok(CarrierResponseBody::Resume(reply))
+                } else if request.session == self.session
                     && request.epoch == SceneEpoch(1)
                     && request.revision == Revision(self.revision)
                 {
@@ -258,6 +262,42 @@ fn mounted() -> (RemoteSession, Board) {
     remote.joined();
     pump(&mut remote, &mut board);
     (remote, board)
+}
+
+fn offer_diff(
+    session: &ProjectionSession,
+    base: u64,
+    key: &PresentationKey,
+    offers: Vec<PresentationOffer>,
+) -> ProjectionDiff {
+    ProjectionDiff {
+        version: ProtocolVersion::V1,
+        session: session.clone(),
+        scene: SceneDiff {
+            epoch: SceneEpoch(1),
+            base: Revision(base),
+            revision: Revision(base + 1),
+            operations: Vec::new(),
+        },
+        presentation: vec![PresentationChange::ReplaceOffers {
+            key: key.clone(),
+            offers,
+        }],
+        status: None,
+    }
+}
+
+fn send_diffs(remote: &mut RemoteSession, board: &mut Board, diffs: Vec<ProjectionDiff>) {
+    let scene = &diffs.last().unwrap().scene;
+    board.revision = scene.revision.0;
+    let notice = CarrierOutput::Notice(CarrierNotice {
+        session: board.session.clone(),
+        epoch: scene.epoch,
+        revision: scene.revision,
+    });
+    board.resume_reply = Some(ResumeReply::Diffs(diffs));
+    remote.on_line(&serde_json::to_string(&notice).unwrap());
+    pump(remote, board);
 }
 
 fn cards(remote: &RemoteSession) -> usize {
@@ -345,8 +385,106 @@ fn an_accepted_intent_polls_and_the_bell_resumes_with_a_snapshot() {
 }
 
 #[test]
+fn a_wire_resume_exposes_final_labels_for_its_exact_base() {
+    let (mut remote, mut board) = mounted();
+    let snapshot_generation = remote.snapshot_generation();
+    let session = board.session.clone();
+    let key = PresentationKey("card:0".into());
+    let mut offers = remote.mounted().unwrap().presentation.offers[&key].clone();
+    assert!(remote.accepted_label_update().is_none());
+
+    offers[0].semantics.label = "Intermediate".into();
+    let first = offer_diff(&session, 1, &key, offers.clone());
+    offers[0].semantics.label = "Final label".into();
+    offers[0].resource = ContentHash::of(b"Final label payload");
+    offers[0].byte_size = 19;
+    let second = offer_diff(&session, 2, &key, offers.clone());
+    send_diffs(&mut remote, &mut board, vec![first, second]);
+
+    assert_eq!(remote.revision(), Some(3));
+    assert_eq!(remote.snapshot_generation(), snapshot_generation);
+    assert_eq!(board.count("snapshot"), 1, "only the original mount");
+    let update = remote.accepted_label_update().unwrap();
+    assert_eq!(update.session, session);
+    assert_eq!(update.epoch, SceneEpoch(1));
+    assert_eq!((update.base, update.revision), (Revision(1), Revision(3)));
+    assert_eq!(update.changes.len(), 1);
+    assert_eq!(update.changes[0].instance, InstanceId(0));
+    assert_eq!(update.changes[0].board_label(), "Final label");
+    assert_eq!(
+        update.changes[0].card_label(remote.profile()),
+        "Final label"
+    );
+
+    offers[0].semantics.role = SemanticRole::Article;
+    let role_change = offer_diff(&session, 3, &key, offers);
+    send_diffs(&mut remote, &mut board, vec![role_change]);
+    assert_eq!(remote.revision(), Some(4));
+    assert!(remote.accepted_label_update().is_none());
+}
+
+#[test]
+fn accepted_labels_cover_shared_keys_with_ordered_capability_fallback() {
+    let mut board = Board::new();
+    board.cards = 2;
+    let session = board.session.clone();
+    let key = PresentationKey("card:0".into());
+    let mut snapshot = board.snapshot();
+    snapshot.presentation.bindings[1].key = key.clone();
+    let offers = snapshot.presentation.offers.get_mut(&key).unwrap();
+    let mut portable = offers[0].clone();
+    portable.codec = PresentationCodec::PortableCardV1;
+    portable.requires = PresentationCapability::PortableCard;
+    offers.insert(0, portable);
+    let mut offers = offers.clone();
+
+    let mut client = ClientState::default();
+    client.apply_snapshot(snapshot).unwrap();
+    offers[0].semantics.label = "Portable label".into();
+    offers[1].semantics.label = "Native label".into();
+    let diff = offer_diff(&session, 1, &key, offers.clone());
+    client.apply_diff(&diff).unwrap();
+
+    let update = client.accepted_label_update(&session).unwrap();
+    assert_eq!(update.changes.len(), 2);
+    for (index, change) in update.changes.iter().enumerate() {
+        assert_eq!(change.instance, InstanceId(index as u32));
+        assert_eq!(change.board_label(), "Portable label");
+        assert_eq!(change.card_label(&profile()), "Native label");
+        assert_eq!(
+            change.card_label(&CapabilityProfile::default()),
+            "Portable label"
+        );
+    }
+
+    let accepted = update.clone();
+    client.apply_diff(&diff).unwrap();
+    assert_eq!(client.accepted_label_update(&session), Some(&accepted));
+
+    offers[0].semantics.label = "Uncommitted label".into();
+    let prefix = offer_diff(&session, 2, &key, offers.clone());
+    offers[0].requires = PresentationCapability::Image;
+    let invalid = offer_diff(&session, 3, &key, offers);
+    assert!(
+        client
+            .apply_resume(&session, ResumeReply::Diffs(vec![prefix, invalid]))
+            .is_err()
+    );
+    assert_eq!(client.accepted_label_update(&session), Some(&accepted));
+    assert_eq!(
+        client.acknowledgement(&session).unwrap().revision,
+        Revision(2)
+    );
+
+    board.revision = 2;
+    client.apply_snapshot(board.snapshot()).unwrap();
+    assert!(client.accepted_label_update(&session).is_none());
+}
+
+#[test]
 fn a_rejected_intent_resnapshots_and_rings_no_bell() {
     let (mut remote, mut board) = mounted();
+    let snapshot_generation = remote.snapshot_generation();
     remote.take_events();
     remote.invoke_action(index_of(&remote, FORBIDDEN));
     pump(&mut remote, &mut board);
@@ -355,6 +493,7 @@ fn a_rejected_intent_resnapshots_and_rings_no_bell() {
         "Rejected · forbidden by the board · revision after 1"
     );
     assert_eq!(remote.revision(), Some(1));
+    assert_ne!(remote.snapshot_generation(), snapshot_generation);
     assert_eq!(cards(&remote), 1);
     assert_eq!(
         board.count("snapshot"),
@@ -368,6 +507,30 @@ fn a_rejected_intent_resnapshots_and_rings_no_bell() {
             .any(|event| event.starts_with("remote-bell"))
     );
     assert!(!remote.in_flight());
+}
+
+#[test]
+fn a_same_revision_resume_snapshot_advances_the_snapshot_generation() {
+    let (mut remote, mut board) = mounted();
+    let generation = remote.snapshot_generation();
+    let mut snapshot = board.snapshot();
+    let key = PresentationKey("card:0".into());
+    snapshot.presentation.offers.get_mut(&key).unwrap()[0]
+        .semantics
+        .label = "Replacement label".into();
+    board.resume_reply = Some(ResumeReply::Snapshot(Box::new(snapshot)));
+    let notice = CarrierOutput::Notice(CarrierNotice {
+        session: board.session.clone(),
+        epoch: SceneEpoch(1),
+        revision: Revision(2),
+    });
+    remote.on_line(&serde_json::to_string(&notice).unwrap());
+    pump(&mut remote, &mut board);
+
+    assert_eq!(remote.revision(), Some(1));
+    assert_ne!(remote.snapshot_generation(), generation);
+    assert_eq!(remote.card_labels(), ["Replacement label"]);
+    assert!(remote.accepted_label_update().is_none());
 }
 
 #[test]

@@ -334,10 +334,10 @@ fn clear_prevents_reuse_until_a_new_output_is_inserted() {
 fn portable_packets_never_select_a_native_retained_output() {
     let original = frame();
     let mut portable = frame();
-    portable.paint = PreparedPaint::Portable(PortablePaintCapture {
+    portable.paint = PreparedPaint::Portable(std::sync::Arc::new(PortablePaintCapture {
         envelope: envelope(),
         producers: vec![],
-    });
+    }));
     portable.native_producer_identities.clear();
     let mut cache = QualifiedRasterCache::<u64, u64>::default();
     cache.insert(41, &original, 101);

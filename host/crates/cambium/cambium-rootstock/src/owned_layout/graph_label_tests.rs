@@ -234,7 +234,7 @@ fn radial_graph_labels_stay_disjoint_inside_retained_layout_after_emphasis() {
         !mutations.is_empty(),
         "emphasis must update the actual graph DOM"
     );
-    layout.rebuild(&*dom.borrow(), SIZE.0, SIZE.1, &mutations);
+    layout.rebuild(&*dom.borrow(), SIZE.0, SIZE.1, &mutations, true);
     let emphasized = assert_radial_geometry(&dom.borrow(), &layout);
     for modifier in ["selected", "focused", "hovered"] {
         assert!(

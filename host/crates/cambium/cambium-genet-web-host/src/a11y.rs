@@ -35,7 +35,7 @@ use std::cell::{Cell, RefCell};
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 
-use cambium_rootstock::{A11yRequest, Accessibility, LeafRegistry, NodeId, OwnedLayout, WindowDom};
+use cambium_rootstock::{A11yRequest, Accessibility, LeafRegistry, OwnedLayout, WindowDom};
 use wasm_bindgen::JsCast;
 use web_sys::{Document, Element, HtmlCanvasElement, HtmlElement, Text};
 
@@ -44,6 +44,9 @@ use cambium_rootstock::{
     A11yAdapterState, A11yPublication, A11yPublicationOutcome, A11yPublicationRefusal,
     A11yPublicationSkip, A11ySync,
 };
+
+mod labels;
+use labels::{LabelPublication, SyncInputs};
 
 /// The attribute naming each element's node, which the listeners route by.
 pub(crate) const NODE_ATTR: &str = "data-node";
@@ -115,7 +118,7 @@ impl MirrorHandle {
 }
 
 /// The last attributes, text and box written onto one element.
-#[derive(Default, PartialEq)]
+#[derive(Clone, Default, PartialEq)]
 struct Written {
     attrs: Vec<(&'static str, String)>,
     text: Option<String>,
@@ -137,7 +140,9 @@ pub struct DomAccessibility {
     elements: HashMap<u64, Mirrored>,
     /// The focus id the last sync saw, to move DOM focus only on a change.
     focus: Option<u64>,
+    labels: Option<LabelPublication>,
 }
+
 impl Drop for DomAccessibility {
     fn drop(&mut self) {
         self.handle.root.remove();
@@ -195,6 +200,7 @@ impl DomAccessibility {
             },
             elements: HashMap::new(),
             focus: None,
+            labels: None,
         })
     }
 
@@ -205,6 +211,7 @@ impl DomAccessibility {
 
     /// Keep the mirror's box on the canvas's, wherever the page has put it.
     fn clear_publication(&mut self) {
+        self.labels = None;
         for (_, old) in self.elements.drain() {
             old.element.remove();
         }
@@ -222,10 +229,17 @@ impl DomAccessibility {
         let style = root.style();
         let left = root.offset_left() as f64 + canvas.left() - here.left();
         let top = root.offset_top() as f64 + canvas.top() - here.top();
-        style.set_property("left", &format!("{left}px"))?;
-        style.set_property("top", &format!("{top}px"))?;
-        style.set_property("width", &format!("{}px", canvas.width()))?;
-        style.set_property("height", &format!("{}px", canvas.height()))?;
+        for (property, value) in [
+            ("left", left),
+            ("top", top),
+            ("width", canvas.width()),
+            ("height", canvas.height()),
+        ] {
+            let value = format!("{value}px");
+            if style.get_property_value(property)? != value {
+                style.set_property(property, &value)?;
+            }
+        }
         Ok(())
     }
 
@@ -399,8 +413,49 @@ impl Accessibility for DomAccessibility {
                 ),
             };
         }
-        let projection =
-            cambium_rootstock::project_semantics(dom, layout, leaves, producers, focus);
+        // Read browser geometry before any label or proxy writes can dirty
+        // the mirror. Align once for every publication path.
+        if self.cover_canvas().is_err() {
+            self.clear_publication();
+            return A11ySync {
+                requests: Vec::new(),
+                publication: A11yPublication::refused(
+                    A11yAdapterState::Installed,
+                    A11yPublicationRefusal::DomWrite,
+                ),
+            };
+        }
+        let device = web_sys::window().map_or(1.0, |window| window.device_pixel_ratio());
+        let scale = (layout_scale / device) as f32;
+        let mut source = leaves
+            .is_empty()
+            .then(|| producers.producer_label_revision(dom))
+            .flatten();
+        let inputs = SyncInputs {
+            owner,
+            dom,
+            layout,
+            leaves,
+            producers,
+            focus,
+            scale,
+        };
+        if let Some(sync) = self.sync_labels_only(&inputs, &mut source) {
+            return sync;
+        }
+        let retained = self.retain_document(&inputs, source.as_ref());
+        let fresh;
+        let (projection, plan) = match &retained {
+            Some(kept) => (&kept.projection, &kept.plan),
+            None => {
+                let projection =
+                    cambium_rootstock::project_semantics(dom, layout, leaves, producers, focus);
+                let plan = mirror::plan(&projection, scale);
+                fresh = (projection, plan);
+                (&fresh.0, &fresh.1)
+            },
+        };
+        let mut prior_list = self.labels.take().and_then(|publication| publication.list);
         let requests = match projection.publication_envelopes(owner, dom, leaves, producers) {
             Ok(bindings) => bindings.requests,
             Err(_) => {
@@ -414,20 +469,6 @@ impl Accessibility for DomAccessibility {
                 };
             },
         };
-        let device = web_sys::window().map_or(1.0, |window| window.device_pixel_ratio());
-        let scale = (layout_scale / device) as f32;
-        let plan = mirror::plan(&projection, scale);
-
-        if self.cover_canvas().is_err() {
-            self.clear_publication();
-            return A11ySync {
-                requests: Vec::new(),
-                publication: A11yPublication::refused(
-                    A11yAdapterState::Installed,
-                    A11yPublicationRefusal::DomWrite,
-                ),
-            };
-        }
         let root = self.handle.root.clone();
         // Removing a focused proxy (for example a dismissed search field)
         // makes Chrome focus body. Remember ownership before that mutation,
@@ -457,7 +498,7 @@ impl Accessibility for DomAccessibility {
             }
         }
         let mut live = HashSet::new();
-        if self.write(&root, &plan, &mut live).is_err() {
+        if self.write(&root, plan, &mut live).is_err() {
             self.clear_publication();
             return A11ySync {
                 requests: Vec::new(),
@@ -467,14 +508,25 @@ impl Accessibility for DomAccessibility {
                 ),
             };
         }
-        self.elements.retain(|id, mirrored| {
-            let keep = live.contains(id);
-            if !keep {
-                mirrored.element.remove();
-            }
-            keep
-        });
-
+        let settled = self
+            .settle_list(&mut prior_list, retained.as_ref(), source.as_ref(), &live)
+            .and_then(|()| {
+                if !projection.producer_issues.is_empty() {
+                    return Ok(());
+                }
+                let kept = prior_list.take().filter(|_| retained.is_some());
+                self.record_labels(&inputs, source, kept, projection, plan, &live)
+            });
+        if settled.is_err() {
+            self.clear_publication();
+            return A11ySync {
+                requests: Vec::new(),
+                publication: A11yPublication::refused(
+                    A11yAdapterState::Installed,
+                    A11yPublicationRefusal::DomWrite,
+                ),
+            };
+        }
         let focus = focus.map(|_| projection.tree.focus.0);
         let focused = focus.and_then(|id| self.elements.get(&id).map(|m| m.element.clone()));
         {
@@ -508,7 +560,7 @@ impl Accessibility for DomAccessibility {
             publication: A11yPublication {
                 adapter: A11yAdapterState::Installed,
                 outcome: A11yPublicationOutcome::Mirrored {
-                    nodes: live.len(),
+                    nodes: self.elements.len(),
                     contribution_issues: projection.producer_issues.len(),
                 },
             },

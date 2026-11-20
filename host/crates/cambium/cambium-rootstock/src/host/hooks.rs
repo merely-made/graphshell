@@ -42,7 +42,8 @@ where
     pub after_dispatch: AppHook<State, Logic, V, T>,
     /// Runs after a redraw attempt and accessibility synchronization. Inspect
     /// `AppCtx::presentation` before doing work that requires a new presented
-    /// frame. Failed acquisition still gives asynchronous readback and bounded
+    /// frame. With a presentation, `logical_size` describes that frame's extent.
+    /// Failed acquisition still gives asynchronous readback and bounded
     /// presentation waits a turn; it must not advance a presentation scenario.
     pub after_frame: AppHook<State, Logic, V, T>,
     /// Freeze the facts described by this prepared picture. The returned

@@ -249,14 +249,17 @@ where
     pub fn capture_portable(
         &mut self,
     ) -> Result<crate::PortablePaintCapture, crate::PortableCaptureError> {
-        self.capture_portable_for(crate::ProducerFramePurpose::Export)
+        self.capture_portable_for(crate::ProducerFramePurpose::Export, None)
+            .map(std::sync::Arc::unwrap_or_clone)
     }
 
     pub(crate) fn capture_portable_for(
         &mut self,
         purpose: crate::ProducerFramePurpose,
-    ) -> Result<crate::PortablePaintCapture, crate::PortableCaptureError> {
+        profile: Option<&mut crate::FrameProfile>,
+    ) -> Result<std::sync::Arc<crate::PortablePaintCapture>, crate::PortableCaptureError> {
         use crate::PortableCaptureError;
+        let timing = profile.map(|profile| (profile, crate::Instant::now()));
         let scale = self.layout_scale() as f32;
         let plan = {
             let runner = self
@@ -282,14 +285,23 @@ where
                 purpose,
             )?
         };
+        let timing =
+            timing.map(|(profile, plan_started)| (profile, plan_started, crate::Instant::now()));
         let (width, height) = self.s.layout_size;
         let list = self
             .emit_paint_list(width, height, Some(&plan))
             .ok_or(PortableCaptureError::MissingLayout)?;
-        self.s
+        let capture = self
+            .s
             .shared
             .producers
-            .admit_portable(plan, PaintEnvelope::from_list(&list))
+            .admit_portable(plan, PaintEnvelope::from_list(&list))?;
+        if let Some((profile, plan_started, assembly_started)) = timing {
+            profile.portable_producer_plan_us =
+                elapsed_us(assembly_started.duration_since(plan_started));
+            profile.portable_assembly_us = elapsed_us(assembly_started.elapsed());
+        }
+        Ok(capture)
     }
 
     /// Translate a native frame once and bind its producer draws to this

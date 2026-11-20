@@ -15,6 +15,7 @@ struct Counts {
     publications: Cell<usize>,
     bootstraps: Cell<usize>,
     redraws: Cell<usize>,
+    size_reads: Cell<usize>,
 }
 struct Adapter {
     counts: Rc<Counts>,
@@ -81,6 +82,7 @@ impl HostWindow for Window {
         self.0.redraws.set(self.0.redraws.get() + 1);
     }
     fn inner_size(&self) -> (u32, u32) {
+        self.0.size_reads.set(self.0.size_reads.get() + 1);
         (320, 240)
     }
     fn scale_factor(&self) -> f64 {
@@ -91,6 +93,35 @@ impl HostWindow for Window {
 }
 type TestHost = Host<u32, CounterLogic, CounterChild>;
 type Queue = Rc<RefCell<Vec<A11yRequest>>>;
+
+#[test]
+fn after_frame_uses_published_extent_without_reading_window_geometry() {
+    let (mut host, counts, _) = fixture(false);
+    host.s.last_redraw_presentation = Some(crate::PresentedFrame {
+        host: host.s.presentation_host,
+        sequence: 2,
+        width: 960,
+        height: 640,
+        layout_scale: 2.,
+        context_generation: crate::ContextGeneration(0),
+    });
+    counts.size_reads.set(0);
+    let output = counts.clone();
+    host.hooks.after_frame = Box::new(move |ctx| {
+        assert_eq!(ctx.logical_size, (480., 320.));
+        assert_eq!(output.size_reads.get(), 0);
+    });
+    host.with_ctx(crate::Hook::AfterFrame);
+
+    host.s.last_redraw_presentation = None;
+    counts.size_reads.set(0);
+    let output = counts.clone();
+    host.hooks.after_frame = Box::new(move |ctx| {
+        assert_eq!(ctx.logical_size, (320., 240.));
+        assert_eq!(output.size_reads.get(), 1);
+    });
+    host.with_ctx(crate::Hook::AfterFrame);
+}
 
 fn fixture(legacy: bool) -> (TestHost, Rc<Counts>, Queue) {
     let mut host = counter_host();

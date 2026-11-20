@@ -403,6 +403,8 @@ where
     pub(crate) last_content_extent_us: u64,
     pub(crate) last_layout_mutations: u64,
     pub(crate) last_layout_rebuilt: bool,
+    pub(crate) last_layout_retained: bool,
+    pub(crate) last_restyled_elements: usize,
     pub(crate) last_leaf_boxes_us: u64,
     pub(crate) last_leaf_render_us: u64,
     pub(crate) last_leaf_repaints: u64,

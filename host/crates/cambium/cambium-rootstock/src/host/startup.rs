@@ -285,7 +285,21 @@ where
 
     pub fn with_ctx(&mut self, which: Hook) {
         {
-            let logical_size = self.logical_size();
+            // After publication, use the accepted frame's extent. A browser
+            // window read here would force layout of freshly changed proxies.
+            let logical_size = match which {
+                Hook::AfterFrame => self
+                    .s
+                    .last_redraw_presentation
+                    .map(|frame| {
+                        (
+                            frame.width.max(1) as f32 / frame.layout_scale,
+                            frame.height.max(1) as f32 / frame.layout_scale,
+                        )
+                    })
+                    .unwrap_or_else(|| self.logical_size()),
+                _ => self.logical_size(),
+            };
             let (ui_zoom, zoom_changed) = self.take_zoom_edge();
             let geometry = self.s.geometry;
             let frame_profile = self.s.last_frame_profile;

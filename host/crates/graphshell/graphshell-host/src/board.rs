@@ -17,20 +17,24 @@
 //! viewer's own dial"); nothing is written back. (Physics catalog: P3.)
 
 use std::collections::{BTreeSet, HashMap};
+use std::sync::atomic::{AtomicU64, Ordering};
 
 use crate::view::ProjectionLayoutView;
-use graphshell_client::MountedScene;
-use graphshell_client::frozen::Satisfaction;
 use cartography::canvas::dynamics_spec::DynamicsSpec;
 use cartography::canvas::{
-    BoardBackdrop, BoardCard, BoardFootprint, BoardRect, BoardRelation, BoardScene, PhysicsBoard,
-    PhysicsTransport,
-    Speed,
+    BoardBackdrop, BoardCard, BoardFit, BoardFootprint, BoardRect, BoardRelation, BoardScene,
+    BoardTransform, PhysicsBoard, PhysicsTransport, Speed,
 };
+use graphshell_client::frozen::Satisfaction;
+use graphshell_client::{AcceptedLabelUpdate, MountedScene};
 use sceno::{InstanceId, StandIn};
 
 #[cfg(test)]
 mod tests;
+
+// A board may be replaced without replacing its registered producer. Revisions
+// therefore belong to the process, rather than restarting with each board.
+static NEXT_SEMANTIC_GENERATION: AtomicU64 = AtomicU64::new(1);
 
 /// What the scene's folds do to its instances: the card each hidden
 /// instance is drawn as, how many each stand-in hides, and the summary
@@ -51,16 +55,17 @@ fn folding(mounted: &MountedScene) -> Folding {
                     folding.drawn_as.insert(member.0, stand_in.0.to_string());
                 }
                 *folding.hides.entry(stand_in.0).or_default() += fold.members.len() - 1;
-            }
+            },
             StandIn::Summary { label } => {
                 let id = format!("fold:{}", folding.summaries.len());
                 for member in &fold.members {
                     folding.drawn_as.insert(member.0, id.clone());
                 }
-                folding
-                    .summaries
-                    .push((fold.members.clone(), label.clone().or_else(|| fold.label.clone())));
-            }
+                folding.summaries.push((
+                    fold.members.clone(),
+                    label.clone().or_else(|| fold.label.clone()),
+                ));
+            },
         }
     }
     folding
@@ -110,7 +115,10 @@ pub fn board_scene(mounted: &MountedScene) -> BoardScene {
         let Some(first) = items.first() else { continue };
         let n = items.len() as f32;
         let (x, y) = items.iter().fold((0.0, 0.0), |(x, y), item| {
-            (x + item.transform.translate.x, y + item.transform.translate.y)
+            (
+                x + item.transform.translate.x,
+                y + item.transform.translate.y,
+            )
         });
         cards.push(BoardCard {
             id: format!("fold:{index}"),
@@ -174,6 +182,13 @@ type StartTransport = Box<dyn FnOnce() -> Option<Box<dyn PhysicsTransport>>>;
 pub struct RemoteBoard {
     board: PhysicsBoard,
     scene: BoardScene,
+    drawn_cards: HashMap<InstanceId, usize>,
+    frame: BoardRect,
+    /// All semantic facts except the common viewport transform. Saturation
+    /// disables reuse rather than allowing an old proof to become current.
+    semantic_generation: u64,
+    rectangular_cards: bool,
+    moving: bool,
     position: Option<(scenotime::SceneEpoch, Option<u64>, Option<String>)>,
     /// The viewer's speed, as last mirrored.
     speed: Speed,
@@ -210,6 +225,7 @@ impl RemoteBoard {
     /// Stage the board's repulsion on the host's device (P5c).
     #[cfg(feature = "board-gpu")]
     pub fn set_physics_device(&mut self, device: Option<cartography::canvas::PhysicsDevice>) {
+        self.invalidate_semantic_geometry();
         self.board.set_physics_device(device);
     }
 
@@ -263,6 +279,7 @@ impl RemoteBoard {
             && let Some(start) = self.start.take()
             && let Some(transport) = start()
         {
+            self.invalidate_semantic_geometry();
             self.board = PhysicsBoard::with_transport(transport);
             self.board.set_speed(self.speed);
         }
@@ -274,20 +291,120 @@ impl RemoteBoard {
             self.board.set_speed(speed);
         }
         let Some(mounted) = mounted else {
+            self.invalidate_semantic_geometry();
             self.scene = BoardScene::default();
+            self.rectangular_cards = false;
+            self.drawn_cards.clear();
+            self.frame = BoardRect::default();
             self.board.sync(self.scene.items());
-        self.board.set_links(self.scene.links());
+            self.board.set_links(self.scene.links());
             self.position = None;
             return;
         };
-        let position = (mounted.scene.epoch, revision, identity.map(str::to_owned));
-        if Some(&position) == self.position.as_ref() && !self.board.is_empty() {
+        if let Some((epoch, previous_revision, previous_identity)) = self.position.as_ref()
+            && *epoch == mounted.scene.epoch
+            && *previous_revision == revision
+            && previous_identity.as_deref() == identity
+            && !self.board.is_empty()
+        {
             return;
         }
+        self.invalidate_semantic_geometry();
         self.scene = board_scene(mounted);
+        self.rectangular_cards = self.scene.cards.iter().all(|card| {
+            matches!(card.footprint, BoardFootprint::Rect { width, height }
+                if width.is_finite() && height.is_finite() && width >= 0.0 && height >= 0.0)
+        });
+        self.drawn_cards.clear();
+        self.drawn_cards.extend(
+            self.scene
+                .cards
+                .iter()
+                .enumerate()
+                .filter_map(|(index, card)| {
+                    // A fold summary has a synthetic id and its own label.
+                    card.id.parse().ok().map(|id| (InstanceId(id), index))
+                }),
+        );
+        self.frame = self.scene.frame();
         self.board.sync(self.scene.items());
         self.board.set_links(self.scene.links());
-        self.position = Some(position);
+        self.position = Some((mounted.scene.epoch, revision, identity.map(str::to_owned)));
+    }
+
+    /// Advance the board through a label-only update accepted for `mounted`.
+    /// A caller supplies the attachment identity it used to sync the board.
+    /// Use `sync_scoped` for an unscoped board, revision gap, or new attachment.
+    pub fn apply_label_changes(
+        &mut self,
+        mounted: &MountedScene,
+        identity: Option<&str>,
+        update: &AcceptedLabelUpdate,
+    ) -> bool {
+        let (Some((epoch, revision, attached)), Some(identity)) =
+            (self.position.as_mut(), identity)
+        else {
+            return false;
+        };
+        if *epoch != update.epoch
+            || mounted.scene.epoch != update.epoch
+            || *revision != Some(update.base.0)
+            || mounted.scene.revision != update.revision
+            || update.base.0 >= update.revision.0
+            || attached.as_deref() != Some(identity)
+            || self.board.is_empty()
+        {
+            return false;
+        }
+
+        for change in &update.changes {
+            if let Some(&index) = self.drawn_cards.get(&change.instance) {
+                let title = &mut self.scene.cards[index].title;
+                title.clear();
+                title.push_str(change.board_label());
+            }
+        }
+        *revision = Some(update.revision.0);
+        self.invalidate_semantic_geometry();
+        true
+    }
+
+    /// Check for changed text that can affect paint before applying `update`.
+    /// A fixed-card fit follows all simulated positions, so it conservatively
+    /// invalidates when any drawn title changes. Use the result only when
+    /// `apply_label_changes` accepts the update.
+    pub fn title_change_visible(
+        &self,
+        update: &AcceptedLabelUpdate,
+        width: u32,
+        height: u32,
+        fit: BoardFit,
+    ) -> bool {
+        if !matches!(&self.position, Some((epoch, Some(revision), _))
+            if *epoch == update.epoch && *revision == update.base.0)
+        {
+            return false;
+        }
+        let frame = if fit.frame_edges {
+            self.frame
+        } else {
+            self.scene.bounds
+        };
+        let transform = fit.transform(frame, width as f32, height as f32);
+        update.changes.iter().any(|change| {
+            let Some(card) = self.drawn_card(change.instance) else {
+                return false;
+            };
+            card.title != change.board_label()
+                && (fit.card_scale.is_some()
+                    || self.scene.title_intersects_viewport(
+                        &self.board,
+                        card,
+                        (width, height),
+                        fit,
+                        transform,
+                    ))
+        })
     }
 
     /// The step budget the board's frames run under: the page's, as its
@@ -303,7 +420,15 @@ impl RemoteBoard {
 
     /// Advance the board one frame; whether it is still moving.
     pub fn tick(&mut self) -> bool {
-        self.board.tick()
+        let settling = self.board.is_settling();
+        let moving = self.board.tick();
+        // The last settling step can move a card even when tick returns false.
+        // A final at-rest glide can do so after the physics budget has ended.
+        if settling || moving || self.moving {
+            self.invalidate_semantic_geometry();
+        }
+        self.moving = moving;
+        moving
     }
 
     pub fn board(&self) -> &PhysicsBoard {
@@ -312,13 +437,63 @@ impl RemoteBoard {
 
     /// The board, for the viewer's own actions on its cards (F64).
     pub fn board_mut(&mut self) -> &mut PhysicsBoard {
+        self.invalidate_semantic_geometry();
         &mut self.board
+    }
+
+    fn invalidate_semantic_geometry(&mut self) {
+        if self.semantic_generation != u64::MAX {
+            self.semantic_generation = NEXT_SEMANTIC_GENERATION
+                .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |revision| {
+                    revision.checked_add(1)
+                })
+                .unwrap_or(u64::MAX);
+        }
+    }
+
+    /// A constant-sized proof that every card's accessible rectangle follows
+    /// the same viewport transform. Equal generations preserve names, keys,
+    /// membership and world rectangles. Fixed-size and nonrectangular cards
+    /// use the ordinary full projection because their extents do not scale.
+    pub fn semantic_geometry(
+        &self,
+        width: u32,
+        height: u32,
+        fit: BoardFit,
+    ) -> Option<(u64, BoardTransform)> {
+        if !self.rectangular_cards
+            || !self.board.has_synchronous_positions()
+            || self.position.is_none()
+            || self.semantic_generation == u64::MAX
+            || self.moving
+            || self.board.is_settling()
+            || fit.card_scale.is_some()
+        {
+            return None;
+        }
+        let frame = if fit.frame_edges {
+            self.frame
+        } else {
+            self.scene.bounds
+        };
+        let transform = fit.transform(frame, width as f32, height as f32);
+        (transform.scale.is_finite()
+            && transform.scale > 0.0
+            && transform.origin.0.is_finite()
+            && transform.origin.1.is_finite())
+        .then_some((self.semantic_generation, transform))
     }
 
     /// The board as last described; hosts paint it with
     /// `scene().paint(board(), ..)`.
     pub fn scene(&self) -> &BoardScene {
         &self.scene
+    }
+
+    /// A card drawn for this instance. A hidden fold member has no card.
+    pub fn drawn_card(&self, instance: InstanceId) -> Option<&BoardCard> {
+        let &index = self.drawn_cards.get(&instance)?;
+        Some(&self.scene.cards[index])
     }
 
     /// Presentation-only emphasis of the reader's selected instance.
@@ -345,4 +520,3 @@ impl RemoteBoard {
         self.board.is_settling()
     }
 }
-

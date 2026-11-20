@@ -35,6 +35,17 @@ where
         layout.painted_rect(&view, node)
     }
 
+    /// The current registered portable producer's painted content box, in
+    /// logical host coordinates. This observes existing layout without asking
+    /// the producer to rebuild its semantic contribution.
+    pub fn producer_content_rect(&self, key: u64) -> Option<(f32, f32, f32, f32)> {
+        let layout = self.layout?;
+        let dom = self.runner.dom();
+        let dom = dom.borrow();
+        let view = crate::WindowDom::new(&dom, self.runner.mount());
+        self.producers.producer_content_rect(key, layout, &view)
+    }
+
     /// The part of `node` inside the viewport and every ancestor content clip,
     /// in logical pointer coordinates. `None` when no part is visible.
     pub fn visible_rect(&self, node: NodeId) -> Option<(f32, f32, f32, f32)> {

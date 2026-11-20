@@ -150,6 +150,8 @@ where
         profile.content_extent_us = self.s.last_content_extent_us;
         profile.layout_mutations = self.s.last_layout_mutations;
         profile.layout_rebuilt = self.s.last_layout_rebuilt;
+        profile.layout_retained = self.s.last_layout_retained;
+        profile.restyled_elements = self.s.last_restyled_elements;
         profile.leaf_boxes_us = self.s.last_leaf_boxes_us;
         profile.leaf_render_us = self.s.last_leaf_render_us;
         profile.leaf_repaints = self.s.last_leaf_repaints;
@@ -229,7 +231,7 @@ where
                 PreparedPaint::Native(envelope)
             },
             FrameContentMode::PortableScene => PreparedPaint::Portable(
-                self.capture_portable_for(ProducerFramePurpose::Presentation)
+                self.capture_portable_for(ProducerFramePurpose::Presentation, Some(&mut profile))
                     .map_err(|error| {
                         let key = match &error {
                             PortableCaptureError::Producer { texture_key, .. }

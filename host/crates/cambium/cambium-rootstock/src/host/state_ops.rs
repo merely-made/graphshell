@@ -41,6 +41,8 @@ where
             last_content_extent_us: 0,
             last_layout_mutations: 0,
             last_layout_rebuilt: false,
+            last_layout_retained: false,
+            last_restyled_elements: 0,
             last_leaf_boxes_us: 0,
             last_leaf_render_us: 0,
             last_leaf_repaints: 0,

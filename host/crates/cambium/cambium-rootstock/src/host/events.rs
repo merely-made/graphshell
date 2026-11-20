@@ -71,12 +71,21 @@ pub struct FrameProfile {
     pub content_extent_us: u64,
     pub layout_mutations: u64,
     pub layout_rebuilt: bool,
+    pub layout_retained: bool,
+    pub restyled_elements: usize,
     pub leaf_boxes_us: u64,
     pub leaf_render_us: u64,
     pub leaf_repaints: u64,
     pub leaf_fragments_us: u64,
     pub ime_us: u64,
     pub emit_scene_us: u64,
+    /// Portable producer discovery, callbacks, and planning within `emit_scene_us`.
+    pub portable_producer_plan_us: u64,
+    /// Portable document paint emission and envelope admission within `emit_scene_us`.
+    pub portable_assembly_us: u64,
+    /// Portable scene materialization measured by the WebGPU driver within `emit_scene_us`.
+    pub portable_materialize_us: u64,
+    pub portable_materialization_reused: bool,
     pub shadows_us: u64,
     pub raster_us: u64,
     /// The complete raster was retained; no new checked raster was submitted.
