@@ -758,6 +758,85 @@ presentation PT1. Needs P1–P5.
   outside edits, such as a shared document under Murm's live interaction,
   decides its own conflict timing rather than inheriting D6.
 
+## Findings (2026-11-20)
+
+A survey of Graphshell's and Turnstone's mains (read, not built) broke P6's done-condition
+into its items.
+
+- **Automated tests** exist and last passed on 2026-10-30, before the code moved from Mere to
+  Graphshell's `host/crates/cambium/`. They are rerun on today's mains.
+- **Headed drive.** `scenarios/settings_reactive.scn` toggles one setting and the chain script
+  verifies it; `settings_arrangement.scn` and its `_verify` twin exist. No scenario moves the
+  Settings pane, tabs through its controls or checks a hidden pane.
+- **Window move.** The grammar's only window verb is `resize`. Tear-out, dock and float are
+  palette actions a scenario can call; a free window-position move has no verb. Whole-pane
+  move is shared with the presentation plan's PT1, which is not done.
+- **Keyboard focus** is expressible (`key`, `assert focus`); no scenario does it for Settings.
+- **IME commit on move needs a person.** The scenario verb `insert` sends per-character key
+  events and its own comment disclaims platform composition
+  (`turnstone/src/shell/keys/shell_cambium_key.rs` 38 to 40). Cambium's unit tests drive a
+  synthetic preedit and commit; `runner/lifecycle.rs` (220 to 224) notes that this does not
+  make the OS finalize its candidate.
+- **Hidden accessibility exclusion.** Hiding sets `inert` and `aria-hidden`; tests cover action
+  admission. No test shows that a hidden Settings row publishes no nodes, and no scenario verb
+  asserts absence; `record-uxtree` with an outside check is the nearest tool.
+- **The API review** had no stated product; D15 settles it.
+
+## API review (2026-11-20, D15)
+
+Read from an inventory of Graphshell's and Turnstone's mains (a subagent's map; the counts and
+the items named below were spot-checked). Cues, with the changes they suggest in three tiers.
+
+**Who the API serves.** One consumer uses it: Turnstone's Settings pane. Arrange uses only the
+legacy `setting_row`. No other repository uses it. Of the six plans read, only the presentation
+plan names it (PT1, through `RetainedMount`); the table plan's data grid, the engine binding
+plan's finding row and the host plan's resident panes do not ask for it. So "before other panes
+adopt it" has one near adopter, Arrange, and one adopter of another kind: crates.io
+(cambium-publish D8).
+
+**What the publish would fix in place.**
+- Public with no caller outside the crate: `ComponentRoute`, `ComponentRouteSnapshot`,
+  `LifecycleRefusal`, `RetainedState`, `ErasedComponentView`, `RetainedComponentFactory`,
+  `MAX_CAUSE_EDGES`, `Producer::dropped_events`, `SettingRowAckDisposition`,
+  `SettingRowObservation`; `diagnostic_span` has one caller, a Turnstone test.
+- No enum in these modules is `#[non_exhaustive]`. Each added `DiagnosticKind` or
+  `DiagnosticReason` is then a breaking release, and exact pins move in six repositories.
+
+**What Settings does by hand, and a second pane would copy.**
+- The unsettled-row test, `dirty || pending_generation.is_some()`, is written seven times
+  (`turnstone/src/settings_pane/editor_host.rs`, `record_host.rs`, `source_sync.rs`).
+- A per-row generation counter kept by comparing snapshots, though `SettingRowSnapshot` carries
+  `edit_generation` and `reset_generation`.
+- A `rows` table (state, session and binding by key) beside the owner table, while
+  `RetainedState` is public and unused.
+- A walk of the DOM for `data-setting-instance` to find a row's node, because a route snapshot
+  carries no node.
+- Hidden and container keys recomputed by walking the placement tree; focus loss before retire
+  or hide; a queue of structural intents flushed after dispatch.
+- Input vectors diffed by axis to name causes, and queue counters polled to mark gaps.
+- An operation vocabulary and history (`ArrangementOperation`, a limit of 64) outside the API,
+  which offers validate-and-diff only.
+
+**What is Settings-shaped in the generic layers.** `DiagnosticKind::Settings*`; draft, dirty and
+conflict state only in `SettingRowSession`, typed on `SettingSpec` and `SettingValue`; a cap of
+256 components; a synchronous budget. These suit Settings and Arrange. They are what a data
+grid could not use, and no plan asks it to.
+
+**Movement.** `prepare_subtree_move` has one caller, for Settings rows, and no whole-pane caller;
+PT1 is open; D4's force-commit of IME before a move is unchecked in Genet.
+
+**Changes, by tier.**
+1. No change in behaviour: narrow the unused public items; give the snapshot the unsettled
+   test and use it in the seven places; share the label format written twice in Settings and
+   the choice-row helper written twice in Arrange.
+2. Additions that remove a workaround: a node on the route snapshot; hidden and container key
+   queries; the queue naming changed axes and gaps; Turnstone's own generation counter retired
+   for the snapshot's. Each needs its shape ruled.
+3. Structural: the `rows` table folded into the owner table's state; operations and history in
+   the API; Arrange on managed rows with a session.
+
+Not suggested: widening the API for the data grid, which no plan asks for.
+
 ## Findings (2026-10-30)
 
 - P4/P5 supplier and receiving source is implemented. The final supplier gate
@@ -1046,6 +1125,15 @@ confirmed it.
 
   Links: summary P4–P6 stay outlines with a goal and done-condition until P2 proves the retained table.
 
+- **D15, P6's API review is a review and an optimization for our plans.** Put to Mark on
+  2026-11-20 because no document said what the review produces and no pane was named as
+  waiting. Offered: a written review for his ruling, an inventory only, or dropping the item.
+  Mark wrote his own answer: "Review and optimize for our plans". So the review reads the
+  retained-composition API against the surfaces the plans name as adopting it, and changes
+  the API where that serves them. The Cambium publish waits on it (cambium-publish D8).
+
+  Links: summary P6's API review reads the API against the plans' adopters and optimizes it for them.
+
 ## Progress
 
 - 2026-10-29: initial composition plan written.
@@ -1088,3 +1176,9 @@ confirmed it.
 - 2026-10-30: published (Mere 767c53a61, ccdfc8941) and received on Turnstone
   main 068f182e, including the deferred-presentation and frame-preparation
   adaptation recorded in Findings.
+- 2026-11-20: P6 taken up. Its items are separated in Findings (2026-11-20), D15 says what
+  the API review is, and the test rerun, the new Settings scenarios and the API inventory are
+  under way. The IME step stays a person's run.
+- 2026-11-20: the API review is written (API review, D15): who the API serves, what a publish
+  would fix in place, what Settings does by hand, and changes in three tiers. Tier 1 is taken
+  up; tiers 2 and 3 go to Mark.
