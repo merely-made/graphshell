@@ -178,6 +178,11 @@ as a ladder, each repository after the one below it has really published (Findin
 
 - 2026-11-20: survey taken and D8, D9 ruled. P1's remainder started: the embeddings move (D6)
   first, on Graphshell.
+- 2026-11-20: D6 done (Graphshell `9163ad09`). The embedding module is the probe crate
+  `cambium-embed` at `host/testing/cambium-embed`, a member of the `host` workspace; rootstock
+  has no egui or iced dependency and no `embedding` features, and `cambium_rootstock::embedding`
+  is gone. Nothing else used it; no `caller-owned-toolkit-bench` exists in any manifest. The API
+  review the publish waits on will include its tier 2 (`cambium-composition D17`).
 - 2026-11-06: P1's Vello item done (D5). The fork's sparse crates are `netrender-vello-common`,
   `-cpu`, `-gpu`, `-gpu-shaders` (0.3.0) and `netrender-glifo` (0.4.0; Mark, 2026-11-06,
   "netrender-glifo"), with library names unchanged, on `mark-ik/all-vellos` at `7784613` on top

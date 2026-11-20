@@ -78,6 +78,16 @@ title = "P6's API review is a review and an optimization for our plans"
 source = "design_docs/cambium_docs/implementation_strategy/2026-10-29_cambium_composition_plan.md"
 summary = "P6's API review reads the API against the plans' adopters and optimizes it for them."
 
+[decisions."cambium-composition D16"]
+title = "the native IME step moves to presentation PT1"
+source = "design_docs/cambium_docs/implementation_strategy/2026-10-29_cambium_composition_plan.md"
+summary = "The native IME commit-on-move step is PT1's; P6 closes on the synthetic preedit tests."
+
+[decisions."cambium-composition D17"]
+title = "the API review's tier 2 before the publish, tier 3 later"
+source = "design_docs/cambium_docs/implementation_strategy/2026-10-29_cambium_composition_plan.md"
+summary = "Tier 2 of the API review lands before the Cambium publish, each shape ruled first; tier 3 waits on Arrange."
+
 [decisions."cambium-publish D1"]
 title = "Publish the app's GUI dependencies first (Mark, 2026-11-05)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-05_cambium_publish_plan.md"
