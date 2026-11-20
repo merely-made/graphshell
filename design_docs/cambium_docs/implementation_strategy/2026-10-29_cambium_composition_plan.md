@@ -758,6 +758,30 @@ presentation PT1. Needs P1–P5.
   outside edits, such as a shared document under Murm's live interaction,
   decides its own conflict timing rather than inheriting D6.
 
+## Findings (2026-11-20)
+
+A survey of Graphshell's and Turnstone's mains (read, not built) broke P6's done-condition
+into its items.
+
+- **Automated tests** exist and last passed on 2026-10-30, before the code moved from Mere to
+  Graphshell's `host/crates/cambium/`. They are rerun on today's mains.
+- **Headed drive.** `scenarios/settings_reactive.scn` toggles one setting and the chain script
+  verifies it; `settings_arrangement.scn` and its `_verify` twin exist. No scenario moves the
+  Settings pane, tabs through its controls or checks a hidden pane.
+- **Window move.** The grammar's only window verb is `resize`. Tear-out, dock and float are
+  palette actions a scenario can call; a free window-position move has no verb. Whole-pane
+  move is shared with the presentation plan's PT1, which is not done.
+- **Keyboard focus** is expressible (`key`, `assert focus`); no scenario does it for Settings.
+- **IME commit on move needs a person.** The scenario verb `insert` sends per-character key
+  events and its own comment disclaims platform composition
+  (`turnstone/src/shell/keys/shell_cambium_key.rs` 38 to 40). Cambium's unit tests drive a
+  synthetic preedit and commit; `runner/lifecycle.rs` (220 to 224) notes that this does not
+  make the OS finalize its candidate.
+- **Hidden accessibility exclusion.** Hiding sets `inert` and `aria-hidden`; tests cover action
+  admission. No test shows that a hidden Settings row publishes no nodes, and no scenario verb
+  asserts absence; `record-uxtree` with an outside check is the nearest tool.
+- **The API review** had no stated product; D15 settles it.
+
 ## Findings (2026-10-30)
 
 - P4/P5 supplier and receiving source is implemented. The final supplier gate
@@ -1046,6 +1070,15 @@ confirmed it.
 
   Links: summary P4–P6 stay outlines with a goal and done-condition until P2 proves the retained table.
 
+- **D15, P6's API review is a review and an optimization for our plans.** Put to Mark on
+  2026-11-20 because no document said what the review produces and no pane was named as
+  waiting. Offered: a written review for his ruling, an inventory only, or dropping the item.
+  Mark wrote his own answer: "Review and optimize for our plans". So the review reads the
+  retained-composition API against the surfaces the plans name as adopting it, and changes
+  the API where that serves them. The Cambium publish waits on it (cambium-publish D8).
+
+  Links: summary P6's API review reads the API against the plans' adopters and optimizes it for them.
+
 ## Progress
 
 - 2026-10-29: initial composition plan written.
@@ -1088,3 +1121,6 @@ confirmed it.
 - 2026-10-30: published (Mere 767c53a61, ccdfc8941) and received on Turnstone
   main 068f182e, including the deferred-presentation and frame-preparation
   adaptation recorded in Findings.
+- 2026-11-20: P6 taken up. Its items are separated in Findings (2026-11-20), D15 says what
+  the API review is, and the test rerun, the new Settings scenarios and the API inventory are
+  under way. The IME step stays a person's run.

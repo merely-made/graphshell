@@ -1,8 +1,11 @@
 # Cambium publish plan
 
-**Status:** 2026-11-06: in progress. P0 landed in Mere and every consumer (Woodshed and its
-Hocket/Redshank ports, Knot, Cleromancy, Isocosm, Turnstone, Signalman); P1's accesskit removal
-landed, and so did its Vello renames (Netrender ad4be200e). Nothing is published yet.
+**Status:** 2026-11-20: in progress. P0 is done. P1 is partly done: the accesskit patch is gone
+and the vello sparse crates are renamed, but the embeddings are still in `cambium-rootstock`
+(D6), Genet's metadata is unfixed and several rows are still git-only (Findings, 2026-11-20).
+P1 is being finished now; P2, the publish itself, waits on the composition plan's API review
+(D8). Nothing is published. The closure measured on 2026-11-05 is superseded: it is 54 crates,
+and the Dramatis application this plan was opened for no longer exists.
 
 **For:** publishing the Cambium desktop chain to crates.io so that applications outside Mere,
 first the Dramatis application (source homes map, ownership cut 1), depend on registry
@@ -64,7 +67,10 @@ dependencies, and roughly seventeen published crates whose manifests drifted sin
   in order, and the accesskit canary test fails when a property is left unmapped.
 
 ### P2. Publish in order
-Waits on engine-split P3 (D7): the Cambium family publishes once, from Graphshell.
+Waits on engine-split P3 (D7, met 2026-11-12): the Cambium family publishes once, from
+Graphshell. Waits also on the composition plan's API review (D8). A dry run of a crate needs
+its unpublished dependencies in the registry, so across repositories the dry runs can only run
+as a ladder, each repository after the one below it has really published (Findings, 2026-11-20).
 - Done when: every crate in the closure is on crates.io at the planned version, consumers' exact
   pins are updated, and the Dramatis application builds from registry versions alone.
 
@@ -118,13 +124,60 @@ Waits on engine-split P3 (D7): the Cambium family publishes once, from Graphshel
 
   Links: plans engine-split P3 · summary The Cambium chain publishes once, from Graphshell, after engine-split P3; consumers track git main until then.
 
+- **D8. P1 now, the publish after the API review (Mark, 2026-11-20):** put to Mark on a
+  survey finding the closure at 54 crates in eight repositories, the Dramatis application
+  gone, and P1 unfinished (Findings, 2026-11-20). Four cards. "P1 now, publish later
+  (Recommended)": finish the blockers and take every crate through a publish dry run in order;
+  the real publish waits for the composition plan's P6 API review, so the API is not fixed on
+  crates.io before it is reviewed, and Mark sees the list before anything is published; over
+  "Full wave now", "Close the plan unpublished" and leaving it. Outcome: refines D1 and D7.
+
+  Links: draws on cambium-publish D1, cambium-publish D7 · summary P1 is finished now; the publish waits on the composition plan's API review and on Mark seeing the list.
+
+- **D9. The vello sparse crates take one-hyphen names (Mark, 2026-11-20):** the names recorded
+  on 2026-11-06 (`netrender-vello-common`, `-cpu`, `-gpu`, `-gpu-shaders`) carry two hyphens and
+  were not yet claimed. "Shorten them (Recommended)", over keeping them as recorded and over
+  deciding at publish time; then, of three sets all free on crates.io that day, "sparse, cpu,
+  hybrid, shaders": `netrender-sparse` (the common crate), `netrender-cpu`, `netrender-hybrid`
+  (upstream's `vello_hybrid`) and `netrender-shaders`. Library names stay (`vello_common`,
+  `vello_cpu`, `vello_hybrid`, `vello_sparse_shaders`); `netrender-glifo` and the published
+  `netrender-vello` are untouched. Outcome: refines D5.
+
+  Links: draws on cambium-publish D5 · summary The fork's sparse crates publish as netrender-sparse, netrender-cpu, netrender-hybrid and netrender-shaders.
+
 ## Findings
 
+- 2026-11-20, a survey of each repository's main (manifests read, nothing built; counts skip
+  dev and optional dependencies, so feature-gated edges are approximate):
+  - **The closure is 54 first-party crates** across Armillary, Netrender, the vello fork, Genet,
+    Graphshell (root and `host/`), Inker, Eidetic, Mere and wgpu-cue. 29 are on crates.io, all
+    owned by one account; 14 are new names, all free; about 20 published crates have a
+    dependency set that differs from the registry's at the same version and need a bump.
+  - **The first consumer is gone.** `dramatis/Cargo.toml` (lines 22 to 23): "There is no
+    application here"; no Dramatis manifest names a cambium crate (cycle-breaks D26). Six
+    repositories take the chain from `graphshell.git` main: Turnstone, Knot, Woodshed, Isocosm,
+    Cleromancy and Murm's Signalman.
+  - **P1 left undone.** D6: `embedding-egui` and `embedding-iced` are still features of
+    `cambium-rootstock`, with `iced_wgpu` at a git rev. Genet's workspace still inherits
+    `repository = servo/servo` and `publish = false` (`genet/Cargo.toml` 124, 129). Git-only
+    rows with no version: `genet-render`, `genet-presenter`, `genet-winit` and
+    `document-session-api` in `host/Cargo.toml`; `webcue` in Inker and `grafting-frame` in
+    wgpu-cue; cambium's optional `tinct` is path-only.
+  - **Local patches do not travel.** `cambium-desktop` builds against a `[patch.crates-io]`
+    fork of `light-file-dialog`, and Genet's patch table redirects several crates to local
+    copies; a published crate resolves the registry's versions instead.
+  - **`persona-picker` is no longer a crate.** It is the cambium feature of that name.
+  - **Forced order:** the vello fork, Netrender, Armillary (`apparatus-core`), Genet,
+    wgpu-cue and Inker where a republish is needed, Graphshell's root, then `host/`
+    (`cambium`, `cambium-winit`, `cambium-rootstock`, `cambium-a11y`, `mandrake`,
+    `cambium-desktop`).
 - 2026-11-05: `persona-picker` alone is publishable today: its name is free and `cambium`,
   `dramatis` and `personae` are published.
 
 ## Progress
 
+- 2026-11-20: survey taken and D8, D9 ruled. P1's remainder started: the embeddings move (D6)
+  first, on Graphshell.
 - 2026-11-06: P1's Vello item done (D5). The fork's sparse crates are `netrender-vello-common`,
   `-cpu`, `-gpu`, `-gpu-shaders` (0.3.0) and `netrender-glifo` (0.4.0; Mark, 2026-11-06,
   "netrender-glifo"), with library names unchanged, on `mark-ik/all-vellos` at `7784613` on top
