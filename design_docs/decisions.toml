@@ -73,6 +73,11 @@ title = "P4–P6 stay outlines until P2 lands"
 source = "design_docs/cambium_docs/implementation_strategy/2026-10-29_cambium_composition_plan.md"
 summary = "P4–P6 stay outlines with a goal and done-condition until P2 proves the retained table."
 
+[decisions."cambium-composition D15"]
+title = "P6's API review is a review and an optimization for our plans"
+source = "design_docs/cambium_docs/implementation_strategy/2026-10-29_cambium_composition_plan.md"
+summary = "P6's API review reads the API against the plans' adopters and optimizes it for them."
+
 [decisions."cambium-publish D1"]
 title = "Publish the app's GUI dependencies first (Mark, 2026-11-05)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-05_cambium_publish_plan.md"
@@ -108,6 +113,18 @@ title = "Publish after the move, from Graphshell (Mark, 2026-11-07)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-05_cambium_publish_plan.md"
 summary = "The Cambium chain publishes once, from Graphshell, after engine-split P3; consumers track git main until then."
 plans = ["engine-split"]
+
+[decisions."cambium-publish D8"]
+title = "P1 now, the publish after the API review (Mark, 2026-11-20)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-05_cambium_publish_plan.md"
+summary = "P1 is finished now; the publish waits on the composition plan's API review and on Mark seeing the list."
+draws_on = ["cambium-publish D1", "cambium-publish D7"]
+
+[decisions."cambium-publish D9"]
+title = "The vello sparse crates take one-hyphen names (Mark, 2026-11-20)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-05_cambium_publish_plan.md"
+summary = "The fork's sparse crates publish as netrender-sparse, netrender-cpu, netrender-hybrid and netrender-shaders."
+draws_on = ["cambium-publish D5"]
 
 [decisions."device-pairing D1"]
 title = "the M4 stays on the work line"
