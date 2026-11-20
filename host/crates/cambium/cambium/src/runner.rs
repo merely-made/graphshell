@@ -533,6 +533,7 @@ mod tests;
 
 #[path = "runner/app_runner.rs"]
 mod app_runner;
+pub use app_runner::PreparationPurpose;
 
 #[path = "runner/keyboard.rs"]
 mod keyboard;

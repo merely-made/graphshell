@@ -167,8 +167,24 @@ impl LifecycleEventSink {
                 key: key.clone(),
                 route,
                 visible,
+                node: None,
             },
         );
+    }
+
+    /// Point every published route at its entry's current element, once a
+    /// reconciliation has finished building, moving, revealing or replacing.
+    fn sync_nodes<State: 'static, Action: 'static>(
+        &self,
+        entries: &BTreeMap<ComponentKey, Entry<State, Action>>,
+    ) {
+        let mut state = self.0.borrow_mut();
+        for (key, route) in &mut state.routes {
+            route.node = entries
+                .get(key)
+                .and_then(|entry| entry.child.as_ref())
+                .map(|child| child.element.node);
+        }
     }
 
     fn forget_route(&self, key: &ComponentKey) {
@@ -182,6 +198,9 @@ pub struct ComponentRouteSnapshot {
     pub key: ComponentKey,
     pub route: ComponentRoute,
     pub visible: bool,
+    /// The component's current DOM node: what a walk of the document for its
+    /// element finds. `None` until the element has been built.
+    pub node: Option<NodeId>,
 }
 
 /// Immutable view props built from an admitted composition transaction.

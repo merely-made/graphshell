@@ -220,7 +220,7 @@ pub use retained_composition::{
     RetainedState,
 };
 pub use retained_mount::{RetainedMount, RetainedMountView};
-pub use runner::{FocusExit, GenetAppRunner};
+pub use runner::{FocusExit, GenetAppRunner, PreparationPurpose};
 pub use select::{SelectState, select};
 pub use selection_bar::{
     Orientation, SelectionBarConfig, SelectionBarKind, SelectionItem, SelectionState,

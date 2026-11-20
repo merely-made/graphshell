@@ -506,6 +506,9 @@ mod scheduler;
 #[cfg(test)]
 mod admission;
 
+#[cfg(test)]
+mod prepare;
+
 #[test]
 fn hiding_focused_row_refuses_until_host_sends_focus_loss() {
     let dom = Rc::new(std::cell::RefCell::new(ScriptedDom::new()));

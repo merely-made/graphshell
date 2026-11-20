@@ -39,6 +39,7 @@ struct SchedulerState {
     body_counts: Rc<RefCell<BTreeMap<String, usize>>>,
     collapsed: BTreeSet<ContainerKey>,
     actions: usize,
+    sink: crate::LifecycleEventSink,
     factory: crate::RetainedComponentFactory<SchedulerState, ()>,
 }
 
@@ -105,6 +106,7 @@ fn scheduler_state(transaction: crate::composition::CompositionTransaction) -> S
         body_counts,
         collapsed: BTreeSet::new(),
         actions: 0,
+        sink: crate::LifecycleEventSink::default(),
         factory,
     };
     publish_inputs(&state, (1, 1, 1));
@@ -150,6 +152,7 @@ fn publish_inputs(state: &SchedulerState, revisions: (u64, u64, u64)) {
 fn scheduler_logic(state: &SchedulerState) -> crate::RetainedComposition<SchedulerState, ()> {
     crate::RetainedComposition::new(&state.transaction, state.factory.clone())
         .with_collapsed(state.collapsed.clone())
+        .with_lifecycle_sink(state.sink.clone())
         .with_inputs(state.queue.capture())
 }
 
@@ -344,4 +347,28 @@ fn latest_nonempty_mutation_batch_is_shared_and_visibility_tracks_parking() {
             .iter()
             .all(|record| record.reference != first_reference)
     );
+}
+
+#[test]
+fn route_node_is_none_until_a_hidden_component_is_built_then_follows_reveal() {
+    let dom = Rc::new(RefCell::new(ScriptedDom::new()));
+    let group_key = ContainerKey {
+        kind: ContainerKind::Group,
+        key: "panels".into(),
+    };
+    let mut state = paired_state(true);
+    state.collapsed.insert(group_key);
+    let mut runner = GenetAppRunner::new(dom.clone(), scheduler_logic, state);
+    let a = ComponentKey::from("a");
+    assert_eq!(count(&runner.state().factory_counts, "a"), 0);
+    assert_eq!(find_row(&dom.borrow(), runner.root(), "a"), None);
+    let route = runner.state().sink.route(&a).unwrap();
+    assert!(!route.visible);
+    assert_eq!(route.node, None);
+
+    runner.update(|state| {
+        state.collapsed.clear();
+    });
+    let built = find_row(&dom.borrow(), runner.root(), "a").unwrap();
+    assert_eq!(runner.state().sink.route(&a).unwrap().node, Some(built));
 }

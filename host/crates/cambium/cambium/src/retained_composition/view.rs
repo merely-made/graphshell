@@ -226,6 +226,7 @@ impl<State: 'static, Action: 'static> View<State, Action, GenetCtx>
                 inputs.set_mutation_visibility(key, !entry.hidden);
             }
         }
+        self.lifecycle.sync_nodes(&state.entries);
         (GenetElement::new(root, dom), state)
     }
 
@@ -970,6 +971,8 @@ impl<State: 'static, Action: 'static> View<State, Action, GenetCtx>
                 inputs.set_mutation_visibility(key, !entry.hidden);
             }
         }
+
+        self.lifecycle.sync_nodes(&state.entries);
 
         // Suppress unused `prev` without making its content part of admission.
         let _ = prev;

@@ -2,7 +2,23 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
+use std::collections::BTreeSet;
+
 use super::*;
+use crate::composition::ComponentKey;
+use crate::{LifecycleEventSink, LifecycleRefusal};
+
+/// What a host is about to do to component subtrees, for
+/// [`GenetAppRunner::prepare_components`].
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum PreparationPurpose {
+    /// Reparent or reorder; keyboard focus is left alone.
+    Move,
+    /// Park the subtree out of the visible tree.
+    Hide,
+    /// Dispose of the component.
+    Retire,
+}
 
 impl<State, Logic, V, Action> GenetAppRunner<State, Logic, V, Action>
 where
@@ -91,6 +107,42 @@ where
     pub fn prepare_subtree_move(&mut self, subtree: NodeId) -> Vec<Action> {
         self.tree
             .prepare_subtree_move(&mut self.logic, &mut self.state, subtree)
+    }
+
+    /// Prepare the subtrees of the components `keys` name, in key order, for
+    /// `purpose`. For each key whose element has been built (see
+    /// [`ComponentRouteSnapshot::node`](crate::ComponentRouteSnapshot::node)),
+    /// this does what [`prepare_subtree_move`](Self::prepare_subtree_move) does,
+    /// then returns [`LifecycleRefusal::ActiveInteraction`] at once if the
+    /// subtree still has an active interaction (keys already prepared stay
+    /// prepared). For `Hide` and `Retire` it also clears keyboard focus that
+    /// sits inside the subtree. Keys with no node are skipped. The actions the
+    /// preparation produces are dropped; a host whose action type matters calls
+    /// `prepare_subtree_move` itself.
+    pub fn prepare_components(
+        &mut self,
+        sink: &LifecycleEventSink,
+        keys: &BTreeSet<ComponentKey>,
+        purpose: PreparationPurpose,
+    ) -> Result<(), LifecycleRefusal> {
+        let nodes: Vec<NodeId> = keys
+            .iter()
+            .filter_map(|key| sink.route(key).and_then(|route| route.node))
+            .collect();
+        for node in nodes {
+            drop(self.prepare_subtree_move(node));
+            if self.subtree_move_has_active_interaction(node) {
+                return Err(LifecycleRefusal::ActiveInteraction);
+            }
+            if purpose != PreparationPurpose::Move
+                && self
+                    .focus()
+                    .is_some_and(|focus| self.tree.is_descendant_or_self(node, focus))
+            {
+                self.set_focus(None);
+            }
+        }
+        Ok(())
     }
 
     /// Whether relocating `subtree` now would discard an active Cambium
