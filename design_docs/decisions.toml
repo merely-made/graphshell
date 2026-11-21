@@ -318,6 +318,26 @@ title = "browsers read through Turnstone's web app"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_mere_cli_plan.md"
 summary = "Browser readers use Turnstone's Graphshell web app, which gains a query view; the CLI's JavaScript reader is deleted."
 
+[decisions."mere-cli D12"]
+title = "murm gains an I2P transport"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_mere_cli_plan.md"
+summary = "murm's transport crate gains an I2P Transport with a Noise-authenticated peer, so graphshell-host serves I2P unchanged."
+
+[decisions."mere-cli D13"]
+title = "binary tests use a test-only identity"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_mere_cli_plan.md"
+summary = "The CLI's binary tests take identities from a test-only feature, never enabled in a release build."
+
+[decisions."mere-cli D14"]
+title = "invitations last a week by default"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_mere_cli_plan.md"
+summary = "A CLI invitation expires after seven days unless --expires says otherwise, up to thirty."
+
+[decisions."mere-cli D15"]
+title = "the CLI is its own custodian app"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_mere_cli_plan.md"
+summary = "The CLI connects to the custodian as app mere-cli, with its own salt and the mere.query delegation scope."
+
 [decisions."primitive-representations D1"]
 title = "The brief's scope (Mark, 2026-11-13)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"

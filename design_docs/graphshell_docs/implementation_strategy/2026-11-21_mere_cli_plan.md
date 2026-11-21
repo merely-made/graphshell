@@ -1,6 +1,6 @@
 # Mere CLI plan: the query tool, rebuilt on the host toolkit
 
-**Status:** 2026-11-21: Q1 built on branch `cli-q1`, unlanded. D1 to D11 ruled.
+**Status:** 2026-11-21: Q1 to Q3 built on branch `cli-q1`, unlanded. D1 to D15 ruled.
 
 **For:** the `mere` command-line tool. It queries a linked-data graph locally, or
 serves one allowed SPARQL query to an invited peer over iroh, Reticulum, I2P or a
@@ -28,7 +28,7 @@ Read at Mere `aae4d3ba1`, Graphshell `8cc8c6bf`, dramatis and murm main, 2026-11
 
 ## Decisions
 
-Mark answered twelve question cards on 2026-11-21, plus two free-text answers. Each
+Mark answered sixteen question cards on 2026-11-21, plus two free-text answers. Each
 entry quotes his answer.
 
 - **D1, the tool lives in Graphshell's host workspace, rebuilt on the stack.**
@@ -114,6 +114,32 @@ entry quotes his answer.
 
   Links: summary Browser readers use Turnstone's Graphshell web app, which gains a query view; the CLI's JavaScript reader is deleted.
 
+- **D12, murm gains an I2P transport.** Mark chose "murm gains an I2P Transport
+  (Recommended)". graphshell-host's accept and dial take a murm `Transport`, and
+  murm has none for I2P. murm's transport crate gains one, with the peer
+  authenticated by Noise as the CLI's setup gate does today. murm lands first.
+
+  Links: summary murm's transport crate gains an I2P Transport with a Noise-authenticated peer, so graphshell-host serves I2P unchanged.
+
+- **D13, binary tests use a test-only identity.** Mark chose "Test-only identity
+  feature (Recommended)". A `test-identity` feature reads an in-memory seed from
+  a file the test writes. Like graphshell-host's `test-signer`, it is for tests
+  only and never in a release build.
+
+  Links: summary The CLI's binary tests take identities from a test-only feature, never enabled in a release build.
+
+- **D14, invitations last a week by default.** Mark chose "7 days, --expires to
+  change (Recommended)". The cap stays 30 days.
+
+  Links: summary A CLI invitation expires after seven days unless --expires says otherwise, up to thirty.
+
+- **D15, the CLI is its own custodian app.** Mark chose "Its own app,
+  "mere-cli" (Recommended)". It declares app `mere-cli` with its own key salt
+  and the delegation scope `mere.query`, so the custodian shows and limits it
+  apart from Graphshell.
+
+  Links: summary The CLI connects to the custodian as app mere-cli, with its own salt and the mere.query delegation scope.
+
 ## Phases
 
 Each phase is verified in its own worktree. Nothing reaches main until Q5, which
@@ -168,3 +194,7 @@ lands everything together (D3).
 
 - 2026-11-21: plan written. D1 to D5 ruled, then D6 and D7.
 - 2026-11-21: Q1 built (branch `cli-q1`). D8 to D11 ruled at Q2's start.
+- 2026-11-21: Q2 built: `Invitation::issue_query`, the admitted action in
+  `AdmittedEndpointContext`, and `query_host` (granted, ungranted, expired and
+  revoked tests). Q3 built: `signaling`, with a loopback join through it, and
+  Turnstone's C4 host ported to it. D12 to D15 ruled at Q4's start.
