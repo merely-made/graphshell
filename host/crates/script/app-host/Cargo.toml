@@ -26,8 +26,8 @@ path = "src/lib.rs"
 # metadata from normal dependencies only). The crate itself is not used.
 graphshell-endpoint = { workspace = true }
 # wasmtime 45, matching document-host (one engine version across the two hosts).
-wasmtime = "45"
-wasmtime-wasi = "45"
+wasmtime = "51"
+wasmtime-wasi = "51"
 # Drives the async exports from sync callers; the lib stays executor-neutral.
 pollster = "1"
 # Settings for app-settings participants (capability door K1, D22).

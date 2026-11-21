@@ -444,24 +444,8 @@ crate = "thiserror-impl@1.0.69"
 reason = "held by thiserror 1.0.69; gone when its holders move to thiserror-impl 2.0.21 (thiserror 1.0.69 in the graph, 2.0.21 newest)"
 
 [[bans.skip]]
-crate = "toml@0.9.12+spec-1.1.0"
-reason = "held by wasmtime-internal-cache 45.0.3; gone when its holders move to toml 1.2.1+spec-1.1.0 (wasmtime-internal-cache 45.0.3 in the graph, 50.0.1 newest)"
-
-[[bans.skip]]
-crate = "toml_datetime@0.7.5+spec-1.1.0"
-reason = "held by toml 0.9.12+spec-1.1.0; gone when its holders move to toml_datetime 1.1.3+spec-1.1.0 (toml 0.9.12+spec-1.1.0 in the graph, 1.2.1+spec-1.1.0 newest)"
-
-[[bans.skip]]
 crate = "universal-hash@0.5.1"
 reason = "held by polyval 0.6.2; gone when its holders move to universal-hash 0.6.1 (polyval 0.6.2 in the graph, 0.7.3 newest)"
-
-[[bans.skip]]
-crate = "wasm-encoder@0.248.0"
-reason = "held by wasm-compose 0.248.0, wasmtime 45.0.3, wasmtime-environ 45.0.3; gone when its holders move to wasm-encoder 0.263.0 (wasm-compose 0.248.0 in the graph, 0.263.0 newest; wasmtime 45.0.3 in the graph, 50.0.1 newest)"
-
-[[bans.skip]]
-crate = "wasmparser@0.248.0"
-reason = "held by wasm-compose 0.248.0, wasm-encoder 0.248.0, wasmprinter 0.248.0, wasmtime 45.0.3 +5 more; gone when its holders move to wasmparser 0.263.0 (wasm-compose 0.248.0 in the graph, 0.263.0 newest; wasm-encoder 0.248.0 in the graph, 0.263.0 newest)"
 
 [[bans.skip]]
 crate = "wast@35.0.2"
@@ -571,22 +555,6 @@ reason = "held by windows-targets 0.42.2; gone when its holders move to windows_
 crate = "windows_x86_64_msvc@0.48.5"
 reason = "held by windows-targets 0.48.5; gone when its holders move to windows_x86_64_msvc 0.52.6 (windows-targets 0.48.5 in the graph, 0.53.5 newest)"
 
-[[bans.skip]]
-crate = "winnow@0.7.15"
-reason = "held by toml 0.9.12+spec-1.1.0; gone when its holders move to winnow 1.0.5 (toml 0.9.12+spec-1.1.0 in the graph, 1.2.1+spec-1.1.0 newest)"
-
-[[bans.skip]]
-crate = "wit-parser@0.248.0"
-reason = "held by wasmtime-internal-component-macro 45.0.3, wasmtime-internal-wit-bindgen 45.0.3; gone when its holders move to wit-parser 0.263.0 (wasmtime-internal-component-macro 45.0.3 in the graph, 50.0.1 newest; wasmtime-internal-wit-bindgen 45.0.3 in the graph, 50.0.1 newest)"
-
-
-[[bans.skip]]
-crate = "zstd@0.13.5"
-reason = "held by wasmtime-internal-cache 45.0.3; gone when its holders move to zstd 0.14.4 (wasmtime-internal-cache 45.0.3 in the graph, 50.0.1 newest)"
-
-[[bans.skip]]
-crate = "zstd-safe@7.4.1"
-reason = "held by zstd 0.13.5; gone when its holders move to zstd-safe 8.3.0 (zstd 0.13.5 in the graph, 0.14.4 newest)"
 
 [[bans.skip]]
 crate = "unicode-width@0.1.14"

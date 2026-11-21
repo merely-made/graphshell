@@ -160,6 +160,7 @@ impl WasmModRuntime for DocumentScriptRuntime {
             seed_dom(),
             &grant,
             StoreLimits::default(),
+            None,
         ))
         .map_err(|e| format!("instantiate '{}': {e}", manifest.mod_id))?;
         pollster::block_on(bindings.call_activate(&mut store))

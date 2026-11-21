@@ -103,8 +103,14 @@ impl DocumentScript {
         let limits = StoreLimitsBuilder::new()
             .memory_size(quota.mem_bytes)
             .build();
-        let (mut store, bindings) =
-            pollster::block_on(build_instance(&engine, component_path, dom, grant, limits))?;
+        let (mut store, bindings) = pollster::block_on(build_instance(
+            &engine,
+            component_path,
+            dom,
+            grant,
+            limits,
+            Some(quota.epoch_deadline_ticks),
+        ))?;
         // The network backend for `net.fetch` (None = unconfigured -> fetch errors)
         // plus the origin allowlist gating which URLs it may reach (§E1) and the
         // per-turn fetch cap (§A6).

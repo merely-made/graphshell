@@ -12,7 +12,7 @@ publish = false
 [workspace]
 
 [dependencies]
-wasmtime = "45"
+wasmtime = "51"
 # The std guest imports the WASI world on the wasip2 target; grant it the WASI
 # runtime floor alongside the `log` capability so it can instantiate.
-wasmtime-wasi = "45"
+wasmtime-wasi = "51"

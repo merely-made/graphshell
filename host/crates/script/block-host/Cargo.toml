@@ -25,8 +25,8 @@ test-support = []
 # crate's build script as DEP_GRAPHSHELL_ENDPOINT_WIT. The crate itself is not used.
 graphshell-endpoint = { workspace = true }
 # wasmtime 45, matching document-host and app-host (one engine version across the hosts).
-wasmtime = "45"
-wasmtime-wasi = "45"
+wasmtime = "51"
+wasmtime-wasi = "51"
 # Drives the async exports from sync callers; the lib stays executor-neutral.
 pollster = "1"
 

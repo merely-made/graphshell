@@ -343,7 +343,7 @@ does not:
   native `Backend` (the pane's `store::load` and `save` are generic over `DocumentStore`);
   `cambium-desktop` and `cambium_genet_winit_host::run` give native windows
   (`graphshell-alembic`, `graphshell-coop`, `goal-surface-host`); `host/crates/script/app-host`
-  runs components under wasmtime 45 with a watchdog epoch and `StoreLimits`.
+  runs components under wasmtime 51 with a watchdog epoch and `StoreLimits`.
 - **Does not exist:** a host for the `block-guest` world. `app-host` binds only `app-core`
   (`bindgen!` per world; "two worlds, two hosts" is the existing pattern with `document-host`).
   A native block pane therefore needs a third host crate, **`host/crates/script/block-host`**, binding

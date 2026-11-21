@@ -95,7 +95,7 @@ tokio = { version = "1", features = ["macros", "rt", "rt-multi-thread"] }
 mien.workspace = true
 transport = { workspace = true, features = ["test-identity"] }
 app-host = { path = "../../crates/script/app-host" }
-wasmtime = "45"
+wasmtime = "51"
 blake3 = "1.5"
 tempfile = "3"
 

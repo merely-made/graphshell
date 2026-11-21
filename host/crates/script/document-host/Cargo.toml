@@ -27,8 +27,8 @@ servitor = { workspace = true }
 # wasmtime 45 (default features: component-model + async always-on). Async exports
 # are invoked via call_async on a fiber so a future sync `fetch` import can suspend
 # a turn without blocking (plan §11.7-7).
-wasmtime = "45"
-wasmtime-wasi = "45"
+wasmtime = "51"
+wasmtime-wasi = "51"
 # genet's live scripted DOM, via the same git dep meerkat uses (so they unify on
 # one rev). genet-scripted-dom is light — markup5ever + layout-dom-api +
 # genet-static-dom; no stylo/taffy, so the workspace patches do not touch it.

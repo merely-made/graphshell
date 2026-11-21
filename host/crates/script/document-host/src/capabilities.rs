@@ -246,6 +246,7 @@ pub(crate) async fn build_instance(
     dom: ScriptedDom,
     grant: &Grant,
     limits: StoreLimits,
+    epoch_deadline_ticks: Option<u64>,
 ) -> wasmtime::Result<(Store<ScriptHost>, DocumentCore)> {
     let component = load_component(engine, component_path)?;
     let mut linker = Linker::new(engine);
@@ -253,6 +254,11 @@ pub(crate) async fn build_instance(
     let mut store = Store::new(engine, new_host(dom, grant.granted_names(), limits));
     // Harmless when `limits` is the unlimited default; enforces the cap otherwise.
     store.limiter(|h| &mut h.limits);
+    // An epoch-interrupting engine traps guest code run past the store's deadline,
+    // and a new store's deadline is the current epoch: set it before instantiating.
+    if let Some(ticks) = epoch_deadline_ticks {
+        store.set_epoch_deadline(ticks);
+    }
     let bindings = DocumentCore::instantiate_async(&mut store, &component, &linker).await?;
     Ok((store, bindings))
 }
@@ -270,6 +276,7 @@ pub async fn instantiate_with_grant(component_path: &Path, grant: &Grant) -> was
         seed_dom(),
         grant,
         StoreLimits::default(),
+        None,
     )
     .await?;
     bindings.call_activate(&mut store).await?;
