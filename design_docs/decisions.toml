@@ -157,6 +157,28 @@ title = "Netrender's changed crates take minor bumps (Mark, 2026-11-20)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-05_cambium_publish_plan.md"
 summary = "Netrender's five crates publish at 0.2.0 after netrender-vello 0.11.1."
 
+[decisions."compositor-placement D1"]
+title = "Both motions (Mark, 2026-11-20)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-20_compositor_placement_plan.md"
+area = "The stack"
+summary = "The experiment runs a scripted translation and the viewer's divider drag."
+plans = ["compositor-placement"]
+
+[decisions."compositor-placement D2"]
+title = "Placement lives on the Windows backend only (Mark, 2026-11-20)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-20_compositor_placement_plan.md"
+area = "The stack"
+summary = "The placement-only call is an inherent method on Genet's Windows backend; the trait is unchanged until the result is in."
+draws_on = ["mere:stack.3"]
+plans = ["compositor-placement"]
+
+[decisions."compositor-placement D3"]
+title = "The instrument is in-process (Mark, 2026-11-20)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-20_compositor_placement_plan.md"
+area = "The stack"
+summary = "Missed refreshes are counted in process from DXGI or DWM timing, proved by a stalled frame."
+plans = ["compositor-placement"]
+
 [decisions."device-pairing D1"]
 title = "the M4 stays on the work line"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-10-28_device_pairing_plan.md"
