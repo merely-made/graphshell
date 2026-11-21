@@ -96,14 +96,12 @@ Found while finishing P1, 2026-11-20. None is decided.
   Graphshell's six, but it resolves nothing. A real dry run of a crate needs its dependencies
   in the registry, so each repository's dry run follows the publish of the one below it: the
   vello fork, Netrender, Armillary, Genet, Graphshell's root, then `host/`.
-- **Netrender's rung needs the fork's compute crate again.** `netrender-vello` 0.11.0 is on the
-  registry, and its directory has three commits since (GPU allocation refusal, blend spill
-  sizing, native work diagnostics; about 1,170 lines). If Netrender uses any of that, the fork
-  publishes 0.11.1 first. `netrender-vello-encoding` and `netrender-vello-shaders` are unchanged.
-- **All five Netrender crates sit at versions already on the registry and have changed.**
-  `netrender` 0.1.2 has 66 commits since its number was set, `paint_list_render` 0.1.2 has 14,
-  `paint_list_api` 0.1.2 eight, `netrender_device` 0.1.2 six, `netrender_text` 0.1.1 four.
-  Each needs a new number, and Genet's rows for three of them move with it.
+- **Netrender's rung moves six repositories at once.** Genet, Graphshell's `host/`, Turnstone,
+  Inker, Emblem and wgpu-cue take Netrender's crates from its main branch at `=0.1.2` and track
+  no lock, so the push that carries 0.2.0 to Netrender's main breaks their resolve until their
+  pins say `=0.2.0`. They keep the git row beside the version until the whole chain is on the
+  registry; a graph that mixed a git Netrender with a registry one would hold two type
+  identities.
 - **The build wrapper refuses `cargo publish` and `cargo package`.** A dry run therefore runs
   as `publish --dry-run --no-verify` directly, which compiles nothing, followed by a wrapper
   build of each tarball. A real publish would run with `--no-verify` after that build, or the
@@ -194,6 +192,17 @@ Found while finishing P1, 2026-11-20. None is decided.
 
   Links: amends cambium-publish D9 · summary The sparse crates publish as netrender-sparse, netrender-cpu, netrender-gpu and netrender-wesl.
 
+- **D11. Netrender's changed crates take minor bumps (Mark, 2026-11-20):** "Minor bumps", over
+  patch bumps throughout. It was offered as 0.2.0 for `netrender`, `paint_list_render`,
+  `paint_list_api` and `netrender_device`, with `netrender_text` at 0.1.2, on the size of the
+  changes; the public APIs were not compared. `netrender_text` goes to 0.2.0 with the others:
+  its functions take `netrender::Scene`, so a 0.1.x built on Netrender 0.2 would break callers
+  under a compatible number. That correction is not Mark's; it goes to him with the publish
+  list. The fork's `netrender-vello` goes to 0.11.1 first, because Netrender uses the
+  diagnostics module that 0.11.0 was published without, and the change is additive.
+
+  Links: summary Netrender's five crates publish at 0.2.0 after netrender-vello 0.11.1.
+
 ## Findings
 
 - 2026-11-20, a survey of each repository's main (manifests read, nothing built; counts skip
@@ -225,6 +234,11 @@ Found while finishing P1, 2026-11-20. None is decided.
 
 ## Progress
 
+- 2026-11-20: Netrender's rung prepared and not pushed (D11). The fork's `mark-ik/all-vellos`
+  is `8e76ca38` with `netrender-vello` at 0.11.1; it packages and builds from its tarball, and
+  is not published. On a Netrender branch the five crates say 0.2.0 and the sparse rows take
+  registry versions; the workspace checks with `vello-all` and `serde`. Its own dry run waits
+  on 0.11.1 reaching the registry.
 - 2026-11-20: P2's first rung published (Mark: "Go ahead"). `netrender-sparse`,
   `netrender-cpu`, `netrender-wesl` and `netrender-gpu` 0.3.0 and `netrender-glifo` 0.4.0 are
   on crates.io from `mark-ik/all-vellos` at `b55d11f9`, and a crate outside the fork resolves

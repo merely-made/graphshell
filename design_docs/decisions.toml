@@ -152,6 +152,11 @@ source = "design_docs/graphshell_docs/implementation_strategy/2026-11-05_cambium
 summary = "The sparse crates publish as netrender-sparse, netrender-cpu, netrender-gpu and netrender-wesl."
 amends = ["cambium-publish D9"]
 
+[decisions."cambium-publish D11"]
+title = "Netrender's changed crates take minor bumps (Mark, 2026-11-20)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-05_cambium_publish_plan.md"
+summary = "Netrender's five crates publish at 0.2.0 after netrender-vello 0.11.1."
+
 [decisions."device-pairing D1"]
 title = "the M4 stays on the work line"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-10-28_device_pairing_plan.md"
