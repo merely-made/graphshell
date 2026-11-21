@@ -95,6 +95,10 @@ Found while finishing P1, 2026-11-20. None is decided.
   Graphshell's six, but it resolves nothing. A real dry run of a crate needs its dependencies
   in the registry, so each repository's dry run follows the publish of the one below it: the
   vello fork, Netrender, Armillary, Genet, Graphshell's root, then `host/`.
+- **The build wrapper refuses `cargo publish` and `cargo package`.** A dry run therefore runs
+  as `publish --dry-run --no-verify` directly, which compiles nothing, followed by a wrapper
+  build of each tarball. A real publish would run with `--no-verify` after that build, or the
+  wrapper learns the two subcommands.
 - **Inker and wgpu-cue** carry git-only rows (`webcue`, `grafting-frame`) that matter only if
   `uxtree` needs a newer `inker` than the registry's.
 
@@ -212,6 +216,12 @@ Found while finishing P1, 2026-11-20. None is decided.
 
 ## Progress
 
+- 2026-11-20: the ladder's first rung is dry-run and not published (Mark: "Dry run first"). The
+  fork's five sparse crates package from `mark-ik/all-vellos` at `b55d11f9`, and each builds
+  alone from its packaged tarball with its siblings patched in. All five names are free on
+  crates.io under both spellings. The run found the four READMEs still linking upstream's
+  crate pages (badges and documentation links); `b55d11f9` points them at the netrender names.
+  Netrender's lock stays on `551cd5da`, which differs only in those READMEs.
 - 2026-11-20: D10's rename landed. The fork's `mark-ik/all-vellos` is `551cd5da` and Netrender's
   main `1c375bd5d`, moved together; Netrender's workspace checked against the renamed crates
   first, with `vello-all` and `serde` (`--all-features` turns on a wasm-only feature that
