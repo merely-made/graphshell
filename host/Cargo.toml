@@ -283,7 +283,7 @@ genet-scripted = { git = "https://github.com/merely-made/genet.git", branch = "m
 document-session-api = { version = ">=0.1.2", git = "https://github.com/merely-made/genet.git", branch = "main" }
 cambium-desktop = { version = "0.1.0", path = "crates/cambium/cambium-genet-winit-host" }
 genet-runtime = { git = "https://github.com/merely-made/genet.git", branch = "main" }
-script-engine-api = { version = "0.1.0", git = "https://github.com/merely-made/genet.git", branch = "main" }
+script-engine-api = { version = ">=0.1.0", git = "https://github.com/merely-made/genet.git", branch = "main" }
 # Deterministic maths for scripted rules (Scenograph editor plan, SE40, SE93). No
 # default features: the host functions must give the same bits on every target.
 libm = { version = "0.2", default-features = false }
