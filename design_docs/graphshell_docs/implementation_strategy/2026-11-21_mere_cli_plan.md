@@ -1,6 +1,6 @@
 # Mere CLI plan: the query tool, rebuilt on the host toolkit
 
-**Status:** 2026-11-21: plan, nothing built. D1 to D5 ruled.
+**Status:** 2026-11-21: plan, nothing built. D1 to D7 ruled.
 
 **For:** the `mere` command-line tool. It queries a linked-data graph locally, or
 serves one allowed SPARQL query to an invited peer over iroh, Reticulum, I2P or a
@@ -28,7 +28,7 @@ Read at Mere `aae4d3ba1`, Graphshell `8cc8c6bf`, dramatis and murm main, 2026-11
 
 ## Decisions
 
-Mark answered six question cards on 2026-11-21, plus two free-text answers. Each
+Mark answered eight question cards on 2026-11-21, plus two free-text answers. Each
 entry quotes his answer.
 
 - **D1, the tool lives in Graphshell's host workspace, rebuilt on the stack.**
@@ -72,6 +72,21 @@ entry quotes his answer.
 
   Links: summary WebRTC signaling is an HTTP module in graphshell-host, lifted from Turnstone's C4 host and shared by C4 and the CLI.
 
+- **D6, large results are paged.** Mark chose "Paged rows, 512 KiB pages
+  (Recommended)". A reply carries up to 512 KiB of encoded rows and a cursor.
+  Asking for the next page acknowledges the last one, as `ResourceChunk` does, so
+  each reply stays under the 1 MiB carrier frame (`MAX_RESOURCE_CHUNK_BYTES`
+  explains the arithmetic). Query text is capped at 64 KiB, the CLI's limit.
+
+  Links: summary Query results travel in 512 KiB pages with a cursor; query text is capped at 64 KiB.
+
+- **D7, an invitation grants one query.** Mark chose "One query, its hash as path
+  (Recommended)". The scope's path is the digest of the allowed query, under a
+  `query` action. A guest runs exactly that query, and expiry and revocation come
+  from the insigne delegation.
+
+  Links: summary An invitation grants one query: the scope path is that query's digest under a query action.
+
 ## Phases
 
 Each phase is verified in its own worktree. Nothing reaches main until Q5, which
@@ -80,7 +95,8 @@ lands everything together (D3).
 ### Q1. chirograph carries a query
 
 - `CarrierRequestBody::Query(QueryRequest)` and a matching response, appended
-  last, with the query text bounded and the reply rows bounded.
+  last, with the query text capped at 64 KiB and the rows paged in 512 KiB
+  pages behind a cursor (D6).
 - Every exhaustive matcher answers it. Today that is
   graphshell-endpoint and Turnstone's kept port (`ports/graphshell/mere/src/kept.rs`).
   An endpoint without a dataset refuses the request.
@@ -91,7 +107,7 @@ lands everything together (D3).
 
 - A resident host with a mere dataset answers `Query` through
   `mere::query::sparql_on`, and the invitation's insigne scope decides whether the
-  query is allowed.
+  query is allowed: the scope path is the query's digest (D7).
 - Done when: a granted query returns rows, an ungranted or expired one is refused,
   and a revoked invitation is refused, each with its own test.
 
@@ -126,12 +142,9 @@ These come back as cards when a phase reaches them.
 - **The browser reader.** The tool's reader.html/reader.js re-implements
   murm-webrtc in JavaScript. The stack's browser initiator is Rust compiled to
   wasm. Which page does a browser reader open, and who builds it?
-- **What an invitation grants.** The CLI grants one exact query. The stack's
-  scope is a domain, path and action. The options are the query's hash as path,
-  any read query, or a named query set.
 - **Where the tool sits in host/.** A port beside `mere-resident`, or a crate
   under `crates/graphshell/`.
 
 ## Progress
 
-- 2026-11-21: plan written. D1 to D5 ruled.
+- 2026-11-21: plan written. D1 to D5 ruled, then D6 and D7.

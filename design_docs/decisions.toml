@@ -235,6 +235,16 @@ title = "signaling is lifted from Turnstone's C4 host into graphshell-host"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_mere_cli_plan.md"
 summary = "WebRTC signaling is an HTTP module in graphshell-host, lifted from Turnstone's C4 host and shared by C4 and the CLI."
 
+[decisions."mere-cli D6"]
+title = "large results are paged"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_mere_cli_plan.md"
+summary = "Query results travel in 512 KiB pages with a cursor; query text is capped at 64 KiB."
+
+[decisions."mere-cli D7"]
+title = "an invitation grants one query"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_mere_cli_plan.md"
+summary = "An invitation grants one query: the scope path is that query's digest under a query action."
+
 [decisions."primitive-representations D1"]
 title = "The brief's scope (Mark, 2026-11-13)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
