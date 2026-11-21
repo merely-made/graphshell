@@ -1,0 +1,1 @@
+Correction: in this workspace accesskit_consumer still resolves 0.39.1, not 0.39.2. webcue (wgpu-cue.git) requires accesskit =0.25.1, and accesskit_consumer 0.39.2 needs accesskit ^0.25.2, so the newer pair is not selectable here until that row is loosened. cambium-a11y's tests and uxtree's check passed against 0.39.1. Genet, which does not carry webcue, resolves 0.39.2.
