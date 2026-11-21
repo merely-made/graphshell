@@ -10,7 +10,8 @@ sparse crates and `netrender-vello` 0.11.1, Netrender's five crates at 0.2.0, an
 `apparatus-core` 0.1.0. Above them the chain is larger than this plan held: 40 of its 46
 already-published crates differ on main from their published copies (Findings, 2026-11-20),
 and all of them republish (D12), rung by rung, with requirements written as lower bounds (D13).
-The next rung is Eidetic, Dramatis and Mere's `catchment` together, prepared and not pushed.
+Eidetic's, Dramatis's and Mere's nine crates are published. The next rung is Genet's 26 crates
+with `webcue`, `inker` and `illume`, prepared and not pushed; Graphshell's own follows it.
 The closure measured on 2026-11-05 is superseded: it is 54 crates,
 and the Dramatis application this plan was opened for no longer exists.
 
@@ -87,7 +88,7 @@ Found while finishing P1, 2026-11-20. None is decided.
 
 - **`genet-presenter`'s `native-webgl` feature** takes optional dependencies on `genet-runtime`
   and `genet-webgl`, both unpublishable. Either they join the chain or the published crate
-  goes without the feature. The feature gates one module (`src/webgl.rs` and `src/webgl/`),
+  goes without the feature. Ruled: they join the chain (D14). The feature gates one module (`src/webgl.rs` and `src/webgl/`),
   and Genet's `ortet` port and Turnstone's `scripted-webgl` feature turn it on.
   `genet-runtime` reaches `genet-browsing`, `script-engine-api` and `xpath`; `genet-webgl`
   reaches `genet-compositor` and `genet-essl`; none of those is in the chain.
@@ -236,8 +237,22 @@ Found while finishing P1, 2026-11-20. None is decided.
 
   Links: summary Rows on chain crates carry only a lower bound, so a bump never breaks a consumer.
 
+- **D14. The WebGL crates join the chain (Mark, 2026-11-21):** "Publish 'em, renaming as
+  needed", over moving the `native-webgl` module to a git-only crate or leaving
+  `genet-presenter` on git. `genet-runtime`, `genet-webgl`, `genet-essl`, `genet-compositor`
+  and `genet-browsing` publish under their own names, which are free. Servo owns `servo-xpath`
+  on crates.io, so Genet's xpath crate is `genet-xpath`. `script-engine-api` is already
+  published and keeps its name.
+
+  Links: summary genet-presenter's native-webgl dependencies publish, with the xpath crate renamed genet-xpath.
+
 ## Findings
 
+- 2026-11-21: a crate that matches its registry copy still republishes when a crate it names
+  is bumped. The registry's `genet-events` 0.0.1 asks for `genet-scripted-dom ^0.1.2`, so
+  beside a `genet-scripted-dom` 0.2.0 it would bring a second copy of the DOM types. It goes to
+  0.1.0 with Genet's rung. `genet-text`, `genet-paint-types` and `genet-taffy` name no bumped
+  crate and stay.
 - 2026-11-21: Eidetic and Dramatis publish as one rung. `eidetic` takes `personae` and
   `insigne` (its default `pack-signing` feature), `sporran` takes `eidetic` and `muniment`, and
   Mere's `catchment` takes both repositories' crates, so the order is `muniment`, `portolan`,
@@ -262,8 +277,9 @@ Found while finishing P1, 2026-11-20. None is decided.
 - 2026-11-20: `genet-scripted-dom` takes `regress` 0.11.1 from a local patch
   (`support/patches/regress-0.11.1`); a published copy resolves upstream's. The patch is a
   two-line parser fix for nested negated Unicode sets. Upstream has since released 0.12.0, and
-  the row is `>=0.11.1`, so a published copy would take 0.12.0; whether that carries the fix
-  and compiles is not determined. The same
+  0.12.0 carries the same fix, and `genet-scripted-dom`'s three pattern tests pass on it. On
+  the rung's branch the row takes the registry's `>=0.12.0`; the vendored copy is then unused
+  and still in the tree. The same
   holds for Genet's other patch directories (`fontique`, `parley`, `taffy`, `sonic-rs`,
   `gpu-allocator`) wherever a chain crate reaches them.
 - 2026-11-20, a survey of each repository's main (manifests read, nothing built; counts skip
@@ -295,6 +311,16 @@ Found while finishing P1, 2026-11-20. None is decided.
 
 ## Progress
 
+- 2026-11-21: Genet's rung is prepared and not pushed (D12, D14), with wgpu-cue's `webcue` and
+  Inker's two crates. 29 crates are committed on local branches, package, and check together
+  from their unpacked tarballs with only each other patched in, `native-webgl`, `genet-donor`
+  and `markdown` on; the resolve holds one version of every first-party crate. Graphshell's
+  and Inker's `script-engine-api` rows took lower bounds first. No tests ran beyond
+  `genet-scripted-dom`'s pattern tests.
+- 2026-11-21: the Eidetic, Dramatis and Mere rung published (Mark: "1. Yes"). `muniment` 0.3.0,
+  `portolan` 0.2.0, `hodograph` 0.1.1, `insigne` 0.1.0, `personae` 0.4.0, `notochord` 0.2.0,
+  `eidetic` 0.1.0, `sporran` 0.1.0 and `catchment` 0.2.0 are on crates.io from Eidetic
+  `4f3fc7f`, Dramatis `4dd0cb8` and Mere `63d07ed30`.
 - 2026-11-21: the Eidetic, Dramatis and Mere rung is prepared and not pushed (D12). `muniment`
   0.3.0, `portolan` 0.2.0, `hodograph` 0.1.1, `eidetic` 0.1.0, `insigne` 0.1.0, `personae`
   0.4.0, `notochord` 0.2.0, `sporran` 0.1.0 and `catchment` 0.2.0 are committed on a local
