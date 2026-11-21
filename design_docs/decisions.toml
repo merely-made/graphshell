@@ -338,6 +338,16 @@ title = "the CLI is its own custodian app"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_mere_cli_plan.md"
 summary = "The CLI connects to the custodian as app mere-cli, with its own salt and the mere.query delegation scope."
 
+[decisions."mere-cli D16"]
+title = "every carrier is an optional feature; a default build only queries locally"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_mere_cli_plan.md"
+summary = "Each CLI carrier is a cargo feature, all off by default; a default build only queries local files."
+
+[decisions."mere-cli D17"]
+title = "`mere revoke` writes a signed revocation file"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_mere_cli_plan.md"
+summary = "mere revoke writes a signed revocation into serve's state directory, which serve folds; the file is portable to other serves."
+
 [decisions."primitive-representations D1"]
 title = "The brief's scope (Mark, 2026-11-13)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"

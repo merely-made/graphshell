@@ -1,6 +1,6 @@
 # Mere CLI plan: the query tool, rebuilt on the host toolkit
 
-**Status:** 2026-11-21: Q1 to Q3 built on branch `cli-q1`, unlanded. D1 to D15 ruled.
+**Status:** 2026-11-21: Q1 to Q3 built on branch `cli-q1`, unlanded. D1 to D17 ruled.
 
 **For:** the `mere` command-line tool. It queries a linked-data graph locally, or
 serves one allowed SPARQL query to an invited peer over iroh, Reticulum, I2P or a
@@ -28,7 +28,7 @@ Read at Mere `aae4d3ba1`, Graphshell `8cc8c6bf`, dramatis and murm main, 2026-11
 
 ## Decisions
 
-Mark answered sixteen question cards on 2026-11-21, plus two free-text answers. Each
+Mark answered twenty question cards on 2026-11-21, plus four free-text answers. Each
 entry quotes his answer.
 
 - **D1, the tool lives in Graphshell's host workspace, rebuilt on the stack.**
@@ -140,6 +140,29 @@ entry quotes his answer.
 
   Links: summary The CLI connects to the custodian as app mere-cli, with its own salt and the mere.query delegation scope.
 
+- **D16, every carrier is an optional feature; a default build only queries
+  locally.** Asked how the CLI carries Reticulum, whose retinue licence bars use
+  in building model-training datasets (mere-resident keeps it off by default),
+  Mark wrote "I would figure that they would all be optional, 1". Asked which
+  carriers a default build includes, he chose "None: local query only". iroh,
+  I2P, WebRTC and Reticulum are each a cargo feature, all off by default; a
+  build without a carrier refuses it by name.
+
+  Links: summary Each CLI carrier is a cargo feature, all off by default; a default build only queries local files.
+
+- **D17, `mere revoke` writes a signed revocation file.** Asked how an owner
+  revokes, Mark asked: "Hm. Would 2 apply if a distributed serve needed to
+  propagate the revoke? What is the willow model…". A state file reaches one
+  serve, but the revocation in it is a signed statement any host can verify and
+  fold, so it is portable. Willow's Meadowcap has no revocation; its spec
+  illustrates week-long capabilities reissued instead. Put back with that, he
+  chose "`mere revoke` writes a signed file (Recommended)". `mere revoke` signs a
+  revocation into serve's state directory, which serve polls and folds into its
+  ledger. The same file revokes at any serve it is given to. Spreading
+  revocations between serves automatically is not in this plan.
+
+  Links: summary mere revoke writes a signed revocation into serve's state directory, which serve folds; the file is portable to other serves.
+
 ## Phases
 
 Each phase is verified in its own worktree. Nothing reaches main until Q5, which
@@ -198,3 +221,7 @@ lands everything together (D3).
   `AdmittedEndpointContext`, and `query_host` (granted, ungranted, expired and
   revoked tests). Q3 built: `signaling`, with a loopback join through it, and
   Turnstone's C4 host ported to it. D12 to D15 ruled at Q4's start.
+- 2026-11-21: murm's `I2pTransport` built (branch `i2p-transport`), tested over
+  the SAM fixture. graphshell-host gains `dial_projection_session_bound` and
+  `Invitation::hello_bound` for carriers bound to a link (Reticulum). D16 and
+  D17 ruled.
