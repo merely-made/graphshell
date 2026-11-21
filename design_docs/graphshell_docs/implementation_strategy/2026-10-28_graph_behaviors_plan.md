@@ -52,6 +52,9 @@ Evidence that matters is a test in the repository or a line in Findings.
   participant bodies, Wasm components for portable untrusted mods (the memory-level lane map should
   read five lanes). A new capability never rides an existing preselected grant, which would silently
   widen installed packs; authoring earned its own ring (`:62-80,417-435`).
+- Amended 2026-11-21 (`inker:lua-evaluator D1`; Mark: "Decide now: Lua replaces Rhai"): Lua on
+  didgeridoo takes local automation as well as sandboxed participant bodies. Rhai stays until Inker's
+  `2026-11-21_lua_evaluator_plan.md` retires it, and the lane count above predates this.
 - Non-goals (`:467-478`): operative edges or edge-kind variants, a general scheduler (the cascade
   runner is a bounded drain loop; depth machinery waits for evidence), spatial influence through
   petitions, universal undo.

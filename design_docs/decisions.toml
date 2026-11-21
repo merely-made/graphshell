@@ -210,6 +210,28 @@ title = "the relay runs on mesh machines behind a port forward"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-10-28_device_pairing_plan.md"
 summary = "The self-hosted iroh relay runs on T-PC behind a mesh port forward and dynamic DNS, with idle mesh machines as further relays."
 
+[decisions."guest-runtime D1"]
+title = "The web build runs guests on the browser's own engine (Mark, 2026-11-21)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_guest_runtime_plan.md"
+area = "The stack"
+summary = "In a web build, component guests run on the browser's own wasm engine; the WIT contracts are unchanged."
+draws_on = ["mere:stack.4"]
+plans = ["guest-runtime"]
+
+[decisions."guest-runtime D2"]
+title = "Two test articles (Mark, 2026-11-21)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_guest_runtime_plan.md"
+area = "The stack"
+summary = "Every runtime option is held to the projection guest's transcript and the document guest's three guards."
+plans = ["guest-runtime"]
+
+[decisions."guest-runtime D3"]
+title = "wasmi and Wasmer get a desk study, a small probe, and the module question (Mark, 2026-11-21)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_guest_runtime_plan.md"
+area = "The stack"
+summary = "wasmi and Wasmer are studied on paper with one plain-module probe each; P3 documents components as modules and the layer a module runtime needs."
+plans = ["guest-runtime"]
+
 [decisions."key-lane D1"]
 title = "Prekeys travel on the lane (Mark, 2026-11-06)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-06_key_lane_plan.md"
