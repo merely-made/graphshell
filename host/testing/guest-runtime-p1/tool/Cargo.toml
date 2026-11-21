@@ -1,0 +1,20 @@
+# Native tool for the guest runtime probe (guest runtime plan, P0 and P1):
+# writes the native reference transcript and converts a component into the
+# modules a browser loads. Its own workspace, outside the host workspace.
+[package]
+name = "guest-runtime-tool"
+version = "0.0.1"
+edition = "2024"
+license = "MPL-2.0"
+publish = false
+
+[workspace]
+
+[dependencies]
+# The fixture endpoint, gate and call script every binding is checked with.
+graphshell-endpoint = { path = "../../../../crates/graphshell-endpoint", features = ["wit-testkit"] }
+# The converter inside jco, used from Rust so the web build needs no Node tool.
+js-component-bindgen = ">=2.19.1"
+# The native pipe the reference run is served over.
+script-wire = { path = "../../../../crates/script-wire" }
+serde_json = "1"

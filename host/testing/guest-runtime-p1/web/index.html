@@ -1,0 +1,27 @@
+<!doctype html>
+<!-- Copyright 2026 Mark Alan Boykin. SPDX-License-Identifier: MPL-2.0.
+     The page for the projection probe (guest runtime plan, P1): it runs the
+     converted guest on the browser's own wasm engine and shows whether its
+     transcript matches the native reference. -->
+<meta charset="utf-8">
+<title>guest runtime probe: projection</title>
+<pre id="result">running</pre>
+<script type="module">
+  import { CONTROL_CALL, runProjection } from './run-projection.js';
+  const load = async (path) => new Uint8Array(await (await fetch(path)).arrayBuffer());
+  const out = document.getElementById('result');
+  // `?control` must report a difference at the altered call.
+  const control = new URLSearchParams(location.search).has('control');
+  try {
+    const result = await runProjection(load, { control });
+    result.control = control;
+    result.passed = control
+      ? !result.equal && result.differsAt === CONTROL_CALL
+      : result.equal && result.closedSessions === 1 && result.openSessions === 0;
+    window.__result = result;
+    out.textContent = JSON.stringify(result, null, 2);
+  } catch (error) {
+    window.__result = { passed: false, error: String(error?.stack ?? error) };
+    out.textContent = window.__result.error;
+  }
+</script>

@@ -1,6 +1,8 @@
 # Guest runtime plan: where wasm guests run when Wasmtime's compiler cannot
 
-**Status:** 2026-11-21. Plan. Nothing built, nothing measured. D1 to D3 ruled the same day.
+**Status:** 2026-11-21. In progress. P0 is met, and P1 is met for the projection guest: converted to
+modules, it reproduces the native transcript in a browser, all 20 calls. P1's document-guest half and
+P2 to P5 are not started. D1 to D3 ruled the same day.
 
 **For:** the web build. Graphshell's wasm hosts run guests on Wasmtime, which compiles them to machine
 code, and a browser grants no page the right to do that. No ruling says how a component guest runs when
@@ -108,8 +110,8 @@ outcome. D1 to D3 are in answer order.
 
 1. Whether the time limit can be reproduced in a browser at all, or only replaced by terminating a
    worker, which also discards the guest's state.
-2. Whether `jco`'s Rust crate (`js-component-bindgen`) can do the conversion at build time, so the web
-   build needs no Node tool.
+2. Answered 2026-11-21: `js-component-bindgen` 2.19.1 converts both guests from Rust (Findings 7), so
+   the web build needs no Node tool.
 3. Whether any shipping profile needs native execution without a compiler. If none does, Pulley, wasmi
    and Wasmer answer a question nobody is asking yet.
 
@@ -132,6 +134,23 @@ outcome. D1 to D3 are in answer order.
 6. The hosts are on Wasmtime 51 since `47455b8b`; `document-host` sets its epoch deadline before
    instantiating.
 
+7. The probe is `host/testing/guest-runtime-p1/`. `js-component-bindgen` converts a component from
+   Rust into its inner module, two small adapter modules and glue; the projection guest is 1.76 MB of
+   module and 393 KB of glue.
+8. The endpoint's fixture server (`graphshell-endpoint`, feature `wit-testkit`) builds for
+   `wasm32-unknown-unknown`, so the host half of a web build is the same Rust the native test serves
+   from. Joining it to the converted guest took a `Session` class of nine methods and two functions in
+   the page (`web/run-projection.js`).
+9. The guest's standard library reaches for WASI at start: environment, exit, the three standard
+   streams, terminals, two clocks, poll and stream errors. Stubs that grant nothing were enough
+   (`web/wasi-stubs.js`).
+10. `WitServer::session_wait_notice` waits by sleeping a thread
+    (`crates/graphshell-endpoint/src/wit/server.rs:265`). The fixture script never reaches the sleep, so
+    the transcript is unaffected, but a host on a browser's main thread cannot block that way.
+
 ## Progress
 
 - 2026-11-21: plan written; D1 to D3 ruled.
+- 2026-11-21: P0 met (both guests rebuilt; projection 2 passed and document-host 56 passed on Wasmtime
+  51). P1 met for the projection guest in Node and in a browser, each with a control that alters one
+  reference outcome and is caught. The document guest's half of P1 is next.

@@ -1,0 +1,6 @@
+# Build products of the probe: converted guests, the host's generated glue,
+# and the reference transcript the tool writes.
+/web/projection/
+/web/document/
+/web/host/
+/web/reference.json

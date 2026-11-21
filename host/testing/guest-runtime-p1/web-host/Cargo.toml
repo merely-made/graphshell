@@ -1,0 +1,21 @@
+# The fixture projection server built for a browser (guest runtime plan, P1):
+# the host half of the probe, as a web build would have it. Its own workspace.
+[package]
+name = "guest-runtime-web-host"
+version = "0.0.1"
+edition = "2024"
+license = "MPL-2.0"
+publish = false
+
+[workspace]
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+# The same server, gate and fixture the native test serves the guest from.
+graphshell-endpoint = { path = "../../../../crates/graphshell-endpoint", features = ["wit-testkit"] }
+# Exact, as every web module in the family is: the generated glue must match
+# the installed `wasm-bindgen` tool.
+wasm-bindgen = "=0.2.129"
+js-sys = ">=0.3.77"
