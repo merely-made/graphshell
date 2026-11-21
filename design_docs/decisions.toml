@@ -252,6 +252,36 @@ area = "The stack"
 summary = "wasmi and Wasmer are studied on paper with one plain-module probe each; P3 documents components as modules and the layer a module runtime needs."
 plans = ["guest-runtime"]
 
+[decisions."guest-runtime D4"]
+title = "The document stays with the host, outside the worker (Mark, 2026-11-21)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_guest_runtime_plan.md"
+area = "The stack"
+summary = "In a browser the guest runs in a worker a supervisor can terminate; the document stays with the host and crosses as a snapshot per turn."
+draws_on = ["mere:stack.8"]
+plans = ["guest-runtime"]
+
+[decisions."guest-runtime D5"]
+title = "Memory is capped when a script loads (Mark, 2026-11-21)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_guest_runtime_plan.md"
+area = "The stack"
+summary = "The browser host caps a guest's memory by rewriting the module's memory maximum per script before compiling it."
+draws_on = ["mere:stack.8"]
+plans = ["guest-runtime"]
+
+[decisions."guest-runtime D6"]
+title = "The probe reuses the fetch-rule file; the split waits (Mark, 2026-11-21)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_guest_runtime_plan.md"
+area = "The stack"
+summary = "The probe compiles document-host's net.rs into its browser host; splitting document-host is left to the readout."
+plans = ["guest-runtime"]
+
+[decisions."guest-runtime D7"]
+title = "Fetching is faked in the probe (Mark, 2026-11-21)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_guest_runtime_plan.md"
+area = "The stack"
+summary = "The probe tests the fetch rules with an echo fetcher; real network routes for a guest in a browser are recorded, not tried."
+plans = ["guest-runtime"]
+
 [decisions."key-lane D1"]
 title = "Prekeys travel on the lane (Mark, 2026-11-06)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-06_key_lane_plan.md"
