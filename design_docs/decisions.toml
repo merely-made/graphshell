@@ -178,6 +178,16 @@ title = "Netrender's changed crates take minor bumps (Mark, 2026-11-20)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-05_cambium_publish_plan.md"
 summary = "Netrender's five crates publish at 0.2.0 after netrender-vello 0.11.1."
 
+[decisions."cambium-publish D12"]
+title = "Everything that differs republishes (Mark, 2026-11-21)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-05_cambium_publish_plan.md"
+summary = "Every chain crate that differs from its registry copy republishes, rung by rung."
+
+[decisions."cambium-publish D13"]
+title = "Requirements are lower bounds (Mark, 2026-11-21)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-05_cambium_publish_plan.md"
+summary = "Rows on chain crates carry only a lower bound, so a bump never breaks a consumer."
+
 [decisions."compositor-placement D1"]
 title = "Both motions (Mark, 2026-11-20)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-20_compositor_placement_plan.md"

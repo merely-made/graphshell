@@ -1,6 +1,6 @@
 # Cambium publish plan
 
-**Status:** 2026-11-20: in progress. P0 is done. P1's manifest work is done as far as it can
+**Status:** 2026-11-21: in progress. P0 is done. P1's manifest work is done as far as it can
 go without a publish: the embeddings left rootstock (D6), the sparse crates carry their
 one-hyphen names (D10), Genet's and Graphshell's chain crates are publishable with versions
 on their git and path rows. What P1 still owes is listed under "Open before P2": four
@@ -9,7 +9,9 @@ on (D8) has its tiers 1 and 2 landed. P2's first three rungs are published: the 
 sparse crates and `netrender-vello` 0.11.1, Netrender's five crates at 0.2.0, and Armillary's
 `apparatus-core` 0.1.0. Above them the chain is larger than this plan held: 40 of its 46
 already-published crates differ on main from their published copies (Findings, 2026-11-20),
-and how much of that republishes is not ruled. The closure measured on 2026-11-05 is superseded: it is 54 crates,
+and all of them republish (D12), rung by rung, with requirements written as lower bounds (D13).
+The next rung is Eidetic, Dramatis and Mere's `catchment` together, prepared and not pushed.
+The closure measured on 2026-11-05 is superseded: it is 54 crates,
 and the Dramatis application this plan was opened for no longer exists.
 
 **For:** publishing the Cambium desktop chain to crates.io so that applications outside Mere,
@@ -26,7 +28,7 @@ Receipts go to `archive_docs/receipts/2026-11-05_cambium_publish_plan_receipts.m
 - Every published crate depends only on crates.io versions; a family that two repositories
   consume keeps one type identity (the cambium family resolves from one source per graph).
 - Names are checked on crates.io at the time of the ruling and claimed by a real publish.
-- Exact pins (`=0.1.2` and similar) move in every consumer manifest with each bump.
+- Requirements on the chain's crates are lower bounds (`>=x.y.z`), in every repository (D13).
 - No upstream contact without Mark's authorization (Netrender's vello notes: "upstream contact
   remains unauthorized").
 - Security domains follow standards: nothing here touches crypto.
@@ -85,17 +87,18 @@ Found while finishing P1, 2026-11-20. None is decided.
 
 - **`genet-presenter`'s `native-webgl` feature** takes optional dependencies on `genet-runtime`
   and `genet-webgl`, both unpublishable. Either they join the chain or the published crate
-  goes without the feature.
+  goes without the feature. The feature gates one module (`src/webgl.rs` and `src/webgl/`),
+  and Genet's `ortet` port and Turnstone's `scripted-webgl` feature turn it on.
+  `genet-runtime` reaches `genet-browsing`, `script-engine-api` and `xpath`; `genet-webgl`
+  reaches `genet-compositor` and `genet-essl`; none of those is in the chain.
 - **`cambium-desktop` builds against a local patch of `light-file-dialog`**
   (`host/support/patches/light-file-dialog`: it "reuse[s] the Windows password class across
   cancellation and sequential prompts"). A published `cambium-desktop` resolves the registry's
   3.21.3. Whether that compiles and behaves is not determined.
 - **`host/` patches `document-session-api` to Genet's git main**, to share one input vocabulary
   with Webcue. The published 0.1.2 may differ from main; if it does, it republishes first.
-- **Version numbers.** Forty published crates differ from their registry copies (Findings,
-  2026-11-20), `cambium` 0.6.1 and `cambium-winit` 0.3.0 among them; which of them republish
-  is the first question. The numbers are chosen at the publish, and
-  exact pins move in six consumer repositories with them.
+- **Version numbers.** All forty drifted crates republish (D12) with D11's numbering. Each
+  rung's numbers go to Mark with its list.
 - **The dry runs are a ladder.** `cargo package --list` passes for Genet's four new crates and
   Graphshell's six, but it resolves nothing. A real dry run of a crate needs its dependencies
   in the registry, so each repository's dry run follows the publish of the one below it: the
@@ -108,10 +111,9 @@ Found while finishing P1, 2026-11-20. None is decided.
   needed. Genet's workspace has an unused `vello_cpu` row naming a package the fork no longer
   has. Emblem's `pictograph` has a dev-dependency on `netrender_device = "=0.1.2"` from the
   registry beside a git row for the same crate.
-- **A bump on a branch-tracked repository moves its pinned consumers in one pass.** Netrender's
-  0.2.0 needed pin moves in Genet, Inker, wgpu-cue, Emblem, Graphshell's `host/` and Turnstone,
-  in that order, because each resolve reaches the ones before it. Genet's and Graphshell's
-  rungs will do the same to their own consumers.
+- **A bump on a branch-tracked repository no longer moves its consumers** (D13). Netrender's
+  0.2.0 needed exact-pin moves in six repositories in dependency order; rows are now lower
+  bounds, so a consumer resolves across a bump without an edit.
 - **The build wrapper refuses `cargo publish` and `cargo package`.** A dry run therefore runs
   as `publish --dry-run --no-verify` directly, which compiles nothing, followed by a wrapper
   build of each tarball. A real publish would run with `--no-verify` after that build, or the
@@ -213,8 +215,37 @@ Found while finishing P1, 2026-11-20. None is decided.
 
   Links: summary Netrender's five crates publish at 0.2.0 after netrender-vello 0.11.1.
 
+- **D12. Everything that differs republishes (Mark, 2026-11-21):** "1", the first of three
+  choices put to him: republish every chain crate that differs from its registry copy,
+  repository by repository; republish only what a new crate fails to build against; or stop at
+  the renderer and leave the chain above Armillary on git. The numbering was offered with the
+  choice as D11's: a minor bump where source changed. A patch bump where only a non-source file
+  changed (`hodograph`'s README) is not Mark's ruling; it goes to him with the list. Each rung
+  still goes to Mark with its list and dry run before it publishes.
+
+  Links: summary Every chain crate that differs from its registry copy republishes, rung by rung.
+
+- **D13. Requirements are lower bounds (Mark, 2026-11-21):** "only lower bounds on pins; don't
+  constrain progress". A row on a chain crate says `>=x.y.z` and nothing else, in every
+  repository, so a bump on a tracked main does not stop a consumer resolving and no pin moves
+  with a publish. Inside a workspace a row on a bumped crate rises to the new version. Across
+  repositories a row keeps the lower bound it had: raising it would stop one main resolving
+  until the other had pushed or published. A published crate therefore resolves the newest
+  release of each dependency, breaking or not.
+  Outcome: supersedes the constraint that exact pins move in every consumer with each bump.
+
+  Links: summary Rows on chain crates carry only a lower bound, so a bump never breaks a consumer.
+
 ## Findings
 
+- 2026-11-21: Eidetic and Dramatis publish as one rung. `eidetic` takes `personae` and
+  `insigne` (its default `pack-signing` feature), `sporran` takes `eidetic` and `muniment`, and
+  Mere's `catchment` takes both repositories' crates, so the order is `muniment`, `portolan`,
+  `hodograph`, `insigne`, `personae`, `notochord`, `eidetic`, `sporran`, `catchment`. Dramatis
+  takes `eidetic` and `muniment` from the registry with no patch, so its `gaz`, `castellan`,
+  `castellan-client`, `dramatis-resident` and `djinn-custodian` build against the new versions
+  from the moment they publish. `webcue` needs Genet's `document-session-api` and moves to
+  Genet's rung. The vendored `mere-fjall` and `mere-lsm-tree` sources match the registry.
 - 2026-11-20, each already-published first-party crate that the six `host/` crates reach was
   compared with its published copy (the files `cargo package --list` names against the
   registry's tarball, and dependency requirements against the published manifest; nothing
@@ -229,7 +260,10 @@ Found while finishing P1, 2026-11-20. None is decided.
   `host/`. A new crate published against a stale registry copy of its dependency builds only if
   it uses nothing added since; that was not tested.
 - 2026-11-20: `genet-scripted-dom` takes `regress` 0.11.1 from a local patch
-  (`support/patches/regress-0.11.1`); a published copy resolves upstream's 0.11.1. The same
+  (`support/patches/regress-0.11.1`); a published copy resolves upstream's. The patch is a
+  two-line parser fix for nested negated Unicode sets. Upstream has since released 0.12.0, and
+  the row is `>=0.11.1`, so a published copy would take 0.12.0; whether that carries the fix
+  and compiles is not determined. The same
   holds for Genet's other patch directories (`fontique`, `parley`, `taffy`, `sonic-rs`,
   `gpu-allocator`) wherever a chain crate reaches them.
 - 2026-11-20, a survey of each repository's main (manifests read, nothing built; counts skip
@@ -261,6 +295,19 @@ Found while finishing P1, 2026-11-20. None is decided.
 
 ## Progress
 
+- 2026-11-21: the Eidetic, Dramatis and Mere rung is prepared and not pushed (D12). `muniment`
+  0.3.0, `portolan` 0.2.0, `hodograph` 0.1.1, `eidetic` 0.1.0, `insigne` 0.1.0, `personae`
+  0.4.0, `notochord` 0.2.0, `sporran` 0.1.0 and `catchment` 0.2.0 are committed on a local
+  branch in each repository. All nine package, and their unpacked tarballs check together with
+  only each other patched in, on default features and on all features. Dramatis's whole
+  workspace checks against the new `eidetic`, `muniment`, `portolan` and `hodograph`. No tests
+  were run.
+- 2026-11-21: rows on the chain's crates are lower bounds on every main (D13): 173 rows across
+  Cleromancy, Distillery, Dramatis, Eidetic, Emblem, Gemot, Graphshell, Inker, Isocosm, Knot,
+  Mere, Murm, Netrender, Turnstone, wgpu-cue and Woodshed, in dependency and patch tables.
+  `receipts/` manifests were left as they were. Nothing else in a manifest changed, and the
+  three repositories that track a lock (Emblem, Netrender, wgpu-cue) still resolve with it.
+  Nothing was built.
 - 2026-11-21: the Netrender rows are `>=0.2.0`, no longer `=0.2.0`, in all six consumers (Mark:
   "the lower bound remains 0.2.0, the upper bound includes all values above 0.2.0"). An exact
   requirement stops resolving once Netrender's main moves. Each commit is named in its own
