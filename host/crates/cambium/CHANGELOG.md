@@ -6,10 +6,6 @@
   previous vector (by source, owner incarnation and domain), and
   `CompositionInputQueue::has_gap`, true once mutation records were dropped or
   a generation was exhausted.
-- Add `SettingRowSnapshot::revision`: advances by one each time a
-  `SettingRowSession` call changes anything else in the snapshot, and never
-  otherwise (saturating, like the generations), so a consumer can compare
-  revisions in place of whole snapshots.
 - Add placement queries in `composition`: `container_keys`, `keys_in_container`
   and `hidden_keys` (components under any collapsed container).
 - Add `ComponentRouteSnapshot::node`, the component's current DOM node (`None`
