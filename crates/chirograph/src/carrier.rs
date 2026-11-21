@@ -90,6 +90,10 @@ pub enum CarrierRequestBody {
     /// the graph session the client holds. Appended last: older peers never
     /// send it, and an endpoint that keeps no page text refuses it.
     RetainedPages(RetainedPagesRequest),
+    /// A SPARQL query over the endpoint's dataset, or a later page of its
+    /// result (graphshell:mere-cli D4). Appended last, like `RetainedPages`; an
+    /// endpoint that holds no dataset refuses it.
+    Query(QueryRequest),
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -110,6 +114,7 @@ pub enum CarrierResponseBody {
     Closed,
     Suspended,
     RetainedPages(Box<RetainedPagesResponse>),
+    Query(Box<QueryResponse>),
 }
 
 /// A failure reported by an endpoint without exposing its native error type.
