@@ -98,6 +98,27 @@ title = "the row change stamp is removed, and a safer one is intended"
 source = "design_docs/cambium_docs/implementation_strategy/2026-10-29_cambium_composition_plan.md"
 summary = "The row change stamp is out of Cambium; a stamp safe across recreated rows and exhaustion is intended later."
 
+[decisions."cambium-presentation D1"]
+title = "A tab carries fallback semantics (Mark, 2026-11-21)"
+source = "design_docs/cambium_docs/implementation_strategy/2026-10-28_cambium_presentation_plan.md"
+area = "Surfaces"
+summary = "A workbench tab carries a label, role and advertised actions so an unrenderable supplier still shows what it is."
+draws_on = ["mere:surfaces.3"]
+
+[decisions."cambium-presentation D2"]
+title = "A multi-view supplier proposes and may also nest (Mark, 2026-11-21)"
+source = "design_docs/cambium_docs/implementation_strategy/2026-10-28_cambium_presentation_plan.md"
+area = "Surfaces"
+summary = "A supplier proposes views the host places, and may nest an arrangement inside one frame; the host stays the single writer."
+draws_on = ["mere:surfaces.1"]
+
+[decisions."cambium-presentation D3"]
+title = "A supplier is told its keeping level (Mark, 2026-11-21)"
+source = "design_docs/cambium_docs/implementation_strategy/2026-10-28_cambium_presentation_plan.md"
+area = "Surfaces"
+summary = "Workbench tells a supplier whether its tab is in focus, kept or ambient; state is kept at every level and rendering stops when ambient."
+draws_on = ["cambium-composition D2", "mere:surfaces.4"]
+
 [decisions."cambium-publish D1"]
 title = "Publish the app's GUI dependencies first (Mark, 2026-11-05)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-05_cambium_publish_plan.md"

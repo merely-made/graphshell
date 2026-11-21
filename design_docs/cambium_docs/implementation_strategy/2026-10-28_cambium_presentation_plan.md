@@ -171,6 +171,47 @@ The same `OperatorFocus` overlay fed by a remote operator's presence over the ep
 - Rulings: -
 - From: `archive_docs/2026-10-28/2026-06-25_operator_presence_overlay_plan.md:159-162, 172`
 
+## Decisions
+
+Each records the evidence put to Mark, what was offered, his answer in his words, what follows, and an
+outcome. D1 to D3 are in answer order. They concern how a supplier's content is presented in a workbench
+frame; none is built, and no phase is sized yet (open question 14).
+
+- **D1. A tab carries fallback semantics (Mark, 2026-11-21):** Evidence: a tile's `ContentSource::Open`
+  lane "degrades to an empty pane" when the host does not recognise its `kind`
+  (`host/crates/cambium/workbench/lib.rs:139`), while a scene item keeps a label, role and actions
+  "when the richest resource cannot be decoded" (`crates/chirograph/src/lib.rs:191`,
+  `PresentationSemantics`). Offered: the same semantics on a tab (recommended); a tab takes the full
+  richest-first list of offers; leave tabs as they are. Answer: "Yes, same semantics (Recommended)".
+  What follows: a tile's content reference carries a label, a role and advertised actions, so a
+  supplier the host cannot render still shows what it is and what can be done with it. Whether
+  workbench names Chirograph's types or keeps its own fields is open; workbench is presentation
+  vocabulary only. Outcome: applies `mere:surfaces.3`.
+
+  Links: area Surfaces · draws on mere:surfaces.3 · summary A workbench tab carries a label, role and advertised actions so an unrenderable supplier still shows what it is.
+
+- **D2. A multi-view supplier proposes and may also nest (Mark, 2026-11-21):** Evidence: the host is
+  the single writer of the tree (`host/crates/cambium/workbench/lib.rs:176`), so a supplier with a
+  document and an inspector cannot say so. Offered: the supplier proposes and the host places
+  (recommended); one tile that arranges inside itself; both. Answer: "Both". What follows: a supplier
+  declares its views and a preferred relation between them, which the host applies or ignores as the
+  single writer; a supplier may also arrange views inside one frame, for arrangements that are
+  internal to it. Nesting reuses workbench itself, so the composition plan's "no second split/tab
+  model" holds; that reading is open question 14. Outcome: applies `mere:surfaces.1`.
+
+  Links: area Surfaces · draws on mere:surfaces.1 · summary A supplier proposes views the host places, and may nest an arrangement inside one frame; the host stays the single writer.
+
+- **D3. A supplier is told its keeping level (Mark, 2026-11-21):** Evidence: a `TabStack` holds only
+  `active`; nothing tells a supplier whether its tab is showing. The doctrine names three keeping
+  levels for a surface: in focus, kept, ambient. Offered: tell suppliers by keeping level
+  (recommended); visible or not, nothing more; host policy with no signal. Answer: "Yes, by keeping
+  level (Recommended)". What follows: the active tab of the focused stack is in focus, a tab showing
+  in another split is kept, and a tab hidden behind another is ambient; a supplier keeps its state at
+  every level and stops rendering when ambient, as `cambium-composition D2` rules for hidden rows.
+  Outcome: applies `mere:surfaces.4`.
+
+  Links: area Surfaces · draws on mere:surfaces.4, cambium-composition D2 · summary Workbench tells a supplier whether its tab is in focus, kept or ambient; state is kept at every level and rendering stops when ambient.
+
 ## Open questions
 
 1. The viewer-level task boxes: Task 1 and Tasks 3 to 7 of the tenants plan stayed unticked although its Progress reports them done (Task 2 is ticked). Reconcile the record, or drop the boxes? From: `archive_docs/2026-10-28/2026-10-13_browser_presentation_tenants_plan.md:53-69, 130-255, 277-296`
@@ -186,6 +227,7 @@ The same `OperatorFocus` overlay fed by a remote operator's presence over the ep
 11. Which host and which sources carry operator presence? The agent-focus source and the find overlay went with meerkat. Surviving: the cartography `Overlay` channel (`ClusterHalo`, `BridgeEmphasis`, with a minimap consumer), the accessibility projection in Turnstone, and `ProvenanceSubKind::ClippedFrom`. From: `archive_docs/2026-10-28/2026-06-25_operator_presence_overlay_plan.md:44-57, 174-180`
 12. Presence design questions the plan left open: stacked rings or a blended colour for several operators on one node; trail length and decay, and whether the trail is a transient comet or the agent's durable operation nodes; element-reference stability across re-layout (anchor on the accessibility or DOM node, not a pixel rect); the set of recording modes and the per-tier default (orrery ephemeral; a large moot the constitution's call); whether the constitution must make the recording mode visible to members (lean yes); how the observe-activity capability is delegated and revoked (meadowcap now, Biscuit later; per role or per grant); and whether a charter may require agent transparency, with agent actions in the record private by default. From: `archive_docs/2026-10-28/2026-06-25_operator_presence_overlay_plan.md:184-204`
 13. The durable recording spectrum (public immutable record, private record, one-way glass) as a moderation and adjudication substrate has no build step and no home beyond the constitution, the capability layer and the event-DAG; adjudication plugging into tessera concord and reciprocity in moothold is unplaced. Where do they live? From: `archive_docs/2026-10-28/2026-06-25_operator_presence_overlay_plan.md:102-146, 128-133`
+14. D1 to D3 have no phase. Where they are built (here, or in the composition plan's API review, whose tier 2 comes before the publish), and whether a nested arrangement is a second `Workbench` value inside a frame or something smaller, are unsized. Workbench is `publish = true` at 0.1.1, so D1 changes a published contract.
 
 ## Findings
 
@@ -211,6 +253,7 @@ The same `OperatorFocus` overlay fed by a remote operator's presence over the ep
   Browser seed nodes have no article bodies, so their reading captures qualify
   layout/persistence only. Human AT, physical pointer, cross-app and other
   platform gates remain separate; the repository header audit is still red.
+- 2026-11-21: D1 to D3 ruled on presenting a supplier's content in a workbench frame (fallback semantics on a tab, proposals and nesting for a multi-view supplier, keeping levels). Nothing built; open question 14 holds the sizing.
 
 ## Received from the backlog holder, 2026-10-28
 
