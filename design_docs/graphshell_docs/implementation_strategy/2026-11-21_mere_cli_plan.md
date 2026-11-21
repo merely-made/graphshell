@@ -1,6 +1,6 @@
 # Mere CLI plan: the query tool, rebuilt on the host toolkit
 
-**Status:** 2026-11-21: plan, nothing built. D1 to D7 ruled.
+**Status:** 2026-11-21: Q1 built on branch `cli-q1`, unlanded. D1 to D11 ruled.
 
 **For:** the `mere` command-line tool. It queries a linked-data graph locally, or
 serves one allowed SPARQL query to an invited peer over iroh, Reticulum, I2P or a
@@ -28,7 +28,7 @@ Read at Mere `aae4d3ba1`, Graphshell `8cc8c6bf`, dramatis and murm main, 2026-11
 
 ## Decisions
 
-Mark answered eight question cards on 2026-11-21, plus two free-text answers. Each
+Mark answered twelve question cards on 2026-11-21, plus two free-text answers. Each
 entry quotes his answer.
 
 - **D1, the tool lives in Graphshell's host workspace, rebuilt on the stack.**
@@ -87,6 +87,33 @@ entry quotes his answer.
 
   Links: summary An invitation grants one query: the scope path is that query's digest under a query action.
 
+- **D8, native readers are invited by name, co-op's way.** Mark chose
+  "Guest-bound, co-op's way (Recommended)". The reader sends the owner a
+  contact (`Contact::create`). The owner issues an `Invitation` and a `Card` to
+  that contact, and revokes per guest. The CLI's bearer token goes. The door's
+  bearer redemption stays bound to DTLS and to browsers.
+
+  Links: summary Native readers send a contact and receive an invitation and card issued to it, as Graphshell co-op does; no bearer file.
+
+- **D9, keys live in the custodian.** Mark chose "The custodian
+  (Recommended)". Owner and reader sign through castellan's `CustodyIdentity`,
+  as co-op does. The CLI has no file-backed signer.
+
+  Links: summary The CLI's owner and reader keys stay in the castellan custodian; there is no file-backed signer.
+
+- **D10, the tool is a port.** Mark chose "host/ports/mere-cli
+  (Recommended)". It sits beside `mere-resident` and `moot`.
+
+  Links: summary The rebuilt tool is host/ports/mere-cli, a port beside mere-resident.
+
+- **D11, browsers read through Turnstone's web app.** Mark chose "Turnstone's
+  web app gains a query view (Recommended)". reader.html and reader.js are
+  deleted. A browser reader opens Turnstone's Graphshell web page with the
+  invite fragment, sends a chirograph `Query` and shows the rows. That view
+  joins this landing.
+
+  Links: summary Browser readers use Turnstone's Graphshell web app, which gains a query view; the CLI's JavaScript reader is deleted.
+
 ## Phases
 
 Each phase is verified in its own worktree. Nothing reaches main until Q5, which
@@ -107,7 +134,8 @@ lands everything together (D3).
 
 - A resident host with a mere dataset answers `Query` through
   `mere::query::sparql_on`, and the invitation's insigne scope decides whether the
-  query is allowed: the scope path is the query's digest (D7).
+  query is allowed: the scope path is the query's digest (D7). The invitation is
+  issued to the reader's contact (D8).
 - Done when: a granted query returns rows, an ungranted or expired one is refused,
   and a revoked invitation is refused, each with its own test.
 
@@ -120,13 +148,14 @@ lands everything together (D3).
 
 ### Q4. the tool, rebuilt in host/
 
-- It issues invitations with `Invitation::issue`, accepts and dials through
+- `host/ports/mere-cli` (D10). Keys come from the custodian (D9). It issues
+  invitations with `Invitation::issue`, accepts and dials through
   graphshell-host's carrier functions, queries with Q1/Q2, and signals the browser
   with Q3. `getrandom`, `subtle`, `base64` and `wtransport` leave its manifest.
 - Done when: its two existing tests (`local_query_preserves_unbound_and_escaped_cells`,
   `iroh_invitation_limits_access_across_repeated_queries`) pass in their new form,
-  Reticulum and I2P keep whatever coverage they have today, and the browser path
-  joins through the door.
+  Reticulum and I2P keep whatever coverage they have today, and a browser joins
+  through the door into Turnstone's web app and reads rows (D11).
 
 ### Q5. land
 
@@ -135,16 +164,7 @@ lands everything together (D3).
   Turnstone's hooks pass, and everything lands in one push per repository, in
   dependency order.
 
-## Open questions
-
-These come back as cards when a phase reaches them.
-
-- **The browser reader.** The tool's reader.html/reader.js re-implements
-  murm-webrtc in JavaScript. The stack's browser initiator is Rust compiled to
-  wasm. Which page does a browser reader open, and who builds it?
-- **Where the tool sits in host/.** A port beside `mere-resident`, or a crate
-  under `crates/graphshell/`.
-
 ## Progress
 
 - 2026-11-21: plan written. D1 to D5 ruled, then D6 and D7.
+- 2026-11-21: Q1 built (branch `cli-q1`). D8 to D11 ruled at Q2's start.

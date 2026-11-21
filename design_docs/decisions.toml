@@ -266,6 +266,26 @@ title = "an invitation grants one query"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_mere_cli_plan.md"
 summary = "An invitation grants one query: the scope path is that query's digest under a query action."
 
+[decisions."mere-cli D8"]
+title = "native readers are invited by name, co-op's way"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_mere_cli_plan.md"
+summary = "Native readers send a contact and receive an invitation and card issued to it, as Graphshell co-op does; no bearer file."
+
+[decisions."mere-cli D9"]
+title = "keys live in the custodian"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_mere_cli_plan.md"
+summary = "The CLI's owner and reader keys stay in the castellan custodian; there is no file-backed signer."
+
+[decisions."mere-cli D10"]
+title = "the tool is a port"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_mere_cli_plan.md"
+summary = "The rebuilt tool is host/ports/mere-cli, a port beside mere-resident."
+
+[decisions."mere-cli D11"]
+title = "browsers read through Turnstone's web app"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_mere_cli_plan.md"
+summary = "Browser readers use Turnstone's Graphshell web app, which gains a query view; the CLI's JavaScript reader is deleted."
+
 [decisions."primitive-representations D1"]
 title = "The brief's scope (Mark, 2026-11-13)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
