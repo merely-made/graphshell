@@ -7,9 +7,7 @@ edition.workspace = true
 rust-version = "1.97.1"
 license = "MPL-2.0"
 repository.workspace = true
-# Publishes with the rest of the family once taproot can (a stale buckram
-# release blocks taproot's own publish today).
-publish = false
+publish = true
 
 [features]
 default = ["image-decode"]

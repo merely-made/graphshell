@@ -7,13 +7,7 @@ edition.workspace = true
 rust-version = "1.97.1"
 license = "MPL-2.0"
 repository.workspace = true
-# Can never be published, and that is the reason this crate exists. It needs the
-# laid-out genet DOM and the platform adapter
-# (`genet-winit-host`), both of which inherit genet's `publish = false`. Holding
-# them here keeps `cambium-winit` itself down to `cambium` + `winit`, so the
-# key-translation half is publishable and reachable from a registry consumer.
-# Split out of cambium-winit 2026-07-26; the code is unchanged.
-publish = false
+publish = true
 
 [lib]
 name = "cambium_winit_a11y"
