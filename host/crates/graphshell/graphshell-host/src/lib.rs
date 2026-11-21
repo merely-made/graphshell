@@ -94,6 +94,13 @@ pub mod pinned_shacl;
 pub mod policy_projection;
 #[cfg(all(feature = "native", not(target_arch = "wasm32")))]
 pub mod projection_host;
+/// The WebRTC door's HTTP signaling listener, lifted from Turnstone's C4
+/// host (mere-cli Q3, D5).
+#[cfg(all(feature = "webrtc-session", not(target_arch = "wasm32")))]
+pub mod signaling;
+/// One granted SPARQL query served to an invited guest (mere-cli Q2).
+#[cfg(all(feature = "mere-query", not(target_arch = "wasm32")))]
+pub mod query_host;
 #[cfg(feature = "mere-host")]
 pub mod resident_host;
 pub mod resume;

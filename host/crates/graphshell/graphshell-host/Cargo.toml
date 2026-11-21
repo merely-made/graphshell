@@ -113,6 +113,9 @@ mere-host = [
     "dep:url",
     "dep:uuid",
 ]
+# One granted SPARQL query over a mere dataset, served to an invited guest
+# (graphshell:mere-cli Q2): the Mere CLI's serving half.
+mere-query = ["native", "dep:mere", "mere/query"]
 # Read one captured source's SHACL report and gate its evidence actions.
 pinned-shacl = [
     "dep:mere",
