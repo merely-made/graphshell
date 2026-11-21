@@ -210,6 +210,31 @@ source = "design_docs/graphshell_docs/implementation_strategy/2026-11-06_key_lan
 summary = "GraphKeyGroup and key_paired_devices move with mere-resident to Graphshell; the lane adoption is unchanged."
 plans = ["engine-split"]
 
+[decisions."mere-cli D1"]
+title = "the tool lives in Graphshell's host workspace, rebuilt on the stack"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_mere_cli_plan.md"
+summary = "The mere CLI moves to Graphshell's host workspace and is rebuilt on graphshell-host's invitation, carrier and WebRTC door."
+
+[decisions."mere-cli D2"]
+title = "missing pieces grow the stack"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_mere_cli_plan.md"
+summary = "What the CLI needs and the stack lacks is added to the stack, not kept in the CLI."
+
+[decisions."mere-cli D3"]
+title = "one landing"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_mere_cli_plan.md"
+summary = "The CLI leaves Mere and arrives in Graphshell in one landing, with no interim split."
+
+[decisions."mere-cli D4"]
+title = "a query is a chirograph request"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_mere_cli_plan.md"
+summary = "SPARQL queries travel as an appended, read-only chirograph request that an endpoint without a dataset refuses."
+
+[decisions."mere-cli D5"]
+title = "signaling is lifted from Turnstone's C4 host into graphshell-host"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_mere_cli_plan.md"
+summary = "WebRTC signaling is an HTTP module in graphshell-host, lifted from Turnstone's C4 host and shared by C4 and the CLI."
+
 [decisions."primitive-representations D1"]
 title = "The brief's scope (Mark, 2026-11-13)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
