@@ -6,7 +6,7 @@ one-hyphen names (D10), Genet's and Graphshell's chain crates are publishable wi
 on their git and path rows. What P1 still owes is listed under "Open before P2": four
 questions for Mark and the dry runs, which can only run as a ladder. The API review P2 waited
 on (D8) has its tiers 1 and 2 landed. P2's first rung is published: the vello fork's five
-sparse crates. Nothing above it is. The closure measured on 2026-11-05 is superseded: it is 54 crates,
+sparse crates and `netrender-vello` 0.11.1. Netrender's rung is dry-run and waits on Mark. The closure measured on 2026-11-05 is superseded: it is 54 crates,
 and the Dramatis application this plan was opened for no longer exists.
 
 **For:** publishing the Cambium desktop chain to crates.io so that applications outside Mere,
@@ -234,6 +234,13 @@ Found while finishing P1, 2026-11-20. None is decided.
 
 ## Progress
 
+- 2026-11-20: `netrender-vello` 0.11.1 published (Mark: "Publish 0.11.1"), from the fork at
+  `8e76ca38`. Netrender's rung is dry-run and not pushed: with every vello row on the
+  registry the workspace checks, the five crates package at 0.2.0, and each builds from its
+  tarball. The pin moves are committed on local branches in the six repositories. Genet and
+  Inker resolve against the local 0.2.0; Graphshell's `host/` and Turnstone cannot until Genet's
+  main carries its move; Emblem and wgpu-cue track a lock, so theirs waits on the pushes and
+  moves the lock with the pin.
 - 2026-11-20: Netrender's rung prepared and not pushed (D11). The fork's `mark-ik/all-vellos`
   is `8e76ca38` with `netrender-vello` at 0.11.1; it packages and builds from its tarball, and
   is not published. On a Netrender branch the five crates say 0.2.0 and the sparse rows take
