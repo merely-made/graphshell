@@ -11,7 +11,7 @@
 
 [package]
 edition = "2021"
-name = "light-file-dialog"
+name = "cambium-dialog"
 version = "3.21.3"
 authors = [
     "Guillaume Vareille (original C)",
@@ -23,7 +23,7 @@ autobins = false
 autoexamples = false
 autotests = false
 autobenches = false
-description = "Cross-platform native dialogs: message box, file picker, color chooser, password input, notifications."
+description = "Cross-platform native dialogs: message box, file picker, color chooser, password input, notifications. A fork of light-file-dialog 3.21.3 that reuses the Windows password window class across prompts and reports absent answers."
 readme = "README.md"
 keywords = [
     "dialog",
@@ -37,7 +37,7 @@ categories = [
     "os",
 ]
 license = "Zlib"
-repository = "https://github.com/wengchengjian/light-file-dialog"
+repository = "https://github.com/merely-made/graphshell"
 
 [lib]
 name = "light_file_dialog"

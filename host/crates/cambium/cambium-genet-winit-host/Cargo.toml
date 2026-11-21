@@ -24,15 +24,16 @@ parley.workspace = true
 accesskit.workspace = true
 # The desktop's file chooser (cambium-rootstock's file seam): the platform's
 # open dialog, through the crate Graphshell's desktop already uses.
-light-file-dialog = "3.21.3"
-meristem = { version = "0.2.0", path = "../meristem" }
-cambium = { version = "0.6.1", path = "../cambium" }
+# The fork reuses the Windows password class across cancellation and sequential prompts.
+light-file-dialog = { package = "cambium-dialog", version = ">=3.21.3", path = "../../../support/patches/light-file-dialog" }
+meristem = { version = ">=0.3.0", path = "../meristem" }
+cambium = { version = ">=0.7.0", path = "../cambium" }
 # The windowing-neutral half. This crate is now the winit event source for
 # it: it converts winit input into the neutral vocabulary and routes.
-cambium-rootstock = { version = "0.1.0", path = "../cambium-rootstock", default-features = false }
-cambium-winit = { version = "0.3.0", path = "../cambium-winit" }
-cambium-a11y = { version = "0.3.0", path = "../cambium-winit-a11y", default-features = false }
-sprigging = { version = "0.3.0", path = "../sprigging" }
+cambium-rootstock = { version = ">=0.1.0", path = "../cambium-rootstock", default-features = false }
+cambium-winit = { version = ">=0.4.0", path = "../cambium-winit" }
+cambium-a11y = { version = ">=0.3.0", path = "../cambium-winit-a11y", default-features = false }
+sprigging = { version = ">=0.4.0", path = "../sprigging" }
 # The semantic-selector resolver the headless `Harness` drives applications by,
 # so a host test targets a control by role and label rather than by pixel.
 # Named genet-probe until genet 7baa554c (2026-09-14).
@@ -53,7 +54,7 @@ winit = { workspace = true }
 taproot = { workspace = true, features = ["estimated-probe-fixtures"] }
 workbench = { workspace = true }
 serde_json = { workspace = true }
-mandrake = { version = "0.1.0", path = "../mandrake" }
+mandrake = { version = ">=0.1.0", path = "../mandrake" }
 # The table example opens a recipe over the scenes crates.
 sceno = { workspace = true }
 scenograph = { workspace = true }

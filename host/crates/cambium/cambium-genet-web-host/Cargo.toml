@@ -31,8 +31,8 @@ image-decode = ["cambium-rootstock/image-decode", "mandrake/image-decode"]
 
 [dependencies]
 # The stock this is grafted onto. Everything below is what a browser adds.
-cambium-rootstock = { version = "0.1.0", path = "../cambium-rootstock", default-features = false }
-cambium = { version = "0.6.1", path = "../cambium" }
+cambium-rootstock = { version = ">=0.1.0", path = "../cambium-rootstock", default-features = false }
+cambium = { version = ">=0.7.0", path = "../cambium" }
 genet-presenter = { workspace = true }
 genet-scripted-dom = { workspace = true }
 netrender = { workspace = true }
@@ -83,8 +83,8 @@ web-sys = { version = "0.3", features = [
 
 # The mirror's tests lay the example page out without a window.
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
-sprigging = { version = "0.3.0", path = "../sprigging" }
-cambium-desktop = { version = "0.1.0", path = "../cambium-genet-winit-host" }
+sprigging = { version = ">=0.4.0", path = "../sprigging" }
+cambium-desktop = { version = ">=0.1.0", path = "../cambium-genet-winit-host" }
 netrender = { workspace = true, features = ["vello-cpu"] }
 
 # The accessibility page, mounted in a browser.

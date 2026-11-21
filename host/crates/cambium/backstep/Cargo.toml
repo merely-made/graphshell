@@ -1,6 +1,6 @@
 [package]
 name = "backstep"
-version = "0.2.0"
+version = "0.2.1"
 description = "An editor's ephemeral state: snapshot undo with keyed coalescing and a saved marker, a host-implemented clipboard contract, and linear back/forward navigation."
 authors.workspace = true
 edition.workspace = true

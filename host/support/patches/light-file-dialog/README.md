@@ -1,4 +1,6 @@
-# light-file-dialog
+# cambium-dialog
+
+A fork of [`light-file-dialog`](https://github.com/wengchengjian/light-file-dialog) 3.21.3, kept in Graphshell for `cambium-desktop`. The library name is still `light_file_dialog`. `UPSTREAM.json` records the upstream revision and the patch. What follows is upstream's README.
 
 > [`tinyfiledialogs`](https://sourceforge.net/projects/tinyfiledialogs/) 的 Rust 移植版 —— 跨平台原生对话框库。
 >
