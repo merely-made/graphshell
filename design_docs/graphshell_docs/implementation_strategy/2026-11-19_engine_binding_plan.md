@@ -86,6 +86,14 @@ evidence actions become stale. The scene envelope and its intent routing remain 
 
 ## Progress
 
+- 2026-11-20: E1 and E2 built (`19bd3652`), probe 3's content check (`1b6b9793`). `MereHost` holds an
+  optional `PinnedView` and builds scenes from the pin's graph or the live graph, and every snapshot
+  carries the engine revision it was built from (`mere:engine-split D187` to `D189`). An intent is
+  refused as stale when the engine revision or the projection counter moved; the reply does not yet
+  name the engine revision. Probe 3's content check passes: an arrangement edit made in Graphshell
+  leaves every Resource-stratum quad unchanged. The Resource digest itself is not built: RDFC-1.0
+  refuses the projection's triple terms and a whole recompute takes seconds at 100k nodes, which
+  went back as forks.
 - 2026-11-20: The native host reads a kept source's validation report and block evidence from
   one pin. The focused regression edits the same source's Resource facet through the journal,
   reopens the session, and checks that the old pin keeps its evidence while the old action is

@@ -230,12 +230,18 @@ pub struct MereHost<B> {
     served_registry: std::sync::Mutex<cartography::canvas::ChannelRegistry>,
     /// This device's attention for the graph's views, by `app/view` (D133).
     attention: BTreeMap<String, incipit::view::AttentionState>,
+    /// The pinned view scenes are built from while it is shown (D187).
+    pin: Option<pandect::PinnedView>,
+    /// The engine revision the last scene was stamped with (D188).
+    scene_engine: Option<pin::SceneEngine>,
 }
 
 #[path = "mere_host_attention.rs"]
 mod attention;
 #[path = "mere_host_coupling.rs"]
 mod coupling;
+#[path = "mere_host_pin.rs"]
+mod pin;
 #[path = "mere_host_resident_view.rs"]
 mod resident_presentation;
 #[path = "mere_host_resident.rs"]
@@ -336,6 +342,8 @@ impl<B: Backend + Clone> MereHost<B> {
             resident_view: Default::default(),
             served_registry: std::sync::Mutex::new(cartography::canvas::ChannelRegistry::new()),
             attention: BTreeMap::new(),
+            pin: None,
+            scene_engine: None,
         }
     }
 
@@ -544,6 +552,7 @@ impl<B: Backend + Clone> MereHost<B> {
         self.projection_revision = 1;
         self.resources.clear();
         self.instance_targets.clear();
+        self.scene_engine = None;
         // Attention is a graph's; this one is new.
         self.attention.clear();
         Ok(())
@@ -864,7 +873,7 @@ impl<B: Backend> MereHost<B> {
         self.instance_targets
             .iter()
             .position(|key| {
-                self.graph()
+                self.scene_graph()
                     .get_node(*key)
                     .is_some_and(|node| node.url() == address)
             })
@@ -894,7 +903,7 @@ impl<B: Backend> MereHost<B> {
     /// keeps them from disagreeing about a rung.
     fn served_layout(&self) -> cartography::canvas::CanvasStrategyProjection {
         let extents: HashMap<NodeKey, (f32, f32)> = self
-            .graph()
+            .scene_graph()
             .nodes()
             .map(|(key, _)| (key, SERVED_FOOTPRINT))
             .collect();
@@ -905,7 +914,7 @@ impl<B: Backend> MereHost<B> {
         cartography::canvas::project_canvas_strategy_with_score_for_view(
             &mut registry,
             "phyllotaxis.default",
-            self.graph(),
+            self.scene_graph(),
             None,
             SERVED_VIEWPORT.0,
             SERVED_VIEWPORT.1,
@@ -1134,6 +1143,7 @@ impl<B: Backend> MereHost<B> {
     }
 
     fn build_snapshot(&mut self) -> Result<ProjectionSnapshot, MereHostError> {
+        let engine = self.stamp_scene()?;
         let layout = self.served_layout();
         // The ladder's fallback is Glyph; an item the score does not name gets
         // the same answer the ladder would have given it.
@@ -1206,8 +1216,8 @@ impl<B: Backend> MereHost<B> {
                 read_only: self.graph_session.manifest().codicil_read_only,
                 epoch: self.projection_epoch(),
                 revision: self.projection_revision(),
-                graph: self.graph().to_snapshot_at(0),
-                facets: self.graph().facets().clone(),
+                graph: self.scene_graph().to_snapshot_at(0),
+                facets: self.scene_graph().facets().clone(),
             })
             .expect("the session graph always serializes");
             let graph_resource = ContentHash::of(&graph_bytes);
@@ -1241,7 +1251,7 @@ impl<B: Backend> MereHost<B> {
 
         for (index, (key, position)) in layout.positions.iter().copied().enumerate() {
             let node = self
-                .graph()
+                .scene_graph()
                 .get_node(key)
                 .expect("Mere canvas returned a key from this graph");
             let instance = InstanceId(index as u32 + offset);
@@ -1272,7 +1282,7 @@ impl<B: Backend> MereHost<B> {
 
             let kind = node.primary_address().address_kind();
             let mut tags: Vec<String> = self
-                .graph()
+                .scene_graph()
                 .node_content_tags(key)
                 .unwrap_or_default()
                 .into_iter()
@@ -1291,7 +1301,10 @@ impl<B: Backend> MereHost<B> {
                     },
                     CardValueV1 {
                         label: "Accesses".to_string(),
-                        value: access_history(self.graph(), key)?.records.len().to_string(),
+                        value: access_history(self.scene_graph(), key)?
+                            .records
+                            .len()
+                            .to_string(),
                     },
                 ],
                 badges: tags,
@@ -1326,8 +1339,9 @@ impl<B: Backend> MereHost<B> {
         }
 
         let mut routed_links = BTreeSet::new();
-        for (relation_key, relation) in self.graph().projected_relations() {
-            let Some(key) = routed_link_key(self.graph(), relation_key, relation.from, relation.to)
+        for (relation_key, relation) in self.scene_graph().projected_relations() {
+            let Some(key) =
+                routed_link_key(self.scene_graph(), relation_key, relation.from, relation.to)
             else {
                 continue;
             };
@@ -1340,17 +1354,17 @@ impl<B: Backend> MereHost<B> {
                 continue;
             }
             let from_id = self
-                .graph()
+                .scene_graph()
                 .get_node(relation.from)
                 .ok_or(MereHostError::MissingResource)?
                 .id;
             let to_id = self
-                .graph()
+                .scene_graph()
                 .get_node(relation.to)
                 .ok_or(MereHostError::MissingResource)?
                 .id;
             let reading = cartography::canvas::link_reading::read_link(
-                self.graph(),
+                self.scene_graph(),
                 from_id,
                 to_id,
                 self.link_source(),
@@ -1419,7 +1433,8 @@ impl<B: Backend> MereHost<B> {
             Revision(self.projection_revision),
             scene,
         )
-        .map_err(|error| MereHostError::InvalidSnapshot(format!("{error:?}")))?;
+        .map_err(|error| MereHostError::InvalidSnapshot(format!("{error:?}")))?
+        .with_engine_revision(engine);
 
         self.resources = resources;
         self.instance_targets = instance_targets;
@@ -1583,11 +1598,19 @@ impl<B: Backend> IntentSink for MereHost<B> {
                 current_revision: Revision(self.projection_revision),
             });
         }
-        let Some(&target) = intent
+        // The engine moved under the scene the intent was made in (D188).
+        if self.engine_moved()? {
+            return Ok(IntentResult::Stale {
+                current_epoch: SceneEpoch(self.projection_epoch),
+                current_revision: Revision(self.projection_revision),
+            });
+        }
+        let Some(target) = intent
             .target
             .0
             .checked_sub(self.node_offset())
             .and_then(|index| self.instance_targets.get(index as usize))
+            .and_then(|&target| self.live_target(target))
         else {
             return Ok(IntentResult::Rejected {
                 reason: "intent target is not in the disclosed scene".to_string(),

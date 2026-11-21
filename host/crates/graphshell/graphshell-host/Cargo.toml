@@ -202,6 +202,11 @@ tempfile = "3"
 async-trait = "0.1"
 tokio = { version = "1", features = ["io-util", "macros", "net", "rt", "rt-multi-thread", "time"] }
 
+# P8's arrangement probe reads the Resource-stratum quads through the engine's
+# projection (engine split D147).
+[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
+mere = { workspace = true }
+
 [[test]]
 name = "webrtc_join_loopback"
 required-features = ["webrtc-session"]
