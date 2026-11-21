@@ -157,9 +157,10 @@ blake3 = "1"
 # One upstream ipc-channel across the family (capability door D10); never
 # force-inprocess outside an application root.
 ipc-channel = "0.23.1"
-# Exactly pinned: wit-parser states no API stability and ships a new 0.X
-# with every wasm-tools release (capability door D17).
-wit-parser = "=0.263.0"
+# A lower bound, not a pin (Mark, 2026-11-21). wit-parser states no API
+# stability and ships a new 0.X with every wasm-tools release, so a fresh
+# resolve can break script-witgen (capability door D17): fix it forward.
+wit-parser = ">=0.263.0"
 
 fetch = { package = "mere-fetch", version = "0.0.1", path = "crates/system/fetch" }
 page-load = { package = "mere-pageload", version = ">=0.0.1", git = "https://github.com/merely-made/inker.git", branch = "main" }
@@ -237,7 +238,7 @@ genet-static-dom = { version = "0.1.1", git = "https://github.com/merely-made/ge
 # `genet-host-api` at 0.2.0 as the raw engine half, which mere does not
 # consume. The plan moved it here on 2026-09-03; it is a workspace member now.
 mere-surface-api = { version = "0.1.1", path = "crates/system/surface-api" }
-workbench = { version = "=0.1.1", path = "crates/cambium/workbench" }
+workbench = { version = ">=0.1.1", path = "crates/cambium/workbench" }
 mere-view = { version = "0.1.0", path = "crates/cambium/mere-view" }
 mere-overmap = { version = "0.1.0", path = "crates/cambium/mere-overmap", default-features = false }
 errand = { version = "0.4.0", git = "https://github.com/merely-made/errand.git", branch = "main" }
@@ -423,7 +424,7 @@ accesskit_windows = "0.35.1"
 accesskit_unix = "0.24.0"
 accesskit_macos = "0.27.1"
 accesskit_winit = "0.34.1"
-accesskit_consumer = "=0.39.1"
+accesskit_consumer = ">=0.39.1"
 ui-events = "0.3"
 dpi = "0.1.2"
 raw-window-handle = "0.6"
