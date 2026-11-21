@@ -1,6 +1,6 @@
 # Mere CLI plan: the query tool, rebuilt on the host toolkit
 
-**Status:** 2026-11-21: Q1 to Q3 built on branch `cli-q1`, unlanded. D1 to D17 ruled.
+**Status:** 2026-11-21: Q1 to Q3 built on branch `cli-q1`, unlanded. D1 to D21 ruled.
 
 **For:** the `mere` command-line tool. It queries a linked-data graph locally, or
 serves one allowed SPARQL query to an invited peer over iroh, Reticulum, I2P or a
@@ -28,7 +28,7 @@ Read at Mere `aae4d3ba1`, Graphshell `8cc8c6bf`, dramatis and murm main, 2026-11
 
 ## Decisions
 
-Mark answered twenty question cards on 2026-11-21, plus four free-text answers. Each
+Mark answered twenty-four question cards on 2026-11-21, plus four free-text answers. Each
 entry quotes his answer.
 
 - **D1, the tool lives in Graphshell's host workspace, rebuilt on the stack.**
@@ -163,6 +163,33 @@ entry quotes his answer.
 
   Links: summary mere revoke writes a signed revocation into serve's state directory, which serve folds; the file is portable to other serves.
 
+- **D18, the browser fetches the query text from signaling.** Mark chose
+  "Signaling serves GET /query (Recommended)". The CLI's signaling adds
+  `/query`, the allowed text; the page fetches it beside `/invite`, shows it and
+  runs it. The invite format does not change.
+
+  Links: summary The CLI's signaling serves the allowed query text at GET /query for the browser page.
+
+- **D19, browser invites carry C4's placeholder release.** Mark chose "C4's
+  placeholder for now (Recommended)". The `ReleaseRefV1` a CLI browser invite
+  names is C4's fixed bytes until Turnstone's web app has published releases.
+  Naming the real release is owed.
+
+  Links: summary CLI browser invites name C4's placeholder release until Turnstone's web app publishes releases.
+
+- **D20, a browser invite allows eight sessions.** Mark chose "8, with --uses
+  (Recommended)". It still expires in seven days (D14).
+
+  Links: summary A CLI browser invite allows eight sessions by default, adjustable with --uses.
+
+- **D21, the query view is a page beside co-op's.** Mark chose "A query page
+  beside co_op.html (Recommended)". `query.html` in Turnstone's
+  `ports/graphshell/web` joins with the fragment, fetches the query, shows it,
+  runs it and renders the rows as a table. graphshell-client's `RemoteSession`
+  gains the paged query operation it uses.
+
+  Links: summary Turnstone's web app gains query.html beside co_op.html, and graphshell-client's RemoteSession gains a paged query operation.
+
 ## Phases
 
 Each phase is verified in its own worktree. Nothing reaches main until Q5, which
@@ -225,3 +252,7 @@ lands everything together (D3).
   the SAM fixture. graphshell-host gains `dial_projection_session_bound` and
   `Invitation::hello_bound` for carriers bound to a link (Reticulum). D16 and
   D17 ruled.
+- 2026-11-21: the CLI rebuilt as `host/ports/mere-cli`. Its reader flow (granted
+  query answers, another refused, a tampered invitation refused, a revocation
+  stops it) passes over iroh. The browser's hello now asks for the invite's
+  action. D18 to D21 ruled for the browser path.

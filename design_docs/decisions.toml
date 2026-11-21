@@ -348,6 +348,26 @@ title = "`mere revoke` writes a signed revocation file"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_mere_cli_plan.md"
 summary = "mere revoke writes a signed revocation into serve's state directory, which serve folds; the file is portable to other serves."
 
+[decisions."mere-cli D18"]
+title = "the browser fetches the query text from signaling"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_mere_cli_plan.md"
+summary = "The CLI's signaling serves the allowed query text at GET /query for the browser page."
+
+[decisions."mere-cli D19"]
+title = "browser invites carry C4's placeholder release"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_mere_cli_plan.md"
+summary = "CLI browser invites name C4's placeholder release until Turnstone's web app publishes releases."
+
+[decisions."mere-cli D20"]
+title = "a browser invite allows eight sessions"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_mere_cli_plan.md"
+summary = "A CLI browser invite allows eight sessions by default, adjustable with --uses."
+
+[decisions."mere-cli D21"]
+title = "the query view is a page beside co-op's"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_mere_cli_plan.md"
+summary = "Turnstone's web app gains query.html beside co_op.html, and graphshell-client's RemoteSession gains a paged query operation."
+
 [decisions."primitive-representations D1"]
 title = "The brief's scope (Mark, 2026-11-13)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
