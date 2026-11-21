@@ -1,6 +1,12 @@
 # Cambium composition: retained components, bindings and selective updates
 
-**Status:** 2026-10-30: P0–P5 implemented; qualification is limited to the recorded
+**Status:** 2026-11-20: P6's machine-checkable part is met on macOS and its two other items
+have moved by ruling: the native IME step to presentation PT1 (D16) and the API review's
+structural tier to when Arrange adopts managed rows (D17). The review's tiers 1 and 2 are
+landed and Turnstone's Settings uses them; the row change stamp was removed pending a safer
+one (D19). See P6's state and the API review. Windows and Linux runs, a free move of a
+window's position, and a person with assistive technology are not covered. Earlier status,
+2026-10-30: P0–P5 implemented; qualification is limited to the recorded
 supplier, receiving and native Settings scopes below. P4 adds coherent named
 inputs, bounded coalescing and selective retained evaluation. P5 installs causal
 decision evidence in Turnstone's existing diagnostics, including actual core
@@ -749,6 +755,11 @@ that passes and was shown able to fail (`scenarios/settings_focus.scn`,
 a window's position has no scenario verb. The native IME step moved to PT1 (D16). The API
 review is written and its tier 1 and tier 2 changes are in hand (D15, D17).
 
+State, later the same day. Tier 1 and tier 2 are on Graphshell main and Settings uses them
+(Turnstone `9445fe71`); the row change stamp is removed (D19). With the stamp out, `cambium`
+and `cambium-desktop` pass 672 on a freshly resolved lock. What remains under this phase's
+name is elsewhere by ruling: the native IME step (PT1, D16) and tier 3 (D17).
+
 ## Remaining implementation questions
 
 - P4 now supplies synchronous budgets from the bounded Settings consumer.
@@ -877,7 +888,7 @@ Found in the building, 2026-11-20:
   would miss the change; and Settings reports an exhausted generation as a gap
   (`exhausted_presentation_generation_wraps_to_a_distinct_input_and_reports_gap`), which a
   saturating revision cannot. `SettingRowSnapshot::revision` is on main with no reader; its
-  disposition is with Mark.
+  disposition is with Mark. Removed the same day (D19).
 - **`prepare_components` drops the actions a committed preedit produces**, as Settings did
   with its empty action type. A consumer whose actions matter calls `prepare_subtree_move`.
 - **Settings now prepares retired and hidden rows in two calls** where it made one. If a
@@ -1212,6 +1223,17 @@ confirmed it.
 
   Links: summary Tier 2 is prepare-by-key, placement queries, a row change stamp, and the queue naming what changed.
 
+- **D19, the row change stamp is removed, and a safer one is intended.** Put to Mark on
+  2026-11-20 because the stamp could not replace Settings' cache (API review, "Found in the
+  building"). Mark asked whether it mattered and was only used for this; told that the job
+  matters, that the field had no other reader and did not do the job safely, he said: "you
+  can remove, but the intention is to build a safer version later." Removed in Graphshell
+  `2fd1fb83`. The safer version gives a recreated row a stamp that cannot repeat the old
+  row's and lets the session report exhaustion; it is wanted when a second pane mints such
+  a stamp (tier 3, D17). Amends D18.
+
+  Links: summary The row change stamp is out of Cambium; a stamp safe across recreated rows and exhaustion is intended later.
+
 ## Progress
 
 - 2026-10-29: initial composition plan written.
@@ -1272,3 +1294,5 @@ confirmed it.
   `cambium` and `cambium-desktop` pass 684 and the `host` workspace checks. Turnstone's
   Settings moved onto tiers 1 and 2 except the revision (Turnstone `9445fe71`): its library
   suite passes (1,433) and the four Settings scenarios pass unchanged.
+- 2026-11-20: D19; the row change stamp removed (Graphshell `2fd1fb83`), 672 tests passing.
+  P6's machine-checkable part is met on macOS; Status says what it does not cover.

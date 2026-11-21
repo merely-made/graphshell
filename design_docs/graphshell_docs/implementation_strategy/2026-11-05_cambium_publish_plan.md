@@ -1,10 +1,11 @@
 # Cambium publish plan
 
-**Status:** 2026-11-20: in progress. P0 is done. P1 is partly done: the accesskit patch is gone
-and the vello sparse crates are renamed, but the embeddings are still in `cambium-rootstock`
-(D6), Genet's metadata is unfixed and several rows are still git-only (Findings, 2026-11-20).
-P1 is being finished now; P2, the publish itself, waits on the composition plan's API review
-(D8). Nothing is published. The closure measured on 2026-11-05 is superseded: it is 54 crates,
+**Status:** 2026-11-20: in progress. P0 is done. P1's manifest work is done as far as it can
+go without a publish: the embeddings left rootstock (D6), the sparse crates carry their
+one-hyphen names (D10), Genet's and Graphshell's chain crates are publishable with versions
+on their git and path rows. What P1 still owes is listed under "Open before P2": four
+questions for Mark and the dry runs, which can only run as a ladder. The API review P2 waited
+on (D8) has its tiers 1 and 2 landed. Nothing is published. The closure measured on 2026-11-05 is superseded: it is 54 crates,
 and the Dramatis application this plan was opened for no longer exists.
 
 **For:** publishing the Cambium desktop chain to crates.io so that applications outside Mere,
@@ -73,6 +74,29 @@ its unpublished dependencies in the registry, so across repositories the dry run
 as a ladder, each repository after the one below it has really published (Findings, 2026-11-20).
 - Done when: every crate in the closure is on crates.io at the planned version, consumers' exact
   pins are updated, and the Dramatis application builds from registry versions alone.
+
+### Open before P2
+
+Found while finishing P1, 2026-11-20. None is decided.
+
+- **`genet-presenter`'s `native-webgl` feature** takes optional dependencies on `genet-runtime`
+  and `genet-webgl`, both unpublishable. Either they join the chain or the published crate
+  goes without the feature.
+- **`cambium-desktop` builds against a local patch of `light-file-dialog`**
+  (`host/support/patches/light-file-dialog`: it "reuse[s] the Windows password class across
+  cancellation and sequential prompts"). A published `cambium-desktop` resolves the registry's
+  3.21.3. Whether that compiles and behaves is not determined.
+- **`host/` patches `document-session-api` to Genet's git main**, to share one input vocabulary
+  with Webcue. The published 0.1.2 may differ from main; if it does, it republishes first.
+- **Version numbers.** About twenty published crates have drifted and need a bump, `cambium`
+  0.6.1 and `cambium-winit` 0.3.0 among them. The numbers are chosen at the publish, and
+  exact pins move in six consumer repositories with them.
+- **The dry runs are a ladder.** `cargo package --list` passes for Genet's four new crates and
+  Graphshell's six, but it resolves nothing. A real dry run of a crate needs its dependencies
+  in the registry, so each repository's dry run follows the publish of the one below it: the
+  vello fork, Netrender, Armillary, Genet, Graphshell's root, then `host/`.
+- **Inker and wgpu-cue** carry git-only rows (`webcue`, `grafting-frame`) that matter only if
+  `uxtree` needs a newer `inker` than the registry's.
 
 ## Decisions
 
@@ -188,6 +212,14 @@ as a ladder, each repository after the one below it has really published (Findin
 
 ## Progress
 
+- 2026-11-20: D10's rename landed. The fork's `mark-ik/all-vellos` is `551cd5da` and Netrender's
+  main `1c375bd5d`, moved together; Netrender's workspace checked against the renamed crates
+  first, with `vello-all` and `serde` (`--all-features` turns on a wasm-only feature that
+  refuses a native build). Turnstone's deny reasons name `netrender-wesl` (`c8b749be`).
+- 2026-11-20: Graphshell's host manifests (`aa1f31a4`): `cambium-rootstock`, `cambium-a11y`,
+  `mandrake` and `cambium-desktop` are publishable; `genet-render`, `genet-presenter`,
+  `genet-winit`, `document-session-api` and `tinct` carry versions on their rows; the `host`
+  workspace still resolves. What remains is under "Open before P2".
 - 2026-11-20: the D10 rename is prepared on the vello fork and not pushed (`551cd5da` on a
   local branch off `mark-ik/all-vellos`: nine files, package names and both lock files only;
   `cargo metadata --locked` passes in the root and in `fuzz/`). The fork's branch and

@@ -7,10 +7,7 @@ edition.workspace = true
 rust-version = "1.97.1"
 license = "MPL-2.0"
 repository.workspace = true
-# Same posture as cambium-genet-winit-host, which this was carved out of: it
-# rides genet-livery and genet-render, which inherit genet's publish = false.
-# Consumers take it from genet.git by branch.
-publish = false
+publish = true
 
 [features]
 default = ["image-decode"]

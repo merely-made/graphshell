@@ -58,10 +58,6 @@ pub struct SettingRowSnapshot {
     pub dirty: bool,
     pub edit_generation: u64,
     pub reset_generation: u64,
-    /// Advances by one each time a session call changes anything else in the
-    /// snapshot, and never otherwise. Equal revisions from one session mean
-    /// equal snapshots, so a consumer can compare this in place of the whole.
-    pub revision: u64,
     pub phase: SettingRowPhase,
     pub apply_compatible: bool,
     pub pending_generation: Option<u64>,
@@ -86,7 +82,6 @@ impl fmt::Debug for SettingRowSnapshot {
             )
             .field("edit_generation", &self.edit_generation)
             .field("reset_generation", &self.reset_generation)
-            .field("revision", &self.revision)
             .field("phase", &self.phase)
             .field("apply_compatible", &self.apply_compatible)
             .field("pending_generation", &self.pending_generation)
@@ -108,29 +103,10 @@ struct SessionState {
     draft_value: SettingValue,
     edit_generation: u64,
     reset_generation: u64,
-    revision: u64,
     phase: SettingRowPhase,
     apply_compatible: bool,
     pending_generation: Option<u64>,
     failure: Option<String>,
-}
-
-impl SessionState {
-    fn snapshot(&self) -> SettingRowSnapshot {
-        SettingRowSnapshot {
-            baseline_spec: self.baseline_spec.clone(),
-            observed_spec: self.observed_spec.clone(),
-            draft_value: self.draft_value.clone(),
-            dirty: session_is_dirty(&self.draft_value, &self.baseline_spec.value, self.phase),
-            edit_generation: self.edit_generation,
-            reset_generation: self.reset_generation,
-            revision: self.revision,
-            phase: self.phase,
-            apply_compatible: self.apply_compatible,
-            pending_generation: self.pending_generation,
-            failure: self.failure.clone(),
-        }
-    }
 }
 
 impl fmt::Debug for SettingRowSession {
@@ -141,7 +117,6 @@ impl fmt::Debug for SettingRowSession {
             .field("draft_value", &"<redacted>")
             .field("edit_generation", &state.edit_generation)
             .field("reset_generation", &state.reset_generation)
-            .field("revision", &state.revision)
             .field("phase", &state.phase)
             .field("apply_compatible", &state.apply_compatible)
             .field("pending_generation", &state.pending_generation)
@@ -164,7 +139,6 @@ impl SettingRowSession {
             draft_value: spec.value.clone(),
             edit_generation: 0,
             reset_generation: 0,
-            revision: 0,
             phase: SettingRowPhase::Clean,
             apply_compatible: true,
             pending_generation: None,
@@ -174,110 +148,109 @@ impl SettingRowSession {
 
     /// Current session metadata. Control-specific editor state is not stored here.
     pub fn snapshot(&self) -> SettingRowSnapshot {
-        self.0.borrow().snapshot()
-    }
-
-    /// Run one mutation, advancing the revision if the snapshot changed.
-    fn change<R>(&self, edit: impl FnOnce(&mut SessionState) -> R) -> R {
-        let mut state = self.0.borrow_mut();
-        let before = state.snapshot();
-        let result = edit(&mut state);
-        if state.snapshot() != before {
-            state.revision = state.revision.saturating_add(1);
+        let state = self.0.borrow();
+        SettingRowSnapshot {
+            baseline_spec: state.baseline_spec.clone(),
+            observed_spec: state.observed_spec.clone(),
+            draft_value: state.draft_value.clone(),
+            dirty: session_is_dirty(&state.draft_value, &state.baseline_spec.value, state.phase),
+            edit_generation: state.edit_generation,
+            reset_generation: state.reset_generation,
+            phase: state.phase,
+            apply_compatible: state.apply_compatible,
+            pending_generation: state.pending_generation,
+            failure: state.failure.clone(),
         }
-        result
     }
 
     /// Observe a coherent provider snapshot. Clean sessions adopt it; dirty
     /// sessions retain their original editor and write baseline. A changed
     /// id/control disables Apply until an explicit reset.
     pub fn observe(&self, spec: SettingSpec) -> SettingRowObservation {
-        self.change(|state| {
-            state.observed_spec = spec.clone();
-            if state.pending_generation.is_some() {
-                state.apply_compatible = state.baseline_spec.id == spec.id
-                    && controls_compatible(&state.baseline_spec.control, &spec.control);
-                return if state.apply_compatible {
-                    SettingRowObservation::PreservedDraft
-                } else {
-                    SettingRowObservation::IncompatibleDraft
-                };
-            }
-            if state.phase == SettingRowPhase::Unavailable {
-                let same_target = state.baseline_spec.id == spec.id
-                    && controls_compatible(&state.baseline_spec.control, &spec.control);
-                if same_target && state.draft_value == state.baseline_spec.value {
-                    let reset_control = editor_spec_changed(&state.baseline_spec, &spec);
-                    state.baseline_spec = spec.clone();
-                    state.draft_value = spec.value.clone();
-                    state.phase = SettingRowPhase::Clean;
-                    state.apply_compatible = true;
-                    state.failure = None;
-                    if reset_control {
-                        state.reset_generation = state.reset_generation.saturating_add(1);
-                    }
-                    return SettingRowObservation::AdoptedClean;
-                }
-                state.apply_compatible = same_target;
-                return if same_target {
-                    SettingRowObservation::PreservedDraft
-                } else {
-                    SettingRowObservation::IncompatibleDraft
-                };
-            }
-            if state.phase == SettingRowPhase::Clean {
-                if state.baseline_spec != spec {
-                    let reset_control = editor_spec_changed(&state.baseline_spec, &spec);
-                    state.baseline_spec = spec.clone();
-                    state.draft_value = spec.value.clone();
-                    if reset_control {
-                        state.reset_generation = state.reset_generation.saturating_add(1);
-                    }
-                }
+        let mut state = self.0.borrow_mut();
+        state.observed_spec = spec.clone();
+        if state.pending_generation.is_some() {
+            state.apply_compatible = state.baseline_spec.id == spec.id
+                && controls_compatible(&state.baseline_spec.control, &spec.control);
+            return if state.apply_compatible {
+                SettingRowObservation::PreservedDraft
+            } else {
+                SettingRowObservation::IncompatibleDraft
+            };
+        }
+        if state.phase == SettingRowPhase::Unavailable {
+            let same_target = state.baseline_spec.id == spec.id
+                && controls_compatible(&state.baseline_spec.control, &spec.control);
+            if same_target && state.draft_value == state.baseline_spec.value {
+                let reset_control = editor_spec_changed(&state.baseline_spec, &spec);
+                state.baseline_spec = spec.clone();
+                state.draft_value = spec.value.clone();
+                state.phase = SettingRowPhase::Clean;
                 state.apply_compatible = true;
                 state.failure = None;
+                if reset_control {
+                    state.reset_generation = state.reset_generation.saturating_add(1);
+                }
                 return SettingRowObservation::AdoptedClean;
             }
-            if state.draft_value == state.baseline_spec.value
-                && !matches!(
-                    state.phase,
-                    SettingRowPhase::Conflict | SettingRowPhase::ReviewingMine
-                )
-            {
+            state.apply_compatible = same_target;
+            return if same_target {
+                SettingRowObservation::PreservedDraft
+            } else {
+                SettingRowObservation::IncompatibleDraft
+            };
+        }
+        if state.phase == SettingRowPhase::Clean {
+            if state.baseline_spec != spec {
                 let reset_control = editor_spec_changed(&state.baseline_spec, &spec);
-                state.phase = SettingRowPhase::Clean;
                 state.baseline_spec = spec.clone();
                 state.draft_value = spec.value.clone();
                 if reset_control {
                     state.reset_generation = state.reset_generation.saturating_add(1);
                 }
-                state.apply_compatible = true;
-                state.failure = None;
-                return SettingRowObservation::AdoptedClean;
             }
-            state.apply_compatible = state.baseline_spec.id == spec.id
-                && controls_compatible(&state.baseline_spec.control, &spec.control);
-            if state.apply_compatible {
-                SettingRowObservation::PreservedDraft
-            } else {
-                SettingRowObservation::IncompatibleDraft
+            state.apply_compatible = true;
+            state.failure = None;
+            return SettingRowObservation::AdoptedClean;
+        }
+        if state.draft_value == state.baseline_spec.value
+            && !matches!(
+                state.phase,
+                SettingRowPhase::Conflict | SettingRowPhase::ReviewingMine
+            )
+        {
+            let reset_control = editor_spec_changed(&state.baseline_spec, &spec);
+            state.phase = SettingRowPhase::Clean;
+            state.baseline_spec = spec.clone();
+            state.draft_value = spec.value.clone();
+            if reset_control {
+                state.reset_generation = state.reset_generation.saturating_add(1);
             }
-        })
+            state.apply_compatible = true;
+            state.failure = None;
+            return SettingRowObservation::AdoptedClean;
+        }
+        state.apply_compatible = state.baseline_spec.id == spec.id
+            && controls_compatible(&state.baseline_spec.control, &spec.control);
+        if state.apply_compatible {
+            SettingRowObservation::PreservedDraft
+        } else {
+            SettingRowObservation::IncompatibleDraft
+        }
     }
 
     /// Explicitly discard local work and adopt `spec`, invalidating pending acks.
     pub fn reset(&self, spec: SettingSpec) {
-        self.change(|state| {
-            state.baseline_spec = spec.clone();
-            state.observed_spec = spec.clone();
-            state.draft_value = spec.value.clone();
-            state.edit_generation = state.edit_generation.saturating_add(1);
-            state.reset_generation = state.reset_generation.saturating_add(1);
-            state.phase = SettingRowPhase::Clean;
-            state.apply_compatible = true;
-            state.pending_generation = None;
-            state.failure = None;
-        })
+        let mut state = self.0.borrow_mut();
+        state.baseline_spec = spec.clone();
+        state.observed_spec = spec.clone();
+        state.draft_value = spec.value.clone();
+        state.edit_generation = state.edit_generation.saturating_add(1);
+        state.reset_generation = state.reset_generation.saturating_add(1);
+        state.phase = SettingRowPhase::Clean;
+        state.apply_compatible = true;
+        state.pending_generation = None;
+        state.failure = None;
     }
 
     /// Explicitly choose the latest observed provider value.
@@ -289,54 +262,52 @@ impl SettingRowSession {
     /// Record a real value change. Equal-value navigation is ignored; editing
     /// back to baseline makes the session clean without a provider write.
     pub fn record_edit(&self, value: SettingValue) -> Option<u64> {
-        self.change(|state| {
-            if !value_matches_control(&state.baseline_spec.control, &value)
-                || value == state.draft_value
-            {
-                return None;
-            }
-            let previous_phase = state.phase;
-            state.edit_generation = state.edit_generation.saturating_add(1);
-            state.draft_value = value;
-            match previous_phase {
-                SettingRowPhase::Conflict
-                | SettingRowPhase::ReviewingMine
-                | SettingRowPhase::Unavailable => {},
-                _ => {
-                    state.failure = None;
-                    state.phase = if state.draft_value == state.baseline_spec.value {
-                        SettingRowPhase::Clean
-                    } else {
-                        SettingRowPhase::Dirty
-                    };
-                },
-            }
-            Some(state.edit_generation)
-        })
+        let mut state = self.0.borrow_mut();
+        if !value_matches_control(&state.baseline_spec.control, &value)
+            || value == state.draft_value
+        {
+            return None;
+        }
+        let previous_phase = state.phase;
+        state.edit_generation = state.edit_generation.saturating_add(1);
+        state.draft_value = value;
+        match previous_phase {
+            SettingRowPhase::Conflict
+            | SettingRowPhase::ReviewingMine
+            | SettingRowPhase::Unavailable => {},
+            _ => {
+                state.failure = None;
+                state.phase = if state.draft_value == state.baseline_spec.value {
+                    SettingRowPhase::Clean
+                } else {
+                    SettingRowPhase::Dirty
+                };
+            },
+        }
+        Some(state.edit_generation)
     }
 
     /// Start a single Apply generation. The product still owns request id and
     /// revision guard validation; this is only local presentation admission.
     pub fn begin_apply(&self, edit_generation: u64) -> bool {
-        self.change(|state| {
-            if !state.apply_compatible
-                || state.pending_generation.is_some()
-                || state.edit_generation != edit_generation
-                || !matches!(
-                    state.phase,
-                    SettingRowPhase::Clean
-                        | SettingRowPhase::Dirty
-                        | SettingRowPhase::ReviewingMine
-                        | SettingRowPhase::Failed
-                )
-            {
-                return false;
-            }
-            state.pending_generation = Some(edit_generation);
-            state.phase = SettingRowPhase::Applying;
-            state.failure = None;
-            true
-        })
+        let mut state = self.0.borrow_mut();
+        if !state.apply_compatible
+            || state.pending_generation.is_some()
+            || state.edit_generation != edit_generation
+            || !matches!(
+                state.phase,
+                SettingRowPhase::Clean
+                    | SettingRowPhase::Dirty
+                    | SettingRowPhase::ReviewingMine
+                    | SettingRowPhase::Failed
+            )
+        {
+            return false;
+        }
+        state.pending_generation = Some(edit_generation);
+        state.phase = SettingRowPhase::Applying;
+        state.failure = None;
+        true
     }
 
     /// Accept a provider-confirmed canonical value only for the pending edit.
@@ -346,93 +317,88 @@ impl SettingRowSession {
         edit_generation: u64,
         canonical_spec: SettingSpec,
     ) -> Option<SettingRowAckDisposition> {
-        self.change(|state| {
-            if state.pending_generation != Some(edit_generation)
-                || canonical_spec.id != state.baseline_spec.id
-                || !controls_compatible(&canonical_spec.control, &state.baseline_spec.control)
-                || !value_matches_control(&canonical_spec.control, &canonical_spec.value)
-            {
-                return None;
+        let mut state = self.0.borrow_mut();
+        if state.pending_generation != Some(edit_generation)
+            || canonical_spec.id != state.baseline_spec.id
+            || !controls_compatible(&canonical_spec.control, &state.baseline_spec.control)
+            || !value_matches_control(&canonical_spec.control, &canonical_spec.value)
+        {
+            return None;
+        }
+        let observed_unchanged = state.observed_spec == state.baseline_spec;
+        state.baseline_spec = canonical_spec.clone();
+        if observed_unchanged {
+            state.observed_spec = canonical_spec.clone();
+        }
+        state.pending_generation = None;
+        state.apply_compatible = state.observed_spec.id == state.baseline_spec.id
+            && controls_compatible(&state.observed_spec.control, &state.baseline_spec.control);
+        state.failure = None;
+        if state.edit_generation == edit_generation {
+            if state.draft_value != canonical_spec.value {
+                state.reset_generation = state.reset_generation.saturating_add(1);
             }
-            let observed_unchanged = state.observed_spec == state.baseline_spec;
-            state.baseline_spec = canonical_spec.clone();
-            if observed_unchanged {
-                state.observed_spec = canonical_spec.clone();
-            }
-            state.pending_generation = None;
-            state.apply_compatible = state.observed_spec.id == state.baseline_spec.id
-                && controls_compatible(&state.observed_spec.control, &state.baseline_spec.control);
-            state.failure = None;
-            if state.edit_generation == edit_generation {
-                if state.draft_value != canonical_spec.value {
-                    state.reset_generation = state.reset_generation.saturating_add(1);
-                }
-                state.draft_value = canonical_spec.value;
-                state.phase = SettingRowPhase::Clean;
-                Some(SettingRowAckDisposition::Clean)
-            } else {
-                state.phase = if state.draft_value == state.baseline_spec.value {
-                    SettingRowPhase::Clean
-                } else {
-                    SettingRowPhase::Dirty
-                };
-                Some(SettingRowAckDisposition::KeepNewerDraft)
-            }
-        })
-    }
-
-    /// Record a failed request without changing the draft or baseline.
-    pub fn fail(&self, kind: SettingRowFailureKind, message: impl Into<String>) {
-        self.change(|state| {
-            state.pending_generation = None;
-            state.failure = Some(message.into());
-            state.phase = match kind {
-                SettingRowFailureKind::Conflict => SettingRowPhase::Conflict,
-                SettingRowFailureKind::Unavailable => SettingRowPhase::Unavailable,
-                SettingRowFailureKind::Persistence | SettingRowFailureKind::Validation => {
-                    SettingRowPhase::Failed
-                },
-            };
-        })
-    }
-
-    /// Mark the row unavailable while preserving any current draft.
-    pub fn set_unavailable(&self, reason: impl Into<String>) {
-        self.change(|state| {
-            state.phase = SettingRowPhase::Unavailable;
-            state.failure = Some(reason.into());
-        })
-    }
-
-    /// Resume after the product has confirmed the same owner incarnation is
-    /// available again. This does not adopt a snapshot or change the baseline.
-    pub fn resume_available(&self) -> bool {
-        self.change(|state| {
-            if state.phase != SettingRowPhase::Unavailable
-                || !state.apply_compatible
-                || state.pending_generation.is_some()
-            {
-                return false;
-            }
-            state.failure = None;
+            state.draft_value = canonical_spec.value;
+            state.phase = SettingRowPhase::Clean;
+            Some(SettingRowAckDisposition::Clean)
+        } else {
             state.phase = if state.draft_value == state.baseline_spec.value {
                 SettingRowPhase::Clean
             } else {
                 SettingRowPhase::Dirty
             };
-            true
-        })
+            Some(SettingRowAckDisposition::KeepNewerDraft)
+        }
+    }
+
+    /// Record a failed request without changing the draft or baseline.
+    pub fn fail(&self, kind: SettingRowFailureKind, message: impl Into<String>) {
+        let mut state = self.0.borrow_mut();
+        state.pending_generation = None;
+        state.failure = Some(message.into());
+        state.phase = match kind {
+            SettingRowFailureKind::Conflict => SettingRowPhase::Conflict,
+            SettingRowFailureKind::Unavailable => SettingRowPhase::Unavailable,
+            SettingRowFailureKind::Persistence | SettingRowFailureKind::Validation => {
+                SettingRowPhase::Failed
+            },
+        };
+    }
+
+    /// Mark the row unavailable while preserving any current draft.
+    pub fn set_unavailable(&self, reason: impl Into<String>) {
+        let mut state = self.0.borrow_mut();
+        state.phase = SettingRowPhase::Unavailable;
+        state.failure = Some(reason.into());
+    }
+
+    /// Resume after the product has confirmed the same owner incarnation is
+    /// available again. This does not adopt a snapshot or change the baseline.
+    pub fn resume_available(&self) -> bool {
+        let mut state = self.0.borrow_mut();
+        if state.phase != SettingRowPhase::Unavailable
+            || !state.apply_compatible
+            || state.pending_generation.is_some()
+        {
+            return false;
+        }
+        state.failure = None;
+        state.phase = if state.draft_value == state.baseline_spec.value {
+            SettingRowPhase::Clean
+        } else {
+            SettingRowPhase::Dirty
+        };
+        true
     }
 
     /// Move from a conflict prompt to explicit review of the retained draft.
     pub fn review_mine(&self) -> bool {
-        self.change(|state| {
-            if state.phase != SettingRowPhase::Conflict || !state.apply_compatible {
-                return false;
-            }
-            state.phase = SettingRowPhase::ReviewingMine;
-            true
-        })
+        let mut state = self.0.borrow_mut();
+        if state.phase != SettingRowPhase::Conflict || !state.apply_compatible {
+            return false;
+        }
+        state.phase = SettingRowPhase::ReviewingMine;
+        true
     }
 }
 

@@ -93,6 +93,11 @@ title = "tier 2 is four additions"
 source = "design_docs/cambium_docs/implementation_strategy/2026-10-29_cambium_composition_plan.md"
 summary = "Tier 2 is prepare-by-key, placement queries, a row change stamp, and the queue naming what changed."
 
+[decisions."cambium-composition D19"]
+title = "the row change stamp is removed, and a safer one is intended"
+source = "design_docs/cambium_docs/implementation_strategy/2026-10-29_cambium_composition_plan.md"
+summary = "The row change stamp is out of Cambium; a stamp safe across recreated rows and exhaustion is intended later."
+
 [decisions."cambium-publish D1"]
 title = "Publish the app's GUI dependencies first (Mark, 2026-11-05)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-05_cambium_publish_plan.md"
