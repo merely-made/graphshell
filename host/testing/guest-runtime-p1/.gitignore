@@ -2,5 +2,6 @@
 # and the reference transcript the tool writes.
 /web/projection/
 /web/document/
+/web/bomb/
 /web/host/
 /web/reference.json

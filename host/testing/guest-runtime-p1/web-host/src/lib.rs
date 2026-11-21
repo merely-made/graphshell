@@ -11,12 +11,24 @@
 //! `WitServer` the native test uses, with each call exposed in the value
 //! shapes the converted guest's glue expects. A session crosses as its opaque
 //! handle bytes, so no table lives here.
+//!
+//! The second guest (the document guest) needs two more things from its host
+//! on this engine: the `net.fetch` rules (`FetchGate`) and the memory cap
+//! (`limitMemory`). Both are below the fixture server, each over a plain Rust
+//! module that the native tests run.
 
 use graphshell_endpoint::wit::bindings::{Handler, Session};
 use graphshell_endpoint::wit::testkit::{CALLS_BEFORE_REVOCATION, CountdownGate, FixtureEndpoint};
 use graphshell_endpoint::wit::{Failure, Notice, WitServer};
 use js_sys::{Array, BigInt, Object, Reflect, Uint8Array};
 use wasm_bindgen::prelude::*;
+
+mod fetch_gate;
+mod memory_cap;
+// The native fetch rules, compiled from the same file `document-host` uses.
+#[path = "../../../../crates/script/document-host/src/net.rs"]
+#[allow(dead_code)]
+mod net;
 
 /// A WIT variant as the glue reads one: `{ tag, val }`.
 fn variant(tag: &str, val: Option<JsValue>) -> JsValue {
@@ -148,4 +160,42 @@ impl FixtureHost {
     pub fn open_sessions(&self) -> usize {
         self.server.open_sessions()
     }
+}
+
+/// The `net.fetch` rules of one script, for the worker that runs it.
+#[wasm_bindgen]
+pub struct FetchGate {
+    gate: fetch_gate::FetchGate,
+}
+
+#[wasm_bindgen]
+impl FetchGate {
+    #[wasm_bindgen(constructor)]
+    pub fn new(origins: Vec<String>, max_fetches_per_turn: u32) -> Self {
+        Self { gate: fetch_gate::FetchGate::new(origins, max_fetches_per_turn) }
+    }
+
+    /// A fresh per-turn budget.
+    #[wasm_bindgen(js_name = beginTurn)]
+    pub fn begin_turn(&mut self) {
+        self.gate.begin_turn();
+    }
+
+    /// The `net.fetch` response record the glue expects, or a thrown string,
+    /// which the glue reads as the error arm of the `result`.
+    pub fn fetch(&mut self, url: &str) -> Result<JsValue, JsValue> {
+        let response = self.gate.fetch(url).map_err(JsValue::from)?;
+        let object = Object::new();
+        let _ = Reflect::set(&object, &"status".into(), &response.status.into());
+        let content_type = response.content_type.map_or(JsValue::UNDEFINED, JsValue::from);
+        let _ = Reflect::set(&object, &"contentType".into(), &content_type);
+        let _ = Reflect::set(&object, &"body".into(), &response.body.into());
+        Ok(object.into())
+    }
+}
+
+/// `module` with its memory limited to `max_pages` 64 KiB pages.
+#[wasm_bindgen(js_name = limitMemory)]
+pub fn limit_memory(module: &[u8], max_pages: u32) -> Result<Vec<u8>, JsValue> {
+    memory_cap::limit_memory(module, u64::from(max_pages)).map_err(JsValue::from)
 }
