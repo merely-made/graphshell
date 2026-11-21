@@ -871,6 +871,19 @@ PT1 is open; D4's force-commit of IME before a move is unchecked in Genet.
 
 Not suggested: widening the API for the data grid, which no plan asks for.
 
+Found in the building, 2026-11-20:
+- **The row change stamp does not replace Settings' cache.** A row recreated under the same
+  key starts at a fresh revision, so its stamp can repeat the old row's and a retained view
+  would miss the change; and Settings reports an exhausted generation as a gap
+  (`exhausted_presentation_generation_wraps_to_a_distinct_input_and_reports_gap`), which a
+  saturating revision cannot. `SettingRowSnapshot::revision` is on main with no reader; its
+  disposition is with Mark.
+- **`prepare_components` drops the actions a committed preedit produces**, as Settings did
+  with its empty action type. A consumer whose actions matter calls `prepare_subtree_move`.
+- **Settings now prepares retired and hidden rows in two calls** where it made one. If a
+  composition refuses, which rows were already prepared can differ; the outcome and the
+  message are the same.
+
 ## Findings (2026-10-30)
 
 - P4/P5 supplier and receiving source is implemented. The final supplier gate
@@ -1253,3 +1266,9 @@ confirmed it.
 - 2026-11-20: the failing `cambium-desktop` test was the test's fault and is repaired
   (`edcbe9f5`); tier 1 is done in Cambium (`4afa8034`); D18 names tier 2, now being built.
   Turnstone's move onto both follows.
+- 2026-11-20: tier 2 landed in Cambium (Graphshell `dd3705ab`: `prepare_components` and the
+  node on the route snapshot, the placement queries, `InputVector::changed_since`,
+  `CompositionInputQueue::has_gap`, and `SettingRowSnapshot::revision`); on a fresh resolve
+  `cambium` and `cambium-desktop` pass 684 and the `host` workspace checks. Turnstone's
+  Settings moved onto tiers 1 and 2 except the revision (Turnstone `9445fe71`): its library
+  suite passes (1,433) and the four Settings scenarios pass unchanged.

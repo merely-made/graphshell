@@ -145,6 +145,18 @@ as a ladder, each repository after the one below it has really published (Findin
 
   Links: draws on cambium-publish D5 · summary The fork's sparse crates publish as netrender-sparse, netrender-cpu, netrender-hybrid and netrender-shaders.
 
+- **D10. The GPU and shader crates are `netrender-gpu` and `netrender-wesl` (Mark, 2026-11-20):**
+  put back to Mark the same day on two errors in what D9 was offered on. The GPU crate's
+  library is `vello_gpu` in the fork and upstream, and "hybrid" is only Netrender's dependency
+  alias; and `netrender-vello-shaders`, the classic Vello shaders, is already published, so
+  `netrender-shaders` would sit beside it. "sparse, cpu, gpu, wesl (Recommended)":
+  `netrender-sparse`, `netrender-cpu`, `netrender-gpu` and `netrender-wesl` (the shader
+  sources are WESL), all free that day; over keeping D9's four and over changing only one of
+  the two. Library names are `vello_common`, `vello_cpu`, `vello_gpu` and `vello_gpu_shaders`.
+  Outcome: amends D9.
+
+  Links: amends cambium-publish D9 · summary The sparse crates publish as netrender-sparse, netrender-cpu, netrender-gpu and netrender-wesl.
+
 ## Findings
 
 - 2026-11-20, a survey of each repository's main (manifests read, nothing built; counts skip
@@ -176,6 +188,11 @@ as a ladder, each repository after the one below it has really published (Findin
 
 ## Progress
 
+- 2026-11-20: the D10 rename is prepared on the vello fork and not pushed (`551cd5da` on a
+  local branch off `mark-ik/all-vellos`: nine files, package names and both lock files only;
+  `cargo metadata --locked` passes in the root and in `fuzz/`). The fork's branch and
+  Netrender's manifest have to move together, since Netrender takes the fork by branch and
+  consumers track no lock; Netrender's side is not yet built.
 - 2026-11-20: Genet's P1 metadata landed (Genet `e75a72ce34b`, manifests only, nothing built):
   the chain's crates name `merely-made/genet`, with the workspace default left at servo/servo
   for the vendored media crates; `genet-render`, `genet-presenter` and `genet-winit` are

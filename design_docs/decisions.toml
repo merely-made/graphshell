@@ -141,6 +141,12 @@ source = "design_docs/graphshell_docs/implementation_strategy/2026-11-05_cambium
 summary = "The fork's sparse crates publish as netrender-sparse, netrender-cpu, netrender-hybrid and netrender-shaders."
 draws_on = ["cambium-publish D5"]
 
+[decisions."cambium-publish D10"]
+title = "The GPU and shader crates are `netrender-gpu` and `netrender-wesl` (Mark, 2026-11-20)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-05_cambium_publish_plan.md"
+summary = "The sparse crates publish as netrender-sparse, netrender-cpu, netrender-gpu and netrender-wesl."
+amends = ["cambium-publish D9"]
+
 [decisions."device-pairing D1"]
 title = "the M4 stays on the work line"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-10-28_device_pairing_plan.md"
