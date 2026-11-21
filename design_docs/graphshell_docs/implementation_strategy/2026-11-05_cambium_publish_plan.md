@@ -96,6 +96,14 @@ Found while finishing P1, 2026-11-20. None is decided.
   Graphshell's six, but it resolves nothing. A real dry run of a crate needs its dependencies
   in the registry, so each repository's dry run follows the publish of the one below it: the
   vello fork, Netrender, Armillary, Genet, Graphshell's root, then `host/`.
+- **Netrender's rung needs the fork's compute crate again.** `netrender-vello` 0.11.0 is on the
+  registry, and its directory has three commits since (GPU allocation refusal, blend spill
+  sizing, native work diagnostics; about 1,170 lines). If Netrender uses any of that, the fork
+  publishes 0.11.1 first. `netrender-vello-encoding` and `netrender-vello-shaders` are unchanged.
+- **All five Netrender crates sit at versions already on the registry and have changed.**
+  `netrender` 0.1.2 has 66 commits since its number was set, `paint_list_render` 0.1.2 has 14,
+  `paint_list_api` 0.1.2 eight, `netrender_device` 0.1.2 six, `netrender_text` 0.1.1 four.
+  Each needs a new number, and Genet's rows for three of them move with it.
 - **The build wrapper refuses `cargo publish` and `cargo package`.** A dry run therefore runs
   as `publish --dry-run --no-verify` directly, which compiles nothing, followed by a wrapper
   build of each tarball. A real publish would run with `--no-verify` after that build, or the
