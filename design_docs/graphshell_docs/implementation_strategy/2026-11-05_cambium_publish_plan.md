@@ -5,8 +5,9 @@ go without a publish: the embeddings left rootstock (D6), the sparse crates carr
 one-hyphen names (D10), Genet's and Graphshell's chain crates are publishable with versions
 on their git and path rows. What P1 still owes is listed under "Open before P2": four
 questions for Mark and the dry runs, which can only run as a ladder. The API review P2 waited
-on (D8) has its tiers 1 and 2 landed. P2's first rung is published: the vello fork's five
-sparse crates and `netrender-vello` 0.11.1. Netrender's rung is dry-run and waits on Mark. The closure measured on 2026-11-05 is superseded: it is 54 crates,
+on (D8) has its tiers 1 and 2 landed. P2's first two rungs are published: the vello fork's five
+sparse crates and `netrender-vello` 0.11.1, then Netrender's five crates at 0.2.0. Armillary's
+rung is next; nothing above Netrender is published. The closure measured on 2026-11-05 is superseded: it is 54 crates,
 and the Dramatis application this plan was opened for no longer exists.
 
 **For:** publishing the Cambium desktop chain to crates.io so that applications outside Mere,
@@ -96,12 +97,18 @@ Found while finishing P1, 2026-11-20. None is decided.
   Graphshell's six, but it resolves nothing. A real dry run of a crate needs its dependencies
   in the registry, so each repository's dry run follows the publish of the one below it: the
   vello fork, Netrender, Armillary, Genet, Graphshell's root, then `host/`.
-- **Netrender's rung moves six repositories at once.** Genet, Graphshell's `host/`, Turnstone,
-  Inker, Emblem and wgpu-cue take Netrender's crates from its main branch at `=0.1.2` and track
-  no lock, so the push that carries 0.2.0 to Netrender's main breaks their resolve until their
-  pins say `=0.2.0`. They keep the git row beside the version until the whole chain is on the
-  registry; a graph that mixed a git Netrender with a registry one would hold two type
-  identities.
+- **Rows that still take the vello fork by git.** Netrender 0.2.0 takes the fork's crates from
+  the registry, so a consumer row that names the fork's branch puts a second source of the same
+  crate in the graph. Graphshell's `host/` had two and now takes the registry's. Cleromancy,
+  Emblem, Inker, Isocosm, Woodshed and Turnstone's web port instead patch crates.io to the
+  fork's branch, which keeps one source inside each of those workspaces but is no longer
+  needed. Genet's workspace has an unused `vello_cpu` row naming a package the fork no longer
+  has. Emblem's `pictograph` has a dev-dependency on `netrender_device = "=0.1.2"` from the
+  registry beside a git row for the same crate.
+- **A bump on a branch-tracked repository moves its pinned consumers in one pass.** Netrender's
+  0.2.0 needed pin moves in Genet, Inker, wgpu-cue, Emblem, Graphshell's `host/` and Turnstone,
+  in that order, because each resolve reaches the ones before it. Genet's and Graphshell's
+  rungs will do the same to their own consumers.
 - **The build wrapper refuses `cargo publish` and `cargo package`.** A dry run therefore runs
   as `publish --dry-run --no-verify` directly, which compiles nothing, followed by a wrapper
   build of each tarball. A real publish would run with `--no-verify` after that build, or the
@@ -234,6 +241,13 @@ Found while finishing P1, 2026-11-20. None is decided.
 
 ## Progress
 
+- 2026-11-20: Netrender's rung published (Mark: "Publish and push"). `netrender`,
+  `netrender_device`, `netrender_text`, `paint_list_api` and `paint_list_render` are on
+  crates.io at 0.2.0 from Netrender `4f00a4553`, and a crate outside the family resolves the
+  whole renderer from the registry. The `=0.2.0` pins are on main in Genet (`ba4a4740756`),
+  Inker (`9f1c9eb`), wgpu-cue (`0db46c3`), Emblem (`ac930ad`), Graphshell (`69d010ff`) and
+  Turnstone (`19239856`); each resolves with one source per Netrender crate. wgpu-cue's and
+  Emblem's locks moved to current Genet with the pin and were not built here.
 - 2026-11-20: `netrender-vello` 0.11.1 published (Mark: "Publish 0.11.1"), from the fork at
   `8e76ca38`. Netrender's rung is dry-run and not pushed: with every vello row on the
   registry the workspace checks, the five crates package at 0.2.0, and each builds from its
