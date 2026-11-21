@@ -478,6 +478,17 @@ pub enum IntentResult {
     },
 }
 
+impl IntentResult {
+    /// A stale reply naming the scene now current. Build stale replies with
+    /// this rather than the literal: `Stale` gains fields (engine split D193).
+    pub const fn stale(current_epoch: SceneEpoch, current_revision: Revision) -> Self {
+        Self::Stale {
+            current_epoch,
+            current_revision,
+        }
+    }
+}
+
 /// How a host reaches one endpoint, whatever sits between them.
 ///
 /// The protocol has always described itself as running over an *unspecified*

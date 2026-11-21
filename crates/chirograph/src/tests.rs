@@ -545,3 +545,17 @@ fn pull(whole: &ResourceResponse, window: u32) -> Result<Vec<u8>, AssemblyError>
 
 #[path = "tests/payloads.rs"]
 mod payloads;
+
+#[test]
+fn the_stale_constructor_names_the_scene_now_current() {
+    let reply = IntentResult::stale(SceneEpoch(3), Revision(41));
+    let IntentResult::Stale {
+        current_epoch,
+        current_revision,
+        ..
+    } = reply
+    else {
+        panic!("stale() built {reply:?}");
+    };
+    assert_eq!((current_epoch, current_revision), (SceneEpoch(3), Revision(41)));
+}
