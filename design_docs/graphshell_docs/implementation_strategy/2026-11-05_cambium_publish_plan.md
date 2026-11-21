@@ -261,6 +261,10 @@ Found while finishing P1, 2026-11-20. None is decided.
 
 ## Progress
 
+- 2026-11-21: the Netrender rows are `>=0.2.0`, no longer `=0.2.0`, in all six consumers (Mark:
+  "the lower bound remains 0.2.0, the upper bound includes all values above 0.2.0"). An exact
+  requirement stops resolving once Netrender's main moves. Each commit is named in its own
+  repository's log; nothing resolves differently while main carries 0.2.0.
 - 2026-11-20: Armillary's rung published (Mark: "Go ahead"). `apparatus-core` 0.1.0 is on
   crates.io from Armillary `0bad2d7`; it packaged and built from its tarball with and without
   `serde`.

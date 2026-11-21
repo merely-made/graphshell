@@ -303,9 +303,9 @@ livery = { version = ">=0.0.5", git = "https://github.com/merely-made/genet.git"
 # Graphshell contract root since 2026-11-07 (engine split plan, D19).
 tinct = { version = "0.2.0", path = "../crates/tinct" }
 
-netrender = { version = "=0.2.0", git = "https://github.com/merely-made/netrender.git", branch = "main" }
-paint_list_api = { version = "=0.2.0", git = "https://github.com/merely-made/netrender.git", branch = "main" }
-paint_list_render = { version = "=0.2.0", git = "https://github.com/merely-made/netrender.git", branch = "main" }
+netrender = { version = ">=0.2.0", git = "https://github.com/merely-made/netrender.git", branch = "main" }
+paint_list_api = { version = ">=0.2.0", git = "https://github.com/merely-made/netrender.git", branch = "main" }
+paint_list_render = { version = ">=0.2.0", git = "https://github.com/merely-made/netrender.git", branch = "main" }
 
 uxtree = { version = "0.0.2", path = "crates/forme/uxtree" }
 
