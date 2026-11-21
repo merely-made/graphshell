@@ -5,9 +5,11 @@ go without a publish: the embeddings left rootstock (D6), the sparse crates carr
 one-hyphen names (D10), Genet's and Graphshell's chain crates are publishable with versions
 on their git and path rows. What P1 still owes is listed under "Open before P2": four
 questions for Mark and the dry runs, which can only run as a ladder. The API review P2 waited
-on (D8) has its tiers 1 and 2 landed. P2's first two rungs are published: the vello fork's five
-sparse crates and `netrender-vello` 0.11.1, then Netrender's five crates at 0.2.0. Armillary's
-rung is next; nothing above Netrender is published. The closure measured on 2026-11-05 is superseded: it is 54 crates,
+on (D8) has its tiers 1 and 2 landed. P2's first three rungs are published: the vello fork's five
+sparse crates and `netrender-vello` 0.11.1, Netrender's five crates at 0.2.0, and Armillary's
+`apparatus-core` 0.1.0. Above them the chain is larger than this plan held: 40 of its 46
+already-published crates differ on main from their published copies (Findings, 2026-11-20),
+and how much of that republishes is not ruled. The closure measured on 2026-11-05 is superseded: it is 54 crates,
 and the Dramatis application this plan was opened for no longer exists.
 
 **For:** publishing the Cambium desktop chain to crates.io so that applications outside Mere,
@@ -90,8 +92,9 @@ Found while finishing P1, 2026-11-20. None is decided.
   3.21.3. Whether that compiles and behaves is not determined.
 - **`host/` patches `document-session-api` to Genet's git main**, to share one input vocabulary
   with Webcue. The published 0.1.2 may differ from main; if it does, it republishes first.
-- **Version numbers.** About twenty published crates have drifted and need a bump, `cambium`
-  0.6.1 and `cambium-winit` 0.3.0 among them. The numbers are chosen at the publish, and
+- **Version numbers.** Forty published crates differ from their registry copies (Findings,
+  2026-11-20), `cambium` 0.6.1 and `cambium-winit` 0.3.0 among them; which of them republish
+  is the first question. The numbers are chosen at the publish, and
   exact pins move in six consumer repositories with them.
 - **The dry runs are a ladder.** `cargo package --list` passes for Genet's four new crates and
   Graphshell's six, but it resolves nothing. A real dry run of a crate needs its dependencies
@@ -212,6 +215,23 @@ Found while finishing P1, 2026-11-20. None is decided.
 
 ## Findings
 
+- 2026-11-20, each already-published first-party crate that the six `host/` crates reach was
+  compared with its published copy (the files `cargo package --list` names against the
+  registry's tarball, and dependency requirements against the published manifest; nothing
+  built). **40 of 46 differ.** Identical: `engine-observables-api`, `genet-events`,
+  `genet-paint-types`, `genet-text` (Genet), `backstep` (Graphshell), `grafting-frame`
+  (wgpu-graft). Different, by repository: Genet 13 (`genet-livery` by 108 files, `livery` 32,
+  `genet-scripted-dom` 18, `buckram` 14); Graphshell 18 (`cambium` by 121 files, `scenomise`
+  46, `incipit` 34, `scenograph` 25; `cambium-winit` still asks for `cambium 0.3.3`); Dramatis
+  all four; Eidetic all four (`hodograph` in one non-source file); Inker both; Mere's
+  `catchment`; wgpu-cue's `webcue`. With the eight new crates that is 48 publishes above
+  Armillary, in the order Eidetic, Dramatis, Mere, wgpu-cue, Genet, Inker, Graphshell's root,
+  `host/`. A new crate published against a stale registry copy of its dependency builds only if
+  it uses nothing added since; that was not tested.
+- 2026-11-20: `genet-scripted-dom` takes `regress` 0.11.1 from a local patch
+  (`support/patches/regress-0.11.1`); a published copy resolves upstream's 0.11.1. The same
+  holds for Genet's other patch directories (`fontique`, `parley`, `taffy`, `sonic-rs`,
+  `gpu-allocator`) wherever a chain crate reaches them.
 - 2026-11-20, a survey of each repository's main (manifests read, nothing built; counts skip
   dev and optional dependencies, so feature-gated edges are approximate):
   - **The closure is 54 first-party crates** across Armillary, Netrender, the vello fork, Genet,
@@ -241,6 +261,9 @@ Found while finishing P1, 2026-11-20. None is decided.
 
 ## Progress
 
+- 2026-11-20: Armillary's rung published (Mark: "Go ahead"). `apparatus-core` 0.1.0 is on
+  crates.io from Armillary `0bad2d7`; it packaged and built from its tarball with and without
+  `serde`.
 - 2026-11-20: Netrender's rung published (Mark: "Publish and push"). `netrender`,
   `netrender_device`, `netrender_text`, `paint_list_api` and `paint_list_render` are on
   crates.io at 0.2.0 from Netrender `4f00a4553`, and a crate outside the family resolves the
