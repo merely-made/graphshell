@@ -9,7 +9,9 @@ what a component is as plain modules is written down, with the layer a module-on
 need, and wasmi ran a plain module natively and in a browser with its fuel limit (Findings 21 to
 24). P4 is met except its native run: Wasmer's desk study is written and its `js` flavour ran
 the module in Node and a browser, but its compilers do not build on Windows (Findings 25 to 28).
-P5 is not started. D1 to D7 ruled the same day.
+P5 is met: the readout table is below and its questions are ruled (D8 to D11), which add two
+phases, P6 (a Pulley switch in the hosts) and P7 (a guest on Wasmtime in a page). Neither is
+started.
 
 **For:** the web build. Graphshell's wasm hosts run guests on Wasmtime, which compiles them to machine
 code, and a browser grants no page the right to do that. No ruling says how a component guest runs when
@@ -79,10 +81,43 @@ speed, crates added, upstream's own maturity statement; the questions put to Mar
 evidence (whether a native profile without a compiler matters, whether the module layer is worth
 building, whether Wasmer earns a second look).
 
+### P6. A Pulley switch in the hosts (D8)
+
+**Done-conditions:** `app-host`, `document-host`, `block-host` and `authority-host` each have a `pulley`
+cargo feature, off by default, that makes their engines target Pulley; with it on, each crate's tests
+pass and a test asserts the engine is Pulley; with it off, nothing in a build changes.
+
+### P7. A guest on Wasmtime in a page (D9)
+
+**Done-conditions:** the projection guest, compiled to Pulley bytecode ahead of time, runs on
+Wasmtime built for `wasm32-unknown-unknown` in Chromium and its transcript equals the P0 reference;
+the document guest runs there with a turn cut off by an epoch or fuel limit and an allocation denied by
+a store limit, each beside a control; the same cases are timed beside D1's route; what the page had to
+supply (platform functions, WASI) is listed. If a step cannot be made to work, the plan says which and
+why, and that is the result.
+
+## Readout (P5)
+
+What ran, on the Windows laptop, with Wasmtime 51, wasmi 2.0.2, Wasmer 7.5.0, Node 24 and Chromium 156.
+"Loop" is the 50 million turn arithmetic loop, compile included except where a module was compiled
+ahead of time; the guests' own timings are in Findings 18.
+
+| Option | Contracts | Native | Browser | Guards | Loop | Added | Upstream on itself |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Wasmtime, compiler (today) | unchanged | both guests pass | cannot run: a page may not compile to machine code | fuel, epochs, store limits | 44 ms | nothing | the reference |
+| The browser's own engine (D1) | unchanged | not applicable | both guests pass: 20 of 20 calls, and the document guest's guards | replaced: a worker terminated for time, a memory maximum written into the module, the fetch gate reused | not timed | `js-component-bindgen` at build time; 393 KB of glue beside a guest | jco: "transpiles" components for browsers |
+| Wasmtime on Pulley | unchanged | both guests pass, unmodified | Wasmtime builds for the target (842 KB) and ran a core module; no component or guest has run | native: as today. In a page: not tried | 336 ms native; 400 to 470 ms in Node | nothing natively; in a page, guests compiled ahead of time | Pulley needs "more time fuzzing/baking" |
+| wasmi | broken as built: no component model; needs the module layer | a core module ran | a core module ran (1.96 MB) | fuel works in all three places; nothing else tried | 120 ms native; 687 ms Chromium; 1,390 ms Node | the module layer (not built), wasmi | component model is open issue 897 |
+| Wasmer | broken as built: no component model, none planned | did not build on Windows | a core module ran through the browser's engine (605 KB) | none documented under `js` | 59 ms Chromium; 80 ms Node | the module layer (not built), Wasmer | "we don't plan to support the Component Model" |
+
+Read across: only two rows run our guests as they are, the browser's own engine and Wasmtime (compiler
+or Pulley). wasmi and Wasmer both need a layer that does not exist, and under `js` Wasmer adds an API
+over the engine D1 already uses. Pulley costs 8 to 32 times the compiler's run time and nothing else.
+
 ## Decisions
 
 Each records the evidence put to Mark, what was offered, his answer in his words, what follows, and an
-outcome. D1 to D7 are in answer order.
+outcome. D1 to D11 are in answer order.
 
 - **D1. The web build runs guests on the browser's own engine (Mark, 2026-11-21):** Evidence: Wasmtime
   cannot compile inside a browser (`mere/design_docs/archive_docs/2026-08-20_completed_plans/2026-06-03_actor_constellation_plan.md:388`);
@@ -155,6 +190,46 @@ outcome. D1 to D7 are in answer order.
   untested. Outcome: a method choice for this plan; it bears on no doctrine statement.
 
   Links: area The stack · plans guest-runtime P1, guest-runtime P5 · summary The probe tests the fetch rules with an echo fetcher; real network routes for a guest in a browser are recorded, not tried.
+
+- **D8. The hosts get a Pulley feature, off by default (Mark, 2026-11-22):** Evidence: both guests
+  pass every test on Pulley unmodified at 8 to 32 times the compiler's run time (Findings 17, 18); no
+  profile today needs native execution without a compiler; the probe selected Pulley with a cfg of
+  Wasmtime's build script, which a product cannot use. Offered: a cargo feature, off by default
+  (recommended); record it and build nothing; a runtime choice. Answer: "A cargo feature, off by
+  default (Recommended)". What follows: phase P6. Outcome: new; answers open question 5.
+
+  Links: area The stack · plans guest-runtime P6 · summary Each wasm host has a pulley cargo feature, off by default, that runs guests on Wasmtime's interpreter.
+
+- **D9. One more probe: a guest on Wasmtime in a page (Mark, 2026-11-22):** Evidence: Wasmtime builds
+  for the browser target (842 KB) and ran a Pulley-compiled core module in Node (Findings 19); in a
+  page it would keep fuel, epochs and store limits as they are natively, where D1's route replaces
+  each; it is slower, needs guests compiled ahead of time, and no component or guest has run that
+  way. Offered: one more probe with a guest in a page (recommended); no, D1's route stands; switch the
+  plan to it. Answer: "One more probe: a guest in a page (Recommended)". What follows: phase P7; D1
+  stays the plan until it reports. Outcome: new; answers open question 4.
+
+  Links: area The stack · plans guest-runtime P7 · summary Wasmtime on Pulley inside a page is probed with both guests before any choice between it and the browser's own engine.
+
+- **D10. The module layer waits on the page probe (Mark, 2026-11-22):** Evidence: wasmi and Wasmer lack
+  the component model and would need a third output of `script-witgen` (Findings 21, 22, 25); asked
+  "how much work is 3?", the estimate given was about one and a half times the binding code that
+  exists (535 lines of generator and about 580 of runtime today), an estimate and not a measurement.
+  Offered: no, close wasmi and Wasmer here (recommended); keep wasmi as a fallback, unbuilt; build it
+  for wasmi as its own plan; decide after the page probe. Answer: "4, and speculate on relative
+  speed/performance/ergonomics (especially if we do end up giving vano and/or bole a wasmi module)".
+  What follows: nothing is built for wasmi or Wasmer now; the question returns with P7's result;
+  Wasmer's native run stays unmade (open question 6). Outcome: new.
+
+  Links: area The stack · plans guest-runtime P7 · summary Whether to build a Canonical ABI layer for a module-only runtime is decided after the Wasmtime-in-a-page probe.
+
+- **D11. A WebAssembly object for our JavaScript engines is scoped as a probe (Mark, 2026-11-22):**
+  Evidence: Mark asked "Vano? Bole?" of Wasmer's V8 flavour; neither engine runs WebAssembly
+  (Findings 28), but wasmi or Wasmtime on Pulley could give either a `WebAssembly` object. Offered:
+  hand it to Genet as a question (recommended); leave it in this plan's notes; scope a probe now.
+  Answer: "Scope a probe now". What follows: a plan of its own in Genet, assessed first; nothing of it
+  is built under this plan. Outcome: new; answers open question 7.
+
+  Links: area The stack · plans guest-runtime P5 · summary Giving Vano or Bole a WebAssembly object through an embedded wasm runtime gets its own probe plan in Genet.
 
 ## Open questions
 
@@ -313,3 +388,4 @@ outcome. D1 to D7 are in answer order.
   probe passes natively, in Node and in Chromium. P4 is next.
 - 2026-11-22: P4 met except the native run. The desk study and probe are
   `host/testing/guest-runtime-p4/`; the `js` flavour passes in Node and Chromium. P5 is next.
+- 2026-11-22: P5 met. The readout table is written; D8 to D11 ruled. P6 and P7 added.

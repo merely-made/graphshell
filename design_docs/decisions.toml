@@ -282,6 +282,34 @@ area = "The stack"
 summary = "The probe tests the fetch rules with an echo fetcher; real network routes for a guest in a browser are recorded, not tried."
 plans = ["guest-runtime"]
 
+[decisions."guest-runtime D8"]
+title = "The hosts get a Pulley feature, off by default (Mark, 2026-11-22)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_guest_runtime_plan.md"
+area = "The stack"
+summary = "Each wasm host has a pulley cargo feature, off by default, that runs guests on Wasmtime's interpreter."
+plans = ["guest-runtime"]
+
+[decisions."guest-runtime D9"]
+title = "One more probe: a guest on Wasmtime in a page (Mark, 2026-11-22)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_guest_runtime_plan.md"
+area = "The stack"
+summary = "Wasmtime on Pulley inside a page is probed with both guests before any choice between it and the browser's own engine."
+plans = ["guest-runtime"]
+
+[decisions."guest-runtime D10"]
+title = "The module layer waits on the page probe (Mark, 2026-11-22)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_guest_runtime_plan.md"
+area = "The stack"
+summary = "Whether to build a Canonical ABI layer for a module-only runtime is decided after the Wasmtime-in-a-page probe."
+plans = ["guest-runtime"]
+
+[decisions."guest-runtime D11"]
+title = "A WebAssembly object for our JavaScript engines is scoped as a probe (Mark, 2026-11-22)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_guest_runtime_plan.md"
+area = "The stack"
+summary = "Giving Vano or Bole a WebAssembly object through an embedded wasm runtime gets its own probe plan in Genet."
+plans = ["guest-runtime"]
+
 [decisions."key-lane D1"]
 title = "Prekeys travel on the lane (Mark, 2026-11-06)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-06_key_lane_plan.md"
