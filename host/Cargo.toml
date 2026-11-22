@@ -31,6 +31,7 @@ members = [
     "crates/forme/uxtree",
     "crates/graphshell/graphshell-door",
     "crates/graphshell/graphshell-host",
+    "crates/graphshell/graphshell-rdf-trail",
     "crates/incipit",
     "crates/platen/platen",
     "crates/script/app-host",

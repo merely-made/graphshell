@@ -1,0 +1,21 @@
+[package]
+name = "graphshell-rdf-trail"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Graphshell's RDF exchange for browsing trails"
+publish = false
+
+[dependencies]
+hodograph.workspace = true
+kernel.workspace = true
+mere.workspace = true
+oxrdf = "0.3"
+oxttl = "0.2"
+serde.workspace = true
+serde_json.workspace = true
+uuid.workspace = true
+
+[lints]
+workspace = true
