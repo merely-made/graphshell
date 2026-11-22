@@ -359,7 +359,7 @@ pub(crate) fn titlebar_insets(_window: &dyn winit::window::Window) -> TitlebarIn
 /// at all.
 #[cfg(target_os = "macos")]
 pub(crate) fn titlebar_insets(window: &dyn winit::window::Window) -> TitlebarInsets {
-    use objc2_app_kit::{NSWindow, NSWindowButton};
+    use objc2_app_kit::NSWindowButton;
     use raw_window_handle::{HasWindowHandle, RawWindowHandle};
 
     let Ok(handle) = window.window_handle() else {
@@ -368,7 +368,7 @@ pub(crate) fn titlebar_insets(window: &dyn winit::window::Window) -> TitlebarIns
     let RawWindowHandle::AppKit(handle) = handle.as_raw() else {
         return TitlebarInsets::NONE;
     };
-    // The handle names the content view; its window owns the buttons.
+    // Winit's drawing view can be nested inside the window's content view.
     let view: &objc2_app_kit::NSView = unsafe { handle.ns_view.cast().as_ref() };
     let Some(ns_window) = view.window() else {
         return TitlebarInsets::NONE;
@@ -383,12 +383,8 @@ pub(crate) fn titlebar_insets(window: &dyn winit::window::Window) -> TitlebarIns
         let Some(button) = ns_window.standardWindowButton(which) else {
             continue;
         };
-        // Buttons are laid out in the window's flipped-y coordinates; convert
-        // to the content view's so the values mean what a stylesheet means by
-        // "from the top".
-        let frame = button.frame();
-        let in_view =
-            view.convertRect_fromView(frame, unsafe { ns_window.contentView() }.as_deref());
+        // Convert from the button's own bounds into Winit's top-down coordinates.
+        let in_view = view.convertRect_fromView(button.bounds(), Some(&button));
         right = right.max((in_view.origin.x + in_view.size.width) as f32);
         bottom = bottom.max((in_view.origin.y + in_view.size.height) as f32);
     }
