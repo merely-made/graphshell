@@ -3234,15 +3234,13 @@ mod tests {
         );
 
         // A broad grant (every mere) admits nothing here: the leaf must name
-        // the application.
+        // the application. The host's route check is part of admission, so
+        // the refusal is in the handshake reply (Q056).
         let grant = dialler.grant(mere_overmap::wire::REMOTE_MERE_SERVICE, "connect");
-        let stream = dialler
-            .dial(&mut host, &asked, grant)
-            .await
-            .expect("admitted");
-        assert!(
-            LinePump::new(stream).open(profile.clone()).await.is_err(),
-            "a grant that names no application serves no route"
+        assert_eq!(
+            dialler.dial(&mut host, &asked, grant).await.err(),
+            Some(notochord::DenyReason::ActionNotOffered),
+            "a grant that names no application is refused at the handshake"
         );
 
         // An explicit grant does not reach the ambient route.

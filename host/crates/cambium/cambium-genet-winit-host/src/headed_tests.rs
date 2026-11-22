@@ -337,6 +337,15 @@ struct WindowsDriver {
     readings: WindowsReadings,
     /// RedrawRequested events seen per native window, for a stalled run.
     redraws: std::collections::HashMap<WindowId, u32>,
+    /// Where the driver leaves its last step and readings when the event loop
+    /// drops it: `run_app` takes the driver by value.
+    out: Rc<RefCell<Option<(Step, WindowsReadings)>>>,
+}
+
+impl Drop for WindowsDriver {
+    fn drop(&mut self) {
+        *self.out.borrow_mut() = Some((self.step, std::mem::take(&mut self.readings)));
+    }
 }
 
 const A: ProjectionId = ProjectionId(0);
@@ -609,6 +618,7 @@ fn drive_windows(control: bool) -> WindowsReadings {
         images: Vec::new(),
         windows,
     };
+    let out = Rc::new(RefCell::new(None));
     let driver = WindowsDriver {
         windows: WinitWindows::new(&event_loop, Box::new(init), hooks),
         animate_a,
@@ -618,11 +628,16 @@ fn drive_windows(control: bool) -> WindowsReadings {
         turns: 0,
         readings: WindowsReadings::default(),
         redraws: Default::default(),
+        out: out.clone(),
     };
     event_loop.run_app(driver).expect("the event loop ran");
-    eprintln!("[headed] windows control={control} {:?}", driver.readings);
-    assert_eq!(driver.step, Step::Done, "the driver finished");
-    driver.readings
+    let (step, readings) = out
+        .borrow_mut()
+        .take()
+        .expect("the event loop dropped the driver");
+    eprintln!("[headed] windows control={control} {readings:?}");
+    assert_eq!(step, Step::Done, "the driver finished");
+    readings
 }
 
 /// Two windows over one state: one device for both, a click in one changes

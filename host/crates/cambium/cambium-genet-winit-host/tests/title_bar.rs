@@ -169,7 +169,7 @@ fn tab_enter_and_space_activate_existing_caption_buttons_in_order() {
         host.focus(),
         Some(node(&host, "data-window-action", "maximize"))
     );
-    host.key_named(NamedKey::Space);
+    host.key_char(" ");
     host.key_named(NamedKey::Tab);
     assert_eq!(
         host.focus(),

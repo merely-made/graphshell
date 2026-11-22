@@ -79,20 +79,12 @@ crate = "block-buffer@0.10.4"
 reason = "held by digest 0.10.7; gone when its holders move to block-buffer 0.12.1 (digest 0.10.7 in the graph, 0.11.3 newest)"
 
 [[bans.skip]]
-crate = "block2@0.5.1"
-reason = "held by objc2-app-kit 0.2.2, objc2-cloud-kit 0.2.2, objc2-contacts 0.2.2, objc2-core-data 0.2.2 +10 more; gone when its holders move to block2 0.6.2 (objc2-app-kit 0.2.2 in the graph, 0.3.2 newest; objc2-cloud-kit 0.2.2 in the graph, 0.3.2 newest)"
-
-[[bans.skip]]
 crate = "cipher@0.4.4"
 reason = "held by aes 0.8.4, aes-gcm 0.10.3, blowfish 0.9.1, cbc 0.1.2 +4 more; gone when its holders move to cipher 0.5.2 (aes 0.8.4 in the graph, 0.9.4 newest; aes-gcm 0.10.3 in the graph, 0.11.1 newest)"
 
 [[bans.skip]]
 crate = "convert_case@0.10.0"
 reason = "held by derive_more-impl 2.1.1; gone when its holders move to convert_case 0.12.0 (derive_more-impl 2.1.1 is its latest release)"
-
-[[bans.skip]]
-crate = "core-foundation@0.9.4"
-reason = "held by core-graphics 0.23.2, core-graphics-types 0.1.3, winit 0.30.13; gone when its holders move to core-foundation 0.10.1 (core-graphics 0.23.2 in the graph, 0.25.0 newest; core-graphics-types 0.1.3 in the graph, 0.2.0 newest)"
 
 [[bans.skip]]
 crate = "cpufeatures@0.2.17"
@@ -225,10 +217,6 @@ reason = "held by cipher 0.4.4; gone when its holders move to inout 0.2.6 (ciphe
 
 
 [[bans.skip]]
-crate = "itertools@0.13.0"
-reason = "held by bindgen 0.72.1; gone when its holders move to itertools 0.15.0 (bindgen 0.72.1 in the graph, 0.73.2 newest)"
-
-[[bans.skip]]
 crate = "itertools@0.14.0"
 reason = "held by lalrpop 0.22.2, oxc_semantic 0.124.0, rav1e 0.8.1, wasmtime-internal-cranelift 45.0.3 +4 more; gone when its holders move to itertools 0.15.0 (lalrpop 0.22.2 in the graph, 0.23.2 newest; oxc_semantic 0.124.0 in the graph, 0.158.0 newest)"
 
@@ -241,8 +229,8 @@ crate = "jni-sys@0.3.1"
 reason = "held by jni 0.21.1, ndk 0.9.0, ndk-sys 0.6.0+11769913; gone when its holders move to jni-sys 0.4.1 (jni 0.21.1 in the graph, 0.22.4 newest; ndk 0.9.0 is its latest release)"
 
 [[bans.skip]]
-crate = "linux-raw-sys@0.4.15"
-reason = "held by rustix 0.38.44; gone when its holders move to linux-raw-sys 0.12.1 (rustix 0.38.44 in the graph, 1.1.6 newest)"
+crate = "libloading@0.8.9"
+reason = "held by ash 0.38.0, khronos-egl 6.0.0, wgpu-hal 30.0.2; gone when its holders move to libloading 0.9.1 (all are their latest releases)"
 
 [[bans.skip]]
 crate = "lru@0.18.5"
@@ -251,22 +239,6 @@ reason = "held by n0-dns-resolver 0.1.1, cryoglyph 0.1.0; gone when its holders 
 [[bans.skip]]
 crate = "miniz_oxide@0.8.9"
 reason = "held by exr 1.74.3, png 0.17.16, png 0.18.1; gone when its holders move to miniz_oxide 0.9.1 (exr 1.74.3 is its latest release; png 0.17.16 in the graph, 0.18.1 newest)"
-
-[[bans.skip]]
-crate = "netdev@0.45.1"
-reason = "held by netwatch 0.19.3; gone when its holders move to netdev 0.46.3 (netwatch 0.19.3 in the graph, 0.20.0 newest)"
-
-[[bans.skip]]
-crate = "netlink-packet-core@0.8.2"
-reason = "held by netdev 0.45.1, netlink-packet-route 0.31.0, netlink-proto 0.12.2, netwatch 0.19.3; gone when its holders move to netlink-packet-core 0.9.0 (netdev 0.45.1 in the graph, 0.47.0 newest; netlink-packet-route 0.31.0 in the graph, 0.34.0 newest)"
-
-[[bans.skip]]
-crate = "netlink-packet-route@0.31.0"
-reason = "held by netdev 0.45.1, netwatch 0.19.3; gone when its holders move to netlink-packet-route 0.33.0 (netdev 0.45.1 in the graph, 0.47.0 newest; netwatch 0.19.3 in the graph, 0.20.0 newest)"
-
-[[bans.skip]]
-crate = "netlink-sys@0.8.8"
-reason = "held by netdev 0.45.1, netlink-proto 0.12.2, netwatch 0.19.3; gone when its holders move to netlink-sys 0.9.0 (netdev 0.45.1 in the graph, 0.47.0 newest; netlink-proto 0.12.2 in the graph, 0.14.1 newest)"
 
 [[bans.skip]]
 crate = "nom@7.1.3"
@@ -342,10 +314,6 @@ crate = "polyval@0.6.2"
 reason = "held by ghash 0.5.1; gone when its holders move to polyval 0.7.3 (ghash 0.5.1 in the graph, 0.6.0 newest)"
 
 [[bans.skip]]
-crate = "prettyplease@0.2.37"
-reason = "held by bindgen 0.69.5, bindgen 0.72.1; gone when its holders move to prettyplease 0.3.0 (bindgen 0.69.5 in the graph, 0.73.2 newest; bindgen 0.72.1 in the graph, 0.73.2 newest)"
-
-[[bans.skip]]
 crate = "quick-xml@0.39.4"
 reason = "held by errand 0.4.0; moves when the holding crates (git) move to quick-xml 0.42.0"
 
@@ -372,10 +340,6 @@ reason = "held by rand 0.9.5, rand_chacha 0.9.0; gone when its holders move to r
 
 
 [[bans.skip]]
-crate = "redox_syscall@0.4.1"
-reason = "held by winit 0.30.13; gone when its holders move to redox_syscall 0.9.5 (winit 0.30.13 is its latest release)"
-
-[[bans.skip]]
 crate = "redox_syscall@0.5.18"
 reason = "held by parking_lot_core 0.9.12; gone when its holders move to redox_syscall 0.9.5 (parking_lot_core 0.9.12 in the graph, 0.10.0 newest)"
 
@@ -396,24 +360,12 @@ crate = "rustc-hash@1.1.0"
 reason = "held by bindgen 0.69.5, naga 30.0.2, naga-types 30.0.2, rspirv 0.13.0+sdk-1.4.341.0 +1 more; gone when its holders move to rustc-hash 2.1.3 (bindgen 0.69.5 in the graph, 0.73.2 newest; naga 30.0.2 is its latest release)"
 
 [[bans.skip]]
-crate = "rustix@0.38.44"
-reason = "held by calloop 0.13.0, calloop-wayland-source 0.3.0, smithay-client-toolkit 0.19.2, which 4.4.2 +1 more; gone when its holders move to rustix 1.1.6 (calloop 0.13.0 in the graph, 0.14.5 newest; calloop-wayland-source 0.3.0 in the graph, 0.4.1 newest)"
-
-[[bans.skip]]
 crate = "sha2@0.10.9"
 reason = "held by wasmtime-environ 45.0.3, wasmtime-internal-cache 45.0.3; gone when its holders move to sha2 0.11.1 (wasmtime 45 in the graph, 50 newest)"
 
 [[bans.skip]]
-crate = "shlex@1.3.0"
-reason = "held by bindgen 0.69.5, bindgen 0.72.1; gone when its holders move to shlex 2.0.1 (bindgen 0.69.5 in the graph, 0.73.2 newest; bindgen 0.72.1 in the graph, 0.73.2 newest)"
-
-[[bans.skip]]
 crate = "smol_str@0.1.24"
 reason = "held by acto 0.8.2; gone when its holders move to smol_str 0.3.7 (acto 0.8.2 is its latest release)"
-
-[[bans.skip]]
-crate = "smol_str@0.2.2"
-reason = "held by winit 0.30.13; gone when its holders move to smol_str 0.3.7 (winit 0.30.13 is its latest release)"
 
 [[bans.skip]]
 crate = "spin@0.9.9"
@@ -488,10 +440,6 @@ crate = "windows-sys@0.52.0"
 reason = "held by ring 0.17.14, winit 0.30.13; gone when its holders move to windows-sys 0.61.2 (ring 0.17.14 is its latest release; winit 0.30.13 is its latest release)"
 
 [[bans.skip]]
-crate = "windows-sys@0.59.0"
-reason = "held by cap-fs-ext 3.4.6, cap-primitives 3.4.6, fs-set-times 0.20.3, io-extras 0.18.4, rustix 0.38.44, winx 0.36.4; moves when the holding crates (reg) move to windows-sys 0.61.2"
-
-[[bans.skip]]
 crate = "windows-targets@0.42.2"
 reason = "held by windows-sys 0.45.0; gone when its holders move to windows-targets 0.52.6 (windows-sys 0.45.0 in the graph, 0.61.2 newest)"
 
@@ -555,10 +503,6 @@ reason = "held by windows-targets 0.42.2; gone when its holders move to windows_
 crate = "windows_x86_64_msvc@0.48.5"
 reason = "held by windows-targets 0.48.5; gone when its holders move to windows_x86_64_msvc 0.52.6 (windows-targets 0.48.5 in the graph, 0.53.5 newest)"
 
-
-[[bans.skip]]
-crate = "unicode-width@0.1.14"
-reason = "held by codespan-reporting 0.13.1 (naga 30.0.2); wast 263.0.0 brought unicode-width 0.2.3; goes when codespan-reporting moves to 0.2"
 
 # snow 0.10.0, the latest release, is murm's Noise layer under the Mere CLI's
 # I2P carrier (graphshell:mere-cli D12, D22); it is still on the older RustCrypto
