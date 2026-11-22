@@ -1,20 +1,13 @@
 # Cambium publish plan
 
-**Status:** 2026-11-21: in progress. P0 is done. P1's manifest work is done as far as it can
-go without a publish: the embeddings left rootstock (D6), the sparse crates carry their
-one-hyphen names (D10), Genet's and Graphshell's chain crates are publishable with versions
-on their git and path rows. What P1 still owes is listed under "Open before P2": four
-questions for Mark and the dry runs, which can only run as a ladder. The API review P2 waited
-on (D8) has its tiers 1 and 2 landed. P2's first three rungs are published: the vello fork's five
-sparse crates and `netrender-vello` 0.11.1, Netrender's five crates at 0.2.0, and Armillary's
-`apparatus-core` 0.1.0. Above them the chain is larger than this plan held: 40 of its 46
-already-published crates differ on main from their published copies (Findings, 2026-11-20),
-and all of them republish (D12), rung by rung, with requirements written as lower bounds (D13).
-Eidetic's, Dramatis's and Mere's nine crates are published, and Genet's rung of 29 is
-publishing. The last rung is Graphshell's 22 crates with the dialog fork, `dramatis` and
-`gaz`, prepared and not pushed.
-The closure measured on 2026-11-05 is superseded: it is 54 crates,
-and the Dramatis application this plan was opened for no longer exists.
+**Status:** 2026-11-21: P0, P1 and P2 are done. The Cambium desktop chain is on crates.io: 75
+crates published on 2026-11-20 and 2026-11-21 from the vello fork, Netrender, Armillary,
+Eidetic, Dramatis, Mere, Genet, wgpu-cue, Inker and Graphshell, every one that differed from
+its registry copy (D12) and the new ones, with requirements written as lower bounds (D13). A
+crate outside the family that names the six `host/` crates builds from the registry with no
+git source. No tests were run for any rung beyond the checks Progress names. The Dramatis
+application this plan was opened for no longer exists, so that part of P2's condition has
+nothing to build. What is left is under "Open after P2".
 
 **For:** publishing the Cambium desktop chain to crates.io so that applications outside Mere,
 first the Dramatis application (source homes map, ownership cut 1), depend on registry
@@ -83,9 +76,10 @@ as a ladder, each repository after the one below it has really published (Findin
 - Done when: every crate in the closure is on crates.io at the planned version, consumers' exact
   pins are updated, and the Dramatis application builds from registry versions alone.
 
-### Open before P2
+### Open after P2
 
-Found while finishing P1, 2026-11-20. None is decided.
+Found while finishing P1 and publishing, 2026-11-20 and 2026-11-21. The first five are closed by
+D12 to D15 and kept for their facts; the rest are open.
 
 - **`genet-presenter`'s `native-webgl` feature** takes optional dependencies on `genet-runtime`
   and `genet-webgl`, both unpublishable. Either they join the chain or the published crate
@@ -96,7 +90,7 @@ Found while finishing P1, 2026-11-20. None is decided.
 - **`cambium-desktop` builds against a local patch of `light-file-dialog`**
   (`host/support/patches/light-file-dialog`: it "reuse[s] the Windows password class across
   cancellation and sequential prompts"). Ruled: the patched copy publishes under our own name
-  (D15); the name is open.
+  (D15) as `cambium-dialog` 3.21.3.
 - **`host/` patches `document-session-api` to Genet's git main**, to share one input vocabulary
   with Webcue. It differed and republished at 0.2.0 with Genet's rung.
 - **`mere-kernel` on the registry is 0.0.3 and cannot follow main**, which needs Mere's `mere`
@@ -252,15 +246,22 @@ Found while finishing P1, 2026-11-20. None is decided.
 
   Links: summary genet-presenter's native-webgl dependencies publish, with the xpath crate renamed genet-xpath.
 
-- **D15. The dialog fork publishes under our own name (Mark, 2026-11-21):** "yes", to
-  publishing the patched `light-file-dialog` as was done for taffy, parley and fjall, over
-  publishing `cambium-desktop` against upstream and losing the Windows fix in registry builds.
-  The name is Mark's to pick ("Bring names").
+- **D15. The dialog fork publishes as `cambium-dialog` (Mark, 2026-11-21):** "Yes and yes" to
+  two questions, the second offering to publish the patched `light-file-dialog` under our own
+  name as was done for taffy, parley and fjall (recommended), or to publish `cambium-desktop`
+  against upstream and lose the Windows fix in registry builds; the second "yes" was read as
+  the recommended one. Then "Bring names", and to `cambium-dialog` (recommended, the branch's
+  name), `mere-dialog` or `mandrake-dialog`: "Publish the recommended names". The library name
+  stays `light_file_dialog`.
 
-  Links: summary cambium-desktop's patched light-file-dialog publishes as a renamed fork.
+  Links: summary cambium-desktop's patched light-file-dialog publishes as cambium-dialog.
 
 ## Findings
 
+- 2026-11-21: renaming a patched copy breaks consumers that patch the old name to it. Turnstone
+  and Isocosm had `[patch.crates-io] light-file-dialog` rows naming Graphshell's git, which
+  stopped resolving when the copy became `cambium-dialog`; a fresh resolve of Turnstone found
+  it. Both rows are removed, with Cleromancy's deny skip for the duplicate.
 - 2026-11-21: the 2026-11-20 closure skipped optional and test-only dependencies. Counting
   them, `cambium`'s `persona-picker` feature reaches `dramatis` and through it `gaz`; both
   differ from the registry, whose `dramatis` 0.0.5 asks for `personae ^0.3.1`. They join
@@ -331,6 +332,15 @@ Found while finishing P1, 2026-11-20. None is decided.
 
 ## Progress
 
+- 2026-11-21: Graphshell's rung published (Mark: "Publish the recommended names"), from
+  Graphshell `f7b8823d` and Dramatis `ab38462`: the 18 republished crates, `cambium-rootstock`
+  0.1.0, `cambium-a11y` 0.3.0, `mandrake` 0.1.0, `cambium-desktop` 0.1.0, `cambium-dialog`
+  3.21.3, `dramatis` 0.1.0 and `gaz` 0.1.0. Graphshell's main had moved in `chirograph` and
+  `graphshell-client`, so the 25 were repackaged and rechecked from their tarballs against the
+  live registry, default and all features, before the push. Afterwards Turnstone's main
+  resolves from scratch with one source per chain crate, and a crate outside the family that
+  names the six `host/` crates checks from 573 registry packages and no git source.
+- 2026-11-21: Genet's rung finished: all 29 are on crates.io at the planned versions.
 - 2026-11-21: Graphshell's rung is prepared and not pushed (D12, D15): 22 crates, the dialog
   fork under the provisional name `cambium-dialog` 3.21.3, and Dramatis's `dramatis` and
   `gaz`. All 25 package, and their unpacked tarballs check together on default features and on

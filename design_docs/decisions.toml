@@ -194,9 +194,9 @@ source = "design_docs/graphshell_docs/implementation_strategy/2026-11-05_cambium
 summary = "genet-presenter's native-webgl dependencies publish, with the xpath crate renamed genet-xpath."
 
 [decisions."cambium-publish D15"]
-title = "The dialog fork publishes under our own name (Mark, 2026-11-21)"
+title = "The dialog fork publishes as `cambium-dialog` (Mark, 2026-11-21)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-05_cambium_publish_plan.md"
-summary = "cambium-desktop's patched light-file-dialog publishes as a renamed fork."
+summary = "cambium-desktop's patched light-file-dialog publishes as cambium-dialog."
 
 [decisions."compositor-placement D1"]
 title = "Both motions (Mark, 2026-11-20)"
