@@ -283,3 +283,53 @@ fn the_per_turn_fetch_cap_refuses_a_flood_and_resets_each_turn() {
         Some("fetched:https://example.com/x")
     );
 }
+
+/// A reading for the guest runtime plan, not a check: which backend ran, how long an attach
+/// takes (compile, instantiate and `activate`), and how long one `set` turn takes once attached.
+/// Run it with `--ignored --nocapture`.
+#[test]
+#[ignore = "a timing reading for the guest runtime plan"]
+fn timing_of_attach_and_turns() {
+    use std::time::Instant;
+
+    const ATTACHES: usize = 10;
+    const TURNS: u64 = 2000;
+
+    let mut attach_ms = Vec::new();
+    let mut turn_us = Vec::new();
+    for _ in 0..ATTACHES {
+        let (dom, _body, t1) = page();
+        let started = Instant::now();
+        let mut script = DocumentScript::attach(
+            &doc_wasm(),
+            dom,
+            &Grant::allow_all(),
+            Quota::default(),
+            None,
+            Vec::new(),
+        )
+        .expect("attach");
+        attach_ms.push(started.elapsed().as_secs_f64() * 1e3);
+
+        let started = Instant::now();
+        for turn in 1..=TURNS {
+            let out = script.deliver_event("set", "timed").expect("set turn");
+            // Each timed turn did its work: the revision moved.
+            assert_eq!(out, TurnOutcome::Applied(turn));
+        }
+        turn_us.push(started.elapsed().as_secs_f64() * 1e6 / TURNS as f64);
+        assert_eq!(text_of(script.dom(), t1).as_deref(), Some("timed"));
+    }
+    attach_ms.sort_by(f64::total_cmp);
+    turn_us.sort_by(f64::total_cmp);
+    println!(
+        "document timing: backend={} attaches={ATTACHES} turns={TURNS} attach_ms={:.2} turn_us={:.2} (medians)",
+        if wasmtime::Engine::default().is_pulley() {
+            "pulley"
+        } else {
+            "compiler"
+        },
+        attach_ms[ATTACHES / 2],
+        turn_us[ATTACHES / 2],
+    );
+}

@@ -62,3 +62,35 @@ async fn a_well_behaved_turn_completes() {
         "a benign turn should complete, got {r:?}"
     );
 }
+
+/// A reading for the guest runtime plan, not a check: which backend ran, and how long the
+/// allocation bomb takes to reach a 256 MiB cap. Run it with `--ignored --nocapture`.
+#[tokio::test(flavor = "current_thread")]
+#[ignore = "a timing reading for the guest runtime plan"]
+async fn timing_of_the_allocation_bomb() {
+    const ROUNDS: usize = 7;
+    const CAP_BYTES: usize = 256 * 1024 * 1024;
+
+    let mut ms = Vec::new();
+    for _ in 0..ROUNDS {
+        let started = std::time::Instant::now();
+        let r = document_host::run_guarded(&bomb_wasm(), "grow", CAP_BYTES, 100_000)
+            .await
+            .expect("run_guarded");
+        ms.push(started.elapsed().as_secs_f64() * 1e3);
+        assert!(
+            matches!(r, Guarded::Trapped(_)),
+            "the bomb should trap, got {r:?}"
+        );
+    }
+    ms.sort_by(f64::total_cmp);
+    println!(
+        "bomb timing: backend={} rounds={ROUNDS} cap_mib=256 grow_to_trap_ms={:.2} (median, compile included)",
+        if wasmtime::Engine::default().is_pulley() {
+            "pulley"
+        } else {
+            "compiler"
+        },
+        ms[ROUNDS / 2],
+    );
+}

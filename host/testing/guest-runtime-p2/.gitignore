@@ -1,0 +1,4 @@
+# Build products of the probe.
+/wasm-host/target/
+/tool/target/
+/module.cwasm

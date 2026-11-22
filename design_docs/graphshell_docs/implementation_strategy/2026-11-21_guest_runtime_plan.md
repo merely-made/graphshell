@@ -2,8 +2,10 @@
 
 **Status:** 2026-11-21. In progress. P0 and P1 are met. Converted to modules, the projection guest
 reproduces the native transcript in a browser, all 20 calls, and the document guest runs there under
-its time limit, memory cap and fetch rules, each beside a control (Findings 14 to 16). P2 to P5 are
-not started. D1 to D7 ruled the same day.
+its time limit, memory cap and fetch rules, each beside a control (Findings 14 to 16). P2 is met:
+the unchanged hosts pass on Pulley at roughly 8 to 32 times the compiler's run time, and Wasmtime
+itself builds for the browser target and runs Pulley bytecode there (Findings 17 to 20). P3 to P5
+are not started. D1 to D7 ruled the same day.
 
 **For:** the web build. Graphshell's wasm hosts run guests on Wasmtime, which compiles them to machine
 code, and a browser grants no page the right to do that. No ruling says how a component guest runs when
@@ -159,6 +161,12 @@ outcome. D1 to D7 are in answer order.
    the web build needs no Node tool.
 3. Whether any shipping profile needs native execution without a compiler. If none does, Pulley, wasmi
    and Wasmer answer a question nobody is asking yet.
+4. Findings 19 makes a second browser route possible: Wasmtime on Pulley inside the page, which
+   would keep fuel, epochs and store limits as they are natively, where D1's route replaces each.
+   It is slower and needs guests compiled ahead of time. Whether to take the probe further (a
+   component, then a guest, then a page) is for the readout, P5.
+5. How a product build would select Pulley. The probe uses a cfg of Wasmtime's own build script;
+   a product would call `Config::target` behind a switch, and no host has one.
 
 ## Findings
 
@@ -219,6 +227,27 @@ outcome. D1 to D7 are in answer order.
     route (D7), and a turn that waits on a slow fetch, since the glue calls `fetch` synchronously
     (Findings 12).
 
+17. Run 2026-11-21: the unchanged hosts pass their tests on Pulley, guards included. Wasmtime's build
+    script sets a `default_target_pulley` cfg where its compiler has no backend; passing that cfg by
+    hand with the `pulley` feature makes every `Config::new()` target Pulley, so no host source
+    changed. `app-host` and `document-host` give the same results as on the compiler: the projection
+    transcript, the runaway loop cut off, the allocation bomb denied, the fetch refusals.
+18. Pulley's cost on this laptop, release builds, single readings: the projection guest's run of 20
+    calls took 449 ms against 39 ms (about 11.5 times); one document `set` turn took 3,491 us against
+    110 us (about 32 times); a 50 million turn arithmetic loop took 336 ms against 44 ms (7.6 times).
+    Compiling a guest costs about the same either way (240 ms against 205 ms for the projection
+    guest), and so does the allocation bomb's run to a 256 MiB cap (56 ms both).
+19. Wasmtime 51 itself builds for `wasm32-unknown-unknown`: the runtime and Pulley with no compiler
+    and without its `std` feature, 842 KB with no imports (882 KB with the component model on). The
+    host supplies two thread-local functions and nothing else. With `std` on, Wasmtime does not
+    compile for that target (three errors around memory mapping). In Node 24 that module ran the
+    arithmetic loop from Pulley bytecode compiled natively beforehand and returned the right value in
+    about 400 to 470 ms, against 336 ms for Pulley natively.
+20. What P2 did not run: a component, or either guest, on the wasm-built Wasmtime (the probe module is
+    a core module with no imports); that build in a browser page; async; epoch interruption or a
+    memory cap there. Bytecode must be compiled ahead of time by a native Wasmtime of the same
+    version and settings, since the wasm-built one has no compiler.
+
 ## Progress
 
 - 2026-11-21: plan written; D1 to D3 ruled.
@@ -229,3 +258,7 @@ outcome. D1 to D7 are in answer order.
   `host/testing/guest-runtime-p1/`.
 - 2026-11-21: P1 met. The document guest's half landed in `a1a47e24`; five cases with their controls
   pass in Node and in a browser. Receipts carry the readings. P2 is next.
+- 2026-11-21: P2 met. Both guests reproduce P0 on Pulley with no host change; slowdown read on
+  both; Wasmtime built for `wasm32-unknown-unknown` and ran Pulley bytecode in Node. The probe is
+  `host/testing/guest-runtime-p2/`, with three ignored timing readings in the hosts' tests. P3 is
+  next.

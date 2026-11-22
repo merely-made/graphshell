@@ -233,3 +233,66 @@ fn values_cross_wasmtime_unchanged() {
         );
     }
 }
+
+/// A reading for the guest runtime plan, not a check: which backend ran, and how long compiling,
+/// instantiating and one run of the script take. Run it with `--ignored --nocapture`.
+#[test]
+#[ignore = "a timing reading for the guest runtime plan"]
+fn timing_of_compile_instantiate_and_run() {
+    use std::time::Instant;
+
+    const ROUNDS: usize = 15;
+
+    fn median_ms(mut samples: Vec<f64>) -> f64 {
+        samples.sort_by(f64::total_cmp);
+        samples[samples.len() / 2]
+    }
+
+    let (client, end) = script_wire::pipe::pair(MAX_FRAME).unwrap();
+    let native = std::thread::spawn(move || {
+        let mut s = server();
+        serve(&mut s, end).unwrap();
+    });
+    let reference = run(&mut WitCarrier::new(Calls::new(client)));
+    native.join().unwrap();
+
+    let (mut compile, mut instantiate, mut call) = (Vec::new(), Vec::new(), Vec::new());
+    for _ in 0..ROUNDS {
+        let engine = Engine::default();
+        let started = Instant::now();
+        let component = Component::from_file(&engine, guest_component()).expect("guest loads");
+        compile.push(started.elapsed().as_secs_f64() * 1e3);
+
+        let started = Instant::now();
+        let mut linker = Linker::new(&engine);
+        wasmtime_wasi::p2::add_to_linker_sync(&mut linker).unwrap();
+        ps::add_to_linker::<Host, HasSelf<Host>>(&mut linker, |h| h).unwrap();
+        let mut store = Store::new(
+            &engine,
+            Host {
+                wasi: WasiCtxBuilder::new().build(),
+                table: ResourceTable::new(),
+                server: server(),
+            },
+        );
+        let guest = ProjectionConsumer::instantiate(&mut store, &component, &linker).unwrap();
+        instantiate.push(started.elapsed().as_secs_f64() * 1e3);
+
+        let started = Instant::now();
+        let transcript = guest.call_run(&mut store).unwrap();
+        call.push(started.elapsed().as_secs_f64() * 1e3);
+        // The run timed is the run the other test checks.
+        assert_eq!(transcript, reference);
+    }
+    println!(
+        "projection timing: backend={} rounds={ROUNDS} compile_ms={:.2} instantiate_ms={:.3} run_ms={:.3} (medians)",
+        if Engine::default().is_pulley() {
+            "pulley"
+        } else {
+            "compiler"
+        },
+        median_ms(compile),
+        median_ms(instantiate),
+        median_ms(call),
+    );
+}

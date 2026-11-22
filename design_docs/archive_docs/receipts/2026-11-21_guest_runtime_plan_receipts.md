@@ -66,3 +66,58 @@ refuses to grow past the written maximum. No console errors in the browser. The 
 control were rerun on the same build: 20 of 20, 1 closed and 0 open, control caught at call 3.
 
 Not run: Genet's DOM, any real network route, and any browser other than Chromium.
+
+## 2026-11-21: P2, Pulley
+
+Machine: the Windows laptop. Graphshell at `bab12eb9` plus the uncommitted probe and timing tests.
+Wasmtime 51.0.0, rustc 1.100.0, Node 24.11.0. Commands are in `host/testing/guest-runtime-p2/README.md`.
+
+**The unchanged hosts on Pulley.** Debug build, `cargo test -p document-host` with the Pulley flags:
+56 passed, 0 failed, the same count as P0. Release build with `--include-ignored`, both packages, run
+once on each backend; every `timing:` line names the backend that ran.
+
+| Suite | Pulley | Compiler |
+| --- | --- | --- |
+| `app-host` (5, 3, 3) | all pass | all pass |
+| `document-host` lib (36 run, 2 filtered) | pass | pass |
+| `document-host` tests (1, 6, 1, 4, 4, 5) | all pass | all pass |
+| two ignored doctests, forced by `--include-ignored` | fail to compile | fail to compile |
+
+The skipped test (`discovers_native_mods_including_verso_and_nostrcore`) is ignored in the tree and
+fails on both backends when forced.
+
+**Timing readings**, medians within one run, one run per backend (a second projection run read 473 ms
+and 40 ms):
+
+| Reading | Pulley | Compiler | Ratio |
+| --- | --- | --- | --- |
+| Projection: compile the guest | 239.65 ms | 205.36 ms | 1.2 |
+| Projection: instantiate | 0.258 ms | 0.232 ms | 1.1 |
+| Projection: run the 20-call script (15 rounds) | 449.29 ms | 38.93 ms | 11.5 |
+| Document: attach (10 rounds) | 19.47 ms | 19.21 ms | 1.0 |
+| Document: one `set` turn (2,000 turns, 10 rounds) | 3,490.97 us | 110.42 us | 31.6 |
+| Bomb: grow to a 256 MiB cap, compile included (7 rounds) | 55.80 ms | 55.46 ms | 1.0 |
+
+Each timed run is checked: the projection transcript equals the native reference, each document turn
+returns `Applied` with the next revision, the bomb traps.
+
+**The arithmetic loop** (`tool time`, 50 million turns, the value checked against one worked out in
+Rust, median of 5): compiler 44.0 ms, Pulley 336.3 ms, ratio 7.6. An earlier reading taken while other
+builds ran was 67.9 ms and 736.0 ms, ratio 10.8, so these move with load.
+
+**Wasmtime for `wasm32-unknown-unknown`** (`wasm-host`, release):
+
+| Features | Outcome |
+| --- | --- |
+| `runtime`, `pulley` | compiles; the link wants `wasmtime_tls_get` and `wasmtime_tls_set`; with those supplied, 842,144 B, no imports |
+| the same plus `component-model` | builds, 881,990 B, no imports |
+| the same plus `std` | Wasmtime does not compile: 3 errors (`sys::mmap`, `Mmap`, `MmapVec::new_mmap`) |
+
+**Pulley bytecode on that module in Node 24.11.0** (`run-node.mjs`; `tool precompile` wrote 2,440 B
+for `pulley32` with signal traps, copy-on-write and memory reservations off): `run()` returned
+1542256704, the expected value, on every call. Three runs of 9 calls each: medians 401.9, 466.5 and
+421.2 ms, fastest 395 ms, slowest about 890 ms (the first call of a process). Each call also builds an
+engine and deserializes the module.
+
+Not run: a component or either guest on the wasm-built Wasmtime; that build in a browser page; async,
+epochs or a memory cap there.

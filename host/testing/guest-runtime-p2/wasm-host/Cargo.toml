@@ -1,0 +1,26 @@
+# Guest runtime plan, P2: the smallest Wasmtime host that could run inside a
+# browser, built for wasm32-unknown-unknown to find out whether it builds at
+# all. No compiler (a page cannot run one): the runtime and Pulley only, so it
+# would take modules compiled to Pulley bytecode ahead of time. Its own
+# workspace, outside the host workspace.
+[package]
+name = "guest-runtime-p2-wasm-host"
+version = "0.0.1"
+edition = "2024"
+license = "MPL-2.0"
+publish = false
+
+[workspace]
+
+[lib]
+crate-type = ["cdylib"]
+
+[features]
+# Wasmtime's `std` feature. Off is the embedded route, where the host supplies
+# Wasmtime's platform functions itself.
+std = ["wasmtime/std"]
+# The component model, which every Graphshell guest uses.
+component-model = ["wasmtime/component-model"]
+
+[dependencies]
+wasmtime = { version = "51", default-features = false, features = ["runtime", "pulley"] }

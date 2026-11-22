@@ -1,0 +1,16 @@
+# Native tool for the guest runtime plan, P2: compiles the probe's module to
+# Pulley bytecode for the wasm-built host, and times the same module on the
+# compiler and on Pulley natively. Its own workspace, outside the host workspace.
+[package]
+name = "guest-runtime-p2-tool"
+version = "0.0.1"
+edition = "2024"
+license = "MPL-2.0"
+publish = false
+
+[workspace]
+
+[dependencies]
+# The same feature set as wasm-host plus the compiler and the text format, so
+# both engines agree on which wasm features exist.
+wasmtime = { version = "51", default-features = false, features = ["runtime", "pulley", "cranelift", "wat", "std"] }
