@@ -1,0 +1,15 @@
+# Native tool for the guest runtime plan, P3: writes the probe module as a
+# wasm file and runs it under wasmi natively. Its own workspace.
+[package]
+name = "guest-runtime-p3-tool"
+version = "0.0.1"
+edition = "2024"
+license = "MPL-2.0"
+publish = false
+
+[workspace]
+
+[dependencies]
+wasmi-host = { path = "../wasmi-host" }
+# Text format to binary, so the module is written once and read by every runner.
+wat = "1"

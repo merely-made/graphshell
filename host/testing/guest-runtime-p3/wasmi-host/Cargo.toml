@@ -1,0 +1,18 @@
+# Guest runtime plan, P3: a plain wasm module run by wasmi, an interpreter
+# written in Rust. One library, built natively (for the tool beside it) and
+# for wasm32-unknown-unknown (for a page). Its own workspace, outside the
+# host workspace.
+[package]
+name = "wasmi-host"
+version = "0.0.1"
+edition = "2024"
+license = "MPL-2.0"
+publish = false
+
+[workspace]
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+wasmi = { version = ">=2.0.2", default-features = false, features = ["std", "validate", "auto-dispatch"] }

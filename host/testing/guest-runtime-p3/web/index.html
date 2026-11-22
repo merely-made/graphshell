@@ -1,0 +1,22 @@
+<!doctype html>
+<!-- Copyright 2026 Mark Alan Boykin. SPDX-License-Identifier: MPL-2.0.
+     The page for the wasmi probe (guest runtime plan, P3): it runs a plain
+     module on wasmi, itself a wasm module, and shows whether run() returned
+     the expected value and a short fuel limit cut it off. -->
+<meta charset="utf-8">
+<title>guest runtime probe: wasmi</title>
+<pre id="result">running</pre>
+<script type="module">
+  import { runProbe } from './run.js';
+  const load = async (path) => new Uint8Array(await (await fetch(path)).arrayBuffer());
+  const out = document.getElementById('result');
+  try {
+    const result = await runProbe(load);
+    result.userAgent = navigator.userAgent;
+    window.__result = result;
+    out.textContent = JSON.stringify(result, null, 2);
+  } catch (error) {
+    window.__result = { passed: false, error: String(error?.stack ?? error) };
+    out.textContent = window.__result.error;
+  }
+</script>

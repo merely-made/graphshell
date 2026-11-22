@@ -121,3 +121,29 @@ engine and deserializes the module.
 
 Not run: a component or either guest on the wasm-built Wasmtime; that build in a browser page; async,
 epochs or a memory cap there.
+
+## 2026-11-22: P3, wasmi
+
+Machine: the Windows laptop. Graphshell at `17e967bc` plus the uncommitted probe. wasmi 2.0.2, rustc
+1.100.0, Node 24.11.0; the built-in browser, `Chrome/156.0.8078.100`. Commands are in
+`host/testing/guest-runtime-p3/README.md`. The module is 100 bytes; `run()` must return 1542256704.
+
+| Where | Result | Time for the loop, compile included | Short fuel (1,000,000) |
+| --- | --- | --- | --- |
+| Native | right | 121.4 and 114.6 ms (median of 5, two builds) | cut off |
+| Native, fuel counted | right | 136.4 and 168.7 ms (one run each) | |
+| Node, wasmi as a wasm module | right | 1,390.6 ms (median of 5; 1,292 to 1,407) | cut off |
+| Chromium, the same | right | 686.7 ms (median of 5; 667 to 1,712) | cut off |
+
+The cut-off message is the same everywhere: "all fuel consumed by WebAssembly". No console errors in
+the browser. The browser reading was taken with wasmi's default features (2,912,278 B); without its
+text-format parser the module is 1,957,577 B, which is what the Node row and the tree now use.
+
+Beside P2, the same loop on the same machine: Wasmtime's compiler 44.0 ms, Pulley natively 336.3 ms,
+Pulley on a wasm-built Wasmtime in Node about 400 to 470 ms.
+
+**The `tail-call` build** (`RUSTFLAGS="-C target-feature=+tail-call"`, 2,863,408 B, Node): four
+unlimited runs took 931.0, 912.2, 908.6 and 931.1 ms with the right value; the first run with fuel
+counted threw "Maximum call stack size exceeded" inside wasmi's `consume_fuel`.
+
+Not run: any Graphshell guest or any component on wasmi; the module layer is a written sketch only.

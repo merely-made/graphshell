@@ -1,0 +1,5 @@
+# Build products of the probe.
+/wasmi-host/target/
+/tool/target/
+/web/module.wasm
+/web/wasmi_host.wasm

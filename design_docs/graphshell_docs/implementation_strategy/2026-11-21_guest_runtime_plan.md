@@ -4,8 +4,10 @@
 reproduces the native transcript in a browser, all 20 calls, and the document guest runs there under
 its time limit, memory cap and fetch rules, each beside a control (Findings 14 to 16). P2 is met:
 the unchanged hosts pass on Pulley at roughly 8 to 32 times the compiler's run time, and Wasmtime
-itself builds for the browser target and runs Pulley bytecode there (Findings 17 to 20). P3 to P5
-are not started. D1 to D7 ruled the same day.
+itself builds for the browser target and runs Pulley bytecode there (Findings 17 to 20). P3 is met:
+what a component is as plain modules is written down, with the layer a module-only runtime would
+need, and wasmi ran a plain module natively and in a browser with its fuel limit (Findings 21 to
+24). P4 and P5 are not started. D1 to D7 ruled the same day.
 
 **For:** the web build. Graphshell's wasm hosts run guests on Wasmtime, which compiles them to machine
 code, and a browser grants no page the right to do that. No ruling says how a component guest runs when
@@ -248,6 +250,27 @@ outcome. D1 to D7 are in answer order.
     memory cap there. Bytecode must be compiled ahead of time by a native Wasmtime of the same
     version and settings, since the wasm-built one has no compiler.
 
+21. The projection component taken apart (P3; the account is
+    `host/testing/guest-runtime-p3/README.md`): an inner module that exports its three world
+    functions, `memory`, `cabi_realloc` and two clean-up functions, and imports 35 functions of
+    integers and floats only, 11 from the contract and 24 from WASI; two small modules of plumbing;
+    and a wrapper that turns those integers back into values and keeps the handle table. A
+    module-only runtime runs the inner module and needs the wrapper supplied.
+22. That wrapper, for a module-only runtime, would be a third output of `script-witgen` over the same
+    parse and the same `Handler` trait: per imported function a host function that lifts arguments
+    from guest memory, calls the handler and lowers the result; the reverse per export; a handle table
+    per resource. It follows the published Canonical ABI. Not built and not sized.
+23. Run 2026-11-22: wasmi 2.0.2 ran the 50 million turn loop natively in 115 to 121 ms, compile
+    included, against 44 ms on Wasmtime's compiler and 336 ms on Pulley. Built for
+    `wasm32-unknown-unknown` (1.96 MB, no imports, with its `std` feature) it returned the same
+    value in about 1,390 ms in Node 24 and 687 ms in Chromium 156. Its fuel limit cut off a
+    short-fuelled run in all three places; counting fuel cost about a fifth to a half more time
+    natively (136 and 169 ms, one run each).
+24. wasmi picks a faster dispatch when the target has tail calls. Built for wasm with the `tail-call`
+    feature the unlimited loop took about 920 ms in Node instead of 1,390, but a run with fuel counted
+    overflowed the stack, so that build cannot hold the guard. wasmi has no component model (Findings
+    3), so no guest ran on it.
+
 ## Progress
 
 - 2026-11-21: plan written; D1 to D3 ruled.
@@ -262,3 +285,5 @@ outcome. D1 to D7 are in answer order.
   both; Wasmtime built for `wasm32-unknown-unknown` and ran Pulley bytecode in Node. The probe is
   `host/testing/guest-runtime-p2/`, with three ignored timing readings in the hosts' tests. P3 is
   next.
+- 2026-11-22: P3 met. The account and the wasmi probe are `host/testing/guest-runtime-p3/`; the
+  probe passes natively, in Node and in Chromium. P4 is next.
