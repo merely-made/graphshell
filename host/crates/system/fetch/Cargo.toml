@@ -35,7 +35,12 @@ fleece-crawl = ["dep:fleece", "fleece/crawl"]
 # Explicit single-page capture for a host that submits kept text to a resident.
 kept-page = ["dep:fleece", "fleece/article", "dep:eidetic"]
 
+peer-editions = ["actor", "dep:mere-ipfs-reader", "dep:genet-document-resources", "dep:genet-static-dom", "dep:serde"]
+
 [dependencies]
+mere-ipfs-reader = { path = "ipfs", optional = true }
+genet-document-resources = { workspace = true, optional = true }
+genet-static-dom = { workspace = true, optional = true }
 async-trait = "0.1"
 futures-util = "0.3"
 # Genet's host-side resource contract, so a handle can serve a document

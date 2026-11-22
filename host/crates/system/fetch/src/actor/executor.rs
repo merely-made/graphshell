@@ -54,6 +54,24 @@ pub(super) async fn execute(
             url,
             identity,
         } => {
+            #[cfg(feature = "peer-editions")]
+            if crate::peer::is_address(&url) {
+                let result = match tokio::time::timeout(policy.timeout, crate::peer::load(&url, policy)).await {
+                    Ok(Ok((page, assets))) => {
+                        if !completion.terminal.load(Ordering::Acquire) {
+                            let response_url = assets.document_url.clone();
+                            completion.out.emit(FetchUpdate::PeerAssets { request, url: url.clone(), assets: Arc::new(assets) });
+                            completion.out.emit(FetchUpdate::PageProgress(PageProgress {
+                                request, url: url.clone(), response_url, content_type: page.content_type.clone(), bytes: page.bytes.clone(),
+                            }));
+                        }
+                        Ok(page)
+                    }
+                    Ok(Err(error)) => Err(FetchFailure::Failed(error)),
+                    Err(_) => Err(FetchFailure::Failed("IPFS page timed out".into())),
+                };
+                return FetchUpdate::Page(FetchOutcome { request, url, result });
+            }
             let request_url = url.clone();
             let progress = completion.clone();
             let result = fetch_page_interactive_capped(

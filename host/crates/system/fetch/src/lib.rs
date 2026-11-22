@@ -239,6 +239,8 @@ impl ContentState {
 /// Whether `url` is a network address meerkat fetches (http(s) or a smolweb
 /// scheme), vs a synthesized `mere://` page or another non-network scheme.
 pub fn is_fetchable(url: &str) -> bool {
+    #[cfg(feature = "peer-editions")]
+    if peer::is_address(url) { return true; }
     match scheme_of(url) {
         Some(scheme) => scheme == "http" || scheme == "https" || is_smolweb(url),
         None => false,
@@ -295,6 +297,8 @@ pub enum FetchCommand {
 /// An update from the fetch actor: one completed page, subresource, or favicon fetch.
 #[cfg(feature = "actor")]
 pub enum FetchUpdate {
+    #[cfg(feature = "peer-editions")]
+    PeerAssets { request: FetchRequestId, url: String, assets: std::sync::Arc<peer::PeerAssets> },
     PageProgress(PageProgress),
     Page(FetchOutcome),
     Subresource(SubresourceOutcome),
@@ -595,3 +599,6 @@ use smolweb_response::smolweb_input_failure;
 
 #[cfg(feature = "smolweb")]
 use smolweb_response::smolweb_content_type;
+
+#[cfg(feature = "peer-editions")]
+pub mod peer;
