@@ -1,0 +1,60 @@
+[package]
+rust-version = "1.97.1"
+name = "mere-cli"
+version = "0.1.0"
+edition.workspace = true
+license = "MPL-2.0"
+repository.workspace = true
+description = "Query linked data on this machine, or serve one granted SPARQL query to an invited reader over iroh, I2P, Reticulum or a browser."
+readme = "README.md"
+keywords = ["sparql", "rdf", "p2p", "linked-data", "cli"]
+categories = ["command-line-utilities"]
+publish = false
+
+[[bin]]
+name = "mere"
+path = "src/main.rs"
+
+# Every carrier is optional and a default build only queries local files
+# (graphshell:mere-cli D16). A build refuses a carrier it was not built with,
+# by name.
+[features]
+default = []
+iroh = []
+i2p = ["transport/i2p-transport"]
+# Links retinue, whose Reticulum License bars use in building model-training
+# datasets: opt in knowingly.
+reticulum = ["transport/reticulum"]
+# A browser reader through graphshell-host's WebRTC door and signaling.
+webrtc = ["graphshell-host/webrtc-session", "dep:webrtc-carrier"]
+# Identities from a seed file instead of the custodian, for this crate's own
+# binary tests (D13). Never in a release build.
+test-identity = ["graphshell-host/test-signer"]
+
+[dependencies]
+anyhow = "1"
+castellan-client = { workspace = true, features = ["client"] }
+chirograph.workspace = true
+clap = { version = "4", features = ["derive"] }
+graphshell-host = { workspace = true, features = ["mere-query", "custody-client"] }
+insigne.workspace = true
+mere = { workspace = true, features = ["query", "bundled-contexts"] }
+notochord.workspace = true
+ostiary = { workspace = true, features = ["native"] }
+personae.workspace = true
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "signal", "time"] }
+transport = { workspace = true, features = ["notochord"] }
+uuid.workspace = true
+webrtc-carrier = { workspace = true, optional = true, features = ["native"] }
+
+[dev-dependencies]
+serde_json = "1"
+tempfile = "3"
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+# murm's scripted SAM bridge, for the I2P test.
+transport = { workspace = true, features = ["i2p", "test-identity"] }
+
+[lints]
+workspace = true

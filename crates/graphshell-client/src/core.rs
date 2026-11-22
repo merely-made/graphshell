@@ -47,7 +47,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use chirograph::{
     AdvertisedAction, CapabilityProfile, CarrierNotice, CarrierRequestBody, CarrierResponseBody,
     EndpointDescriptor, IntentInvocation, IntentResult, ProjectionRequest, ProjectionSession,
-    ResourceRequest, ResourceResponse,
+    QueryRequest, QueryResponse, ResourceRequest, ResourceResponse,
 };
 use sceno::InstanceId;
 use serde::Serialize;
@@ -112,6 +112,9 @@ pub enum Outcome {
     MediaResource(Box<ResourceResponse>),
     /// The endpoint answered an intent — admitted or refused, both are this.
     Intent(Box<IntentResult>),
+    /// One page of a query's result (graphshell:mere-cli D21). Ask for the
+    /// next with [`QueryRequest::next`] until it is `None`.
+    QueryPage(Box<QueryResponse>),
     /// Whether anything actually changed.
     Changed(bool),
     /// The session is closed.
@@ -139,6 +142,9 @@ enum Pending {
         request: ResourceRequest,
     },
     Intent,
+    Query {
+        request: QueryRequest,
+    },
     /// A resume driven by one notice, counting its resynchronize attempts.
     Resume {
         notice: CarrierNotice,
@@ -378,6 +384,14 @@ impl SessionCore {
             },
             CarrierRequestBody::Resource(request),
         )
+    }
+
+    /// Ask for one page of a query's result. A query needs no mounted
+    /// projection: the endpoint answers it from its dataset under the grant.
+    pub fn query(&mut self, request: QueryRequest) -> Progress<Outcome> {
+        let body = CarrierRequestBody::Query(request.clone());
+        self.begin(Pending::Query { request }, body)
+            .unwrap_or_else(Progress::Refused)
     }
 
     /// Invoke an action exactly as advertised.
@@ -700,6 +714,13 @@ impl SessionCore {
                     Ok(Progress::Done(Outcome::Intent(Box::new(result))))
                 },
                 other => Err(unexpected("intent result", &other)),
+            },
+            Pending::Query { request } => match body {
+                CarrierResponseBody::Query(page) if page.offset == request.offset => {
+                    Ok(Progress::Done(Outcome::QueryPage(page)))
+                },
+                CarrierResponseBody::Query(_) => Err("the query page starts at another row".into()),
+                other => Err(unexpected("query page", &other)),
             },
             Pending::Resume { notice, attempts } => match body {
                 CarrierResponseBody::Resume(reply) => {

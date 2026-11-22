@@ -293,10 +293,18 @@ async fn hello_and_reply<P: IdentityProvider, F: JoinFrames>(
     };
     let mut hello_nonce = [0u8; 32];
     fill_random(&mut hello_nonce)?;
-    let hello = crate::webrtc_door::open_webrtc_session(
+    // The action the invitation grants, which the delegation the host minted
+    // from it covers: `connect` for a projection, one query for a query grant.
+    let action = notochord::RequestedAction {
+        domain: invite.domain().to_string(),
+        path: invite.path().to_string(),
+        action: invite.action().to_string(),
+    };
+    let hello = crate::webrtc_door::open_webrtc_session_for(
         ephemeral,
         NetworkId(*invite.network()),
         profile,
+        action,
         hello_nonce,
         shared_link,
         vec![delegation.clone()],

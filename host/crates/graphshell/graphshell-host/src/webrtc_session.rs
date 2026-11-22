@@ -66,7 +66,7 @@ use webrtc_carrier::{DtlsFingerprint, InviteId, InviteV1, LinkChallenge};
 
 use crate::admission::PROJECTION_PROTOCOL;
 use crate::webrtc_door::{
-    RedemptionState, admit_webrtc_session, mint_delegation, redeem, sign_challenge,
+    RedemptionState, admit_webrtc_session_with, mint_delegation, redeem, sign_challenge,
     webrtc_session_facts,
 };
 use crate::webrtc_join::{ToHost, ToPeer, recv_binary, recv_json, send_json, unexpected_message};
@@ -165,6 +165,42 @@ pub async fn host_join<P: IdentityProvider, F: JoinFrames>(
     now_ms: u64,
     active_sessions: u32,
 ) -> Result<JoinConclusion, JoinError> {
+    host_join_with(
+        frames,
+        provider,
+        hosted,
+        channel_label,
+        client_fingerprint,
+        server_fingerprint,
+        policy,
+        ledger,
+        root_authority,
+        delegation_ttl_ms,
+        now_ms,
+        active_sessions,
+        &crate::admission::serves_admitted,
+    )
+    .await
+}
+
+/// [`host_join`] with the host's own action check (see
+/// [`crate::admission::admit_session_with`]).
+#[allow(clippy::too_many_arguments)]
+pub async fn host_join_with<P: IdentityProvider, F: JoinFrames>(
+    frames: &mut F,
+    provider: &P,
+    hosted: &mut HostedInvite,
+    channel_label: &str,
+    client_fingerprint: DtlsFingerprint,
+    server_fingerprint: DtlsFingerprint,
+    policy: &LocalNetworkPolicy,
+    ledger: &RevocationLedger,
+    root_authority: [u8; 32],
+    delegation_ttl_ms: u64,
+    now_ms: u64,
+    active_sessions: u32,
+    serves: crate::admission::ActionCheck<'_>,
+) -> Result<JoinConclusion, JoinError> {
     // Open: which invitation, and the client half of the transcript.
     let (invite_id, client_nonce) = match recv_json::<ToHost, _>(frames).await? {
         ToHost::Open {
@@ -244,7 +280,15 @@ pub async fn host_join<P: IdentityProvider, F: JoinFrames>(
     let hello = recv_binary(frames, "a Notochord hello").await?;
     let shared_link = challenge.shared_link();
     let (reply, outcome) =
-        admit_webrtc_session(policy, ledger, &hello, shared_link, now_ms, active_sessions);
+        admit_webrtc_session_with(
+            policy,
+            ledger,
+            &hello,
+            shared_link,
+            now_ms,
+            active_sessions,
+            serves,
+        );
     frames.send(&reply).await.map_err(JoinError::Channel)?;
     let principal = outcome.map_err(JoinError::Denied)?;
 
@@ -332,7 +376,7 @@ impl ServedJoin {
 /// returns the error.
 #[allow(clippy::too_many_arguments)]
 pub async fn serve_webrtc_join<P: IdentityProvider>(
-    mut carrier: Carrier,
+    carrier: Carrier,
     provider: &P,
     hosted: &mut HostedInvite,
     policy: &LocalNetworkPolicy,
@@ -342,12 +386,41 @@ pub async fn serve_webrtc_join<P: IdentityProvider>(
     now_ms: u64,
     active_sessions: u32,
 ) -> Result<ServedJoin, JoinError> {
+    serve_webrtc_join_with(
+        carrier,
+        provider,
+        hosted,
+        policy,
+        ledger,
+        root_authority,
+        delegation_ttl_ms,
+        now_ms,
+        active_sessions,
+        &crate::admission::serves_admitted,
+    )
+    .await
+}
+
+/// [`serve_webrtc_join`] with the host's own action check.
+#[allow(clippy::too_many_arguments)]
+pub async fn serve_webrtc_join_with<P: IdentityProvider>(
+    mut carrier: Carrier,
+    provider: &P,
+    hosted: &mut HostedInvite,
+    policy: &LocalNetworkPolicy,
+    ledger: &RevocationLedger,
+    root_authority: [u8; 32],
+    delegation_ttl_ms: u64,
+    now_ms: u64,
+    active_sessions: u32,
+    serves: crate::admission::ActionCheck<'_>,
+) -> Result<ServedJoin, JoinError> {
     let fingerprints = carrier
         .fingerprints()
         .ok_or_else(|| JoinError::Channel("the carrier has no DTLS fingerprints yet".into()))?;
     let channel_label = carrier.channel_label().to_string();
 
-    let joined = host_join(
+    let joined = host_join_with(
         &mut carrier,
         provider,
         hosted,
@@ -360,6 +433,7 @@ pub async fn serve_webrtc_join<P: IdentityProvider>(
         delegation_ttl_ms,
         now_ms,
         active_sessions,
+        serves,
     )
     .await;
 

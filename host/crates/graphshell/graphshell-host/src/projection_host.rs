@@ -52,8 +52,7 @@ use tokio::task::JoinHandle;
 use transport::Transport;
 
 use crate::carrier::{
-    ProjectionAcceptError, ProjectionRefusal, accept_projection_session,
-    accept_projection_session_with,
+    ProjectionAcceptError, ProjectionRefusal, admit_stream, admit_stream_with, projection_alpn,
 };
 use crate::endpoint_catalog::{
     ResidentEndpointCatalog, ResidentEndpointCatalogError, ResidentEndpointSession,
@@ -62,7 +61,7 @@ use crate::lifecycle::SessionAuthority;
 use crate::session_loop::{SessionLoopError, SessionSummary};
 use crate::session_notices::serve_admitted_session_notifying;
 #[cfg(feature = "webrtc-session")]
-use crate::webrtc_session::{HostedInvite, JoinError, ServedJoin, serve_webrtc_join};
+use crate::webrtc_session::{HostedInvite, JoinError, ServedJoin, serve_webrtc_join_with};
 use ostiary::route::ResidentEndpointRoute;
 use insigne::delegation::SignedDelegationCertificate;
 use notochord::AdmittedPrincipal;
@@ -323,8 +322,16 @@ impl ResidentProjectionHost {
         T: Transport,
         N: Fn() -> u64 + Send + 'static,
     {
-        // A snapshot for admission, and never held across the await: the live
-        // request loops below re-read the shared ledger themselves.
+        // Wait for the peer first, then read what admission decides on. The
+        // wait can be long, and a grant revoked or expired during it must not
+        // be admitted on a ledger, clock or session count read before it.
+        let accepted = transport
+            .accept(projection_alpn())
+            .await
+            .map_err(ProjectionAcceptError::from)?;
+        let (stream, facts) = accepted.into_session();
+        // A snapshot for admission, and never held across the handshake's
+        // awaits: the live request loops below re-read the shared ledger.
         let admission_ledger = self
             .revocations
             .read()
@@ -333,14 +340,8 @@ impl ResidentProjectionHost {
         let live = self.live.load(Ordering::SeqCst);
         let outcome = match &self.routing {
             Routing::Fixed(_) => {
-                accept_projection_session(
-                    transport,
-                    &self.policy,
-                    &admission_ledger,
-                    now_ms(),
-                    live,
-                )
-                .await?
+                admit_stream(stream, &facts, &self.policy, &admission_ledger, now_ms(), live)
+                    .await?
             },
             Routing::Selected(selector) => {
                 let selector = Arc::clone(selector);
@@ -348,8 +349,9 @@ impl ResidentProjectionHost {
                     move |principal: &AdmittedPrincipal, chain: &[SignedDelegationCertificate]| {
                         selector(principal, chain).is_ok()
                     };
-                accept_projection_session_with(
-                    transport,
+                admit_stream_with(
+                    stream,
+                    &facts,
                     &self.policy,
                     &admission_ledger,
                     now_ms(),
@@ -474,16 +476,28 @@ where
     P: IdentityProvider,
     N: Fn() -> u64 + Send + 'static,
 {
-    let (policy, admission_ledger, active_sessions) = {
+    let (policy, admission_ledger, active_sessions, selector) = {
         let host = host.lock().await;
         let ledger = host
             .revocations
             .read()
             .expect("the revocation ledger lock is never poisoned by this host")
             .clone();
-        (host.policy.clone(), ledger, host.live_sessions())
+        let selector = match &host.routing {
+            Routing::Fixed(_) => None,
+            Routing::Selected(selector) => Some(Arc::clone(selector)),
+        };
+        (host.policy.clone(), ledger, host.live_sessions(), selector)
     };
-    let joined = serve_webrtc_join(
+    // The door asks the host its own question: a selecting host admits what
+    // its selector routes (one granted query, say); a fixed one serves connect.
+    let serves = move |principal: &AdmittedPrincipal, chain: &[SignedDelegationCertificate]| {
+        match &selector {
+            Some(selector) => selector(principal, chain).is_ok(),
+            None => crate::admission::serves_action(principal),
+        }
+    };
+    let joined = serve_webrtc_join_with(
         carrier,
         provider,
         hosted,
@@ -493,6 +507,7 @@ where
         delegation_ttl_ms,
         now_ms(),
         active_sessions,
+        &serves,
     )
     .await?;
     let ServedJoin {

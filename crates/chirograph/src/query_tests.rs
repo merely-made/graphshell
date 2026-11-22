@@ -124,3 +124,52 @@ fn the_grant_names_the_query_by_its_digest() {
     assert_eq!(a.digest(), ContentHash::of(b"SELECT ?s { ?s ?p ?o }"));
     assert_ne!(a.digest(), b.digest(), "the grant is byte-exact");
 }
+
+/// The wire form, pinned: a peer built from another revision must read and
+/// write exactly these bytes.
+#[test]
+fn the_query_wire_form_is_pinned() {
+    let request = CarrierRequest {
+        id: 3,
+        body: CarrierRequestBody::Query(QueryRequest {
+            session: session(),
+            query: "SELECT ?s { ?s ?p ?o }".into(),
+            offset: 2,
+            result: Some(ContentHash([7; 32])),
+            max_bytes: 4096,
+        }),
+    };
+    // ContentHash travels as its 32 bytes.
+    let hash = format!("[{}]", vec!["7"; 32].join(","));
+    let wire = format!(
+        concat!(
+            r#"{{"id":3,"body":{{"Query":{{"session":"mere:graph","query":"SELECT ?s {{ ?s ?p ?o }}","#,
+            r#""offset":2,"result":{},"max_bytes":4096}}}}}}"#
+        ),
+        hash
+    );
+    assert_eq!(serde_json::to_string(&request).unwrap(), wire);
+    assert_eq!(serde_json::from_str::<CarrierRequest>(&wire).unwrap(), request);
+
+    let page = QueryResponse {
+        session: session(),
+        variables: vec!["s".into()],
+        rows: vec![vec![Some("urn:a".into())], vec![None]],
+        offset: 2,
+        total_rows: 4,
+        result: ContentHash([7; 32]),
+    };
+    let reply = CarrierResponse {
+        id: 3,
+        body: Ok(CarrierResponseBody::Query(Box::new(page))),
+    };
+    let wire = format!(
+        concat!(
+            r#"{{"id":3,"body":{{"Ok":{{"Query":{{"session":"mere:graph","variables":["s"],"#,
+            r#""rows":[["urn:a"],[null]],"offset":2,"total_rows":4,"result":{}}}}}}}}}"#
+        ),
+        hash
+    );
+    assert_eq!(serde_json::to_string(&reply).unwrap(), wire);
+    assert_eq!(serde_json::from_str::<CarrierResponse>(&wire).unwrap(), reply);
+}

@@ -259,3 +259,22 @@ async fn a_revoked_invitation_is_refused() {
 async fn an_expired_invitation_is_refused() {
     withdrawn(|owner| owner.clock.store(EXPIRES + 1, Ordering::SeqCst)).await;
 }
+
+/// The host is already waiting for a peer when the owner revokes: admission
+/// reads the ledger once the peer arrives, so the dial is refused outright.
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn a_grant_revoked_while_the_host_waits_is_refused_at_admission() {
+    let (mut owner, dialer) = fixture();
+    let ledger = Arc::clone(owner.host.revocations());
+    let revocation = owner.issued.revoke(&owner_identity(), NOW).unwrap();
+    let waiting = tokio::spawn(async move { owner.accept().await.map(|_| ()) });
+    tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+    ledger.write().unwrap().fold(revocation.check().unwrap());
+    let handle = tokio::runtime::Handle::current();
+    let dialled = tokio::task::spawn_blocking(move || dial(&dialer, &handle).map(|_| ()))
+        .await
+        .unwrap();
+    let admitted = waiting.await.unwrap();
+    assert!(dialled.unwrap_err().contains("refused"), "the dial is refused at admission");
+    assert!(admitted.is_err(), "the host admitted nobody");
+}

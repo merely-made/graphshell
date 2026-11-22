@@ -372,6 +372,19 @@ impl Invitation {
         profile: ProfileRef,
         local_peer: transport::PeerID,
     ) -> Result<SessionHello, String> {
+        self.hello_bound(terms, identity, profile, &projection_binding(local_peer))
+    }
+
+    /// [`Self::hello`] bound to what the opened session reports, for a carrier
+    /// whose binding is known only once it is open
+    /// ([`crate::network_carrier::dial_projection_session_bound`]).
+    pub fn hello_bound(
+        &self,
+        terms: &InvitationTerms,
+        identity: &dyn IdentityProvider,
+        profile: ProfileRef,
+        binding: &notochord::ProofBinding,
+    ) -> Result<SessionHello, String> {
         if identity.master_public_key().to_bytes() != self.guest.root() {
             return Err("contact or invitation belongs to another graph or person".into());
         }
@@ -386,7 +399,7 @@ impl Invitation {
             self.action(terms),
             TrafficClass::Interactive,
             nonce,
-            &projection_binding(local_peer),
+            binding,
             vec![self.grant.clone()],
         )
         .map_err(|e| e.to_string())
