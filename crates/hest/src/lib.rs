@@ -12,12 +12,16 @@
 //! decide confirmation, authorization and enactment.
 //! Hosts own storage, drawing, and enactment. Serde is the only dependency.
 //!
+//! [`batch`] collects the requests of one script run under limits; a refused
+//! request voids the batch.
+//!
 //! [`Invocation`] carries a command's opaque arguments and declared effect;
 //! [`Outcome`] records only a host-established terminal result. The plan is
 //! `design_docs/archive_docs/2026-10-28/2026-10-20_hest_command_architecture_plan.md`
 //! in the Mere repository. Workspace consumers use this Hest 0.2 API.
 
 pub mod actions;
+pub mod batch;
 pub mod catalogue;
 mod invocation;
 pub mod menu;
