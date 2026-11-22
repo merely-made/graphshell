@@ -408,6 +408,11 @@ title = "the query view is a page beside co-op's"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_mere_cli_plan.md"
 summary = "Turnstone's web app gains query.html beside co_op.html, and graphshell-client's RemoteSession gains a paged query operation."
 
+[decisions."mere-cli D22"]
+title = "snow's duplicates are skipped in host"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_mere_cli_plan.md"
+summary = "Host's deny.toml skips the six crates snow 0.10.0 holds back, under the CLI's I2P carrier, until snow moves."
+
 [decisions."primitive-representations D1"]
 title = "The brief's scope (Mark, 2026-11-13)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
