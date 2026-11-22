@@ -17,6 +17,8 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
+use std::sync::atomic::{AtomicBool, Ordering};
+
 use inker::{
     DocumentClipArtifactRole, FocusReason, KeyboardEvent, KeyboardModifiers, MouseButton,
     MouseEvent, MouseEventKind, NativeSurfaceHost, PhysicalPosition, SessionButtonState,
@@ -130,6 +132,7 @@ impl<F: 'static> PeltContent<F> {
             lane: Lane::Surface(PeltSurface {
                 producer: producer.into(),
                 instance_id: crate::next_controller_instance_id(),
+                frame_ready: None,
                 pointers: HashMap::new(),
                 viewport,
                 offset: None,
@@ -171,6 +174,7 @@ impl<F: 'static> PeltContent<F> {
             lane: Lane::Surface(PeltSurface {
                 producer: PeltBrowser::Shared(surface),
                 instance_id: crate::next_controller_instance_id(),
+                frame_ready: None,
                 pointers: HashMap::new(),
                 viewport: (viewport.width, viewport.height),
                 offset: None,
@@ -326,6 +330,23 @@ impl<F: 'static> PeltContent<F> {
         self.document().map(PeltController::session_identity)
     }
 
+    /// Identifies the live producer, including replacements within the same tile.
+    pub fn surface_instance_id(&self) -> Option<u64> {
+        match &self.lane {
+            Lane::Surface(surface) => Some(surface.instance_id),
+            Lane::Document(_) => None,
+        }
+    }
+
+    /// Switch this producer from continuous polling to readiness notifications.
+    /// The producer sets the flag and wakes the host after publishing a frame.
+    /// The flag stays set across polling-budget deferrals.
+    pub fn set_surface_frame_signal(&mut self, ready: Arc<AtomicBool>) {
+        if let Lane::Surface(surface) = &mut self.lane {
+            surface.frame_ready = Some(ready);
+        }
+    }
+
     pub(crate) fn receiver_identity(&self) -> PeltReceiverIdentity {
         match &self.lane {
             Lane::Document(controller) => {
@@ -433,12 +454,12 @@ impl<F: 'static> PeltContent<F> {
         }
     }
 
-    /// Advance session-owned time work. A surface has no settled bit, so it
-    /// always asks for another poll.
+    /// Advance sessions and request producer polls according to their readiness contract.
     pub fn pump(&mut self) -> bool {
         match &mut self.lane {
             Lane::Document(controller) => controller.pump(),
-            Lane::Surface(_) => true,
+            Lane::Surface(surface) => surface.frame_ready.as_ref()
+                .is_none_or(|ready| ready.load(Ordering::Acquire)),
         }
     }
 
@@ -945,6 +966,7 @@ fn open_lane<F: 'static>(
                 Lane::Surface(PeltSurface {
                     producer: producer.into(),
                     instance_id: crate::next_controller_instance_id(),
+                    frame_ready: None,
                     pointers: HashMap::new(),
                     viewport,
                     offset: None,
@@ -1009,6 +1031,7 @@ impl std::ops::DerefMut for PeltBrowser {
 pub(crate) struct PeltSurface {
     pub(crate) producer: PeltBrowser,
     instance_id: u64,
+    frame_ready: Option<Arc<AtomicBool>>,
     // Accepted button masks are independent of physical buttons; retain each
     // gesture with the envelope and scale used at the producer boundary.
     pointers: HashMap<i32, (inker::PointerEvent, f32, u16)>,
@@ -1040,6 +1063,9 @@ impl PeltSurface {
         scale_factor: f32,
     ) -> Result<Option<SurfaceFrame>, String> {
         self.prepare_geometry(rect, scale_factor)?;
+        if let Some(ready) = &self.frame_ready {
+            ready.swap(false, Ordering::AcqRel);
+        }
         self.producer
             .acquire_frame()
             .map_err(|error| format!("surface frame failed: {error}"))

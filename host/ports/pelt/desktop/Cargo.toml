@@ -102,6 +102,7 @@ windows-present = [
 # `default_compositor_for_window` and doesn't need its own AppKit
 # / objc2 deps.
 macos-present = [
+    "dep:objc2-core-foundation", "dep:objc2-io-surface",
     "netrender",
     "dep:paint",
     "dep:raw-window-handle",
@@ -188,6 +189,10 @@ genet-bole = { workspace = true, optional = true }
 genet-vano = { workspace = true, optional = true }
 # The `LayoutDom` trait (for the inline-`<script>` DOM walk) + QualName parts.
 layout-dom-api = { workspace = true, optional = true }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2-core-foundation = { version = "0.3.2", optional = true }
+objc2-io-surface = { version = "0.3.2", optional = true }
 
 [target.'cfg(target_os = "windows")'.dependencies]
 windows-sys = { version = "0.61", features = [

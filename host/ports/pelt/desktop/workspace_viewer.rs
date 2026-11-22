@@ -365,6 +365,8 @@ pub struct WorkspaceViewerConfig {
     pub appearance_error: Option<String>,
     /// Caller-owned cap and cadence for polling composited surface producers.
     pub surface_resource_policy: SurfaceResourcePolicy,
+    /// Application-provided surface engines available to ordinary tile routing.
+    pub surface_engines: SurfaceEngineRegistry,
 }
 
 impl WorkspaceViewerConfig {
@@ -389,6 +391,7 @@ impl WorkspaceViewerConfig {
             theme_library: None,
             appearance_error: None,
             surface_resource_policy: SurfaceResourcePolicy::default(),
+            surface_engines: SurfaceEngineRegistry::new(),
         }
     }
 
@@ -519,7 +522,7 @@ pub struct WorkspaceViewerOutcome {
 }
 
 pub fn run_livery_workspace_viewer(
-    config: WorkspaceViewerConfig,
+    mut config: WorkspaceViewerConfig,
 ) -> Result<WorkspaceViewerOutcome, String> {
     if config.workspace_receipt.is_some()
         && (config.interaction_receipt
@@ -606,12 +609,15 @@ pub fn run_livery_workspace_viewer(
     let fetcher = genet_documents::LocalFetcher.with_fallback(
         mere_document_lanes::RemoteFetcher::new(genet_documents::ResourceFetchPolicy::default()),
     );
+    let surfaces = std::mem::take(&mut config.surface_engines);
     let engine_options = WorkspaceEngineOptions::for_receipt(config.workspace_receipt);
     #[cfg(target_os = "windows")]
     let registries =
-        workspace_registries_with_fetcher(fetcher.clone(), engine_options, scrying_host.clone());
+        workspace_registries_with_fetcher(
+            fetcher.clone(), engine_options, surfaces, scrying_host.clone(),
+        );
     #[cfg(not(target_os = "windows"))]
-    let registries = workspace_registries_with_fetcher(fetcher.clone(), engine_options);
+    let registries = workspace_registries_with_fetcher(fetcher.clone(), engine_options, surfaces);
     let overrides = config.route_overrides.clone();
     let workspace = PeltWorkspace::try_routed(
         tree,
@@ -755,6 +761,7 @@ fn workspace_registries(
             genet_documents::ResourceFetchPolicy::default(),
         )),
         WorkspaceEngineOptions::default(),
+        SurfaceEngineRegistry::new(),
         #[cfg(target_os = "windows")]
         scrying_host,
     )
@@ -763,6 +770,7 @@ fn workspace_registries(
 fn workspace_registries_with_fetcher(
     fetcher: genet_documents::LocalFetcherWith<mere_document_lanes::RemoteFetcher>,
     engine_options: WorkspaceEngineOptions,
+    surfaces: SurfaceEngineRegistry,
     #[cfg(target_os = "windows")] scrying_host: Option<ScryingReceiptHost>,
 ) -> PeltRegistries<Scene> {
     let mut sessions: SessionRegistry<Scene> = SessionRegistry::new();
@@ -814,7 +822,8 @@ fn workspace_registries_with_fetcher(
         }
     }
     policy.fallback.engine_id = inker::routing::ENGINE_GENET_LIVERY.to_owned();
-    let mut surfaces = SurfaceEngineRegistry::new();
+    #[cfg(target_os = "windows")]
+    let mut surfaces = surfaces;
     #[cfg(target_os = "windows")]
     if let Some(host) = scrying_host {
         surfaces.register(Box::new(ScryingReceiptEngine::new(host)));
@@ -1257,6 +1266,8 @@ struct WorkspaceApp {
     accessibility: WorkspaceAccessibility,
     #[cfg(target_os = "windows")]
     native_surfaces: Dx12SurfaceCache,
+    #[cfg(all(target_os = "macos", feature = "macos-present"))]
+    imported_panes: crate::macos_surface::ImportedPanes,
     #[cfg(target_os = "windows")]
     mixed_content_ready_frame: Option<u32>,
     #[cfg(target_os = "windows")]
@@ -1655,6 +1666,8 @@ impl WorkspaceApp {
             accessibility: WorkspaceAccessibility::new(),
             #[cfg(target_os = "windows")]
             native_surfaces: Dx12SurfaceCache::new(),
+            #[cfg(all(target_os = "macos", feature = "macos-present"))]
+            imported_panes: Default::default(),
             #[cfg(target_os = "windows")]
             mixed_content_ready_frame: None,
             #[cfg(target_os = "windows")]
@@ -2601,7 +2614,12 @@ impl WorkspaceApp {
         }
         #[cfg(target_os = "windows")]
         let mut native_layers = Vec::new();
+        #[cfg(all(target_os = "macos", feature = "macos-present"))]
+        self.imported_panes
+            .sync_visibility(&self.workspace, &workspace_frame.surfaces);
         for surface in workspace_frame.surfaces {
+            #[cfg(all(target_os = "macos", feature = "macos-present"))]
+            self.imported_panes.layout(surface.tile, surface.rect);
             match surface.frame {
                 Ok(None) => {},
                 Ok(Some(frame)) => {
@@ -2623,7 +2641,23 @@ impl WorkspaceApp {
                             return;
                         }
                     }
-                    #[cfg(not(target_os = "windows"))]
+                    #[cfg(all(target_os = "macos", feature = "macos-present"))]
+                    {
+                        let result = self.window.as_ref()
+                            .zip(self.workspace.content_mut(surface.tile))
+                            .ok_or("workspace window or producer unavailable")
+                            .and_then(|(window, content)| {
+                                self.imported_panes.accept(window, content, surface.tile, surface.rect, frame)
+                            });
+                        if let Err(error) = result {
+                            self.receipt_error = Some(format!(
+                                "tile {} native surface import failed: {error}", surface.tile.0
+                            ));
+                            event_loop.exit();
+                            return;
+                        }
+                    }
+                    #[cfg(not(any(target_os = "windows", all(target_os = "macos", feature = "macos-present"))))]
                     {
                         discard_unimported_surface_frame(frame);
                         self.receipt_error = Some(format!(
@@ -3668,6 +3702,10 @@ impl WorkspaceApp {
             if (x - drag.start.0).abs() + (y - drag.start.1).abs() > 6.0 {
                 drag.moved = true;
             }
+            #[cfg(all(target_os = "macos", feature = "macos-present"))]
+            if self.imported_panes.drag_to(drag.tile, x - drag.start.0, y - drag.start.1) {
+                return false;
+            }
             return drag.moved;
         }
         if matches!(
@@ -3733,6 +3771,10 @@ impl WorkspaceApp {
                 true
             },
             Some(FrisketHit::Tab(tile)) => {
+                #[cfg(all(target_os = "macos", feature = "macos-present"))]
+                let chrome_changed = self.chrome_address.is_some()
+                    || self.chrome_engine_menu.is_some()
+                    || self.chrome_appearance_open;
                 self.clear_chrome_address();
                 self.clear_chrome_engine_menu();
                 self.clear_chrome_appearance();
@@ -3741,6 +3783,10 @@ impl WorkspaceApp {
                     start: self.cursor,
                     moved: false,
                 }));
+                #[cfg(all(target_os = "macos", feature = "macos-present"))]
+                if self.imported_panes.begin(tile) {
+                    return chrome_changed;
+                }
                 true
             },
             Some(FrisketHit::Content(_)) => {
@@ -3794,10 +3840,20 @@ impl WorkspaceApp {
     }
 
     fn pointer_up_inner(&mut self, event_loop: Option<&dyn ActiveEventLoop>) -> bool {
+        #[cfg(all(target_os = "macos", feature = "macos-present"))]
+        let imported_drag = self.imported_panes.end();
         let gesture = self.gesture.take();
         match gesture {
             Some(PointerGesture::Divider(_)) => true,
             Some(PointerGesture::Tab(drag)) if drag.moved => {
+                #[cfg(all(target_os = "macos", feature = "macos-present"))]
+                if imported_drag
+                    && matches!(self.frisket.hit(self.cursor.0, self.cursor.1), Some(FrisketHit::Tab(tile)) if tile == drag.tile)
+                {
+                    // Releasing over the original tab leaves its position in the stack intact.
+                    return self.workspace.focused_tile() != Some(drag.tile)
+                        && self.apply_tile_event(TileEvent::Activated(drag.tile), None);
+                }
                 let to = self.resolve_drop(drag.tile);
                 to.is_some_and(|to| {
                     self.apply_tile_event(
@@ -5360,6 +5416,10 @@ impl ApplicationHandler for WorkspaceApp {
     }
 
     fn suspended(&mut self, _: &dyn ActiveEventLoop) {
+        #[cfg(all(target_os = "macos", feature = "macos-present"))]
+        if self.imported_panes.end() {
+            self.gesture = None;
+        }
         if let Some(editor) = self.editor.as_mut() {
             editor.host.suspend_surface();
         }
@@ -5471,6 +5531,35 @@ impl ApplicationHandler for WorkspaceApp {
                 return;
             }
             return;
+        }
+        #[cfg(all(target_os = "macos", feature = "macos-present"))]
+        match &event {
+            WindowEvent::KeyboardInput { event: key, .. }
+                if key.logical_key == Key::Named(NamedKey::Escape) =>
+            {
+                match key.state {
+                    ElementState::Pressed if !key.repeat => {
+                        self.imported_panes.consumed_escape = self.imported_panes.end();
+                        if self.imported_panes.consumed_escape {
+                            self.gesture = None;
+                            return;
+                        }
+                    }
+                    ElementState::Pressed if self.imported_panes.consumed_escape => return,
+                    ElementState::Released if std::mem::take(&mut self.imported_panes.consumed_escape) => return,
+                    _ => {}
+                }
+            }
+            WindowEvent::Focused(false) | WindowEvent::Destroyed | WindowEvent::CloseRequested
+                | WindowEvent::SurfaceResized(_) | WindowEvent::ScaleFactorChanged { .. } => {
+                if self.imported_panes.end() {
+                    self.gesture = None;
+                }
+                if matches!(event, WindowEvent::Focused(false)) {
+                    self.imported_panes.consumed_escape = false;
+                }
+            }
+            _ => {}
         }
         match event {
             WindowEvent::CloseRequested => {

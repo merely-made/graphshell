@@ -19,6 +19,12 @@ pub use appearance::{
 mod dx12_surface;
 #[cfg(feature = "livery")]
 mod frisket_surface;
+#[cfg(all(target_os = "macos", feature = "macos-present"))]
+#[cfg(feature = "livery")]
+mod macos_surface;
+#[cfg(all(target_os = "macos", feature = "macos-present"))]
+#[cfg(feature = "livery")]
+pub use macos_surface::OpaqueIOSurfaceFrame;
 mod profile;
 #[cfg(feature = "present")]
 mod receipt_capture;
