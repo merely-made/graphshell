@@ -7,7 +7,9 @@ the unchanged hosts pass on Pulley at roughly 8 to 32 times the compiler's run t
 itself builds for the browser target and runs Pulley bytecode there (Findings 17 to 20). P3 is met:
 what a component is as plain modules is written down, with the layer a module-only runtime would
 need, and wasmi ran a plain module natively and in a browser with its fuel limit (Findings 21 to
-24). P4 and P5 are not started. D1 to D7 ruled the same day.
+24). P4 is met except its native run: Wasmer's desk study is written and its `js` flavour ran
+the module in Node and a browser, but its compilers do not build on Windows (Findings 25 to 28).
+P5 is not started. D1 to D7 ruled the same day.
 
 **For:** the web build. Graphshell's wasm hosts run guests on Wasmtime, which compiles them to machine
 code, and a browser grants no page the right to do that. No ruling says how a component guest runs when
@@ -169,6 +171,10 @@ outcome. D1 to D7 are in answer order.
    component, then a guest, then a page) is for the readout, P5.
 5. How a product build would select Pulley. The probe uses a cfg of Wasmtime's own build script;
    a product would call `Config::target` behind a switch, and no host has one.
+6. P4's native Wasmer run. It needs a machine that is not Windows, or Wasmer's `v8` flavour,
+   whose build downloads a prebuilt V8. Which, or neither, is Mark's.
+7. Whether Vano or Bole should get a `WebAssembly` object from wasmi or Wasmtime on Pulley
+   (Findings 28). Raised by Mark on 2026-11-22; it belongs to Genet's plans, not this one.
 
 ## Findings
 
@@ -271,6 +277,24 @@ outcome. D1 to D7 are in answer order.
     overflowed the stack, so that build cannot hold the guard. wasmi has no component model (Findings
     3), so no guest ran on it.
 
+25. Wasmer, read 2026-11-22 (sources in `host/testing/guest-runtime-p4/README.md`): 7.5.0, MIT. Its
+    maintainers "don't plan to support the Component Model" (issue 4439, closed as not planned), so
+    it needs the same wrapper wasmi does. The crate has three flavours: `sys` with its own compilers,
+    `v8`, and `js`, where Wasmer is built to wasm and the JavaScript host's engine runs the module.
+    Nothing documents fuel, a memory limit or interruption under `js`.
+26. Wasmer's own compilers no longer build on Windows (release 7.3.0; the build stops with "The
+    Cranelift compiler backend is not supported on Windows. Use the V8 backend instead."). The `v8`
+    flavour's build script downloads a prebuilt V8 archive, which the probe did not take. So P4's
+    native run has not been made on this machine.
+27. Run 2026-11-22: built for `wasm32-unknown-unknown` with `js-default` (604,811 B of module and
+    19,261 B of glue after `wasm-bindgen`), Wasmer ran P3's module with the right value in 80 ms in
+    Node 24 and 59 ms in Chromium 156, compile included. That is the engine's own compiler at work:
+    under `js` Wasmer is a typed API over the browser's wasm support, which D1's route already uses
+    directly.
+28. Neither of our JavaScript engines can stand in for V8 here: Vano's documentation says it "does
+    not support WebAssembly execution", and Bole (the Boa fork) has no `WebAssembly` object. The
+    reverse is open: wasmi or Wasmtime on Pulley could give either a `WebAssembly` object.
+
 ## Progress
 
 - 2026-11-21: plan written; D1 to D3 ruled.
@@ -287,3 +311,5 @@ outcome. D1 to D7 are in answer order.
   next.
 - 2026-11-22: P3 met. The account and the wasmi probe are `host/testing/guest-runtime-p3/`; the
   probe passes natively, in Node and in Chromium. P4 is next.
+- 2026-11-22: P4 met except the native run. The desk study and probe are
+  `host/testing/guest-runtime-p4/`; the `js` flavour passes in Node and Chromium. P5 is next.

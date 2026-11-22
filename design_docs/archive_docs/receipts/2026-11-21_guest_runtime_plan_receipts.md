@@ -147,3 +147,22 @@ unlimited runs took 931.0, 912.2, 908.6 and 931.1 ms with the right value; the f
 counted threw "Maximum call stack size exceeded" inside wasmi's `consume_fuel`.
 
 Not run: any Graphshell guest or any component on wasmi; the module layer is a written sketch only.
+
+## 2026-11-22: P4, Wasmer
+
+Machine: the Windows laptop. Graphshell at `1071722f` plus the uncommitted probe. Wasmer 7.5.0,
+wasm-bindgen 0.2.130 (library and CLI), Node 24.11.0; the built-in browser, `Chrome/156.0.8078.100`.
+The module is P3's; `run()` must return 1542256704.
+
+| Where | Result | Time for the loop, compile included |
+| --- | --- | --- |
+| Native, default flavour | did not build: "The Cranelift compiler backend is not supported on Windows. Use the V8 backend instead." | |
+| Node, `js` flavour | right | 79.6 ms (median of 5; 65.6 to 125.6) |
+| Chromium, `js` flavour | right | 59.1 ms (median of 5; 58.3 to 84.6) |
+
+`wasmer_host_bg.wasm` is 604,811 B and its glue 19,261 B. No console errors in the browser. The first
+`wasm-bindgen` attempt failed because the installed CLI was 0.2.129 and Wasmer's `js-sys` requires
+0.2.130; a matching CLI was built into a scratch directory.
+
+Not run: Wasmer natively; its `v8` flavour (the build downloads a prebuilt V8); any guard under `js`;
+any Graphshell guest.

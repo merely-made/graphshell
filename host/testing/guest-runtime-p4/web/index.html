@@ -1,0 +1,22 @@
+<!doctype html>
+<!-- Copyright 2026 Mark Alan Boykin. SPDX-License-Identifier: MPL-2.0.
+     The page for the Wasmer probe (guest runtime plan, P4): it runs a plain
+     module through Wasmer built for wasm32 with its js backend, and shows
+     whether run() returned the expected value. -->
+<meta charset="utf-8">
+<title>guest runtime probe: wasmer</title>
+<pre id="result">running</pre>
+<script type="module">
+  import { runProbe } from './run.js';
+  const load = async (path) => new Uint8Array(await (await fetch(path)).arrayBuffer());
+  const out = document.getElementById('result');
+  try {
+    const result = await runProbe(load);
+    result.userAgent = navigator.userAgent;
+    window.__result = result;
+    out.textContent = JSON.stringify(result, null, 2);
+  } catch (error) {
+    window.__result = { passed: false, error: String(error?.stack ?? error) };
+    out.textContent = window.__result.error;
+  }
+</script>

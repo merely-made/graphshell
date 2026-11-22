@@ -1,0 +1,25 @@
+# Guest runtime plan, P4: the P3 module run by Wasmer. Natively Wasmer
+# compiles it; built for wasm32 with its `js` backend, Wasmer hands it to the
+# JavaScript engine it is running in. Its own workspace.
+[package]
+name = "wasmer-host"
+version = "0.0.1"
+edition = "2024"
+license = "MPL-2.0"
+publish = false
+
+[workspace]
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[[bin]]
+name = "time-native"
+path = "src/main.rs"
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+wasmer = ">=7.5.0"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasmer = { version = ">=7.5.0", default-features = false, features = ["js-default"] }
+wasm-bindgen = ">=0.2.129"

@@ -1,0 +1,4 @@
+# Build products of the probe.
+/wasmer-host/target/
+/web/module.wasm
+/web/pkg/
