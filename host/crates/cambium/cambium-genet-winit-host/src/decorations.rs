@@ -243,7 +243,7 @@ where
         self.performed.push(command);
         if let WindowCommand::Resize(w, h) = command {
             if let Some(window) = self.native_window.as_ref() {
-                let _ = window.request_inner_size(winit::dpi::LogicalSize::new(w, h));
+                let _ = window.request_surface_size(winit::dpi::LogicalSize::new(w, h).into());
                 window.request_redraw();
             }
             return;
@@ -315,7 +315,7 @@ where
             .outer_position()
             .map(|p| (p.x as f64 / scale, p.y as f64 / scale))
             .unwrap_or((0.0, 0.0));
-        let size = window.inner_size();
+        let size = window.surface_size();
         Some(WindowGeometry {
             position,
             size: (size.width as f64 / scale, size.height as f64 / scale),
@@ -346,7 +346,7 @@ mod tests;
 /// stylesheet that puts a control at the top-left would put it underneath
 /// them.
 #[cfg(not(target_os = "macos"))]
-pub(crate) fn titlebar_insets(_window: &winit::window::Window) -> TitlebarInsets {
+pub(crate) fn titlebar_insets(_window: &dyn winit::window::Window) -> TitlebarInsets {
     TitlebarInsets::NONE
 }
 
@@ -358,7 +358,7 @@ pub(crate) fn titlebar_insets(_window: &winit::window::Window) -> TitlebarInsets
 /// content view — reserves nothing, because the page is not drawing up there
 /// at all.
 #[cfg(target_os = "macos")]
-pub(crate) fn titlebar_insets(window: &winit::window::Window) -> TitlebarInsets {
+pub(crate) fn titlebar_insets(window: &dyn winit::window::Window) -> TitlebarInsets {
     use objc2_app_kit::{NSWindow, NSWindowButton};
     use raw_window_handle::{HasWindowHandle, RawWindowHandle};
 

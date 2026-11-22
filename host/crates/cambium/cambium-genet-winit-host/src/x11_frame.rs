@@ -36,7 +36,7 @@ fn device_extents(insets: AppFrameInsets, layout_scale: f64) -> [u32; 4] {
 /// carry zoom (see [`device_extents`]), and the window knows only its device
 /// scale.
 pub(crate) fn publish_gtk_frame_extents(
-    window: &Window,
+    window: &dyn Window,
     insets: AppFrameInsets,
     layout_scale: f64,
 ) -> Result<Option<[u32; 4]>, String> {

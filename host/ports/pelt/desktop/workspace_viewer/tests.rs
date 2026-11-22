@@ -3307,7 +3307,7 @@ fn native_surface_keyboard_retains_function_key_scan_code_modifiers_and_text() {
 fn native_document_keyboard_text_filters_commands_and_control_text() {
     let none = SessionModifiers::default();
     assert_eq!(native_keyboard_text(&Key::Character("é".into()), Some("é"), ElementState::Pressed, none), Some("é".into()));
-    assert_eq!(native_keyboard_text(&Key::Named(NamedKey::Space), None, ElementState::Pressed, none), Some(" ".into()));
+    assert_eq!(native_keyboard_text(&Key::Character(" ".into()), None, ElementState::Pressed, none), Some(" ".into()));
     assert_eq!(native_keyboard_text(&Key::Named(NamedKey::Enter), Some("\r"), ElementState::Pressed, none), None);
     assert_eq!(native_keyboard_text(&Key::Character("a".into()), Some("a"), ElementState::Released, none), None);
     assert_eq!(native_keyboard_text(&Key::Character("c".into()), Some("c"), ElementState::Pressed,

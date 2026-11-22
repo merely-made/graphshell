@@ -48,7 +48,7 @@ wgpu = { workspace = true }
 # Named directly for the `Surface` implementation's return type; it already
 # arrived transitively through genet-winit-host.
 genet-presenter = { workspace = true }
-winit = { workspace = true }
+winit = ">=0.31.0-beta.4"
 
 [dev-dependencies]
 taproot = { workspace = true, features = ["estimated-probe-fixtures"] }

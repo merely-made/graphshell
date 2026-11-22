@@ -37,13 +37,10 @@
 //! brief's recorded, unbarred measure. `--self-check` runs without a window:
 //! it reads the joined tree through the AT-SPI consumer and exits.
 
-use std::collections::{HashMap, VecDeque};
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::{Arc, Mutex};
+use std::collections::HashMap;
 
 use accesskit::{
-    Action, ActionHandler, ActionRequest, ActivationHandler, DeactivationHandler, Node,
-    NodeId as A11yNodeId, Rect, Role, TreeId, TreeInfo, TreeUpdate,
+    Action, ActionRequest, Node, NodeId as A11yNodeId, Rect, Role, TreeId, TreeInfo, TreeUpdate,
 };
 use cambium::CompositionEvent;
 use cambium::{
@@ -64,7 +61,7 @@ use winit::dpi::{LogicalPosition, LogicalSize};
 use winit::event::{ElementState, WindowEvent};
 use winit::event_loop::{ActiveEventLoop, EventLoop, EventLoopProxy};
 use winit::keyboard::{Key as WinitKey, ModifiersState, NamedKey as WinitNamedKey};
-use winit::window::{Window, WindowId};
+use winit::window::{Window, WindowAttributes, WindowId};
 
 const PANE: (f32, f32) = (240.0, 160.0);
 const A_ORIGIN: (f64, f64) = (0.0, 40.0);
@@ -523,56 +520,13 @@ fn resident_memory() -> Option<String> {
 
 // --- The window -----------------------------------------------------------
 
-struct Shared {
-    /// The host's tree for an activation request, refreshed every frame.
-    initial: Arc<Mutex<Option<TreeUpdate>>>,
-    /// Set when the adapter activates (a screen reader arrived), possibly on
-    /// its own thread: the next frame resends every guest as new.
-    activated: Arc<AtomicBool>,
-    actions: Arc<Mutex<VecDeque<ActionRequest>>>,
-}
-
-struct Activation {
-    initial: Arc<Mutex<Option<TreeUpdate>>>,
-    activated: Arc<AtomicBool>,
-    proxy: EventLoopProxy<()>,
-}
-
-impl ActivationHandler for Activation {
-    fn request_initial_tree(&mut self) -> Option<TreeUpdate> {
-        self.activated.store(true, Ordering::SeqCst);
-        let _ = self.proxy.send_event(());
-        self.initial.lock().ok().and_then(|initial| initial.clone())
-    }
-}
-
-struct Actions {
-    queue: Arc<Mutex<VecDeque<ActionRequest>>>,
-    proxy: EventLoopProxy<()>,
-}
-
-impl ActionHandler for Actions {
-    fn do_action(&mut self, request: ActionRequest) {
-        if let Ok(mut queue) = self.queue.lock() {
-            queue.push_back(request);
-        }
-        let _ = self.proxy.send_event(());
-    }
-}
-
-struct Deactivation;
-
-impl DeactivationHandler for Deactivation {
-    fn deactivate_accessibility(&mut self) {}
-}
-
 struct App {
     host: Host,
     grafts: Grafts,
-    shared: Shared,
-    proxy: EventLoopProxy<()>,
-    window: Option<Window>,
-    adapter: Option<accesskit_winit::Adapter>,
+    proxy: EventLoopProxy,
+    window: Option<Box<dyn Window>>,
+    adapter: Option<genet_winit_host::AccessKitBridge>,
+    epoch: Option<u64>,
     modifiers: ModifiersState,
 }
 
@@ -580,36 +534,40 @@ impl App {
     /// Publish this frame's trees, in the order the adapter must take them.
     fn publish(&mut self) {
         let composition = self.host.composition();
-        if let Ok(mut initial) = self.shared.initial.lock() {
-            *initial = Some(composition.initial_host());
-        }
-        if self.shared.activated.swap(false, Ordering::SeqCst) {
-            let _ = self.grafts.activate(&composition);
-        }
         if let Some(adapter) = self.adapter.as_mut() {
-            for update in self.grafts.frame(composition) {
-                adapter.update_if_active(|| update);
+            let epoch = adapter.activation_epoch();
+            if self.epoch != Some(epoch) {
+                self.epoch = Some(epoch);
+                let _ = self.grafts.activate(&composition);
             }
+            let initial = composition.initial_host();
+            let updates = self.grafts.frame(composition);
+            adapter
+                .update_batch_at(epoch, initial, updates)
+                .expect("publish native forest");
         }
         if let Some(window) = &self.window {
             window.set_title(&self.host.title());
             let typing = self.host.focus == Stop::Pane(Pane::A);
             window.set_ime_allowed(typing);
             if typing && let Some((x, y, w, h)) = self.host.a_field {
-                window.set_ime_cursor_area(LogicalPosition::new(x, y), LogicalSize::new(w, h));
+                window.set_ime_cursor_area(
+                    LogicalPosition::new(x, y).into(),
+                    LogicalSize::new(w, h).into(),
+                );
             }
         }
     }
 }
 
 impl ApplicationHandler for App {
-    fn resumed(&mut self, event_loop: &ActiveEventLoop) {
+    fn can_create_surfaces(&mut self, event_loop: &dyn ActiveEventLoop) {
         if self.window.is_some() {
             return;
         }
-        let attributes = Window::default_attributes()
+        let attributes = WindowAttributes::default()
             .with_title("E1b probe")
-            .with_inner_size(LogicalSize::new(WINDOW.0, WINDOW.1))
+            .with_surface_size(LogicalSize::new(WINDOW.0, WINDOW.1))
             .with_visible(false);
         let window = event_loop
             .create_window(attributes)
@@ -617,21 +575,11 @@ impl ApplicationHandler for App {
         // The first frame's host tree answers activation; the adapter must
         // exist before the window is first shown.
         let composition = self.host.composition();
-        *self.shared.initial.lock().expect("unpoisoned") = Some(composition.initial_host());
-        let adapter = accesskit_winit::Adapter::with_direct_handlers(
-            event_loop,
-            &window,
-            Activation {
-                initial: Arc::clone(&self.shared.initial),
-                activated: Arc::clone(&self.shared.activated),
-                proxy: self.proxy.clone(),
-            },
-            Actions {
-                queue: Arc::clone(&self.shared.actions),
-                proxy: self.proxy.clone(),
-            },
-            Deactivation,
-        );
+        let wake = self.proxy.clone();
+        let mut adapter = genet_winit_host::AccessKitBridge::new(move || wake.wake_up());
+        adapter
+            .install(window.as_ref(), composition.initial_host())
+            .expect("install native accessibility");
         self.adapter = Some(adapter);
         window.set_visible(true);
         self.window = Some(window);
@@ -641,22 +589,38 @@ impl ApplicationHandler for App {
         }
     }
 
-    fn user_event(&mut self, _event_loop: &ActiveEventLoop, _event: ()) {
-        let requests: Vec<ActionRequest> = match self.shared.actions.lock() {
-            Ok(mut queue) => queue.drain(..).collect(),
-            Err(_) => return,
-        };
-        for request in &requests {
-            self.host.act(request);
+    fn proxy_wake_up(&mut self, _event_loop: &dyn ActiveEventLoop) {
+        if let Some(adapter) = self.adapter.as_mut() {
+            for request in adapter.drain_actions() {
+                self.host.act(&ActionRequest {
+                    action: request.action,
+                    target_tree: request.target_tree,
+                    target_node: request.target_node,
+                    data: request.data,
+                });
+            }
         }
-        if !requests.is_empty() || self.shared.activated.load(Ordering::SeqCst) {
-            self.publish();
-        }
+        self.publish();
     }
 
-    fn window_event(&mut self, event_loop: &ActiveEventLoop, _id: WindowId, event: WindowEvent) {
+    fn window_event(
+        &mut self,
+        event_loop: &dyn ActiveEventLoop,
+        _id: WindowId,
+        event: WindowEvent,
+    ) {
         if let (Some(window), Some(adapter)) = (&self.window, self.adapter.as_mut()) {
-            adapter.process_event(window, &event);
+            if let WindowEvent::Focused(focused) = event {
+                adapter.update_window_focus(focused);
+            }
+            if matches!(
+                event,
+                WindowEvent::SurfaceResized(_)
+                    | WindowEvent::Moved(_)
+                    | WindowEvent::ScaleFactorChanged { .. }
+            ) {
+                adapter.update_window_bounds(window.as_ref());
+            }
         }
         match event {
             WindowEvent::CloseRequested => event_loop.exit(),
@@ -673,8 +637,10 @@ impl ApplicationHandler for App {
                 }
             },
             WindowEvent::Ime(ime) if self.host.focus == Stop::Pane(Pane::A) => {
-                self.host.key(cambium_winit::ime_event_from_winit(&ime));
-                self.publish();
+                if let Some(key) = cambium_winit::ime_event_from_winit(&ime) {
+                    self.host.key(key);
+                    self.publish();
+                }
             },
             _ => {},
         }
@@ -762,21 +728,15 @@ fn main() {
         self_check(options);
         return;
     }
-    let event_loop = EventLoop::<()>::with_user_event()
-        .build()
-        .expect("an event loop");
-    let mut app = App {
+    let event_loop = EventLoop::new().expect("an event loop");
+    let app = App {
         host: Host::new(options),
         grafts: Grafts::new(),
-        shared: Shared {
-            initial: Arc::new(Mutex::new(None)),
-            activated: Arc::new(AtomicBool::new(false)),
-            actions: Arc::new(Mutex::new(VecDeque::new())),
-        },
+        epoch: None,
         proxy: event_loop.create_proxy(),
         window: None,
         adapter: None,
         modifiers: ModifiersState::default(),
     };
-    event_loop.run_app(&mut app).expect("the probe runs");
+    event_loop.run_app(app).expect("the probe runs");
 }

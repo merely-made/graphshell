@@ -204,7 +204,7 @@ fn graph_native_selection_is_preview_state_and_never_saves_a_theme() {
     assert_eq!(host.state().selected_graph_node(), Some(2));
     host.tab(true);
     assert_eq!(host.focus(), Some(selector_node(&host, &paths)));
-    host.key_named(NamedKey::Space);
+    host.key_char(" ");
     assert_eq!(host.state().selected_graph_node(), Some(3));
     assert_eq!(host.state().draft_theme(), &theme);
     assert_eq!(host.state().registry().active_theme(), active);

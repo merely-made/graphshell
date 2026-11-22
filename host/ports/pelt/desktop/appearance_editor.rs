@@ -56,7 +56,7 @@ pub(crate) fn hooks() -> HostHooks<WorkshopState, Logic, WorkshopView> {
 
 impl EditorWindow {
     pub fn open(
-        event_loop: &ActiveEventLoop,
+        event_loop: &dyn ActiveEventLoop,
         core: Arc<RenderCore>,
         library: PathBuf,
         appearance_store: Option<PathBuf>,

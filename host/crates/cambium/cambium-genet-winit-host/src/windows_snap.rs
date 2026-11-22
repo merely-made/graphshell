@@ -138,7 +138,7 @@ fn device_rect(logical: Option<(f32, f32, f32, f32)>, scale: f64) -> Option<[i32
 }
 
 impl SnapLayoutBridge {
-    pub fn attach(window: &Window) -> Result<Self, String> {
+    pub fn attach(window: &dyn Window) -> Result<Self, String> {
         let handle = window
             .window_handle()
             .map_err(|error| format!("window handle unavailable: {error}"))?;

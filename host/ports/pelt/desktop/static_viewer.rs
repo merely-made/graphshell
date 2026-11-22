@@ -244,7 +244,8 @@ pub(crate) fn pelt_window_attributes(
     height: u32,
 ) -> winit::window::WindowAttributes {
     use winit::dpi::PhysicalSize;
-    use winit::window::{Icon, Window};
+    use winit::icon::RgbaIcon;
+    use winit::window::WindowAttributes;
 
     const EDGE: u32 = 32;
     let mut rgba = vec![0; (EDGE * EDGE * 4) as usize];
@@ -271,17 +272,19 @@ pub(crate) fn pelt_window_attributes(
             ]);
         }
     }
-    let icon = Icon::from_rgba(rgba, EDGE, EDGE).expect("the fixed Pelt icon is valid RGBA");
-    let attributes = Window::default_attributes()
+    let icon = RgbaIcon::new(rgba, EDGE, EDGE).expect("the fixed Pelt icon is valid RGBA");
+    let attributes = WindowAttributes::default()
         .with_title(title)
-        .with_inner_size(PhysicalSize::new(width.max(1), height.max(1)))
-        .with_window_icon(Some(icon));
+        .with_surface_size(PhysicalSize::new(width.max(1), height.max(1)))
+        .with_window_icon(Some(icon.into()));
     #[cfg(windows)]
     let attributes = {
-        use winit::platform::windows::{Color, WindowAttributesExtWindows};
-        attributes
-            .with_title_background_color(Some(Color::from_rgb(43, 43, 51)))
-            .with_title_text_color(Color::from_rgb(245, 245, 247))
+        use winit::platform::windows::{Color, WindowAttributesWindows};
+        attributes.with_platform_attributes(Box::new(
+            WindowAttributesWindows::default()
+                .with_title_background_color(Some(Color::from_rgb(43, 43, 51)))
+                .with_title_text_color(Color::from_rgb(245, 245, 247)),
+        ))
     };
     attributes
 }
@@ -2082,11 +2085,12 @@ pub(crate) fn run_headed_with<C: windowed::ViewerContent + 'static>(
 ) -> Result<StaticViewerOutcome, String> {
     use winit::event_loop::EventLoop;
 
-    let event_loop =
+    use winit::event_loop::run_on_demand::EventLoopExtRunOnDemand;
+    let mut event_loop =
         EventLoop::new().map_err(|error| format!("could not create event loop: {error}"))?;
     let mut app = windowed::ViewerApp::new(config, content);
     event_loop
-        .run_app(&mut app)
+        .run_app_on_demand(&mut app)
         .map_err(|error| format!("viewer event loop failed: {error}"))?;
     if let Some(error) = app.receipt_failure() {
         return Err(error.to_owned());
@@ -2107,7 +2111,7 @@ pub(crate) mod windowed {
     use netrender::external_texture::ExternalTexturePlacement;
     use netrender::{ColorLoad, NetrenderOptions, Scene};
     use winit::application::ApplicationHandler;
-    use winit::event::{ElementState, MouseButton, WindowEvent};
+    use winit::event::{ButtonSource, ElementState, MouseButton, PointerSource, WindowEvent};
     use winit::event_loop::ActiveEventLoop;
     use winit::keyboard::{Key, NamedKey};
     use winit::window::{Window, WindowId};
@@ -2215,7 +2219,7 @@ pub(crate) mod windowed {
             Key::Named(NamedKey::PageDown) => ViewerScrollKey::PageDown,
             Key::Named(NamedKey::Home) => ViewerScrollKey::Home,
             Key::Named(NamedKey::End) => ViewerScrollKey::End,
-            Key::Named(NamedKey::Space) => {
+            Key::Character(text) if text.as_str() == " " => {
                 if shift {
                     ViewerScrollKey::PageUp
                 } else {
@@ -2228,13 +2232,14 @@ pub(crate) mod windowed {
 
     fn session_key_from_winit(key: &Key) -> SessionKey {
         match key {
+            Key::Character(text) if text.as_str() == " " => SessionKey::Space,
             Key::Character(text) => SessionKey::Character(text.to_string()),
             Key::Named(NamedKey::Enter) => SessionKey::Enter,
             Key::Named(NamedKey::Tab) => SessionKey::Tab,
             Key::Named(NamedKey::Backspace) => SessionKey::Backspace,
             Key::Named(NamedKey::Delete) => SessionKey::Delete,
             Key::Named(NamedKey::Escape) => SessionKey::Escape,
-            Key::Named(NamedKey::Space) => SessionKey::Space,
+
             Key::Named(NamedKey::ArrowLeft) => SessionKey::ArrowLeft,
             Key::Named(NamedKey::ArrowRight) => SessionKey::ArrowRight,
             Key::Named(NamedKey::ArrowUp) => SessionKey::ArrowUp,
@@ -2251,10 +2256,7 @@ pub(crate) mod windowed {
         match button {
             MouseButton::Left => SessionPointerButton::Primary,
             MouseButton::Right => SessionPointerButton::Secondary,
-            MouseButton::Middle
-            | MouseButton::Back
-            | MouseButton::Forward
-            | MouseButton::Other(_) => SessionPointerButton::Auxiliary,
+            _ => SessionPointerButton::Auxiliary,
         }
     }
 
@@ -2265,13 +2267,14 @@ pub(crate) mod windowed {
         }
     }
 
-    fn ime_from_winit(ime: winit::event::Ime) -> SessionIme {
-        match ime {
+    fn ime_from_winit(ime: winit::event::Ime) -> Option<SessionIme> {
+        Some(match ime {
             winit::event::Ime::Enabled => SessionIme::Enabled,
             winit::event::Ime::Preedit(text, selection) => SessionIme::Preedit { text, selection },
             winit::event::Ime::Commit(text) => SessionIme::Commit(text),
             winit::event::Ime::Disabled => SessionIme::Disabled,
-        }
+            _ => return None,
+        })
     }
 
     /// The viewer application: a [`ViewerContent`] document plus the window + shared
@@ -2284,7 +2287,7 @@ pub(crate) mod windowed {
         // thread's stack; static content remains source-compatible through Box's
         // transparent dereference.
         doc: Box<C>,
-        window: Option<Arc<Window>>,
+        window: Option<Arc<dyn Window>>,
         host: Option<SurfaceHost>,
         width: u32,
         height: u32,
@@ -2293,7 +2296,7 @@ pub(crate) mod windowed {
         redraws: u32,
         /// Platform modifier state translated once at the winit boundary.
         modifiers: SessionModifiers,
-        /// Last cursor position in physical px (winit's `MouseInput` carries none),
+        /// Last mouse position in physical px,
         /// so a click can hit-test the document for in-page link navigation.
         cursor: (f32, f32),
         pointer_captured: bool,
@@ -2366,7 +2369,7 @@ pub(crate) mod windowed {
         /// Render the document at the current size + scroll and present it. The
         /// per-frame shape `genet-winit-host` documents: rasterize the scene into a
         /// texture, acquire the backbuffer, composite the texture onto it, present.
-        fn render(&mut self, event_loop: &ActiveEventLoop) {
+        fn render(&mut self, event_loop: &dyn ActiveEventLoop) {
             // Advance script time-based work (timers + GC) against the frame clock
             // before laying out; `more` is true while the content has pending work
             // (scripted timers), so the shell keeps the frame loop running.
@@ -2495,10 +2498,10 @@ pub(crate) mod windowed {
             if let Some(window) = self.window.as_ref() {
                 if let Some(cursor) = action.cursor {
                     window.set_cursor(match cursor {
-                        SessionCursor::Default => winit::window::CursorIcon::Default,
-                        SessionCursor::Pointer => winit::window::CursorIcon::Pointer,
-                        SessionCursor::Text => winit::window::CursorIcon::Text,
-                    });
+                        SessionCursor::Default => winit::cursor::CursorIcon::Default,
+                        SessionCursor::Pointer => winit::cursor::CursorIcon::Pointer,
+                        SessionCursor::Text => winit::cursor::CursorIcon::Text,
+                    }.into());
                 }
                 window.set_ime_allowed(action.editable);
                 if action.navigated {
@@ -2512,21 +2515,21 @@ pub(crate) mod windowed {
     }
 
     impl<C: ViewerContent> ApplicationHandler for ViewerApp<C> {
-        fn resumed(&mut self, event_loop: &ActiveEventLoop) {
+        fn can_create_surfaces(&mut self, event_loop: &dyn ActiveEventLoop) {
             if self.window.is_some() {
                 return;
             }
             let attributes =
                 super::pelt_window_attributes(self.window_title(), self.width, self.height);
-            let window = match event_loop.create_window(attributes) {
-                Ok(window) => Arc::new(window),
+            let window: Arc<dyn Window> = match event_loop.create_window(attributes) {
+                Ok(window) => Arc::from(window),
                 Err(err) => {
                     eprintln!("[pelt-viewer] could not create window: {err}");
                     event_loop.exit();
                     return;
                 },
             };
-            let size = window.inner_size();
+            let size = window.surface_size();
             self.width = size.width.max(1);
             self.height = size.height.max(1);
             self.scale_factor = window.scale_factor() as f32;
@@ -2550,7 +2553,7 @@ pub(crate) mod windowed {
 
         fn window_event(
             &mut self,
-            event_loop: &ActiveEventLoop,
+            event_loop: &dyn ActiveEventLoop,
             window_id: WindowId,
             event: WindowEvent,
         ) {
@@ -2559,7 +2562,7 @@ pub(crate) mod windowed {
             }
             match event {
                 WindowEvent::CloseRequested => event_loop.exit(),
-                WindowEvent::Resized(size) => {
+                WindowEvent::SurfaceResized(size) => {
                     self.width = size.width.max(1);
                     self.height = size.height.max(1);
                     if let Some(host) = self.host.as_mut() {
@@ -2572,7 +2575,7 @@ pub(crate) mod windowed {
                 WindowEvent::ScaleFactorChanged { scale_factor, .. } => {
                     self.scale_factor = scale_factor as f32;
                     if let Some(window) = self.window.as_ref() {
-                        let size = window.inner_size();
+                        let size = window.surface_size();
                         self.width = size.width.max(1);
                         self.height = size.height.max(1);
                     }
@@ -2600,10 +2603,14 @@ pub(crate) mod windowed {
                         shift: state.shift_key(),
                         control: state.control_key(),
                         alt: state.alt_key(),
-                        meta: state.super_key(),
+                        meta: state.meta_key(),
                     };
                 },
-                WindowEvent::CursorMoved { position, .. } => {
+                WindowEvent::PointerMoved {
+                    source: PointerSource::Mouse,
+                    position,
+                    ..
+                } => {
                     self.cursor = (
                         super::logical_position(position.x as f32, self.scale_factor),
                         super::logical_position(position.y as f32, self.scale_factor),
@@ -2616,7 +2623,11 @@ pub(crate) mod windowed {
                     });
                     self.apply_action(action);
                 },
-                WindowEvent::MouseInput { state, button, .. } => {
+                WindowEvent::PointerButton {
+                    state,
+                    button: ButtonSource::Mouse(button),
+                    ..
+                } => {
                     let (x, y) = self.cursor;
                     let action = self.doc.input(SessionInput::PointerButton {
                         x,
@@ -2674,9 +2685,9 @@ pub(crate) mod windowed {
                     if event.state == ElementState::Pressed
                         && !self.modifiers.meta
                         && !(self.modifiers.control && !self.modifiers.alt)
-                        && matches!(&event.logical_key, Key::Character(_) | Key::Named(NamedKey::Space))
+                        && matches!(&event.logical_key, Key::Character(_))
                         && let Some(text) = event.text.as_deref().or_else(||
-                            matches!(&event.logical_key, Key::Named(NamedKey::Space)).then_some(" "))
+                            matches!(&event.logical_key, Key::Character(text) if text.as_str() == " ").then_some(" "))
                             .filter(|text| !text.is_empty() && text.chars().all(|c| !c.is_control()))
                     {
                         let action = self.doc.input(SessionInput::KeyboardText(text.to_owned()));
@@ -2693,8 +2704,10 @@ pub(crate) mod windowed {
                     }
                 },
                 WindowEvent::Ime(ime) => {
-                    let action = self.doc.input(SessionInput::Ime(ime_from_winit(ime)));
-                    self.apply_action(action);
+                    if let Some(ime) = ime_from_winit(ime) {
+                        let action = self.doc.input(SessionInput::Ime(ime));
+                        self.apply_action(action);
+                    }
                 },
                 WindowEvent::Focused(focused) => {
                     if !focused && self.pointer_captured {

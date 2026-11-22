@@ -41,7 +41,7 @@ use pelt_core::{
 #[cfg(target_os = "windows")]
 use raw_window_handle::{HasWindowHandle, RawWindowHandle};
 use winit::application::ApplicationHandler;
-use winit::event::{ElementState, MouseButton, WindowEvent};
+use winit::event::{ButtonSource, ElementState, MouseButton, PointerSource, WindowEvent};
 use winit::event_loop::{ActiveEventLoop, ControlFlow, EventLoop};
 use winit::keyboard::{Key, NamedKey};
 use winit::platform::scancode::PhysicalKeyExtScancode;
@@ -100,7 +100,7 @@ const ACCESSIBILITY_CLICK_WORKSPACE_ASSERTION: &str = "Pelt revealed a nested Li
 const ACCESSIBILITY_INPUT_WORKSPACE_ASSERTION: &str = "Pelt preserved a nested textarea action boundary and routed physical selection replacement, Text, and IME only to the focused tile";
 
 #[cfg(target_os = "windows")]
-fn native_surface_host(window: &Window) -> Result<NativeSurfaceHost, String> {
+fn native_surface_host(window: &dyn Window) -> Result<NativeSurfaceHost, String> {
     match window
         .window_handle()
         .map_err(|error| format!("could not inspect window handle: {error}"))?
@@ -120,7 +120,7 @@ struct NativeFocusObservation {
 }
 
 #[cfg(target_os = "windows")]
-fn observe_native_focus(window: &Window) -> NativeFocusObservation {
+fn observe_native_focus(window: &dyn Window) -> NativeFocusObservation {
     let Ok(handle) = window.window_handle() else {
         return NativeFocusObservation::default();
     };
@@ -644,7 +644,8 @@ pub fn run_livery_workspace_viewer(
     let mut workspace = workspace;
     workspace.set_surface_resource_policy(config.surface_resource_policy);
     let frisket = FrisketSurface::new(workspace.tree());
-    let event_loop =
+    use winit::event_loop::run_on_demand::EventLoopExtRunOnDemand;
+    let mut event_loop =
         EventLoop::new().map_err(|error| format!("could not create event loop: {error}"))?;
     #[cfg(target_os = "windows")]
     let mut app = WorkspaceApp::new(config, workspace, frisket, scrying_host);
@@ -652,7 +653,7 @@ pub fn run_livery_workspace_viewer(
     let mut app = WorkspaceApp::new(config, workspace, frisket);
     app.appearance_native = appearance_native::NativeAppearanceProof::from_env()?;
     event_loop
-        .run_app(&mut app)
+        .run_app_on_demand(&mut app)
         .map_err(|error| format!("workspace event loop failed: {error}"))?;
     if let Some(error) = app.receipt_error.take() {
         return Err(error);
@@ -1198,7 +1199,7 @@ struct WorkspaceApp {
     config: WorkspaceViewerConfig,
     workspace: PeltWorkspace<Scene>,
     frisket: FrisketSurface,
-    window: Option<Arc<Window>>,
+    window: Option<Arc<dyn Window>>,
     host: Option<SurfaceHost>,
     /// A hidden, already-booted destination that has not yet earned custody.
     /// Source controllers remain in `workspace` until this surface presents
@@ -1270,7 +1271,7 @@ struct WorkspaceApp {
 /// ready to compose. It remains hidden until that composition succeeds.
 struct PendingTearout {
     tile: TileId,
-    window: Arc<Window>,
+    window: Arc<dyn Window>,
     core: Arc<RenderCore>,
     surface: WindowSurface,
     frisket: FrisketSurface,
@@ -1291,7 +1292,7 @@ struct PendingTearout {
 /// host-wide wgpu device while this window owns its swapchain and input state.
 struct TearoutWindow {
     tile: TileId,
-    window: Arc<Window>,
+    window: Arc<dyn Window>,
     core: Arc<RenderCore>,
     surface: WindowSurface,
     workspace: PeltWorkspace<Scene>,
@@ -1896,7 +1897,7 @@ impl WorkspaceApp {
     fn window_is_maximized(&self) -> bool {
         self.window
             .as_deref()
-            .is_some_and(winit::window::Window::is_maximized)
+            .is_some_and(|window| window.is_maximized())
     }
 
     fn chrome_model(&self) -> WorkspaceChrome {
@@ -2444,7 +2445,7 @@ impl WorkspaceApp {
         )
     }
 
-    fn render(&mut self, event_loop: &ActiveEventLoop) {
+    fn render(&mut self, event_loop: &dyn ActiveEventLoop) {
         if let Err(error) = self.drive_native_appearance() {
             self.receipt_error = Some(error);
             event_loop.exit();
@@ -2998,7 +2999,7 @@ impl WorkspaceApp {
         }
     }
 
-    fn service_editor(&mut self, event_loop: &ActiveEventLoop) {
+    fn service_editor(&mut self, event_loop: &dyn ActiveEventLoop) {
         self.editor_idle = cambium_rootstock::IdlePolicy::Wait;
         if self.editor_requested {
             self.editor_requested = false;
@@ -3137,10 +3138,10 @@ impl WorkspaceApp {
         if let Some(window) = &self.window {
             if let Some(cursor) = cursor {
                 window.set_cursor(match cursor {
-                    SessionCursor::Default => winit::window::CursorIcon::Default,
-                    SessionCursor::Pointer => winit::window::CursorIcon::Pointer,
-                    SessionCursor::Text => winit::window::CursorIcon::Text,
-                });
+                    SessionCursor::Default => winit::cursor::CursorIcon::Default,
+                    SessionCursor::Pointer => winit::cursor::CursorIcon::Pointer,
+                    SessionCursor::Text => winit::cursor::CursorIcon::Text,
+                }.into());
             }
             window.set_ime_allowed(editable);
             if navigated {
@@ -3155,7 +3156,7 @@ impl WorkspaceApp {
         }
     }
 
-    fn apply_tile_event(&mut self, event: TileEvent, event_loop: Option<&ActiveEventLoop>) -> bool {
+    fn apply_tile_event(&mut self, event: TileEvent, event_loop: Option<&dyn ActiveEventLoop>) -> bool {
         let focused_before = self.workspace.focused_tile();
         let outcome = self.workspace.apply_outcome(&event);
         if let Some(WorkbenchEffect::TearOut { tile }) = outcome.effect() {
@@ -3187,7 +3188,7 @@ impl WorkspaceApp {
     /// an outside drop through the same host path as a user drag, then records
     /// the live acceptance facts: a presented/visible destination window, its
     /// retained stable tile and model focus, and source custody removal.
-    fn drive_tearout_receipt(&mut self, event_loop: &ActiveEventLoop) -> Result<bool, String> {
+    fn drive_tearout_receipt(&mut self, event_loop: &dyn ActiveEventLoop) -> Result<bool, String> {
         let tile = match self.tearout_receipt_tile {
             Some(tile) => tile,
             None => {
@@ -3275,7 +3276,7 @@ impl WorkspaceApp {
     /// transfer source custody.
     fn drive_tearout_cancellation_receipt(
         &mut self,
-        event_loop: &ActiveEventLoop,
+        event_loop: &dyn ActiveEventLoop,
     ) -> Result<bool, String> {
         let tile = match self.tearout_cancellation_receipt_tile {
             Some(tile) => tile,
@@ -3427,7 +3428,7 @@ impl WorkspaceApp {
     /// before it calls `PeltWorkspace::accept_tearout`.
     fn prepare_native_tearout(
         &mut self,
-        event_loop: &ActiveEventLoop,
+        event_loop: &dyn ActiveEventLoop,
         tile: TileId,
         disposition: TearoutDisposition,
     ) -> bool {
@@ -3460,8 +3461,8 @@ impl WorkspaceApp {
             // let its creation consume native activation before acceptance;
             // focus is requested after ownership is registered below.
             .with_active(false);
-        let window = match event_loop.create_window(attributes) {
-            Ok(window) => Arc::new(window),
+        let window: Arc<dyn Window> = match event_loop.create_window(attributes) {
+            Ok(window) => Arc::from(window),
             Err(error) => {
                 self.chrome_status =
                     ChromeStatus::Error(format!("Could not create tearout window: {error}"));
@@ -3471,7 +3472,7 @@ impl WorkspaceApp {
         // Winit resolves the destination against its actual monitor. Read its
         // client size and scale after creation rather than assuming the source
         // window's DPI or physical extent.
-        let size = window.inner_size();
+        let size = window.surface_size();
         let width = size.width.max(1);
         let height = size.height.max(1);
         let scale_factor = window.scale_factor() as f32;
@@ -3625,7 +3626,7 @@ impl WorkspaceApp {
                 window.set_cursor(
                     direction
                         .map(cambium_genet_winit_host::edge_cursor)
-                        .unwrap_or(winit::window::CursorIcon::Default),
+                        .unwrap_or(winit::cursor::CursorIcon::Default).into(),
                 );
             }
         }
@@ -3788,11 +3789,11 @@ impl WorkspaceApp {
         self.pointer_up_inner(None)
     }
 
-    fn pointer_up_live(&mut self, event_loop: &ActiveEventLoop) -> bool {
+    fn pointer_up_live(&mut self, event_loop: &dyn ActiveEventLoop) -> bool {
         self.pointer_up_inner(Some(event_loop))
     }
 
-    fn pointer_up_inner(&mut self, event_loop: Option<&ActiveEventLoop>) -> bool {
+    fn pointer_up_inner(&mut self, event_loop: Option<&dyn ActiveEventLoop>) -> bool {
         let gesture = self.gesture.take();
         match gesture {
             Some(PointerGesture::Divider(_)) => true,
@@ -4183,7 +4184,7 @@ impl TearoutWindow {
 
     #[cfg(target_os = "windows")]
     fn sample_native_focus(&mut self) {
-        let sample = observe_native_focus(&self.window);
+        let sample = observe_native_focus(self.window.as_ref());
         let merged = merge_native_focus_observation(
             NativeFocusObservation {
                 foreground: self.native_foreground_observed,
@@ -4302,7 +4303,7 @@ impl TearoutWindow {
         )?;
         let _ = self
             .accessibility
-            .sync(&self.window, projection, self.scale_factor as f64);
+            .sync(self.window.as_ref(), projection, self.scale_factor as f64);
         Ok(())
     }
 
@@ -4316,7 +4317,7 @@ impl TearoutWindow {
             return false;
         };
         self.accessibility
-            .sync(&self.window, projection, self.scale_factor as f64)
+            .sync(self.window.as_ref(), projection, self.scale_factor as f64)
             .into_iter()
             .fold(false, |redraw, request| {
                 self.apply_accessibility_request(request) || redraw
@@ -4507,10 +4508,10 @@ impl TearoutWindow {
         }
         if let Some(cursor) = effect.cursor {
             self.window.set_cursor(match cursor {
-                SessionCursor::Default => winit::window::CursorIcon::Default,
-                SessionCursor::Pointer => winit::window::CursorIcon::Pointer,
-                SessionCursor::Text => winit::window::CursorIcon::Text,
-            });
+                SessionCursor::Default => winit::cursor::CursorIcon::Default,
+                SessionCursor::Pointer => winit::cursor::CursorIcon::Pointer,
+                SessionCursor::Text => winit::cursor::CursorIcon::Text,
+            }.into());
         }
         self.window.set_ime_allowed(effect.editable);
         if effect.navigated {
@@ -4613,7 +4614,7 @@ impl TearoutWindow {
     fn window_event(&mut self, event: WindowEvent) -> TearoutEvent {
         match event {
             WindowEvent::CloseRequested => TearoutEvent::Close,
-            WindowEvent::Resized(size) => {
+            WindowEvent::SurfaceResized(size) => {
                 self.width = size.width.max(1);
                 self.height = size.height.max(1);
                 self.surface
@@ -4622,7 +4623,7 @@ impl TearoutWindow {
             },
             WindowEvent::ScaleFactorChanged { scale_factor, .. } => {
                 self.scale_factor = scale_factor as f32;
-                let size = self.window.inner_size();
+                let size = self.window.surface_size();
                 self.width = size.width.max(1);
                 self.height = size.height.max(1);
                 self.surface
@@ -4635,11 +4636,15 @@ impl TearoutWindow {
                     shift: state.shift_key(),
                     control: state.control_key(),
                     alt: state.alt_key(),
-                    meta: state.super_key(),
+                    meta: state.meta_key(),
                 };
                 TearoutEvent::Keep { redraw: false }
             },
-            WindowEvent::CursorMoved { position, .. } => {
+            WindowEvent::PointerMoved {
+                source: PointerSource::Mouse,
+                position,
+                ..
+            } => {
                 self.cursor = (
                     static_viewer::logical_position(position.x as f32, self.scale_factor),
                     static_viewer::logical_position(position.y as f32, self.scale_factor),
@@ -4653,7 +4658,11 @@ impl TearoutWindow {
                     redraw: self.apply_effect(effect),
                 }
             },
-            WindowEvent::MouseInput { state, button, .. } => {
+            WindowEvent::PointerButton {
+                state,
+                button: ButtonSource::Mouse(button),
+                ..
+            } => {
                 let Some(session_button) = session_mouse_button(button) else {
                     return TearoutEvent::Keep { redraw: false };
                 };
@@ -4744,10 +4753,11 @@ impl TearoutWindow {
                 TearoutEvent::Keep { redraw }
             },
             WindowEvent::Ime(ime) => {
-                let effect = self.workspace.input(SessionInput::Ime(session_ime(ime)));
-                TearoutEvent::Keep {
-                    redraw: self.apply_effect(effect),
-                }
+                let redraw = session_ime(ime).is_some_and(|ime| {
+                    let effect = self.workspace.input(SessionInput::Ime(ime));
+                    self.apply_effect(effect)
+                });
+                TearoutEvent::Keep { redraw }
             },
             WindowEvent::Focused(focused) => {
                 self.native_focus_observed |= focused;
@@ -4849,7 +4859,7 @@ impl WorkspaceApp {
     fn accept_composed_tearout(&mut self, window_id: WindowId, pending: PendingTearout) {
         #[cfg(target_os = "windows")]
         let destination_host = if pending.surface_import.is_some() {
-            let destination_host = match native_surface_host(&pending.window) {
+            let destination_host = match native_surface_host(pending.window.as_ref()) {
                 Ok(host) => host,
                 Err(error) => {
                     self.chrome_status = ChromeStatus::Error(format!(
@@ -5038,7 +5048,7 @@ impl WorkspaceApp {
                         ),
                     );
                 },
-                WindowEvent::Resized(size) => {
+                WindowEvent::SurfaceResized(size) => {
                     pending.width = size.width.max(1);
                     pending.height = size.height.max(1);
                     pending
@@ -5061,7 +5071,7 @@ impl WorkspaceApp {
                 },
                 WindowEvent::ScaleFactorChanged { scale_factor, .. } => {
                     pending.scale_factor = scale_factor as f32;
-                    let size = pending.window.inner_size();
+                    let size = pending.window.surface_size();
                     pending.width = size.width.max(1);
                     pending.height = size.height.max(1);
                     pending
@@ -5211,7 +5221,7 @@ fn workspace_idle_flow(
 }
 
 impl ApplicationHandler for WorkspaceApp {
-    fn resumed(&mut self, event_loop: &ActiveEventLoop) {
+    fn can_create_surfaces(&mut self, event_loop: &dyn ActiveEventLoop) {
         if let Some(editor) = self.editor.as_mut() {
             editor.host.resume_surface();
         }
@@ -5232,14 +5242,14 @@ impl ApplicationHandler for WorkspaceApp {
             .workspace_receipt
             .and_then(WorkspaceReceipt::logical_viewport)
         {
-            attributes = attributes.with_inner_size(winit::dpi::LogicalSize::new(
+            attributes = attributes.with_surface_size(winit::dpi::LogicalSize::new(
                 f64::from(width),
                 f64::from(height),
             ));
         }
         let activate_after_reveal = attributes.active;
-        let window = match event_loop.create_window(attributes) {
-            Ok(window) => Arc::new(window),
+        let window: Arc<dyn Window> = match event_loop.create_window(attributes) {
+            Ok(window) => Arc::from(window),
             Err(error) => {
                 self.receipt_error =
                     Some(format!("could not create Pelt workspace window: {error}"));
@@ -5247,7 +5257,7 @@ impl ApplicationHandler for WorkspaceApp {
                 return;
             },
         };
-        let size = window.inner_size();
+        let size = window.surface_size();
         self.width = size.width.max(1);
         self.height = size.height.max(1);
         self.scale_factor = window.scale_factor() as f32;
@@ -5337,7 +5347,7 @@ impl ApplicationHandler for WorkspaceApp {
         // cambium host does for its apps.
         #[cfg(target_os = "windows")]
         {
-            match cambium_genet_winit_host::SnapLayoutBridge::attach(&window) {
+            match cambium_genet_winit_host::SnapLayoutBridge::attach(window.as_ref()) {
                 Ok(bridge) => self.snap_bridge = Some(bridge),
                 Err(error) => {
                     // A missing flyout degrades a nicety, not correctness.
@@ -5349,13 +5359,13 @@ impl ApplicationHandler for WorkspaceApp {
         window.request_redraw();
     }
 
-    fn suspended(&mut self, _: &ActiveEventLoop) {
+    fn suspended(&mut self, _: &dyn ActiveEventLoop) {
         if let Some(editor) = self.editor.as_mut() {
             editor.host.suspend_surface();
         }
     }
 
-    fn about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
+    fn about_to_wait(&mut self, event_loop: &dyn ActiveEventLoop) {
         self.service_editor(event_loop);
         // A caption Close can arrive through any dispatch path - the pointer,
         // or an AccessKit Click on the button - and this hook runs after all
@@ -5431,7 +5441,7 @@ impl ApplicationHandler for WorkspaceApp {
 
     fn window_event(
         &mut self,
-        event_loop: &ActiveEventLoop,
+        event_loop: &dyn ActiveEventLoop,
         window_id: WindowId,
         event: WindowEvent,
     ) {
@@ -5467,7 +5477,7 @@ impl ApplicationHandler for WorkspaceApp {
                 self.record_tearout_receipt_close("primary window", None, false);
                 self.request_application_close();
             },
-            WindowEvent::Resized(size) => {
+            WindowEvent::SurfaceResized(size) => {
                 self.width = size.width.max(1);
                 self.height = size.height.max(1);
                 if let Some(host) = self.host.as_mut() {
@@ -5478,7 +5488,7 @@ impl ApplicationHandler for WorkspaceApp {
             WindowEvent::ScaleFactorChanged { scale_factor, .. } => {
                 self.scale_factor = scale_factor as f32;
                 if let Some(window) = &self.window {
-                    let size = window.inner_size();
+                    let size = window.surface_size();
                     self.width = size.width.max(1);
                     self.height = size.height.max(1);
                 }
@@ -5493,19 +5503,23 @@ impl ApplicationHandler for WorkspaceApp {
                     shift: state.shift_key(),
                     control: state.control_key(),
                     alt: state.alt_key(),
-                    meta: state.super_key(),
+                    meta: state.meta_key(),
                 };
             },
-            WindowEvent::CursorMoved { position, .. } => {
+            WindowEvent::PointerMoved {
+                source: PointerSource::Mouse,
+                position,
+                ..
+            } => {
                 let redraw = self.pointer_move_physical(position.x as f32, position.y as f32);
                 self.update_resize_cursor();
                 if redraw {
                     self.request_redraw();
                 }
             },
-            WindowEvent::MouseInput {
+            WindowEvent::PointerButton {
                 state,
-                button: MouseButton::Left,
+                button: ButtonSource::Mouse(MouseButton::Left),
                 ..
             } => {
                 let redraw = match state {
@@ -5520,9 +5534,9 @@ impl ApplicationHandler for WorkspaceApp {
                     self.request_redraw();
                 }
             },
-            WindowEvent::MouseInput {
+            WindowEvent::PointerButton {
                 state: ElementState::Pressed,
-                button: MouseButton::Right,
+                button: ButtonSource::Mouse(MouseButton::Right),
                 ..
             } => {
                 // CSD: right-click on the drag surface raises the system menu,
@@ -5537,7 +5551,7 @@ impl ApplicationHandler for WorkspaceApp {
                     window.show_window_menu(winit::dpi::LogicalPosition::new(
                         f64::from(self.cursor.0),
                         f64::from(self.cursor.1),
-                    ));
+                    ).into());
                 } else {
                     let effect = self.workspace.input(SessionInput::PointerButton {
                         x: self.cursor.0,
@@ -5549,7 +5563,11 @@ impl ApplicationHandler for WorkspaceApp {
                     self.apply_effect(effect);
                 }
             },
-            WindowEvent::MouseInput { state, button, .. } => {
+            WindowEvent::PointerButton {
+                state,
+                button: ButtonSource::Mouse(button),
+                ..
+            } => {
                 if let Some(button) = session_mouse_button(button) {
                     let effect = self.workspace.input(SessionInput::PointerButton {
                         x: self.cursor.0,
@@ -5617,8 +5635,10 @@ impl ApplicationHandler for WorkspaceApp {
                     self.request_redraw();
                     return;
                 }
-                let effect = self.workspace.input(SessionInput::Ime(session_ime(ime)));
-                self.apply_effect(effect);
+                if let Some(ime) = session_ime(ime) {
+                    let effect = self.workspace.input(SessionInput::Ime(ime));
+                    self.apply_effect(effect);
+                }
             },
             WindowEvent::Focused(focused) => {
                 self.accessibility.update_window_focus(focused);
@@ -5748,11 +5768,11 @@ fn native_keyboard_text(
     modifiers: SessionModifiers,
 ) -> Option<String> {
     if state != ElementState::Pressed || modifiers.meta || (modifiers.control && !modifiers.alt)
-        || !matches!(logical, Key::Character(_) | Key::Named(NamedKey::Space))
+        || !matches!(logical, Key::Character(_))
     {
         return None;
     }
-    text.or_else(|| matches!(logical, Key::Named(NamedKey::Space)).then_some(" "))
+    text.or_else(|| matches!(logical, Key::Character(text) if text.as_str() == " ").then_some(" "))
         .filter(|text| !text.is_empty() && text.chars().all(|c| !c.is_control()))
         .map(str::to_owned)
 }
@@ -5803,7 +5823,6 @@ fn native_virtual_key(key: &Key) -> u32 {
                 NamedKey::Pause => 19,
                 NamedKey::CapsLock => 20,
                 NamedKey::Escape => 27,
-                NamedKey::Space => 32,
                 NamedKey::PageUp => 33,
                 NamedKey::PageDown => 34,
                 NamedKey::End => 35,
@@ -5868,13 +5887,14 @@ fn native_virtual_key(key: &Key) -> u32 {
 
 fn session_key(key: &Key) -> SessionKey {
     match key {
+        Key::Character(text) if text.as_str() == " " => SessionKey::Space,
         Key::Character(text) => SessionKey::Character(text.to_string()),
         Key::Named(NamedKey::Enter) => SessionKey::Enter,
         Key::Named(NamedKey::Tab) => SessionKey::Tab,
         Key::Named(NamedKey::Backspace) => SessionKey::Backspace,
         Key::Named(NamedKey::Delete) => SessionKey::Delete,
         Key::Named(NamedKey::Escape) => SessionKey::Escape,
-        Key::Named(NamedKey::Space) => SessionKey::Space,
+
         Key::Named(NamedKey::ArrowLeft) => SessionKey::ArrowLeft,
         Key::Named(NamedKey::ArrowRight) => SessionKey::ArrowRight,
         Key::Named(NamedKey::ArrowUp) => SessionKey::ArrowUp,
@@ -5895,8 +5915,8 @@ fn scroll_key(key: &Key, shift: bool) -> Option<SessionScrollKey> {
         Key::Named(NamedKey::PageDown) => SessionScrollKey::PageDown,
         Key::Named(NamedKey::Home) => SessionScrollKey::Home,
         Key::Named(NamedKey::End) => SessionScrollKey::End,
-        Key::Named(NamedKey::Space) if shift => SessionScrollKey::PageUp,
-        Key::Named(NamedKey::Space) => SessionScrollKey::PageDown,
+        Key::Character(text) if text.as_str() == " " && shift => SessionScrollKey::PageUp,
+        Key::Character(text) if text.as_str() == " " => SessionScrollKey::PageDown,
         _ => return None,
     })
 }
@@ -5928,13 +5948,14 @@ fn navigation_command(
     }
 }
 
-fn session_ime(ime: winit::event::Ime) -> SessionIme {
-    match ime {
+fn session_ime(ime: winit::event::Ime) -> Option<SessionIme> {
+    Some(match ime {
         winit::event::Ime::Enabled => SessionIme::Enabled,
         winit::event::Ime::Preedit(text, selection) => SessionIme::Preedit { text, selection },
         winit::event::Ime::Commit(text) => SessionIme::Commit(text),
         winit::event::Ime::Disabled => SessionIme::Disabled,
-    }
+        _ => return None,
+    })
 }
 
 fn session_mouse_button(button: MouseButton) -> Option<SessionPointerButton> {

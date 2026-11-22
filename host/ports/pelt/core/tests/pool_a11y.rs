@@ -42,6 +42,7 @@ fn projection(s: &State) -> DocumentA11yProjection {
             numeric_value: None,
             numeric_minimum: None,
             numeric_maximum: None,
+            table: Default::default(),
             bounds: Some(DocumentA11yBounds {
                 x: 0.,
                 y: 0.,

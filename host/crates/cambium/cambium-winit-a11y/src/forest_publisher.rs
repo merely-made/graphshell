@@ -29,7 +29,7 @@ pub struct ForestPublisher<A> {
 
 impl<A: Clone + Send + 'static> ForestPublisher<A> {
     pub fn install(
-        window: &Window,
+        window: &dyn Window,
         queue: ActionQueue<A>,
         wake: impl Fn() + Send + Sync + 'static,
         label: &str,
@@ -87,7 +87,7 @@ impl<A: Clone + Send + 'static> ForestPublisher<A> {
         self.epoch == Some(self.activation_epoch())
     }
 
-    pub fn update_window_bounds(&mut self, window: &Window) {
+    pub fn update_window_bounds(&mut self, window: &dyn Window) {
         self.bridge.update_window_bounds(window);
     }
 
@@ -157,7 +157,7 @@ impl<A: Clone + Send + 'static> ForestPublisher<A> {
 
 pub(super) fn install_native(
     bridge: &mut AccessKitBridge,
-    window: &Window,
+    window: &dyn Window,
     initial: TreeUpdate,
 ) -> Result<(), String> {
     bridge.install(window, initial)

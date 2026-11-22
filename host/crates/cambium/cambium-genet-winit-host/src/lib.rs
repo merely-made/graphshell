@@ -105,10 +105,6 @@ pub use cambium_rootstock::{
     TextureProducer,
 };
 pub use decorations::ClickCadence;
-#[derive(Clone, Copy, Debug)]
-enum HostEvent {
-    Wake,
-}
 
 /// `CAMBIUM_HOST_FRAME_TRACE=1` publishes the platform's post-configure answer
 /// to the frame-policy request. This is deliberately a diagnostic rather than
@@ -119,7 +115,7 @@ fn frame_trace() -> bool {
 }
 
 #[cfg(target_os = "macos")]
-fn trace_owned_macos_window(window: &Window, stage: &str) {
+fn trace_owned_macos_window(window: &dyn Window, stage: &str) {
     use objc2_app_kit::NSRunningApplication;
     use raw_window_handle::{HasWindowHandle, RawWindowHandle};
     if !frame_trace() {
@@ -233,14 +229,14 @@ mod occlusion_tests;
 /// this crate and neither is `Window`. It carries an `Arc` so the adapter keeps
 /// its own handle for the window management the seam deliberately omits.
 #[derive(Clone)]
-pub struct WinitWindow(pub Arc<Window>);
+pub struct WinitWindow(pub Arc<dyn Window>);
 impl HostWindow for WinitWindow {
     fn request_redraw(&self) {
         self.0.request_redraw();
     }
 
     fn inner_size(&self) -> (u32, u32) {
-        let size = self.0.inner_size();
+        let size = self.0.surface_size();
         (size.width, size.height)
     }
 
@@ -254,13 +250,13 @@ impl HostWindow for WinitWindow {
 
     fn set_ime_cursor_area(&self, x: f64, y: f64, width: f64, height: f64) {
         self.0.set_ime_cursor_area(
-            winit::dpi::LogicalPosition::new(x, y),
-            winit::dpi::LogicalSize::new(width, height),
+            winit::dpi::LogicalPosition::new(x, y).into(),
+            winit::dpi::LogicalSize::new(width, height).into(),
         );
     }
 
     fn titlebar_insets(&self) -> cambium_rootstock::TitlebarInsets {
-        crate::decorations::titlebar_insets(&self.0)
+        crate::decorations::titlebar_insets(self.0.as_ref())
     }
 }
 /// The winit window's presentation surface, as the neutral seam sees it: the
@@ -306,7 +302,6 @@ fn named_from_winit(named: &winit::keyboard::NamedKey) -> NamedKey {
         N::Backspace => NamedKey::Backspace,
         N::Enter => NamedKey::Enter,
         N::Tab => NamedKey::Tab,
-        N::Space => NamedKey::Space,
         N::Escape => NamedKey::Escape,
         N::ArrowLeft => NamedKey::ArrowLeft,
         N::ArrowRight => NamedKey::ArrowRight,
@@ -332,7 +327,7 @@ pub(crate) fn modifiers_from_winit_state(state: ModifiersState) -> Modifiers {
         shift: state.shift_key(),
         ctrl: state.control_key(),
         alt: state.alt_key(),
-        meta: state.super_key(),
+        meta: state.meta_key(),
     }
 }
 /// A winit key event as the host routes it.
@@ -343,6 +338,7 @@ pub(crate) fn modifiers_from_winit_state(state: ModifiersState) -> Modifiers {
 pub(crate) fn key_from_winit(key: &winit::keyboard::Key) -> Key {
     use winit::keyboard::Key as W;
     match key {
+        W::Character(c) if c.as_str() == " " => Key::Named(NamedKey::Space),
         W::Character(c) => Key::Character(c.to_string()),
         W::Named(named) => Key::Named(named_from_winit(named)),
         W::Dead(_) => Key::Dead,
@@ -395,7 +391,7 @@ where
     pub(crate) snap_layout: Option<windows_snap::SnapLayoutBridge>,
     /// The native window, for the management the neutral seam omits. The one
     /// thing a browser tab cannot supply.
-    pub(crate) native_window: Option<Arc<Window>>,
+    pub(crate) native_window: Option<Arc<dyn Window>>,
     /// Last resize-edge the cursor was over (CSD), to dedup cursor sets.
     pub(crate) resize_hint: Option<winit::window::ResizeDirection>,
     /// Double-click detection for the title bar, which winit does not provide.
@@ -511,7 +507,7 @@ where
     /// A surface for `window`, made from the host's one render core.
     fn boot_surface(
         &mut self,
-        window: Arc<Window>,
+        window: Arc<dyn Window>,
         width: u32,
         height: u32,
     ) -> Result<WinitSurface, String> {
@@ -536,7 +532,7 @@ where
             let Some(window) = self.native_window.clone() else {
                 return;
             };
-            let size = window.inner_size();
+            let size = window.surface_size();
             match self.boot_surface(window, size.width.max(1), size.height.max(1)) {
                 Ok(surface) => {
                     self.s.surface = Some(Box::new(surface));
@@ -592,7 +588,7 @@ where
     }
 
     #[cfg(target_os = "linux")]
-    fn publish_x11_frame_extents(&self, window: &Window) {
+    fn publish_x11_frame_extents(&self, window: &dyn Window) {
         let insets = self.options.effective_app_frame_insets();
         // The insets are CSS pixels and the application paints that margin out
         // of its own stylesheet, so the region reserved must be the region
@@ -630,7 +626,7 @@ where
         let Some(window) = self.native_window.clone() else {
             return;
         };
-        self.publish_x11_frame_extents(&window);
+        self.publish_x11_frame_extents(window.as_ref());
         self.published_frame_scale = Some(scale);
     }
 
@@ -686,7 +682,7 @@ where
     /// Open or resume the owned window within the caller's active event loop.
     /// Initialization runs once, after a render core is available. Its state
     /// survives suspension; only the drawing surface is recreated on resume.
-    pub fn open(&mut self, event_loop: &ActiveEventLoop) -> Result<Arc<Window>, String> {
+    pub fn open(&mut self, event_loop: &dyn ActiveEventLoop) -> Result<Arc<dyn Window>, String> {
         if self.resume_surface() {
             return Ok(self.native_window.as_ref().expect("resumed window").clone());
         }
@@ -718,7 +714,7 @@ where
     }
 
     /// The owned native window, for routing by window ID in a composing host.
-    pub fn native_window(&self) -> Option<&Arc<Window>> {
+    pub fn native_window(&self) -> Option<&Arc<dyn Window>> {
         self.native_window.as_ref()
     }
 }
@@ -733,7 +729,7 @@ where
     Logic: FnMut(&State) -> V + 'static,
     V: RootView<State>,
 {
-    let event_loop = EventLoop::<HostEvent>::with_user_event().build()?;
+    let event_loop = EventLoop::new()?;
     event_loop.set_control_flow(ControlFlow::Wait);
     let mut options = options;
     if let Some(zoom) = env_ui_zoom() {
@@ -745,11 +741,11 @@ where
     let wake = HostWake::new(
         pending,
         Arc::new(move || {
-            let _ = proxy.send_event(HostEvent::Wake);
+            proxy.wake_up();
         }),
     );
-    let mut host = WinitHost::new(Host::new(options, Some(Box::new(init)), hooks, s, wake));
-    event_loop.run_app(&mut host)
+    let host = WinitHost::new(Host::new(options, Some(Box::new(init)), hooks, s, wake));
+    event_loop.run_app(host)
 }
 /// Which resize edge a point near the window border maps to, in logical
 /// coordinates with an 8px grab margin. `None` in the interior.
@@ -778,8 +774,8 @@ pub fn resize_edge(x: f32, y: f32, w: f32, h: f32) -> Option<winit::window::Resi
 }
 /// The resize cursor icon for a border direction — an undecorated (CSD)
 /// window gets no OS resize cursors, so the host supplies the affordance.
-pub fn edge_cursor(dir: winit::window::ResizeDirection) -> winit::window::CursorIcon {
-    use winit::window::{CursorIcon as C, ResizeDirection as R};
+pub fn edge_cursor(dir: winit::window::ResizeDirection) -> winit::cursor::CursorIcon {
+    use winit::{cursor::CursorIcon as C, window::ResizeDirection as R};
     match dir {
         R::East | R::West => C::EwResize,
         R::North | R::South => C::NsResize,
@@ -804,7 +800,7 @@ where
         if window.is_maximized() {
             return None;
         }
-        let size = window.inner_size();
+        let size = window.surface_size();
         // The border grab is the *window's* affordance, so its 8px margin is
         // 8 device pixels at every zoom. The cursor arrives in layout space,
         // so it is carried back across the zoom rather than the window's size
@@ -832,7 +828,8 @@ where
             if let Some(window) = self.native_window.as_ref() {
                 window.set_cursor(
                     dir.map(edge_cursor)
-                        .unwrap_or(winit::window::CursorIcon::Default),
+                        .unwrap_or(winit::cursor::CursorIcon::Default)
+                        .into(),
                 );
             }
         }
@@ -871,7 +868,7 @@ where
             return true;
         }
         if self.s.surface.is_none() {
-            let size = window.inner_size();
+            let size = window.surface_size();
             match self.boot_surface(window.clone(), size.width.max(1), size.height.max(1)) {
                 Ok(surface) => {
                     self.s.surface = Some(Box::new(surface));
@@ -899,8 +896,8 @@ where
     /// geometry it was placed at, if any.
     pub(crate) fn open_native_window(
         &mut self,
-        event_loop: &ActiveEventLoop,
-    ) -> (Arc<Window>, Option<WindowGeometry>) {
+        event_loop: &dyn ActiveEventLoop,
+    ) -> (Arc<dyn Window>, Option<WindowGeometry>) {
         // Start comfortably on a large desktop, but never assume one. A
         // receipt's explicit size wins over application-restored geometry.
         let size_overridden = self
@@ -921,16 +918,16 @@ where
             .unwrap_or(self.options.initial_logical_size);
         let monitors = event_loop
             .available_monitors()
-            .map(|monitor| {
+            .filter_map(|monitor| {
                 let scale = monitor.scale_factor();
-                let size = monitor.size();
-                let pos = monitor.position();
-                (
+                let size = monitor.current_video_mode()?.size();
+                let pos = monitor.position()?;
+                Some((
                     pos.x as f64 / scale,
                     pos.y as f64 / scale,
                     size.width as f64 / scale,
                     size.height as f64 / scale,
-                )
+                ))
             })
             .collect::<Vec<_>>();
         let restored =
@@ -943,21 +940,21 @@ where
             ),
             None => event_loop
                 .primary_monitor()
-                .map(|monitor| {
+                .and_then(|monitor| {
                     let scale = monitor.scale_factor();
-                    let size = monitor.size();
-                    let pos = monitor.position();
+                    let size = monitor.current_video_mode()?.size();
+                    let pos = monitor.position()?;
                     let logical_w = size.width as f64 / scale;
                     let logical_h = size.height as f64 / scale;
                     let width = want.0.min((logical_w - 48.0).max(480.0));
                     let height = want.1.min((logical_h - 48.0).max(360.0));
                     let x = pos.x as f64 / scale + ((logical_w - width) / 2.0).max(8.0);
                     let y = pos.y as f64 / scale + ((logical_h - height) / 2.0).max(8.0);
-                    (
+                    Some((
                         winit::dpi::LogicalPosition::new(x, y),
                         winit::dpi::LogicalSize::new(width, height),
                         false,
-                    )
+                    ))
                 })
                 .unwrap_or((
                     winit::dpi::LogicalPosition::new(40.0, 8.0),
@@ -980,26 +977,28 @@ where
         // them while the page draws behind them.
         #[cfg(target_os = "macos")]
         let (attributes, decorated) = {
-            use winit::platform::macos::WindowAttributesExtMacOS;
-            let attributes = Window::default_attributes();
+            use winit::platform::macos::WindowAttributesMacOS;
+            let attributes = winit::window::WindowAttributes::default();
             if self.options.effective_window_frame() == WindowFrame::Host {
                 (attributes, true)
             } else {
                 (
-                    attributes
-                        .with_titlebar_transparent(true)
-                        .with_fullsize_content_view(true)
-                        .with_title_hidden(true),
+                    attributes.with_platform_attributes(Box::new(
+                        WindowAttributesMacOS::default()
+                            .with_titlebar_transparent(true)
+                            .with_fullsize_content_view(true)
+                            .with_title_hidden(true),
+                    )),
                     true,
                 )
             }
         };
         #[cfg(not(target_os = "macos"))]
         let (attributes, decorated) = (
-            Window::default_attributes(),
+            winit::window::WindowAttributes::default(),
             self.options.effective_window_frame() == WindowFrame::Host,
         );
-        let window = Arc::new(
+        let window: Arc<dyn Window> = Arc::from(
             event_loop
                 .create_window(
                     attributes
@@ -1012,14 +1011,14 @@ where
                         // `sync_a11y`.
                         .with_visible(false)
                         .with_position(initial_pos)
-                        .with_inner_size(initial_size)
+                        .with_surface_size(initial_size)
                         .with_maximized(initial_maximized),
                 )
                 .expect("create window"),
         );
         #[cfg(target_os = "windows")]
         if self.options.effective_window_frame() == WindowFrame::App {
-            match windows_snap::SnapLayoutBridge::attach(&window) {
+            match windows_snap::SnapLayoutBridge::attach(window.as_ref()) {
                 Ok(bridge) => self.snap_layout = Some(bridge),
                 Err(error) => {
                     eprintln!("[cambium-winit] could not install Snap Layout hit test: {error}")
@@ -1028,7 +1027,7 @@ where
         }
         #[cfg(target_os = "linux")]
         {
-            self.publish_x11_frame_extents(&window);
+            self.publish_x11_frame_extents(window.as_ref());
             self.published_frame_scale = Some(self.layout_scale());
         }
         if frame_trace() {
@@ -1058,10 +1057,10 @@ where
     /// extents. The caller then gives it a tree and draws the first frame.
     pub(crate) fn install_window(
         &mut self,
-        window: Arc<Window>,
+        window: Arc<dyn Window>,
         restored: Option<WindowGeometry>,
     ) -> Result<(), String> {
-        let size = window.inner_size();
+        let size = window.surface_size();
         let surface = self.boot_surface(window.clone(), size.width.max(1), size.height.max(1))?;
         let mut a11y = A11yHost::new(self.a11y_waker());
         a11y.attach(window.clone())?;
@@ -1090,7 +1089,7 @@ where
         self.sync_a11y();
         #[cfg(target_os = "macos")]
         if let Some(window) = self.native_window.as_ref() {
-            trace_owned_macos_window(window, "initial reveal");
+            trace_owned_macos_window(window.as_ref(), "initial reveal");
         }
         // The synchronous frame was attempted while hidden. Showing the
         // window must owe a fresh attempt even on platforms that do not send
@@ -1158,7 +1157,7 @@ where
                     self.note_resize();
                 }
             },
-            WindowEvent::Resized(size) => {
+            WindowEvent::SurfaceResized(size) => {
                 if let Some(surface) = self.s.surface.as_mut() {
                     surface.resize(size.width.max(1), size.height.max(1));
                 }
@@ -1176,16 +1175,20 @@ where
             WindowEvent::ModifiersChanged(mods) => {
                 self.s.modifiers = modifiers_from_winit_state(mods.state());
             },
-            WindowEvent::CursorMoved { position, .. } => {
+            WindowEvent::PointerMoved {
+                source: winit::event::PointerSource::Mouse,
+                position,
+                ..
+            } => {
                 let (x, y) = self.layout_point(position.x, position.y);
                 self.pointer_moved(x, y);
                 // The resize-edge cursor is decoration, and reads only the
                 // pointer position, so it follows rather than interleaves.
                 self.update_resize_cursor();
             },
-            WindowEvent::MouseInput {
+            WindowEvent::PointerButton {
                 state: ElementState::Pressed,
-                button: MouseButton::Left,
+                button: winit::event::ButtonSource::Mouse(MouseButton::Left),
                 ..
             } => {
                 // Edge grab beats content when a CSD window is floating.
@@ -1203,29 +1206,29 @@ where
                     None => self.press_left(),
                 }
             },
-            WindowEvent::MouseInput {
+            WindowEvent::PointerButton {
                 state: ElementState::Pressed,
-                button: MouseButton::Right,
+                button: winit::event::ButtonSource::Mouse(MouseButton::Right),
                 ..
             } => self.press_right(),
-            WindowEvent::MouseInput {
+            WindowEvent::PointerButton {
                 state: ElementState::Released,
-                button: MouseButton::Left,
+                button: winit::event::ButtonSource::Mouse(MouseButton::Left),
                 ..
             } => self.release(),
-            WindowEvent::MouseInput {
+            WindowEvent::PointerButton {
                 state: ElementState::Pressed,
-                button: MouseButton::Middle,
+                button: winit::event::ButtonSource::Mouse(MouseButton::Middle),
                 ..
             } => self.pointer_press(cambium::PointerButton::Auxiliary),
-            WindowEvent::MouseInput {
+            WindowEvent::PointerButton {
                 state: ElementState::Released,
-                button: MouseButton::Middle,
+                button: winit::event::ButtonSource::Mouse(MouseButton::Middle),
                 ..
             } => self.release_button(cambium::PointerButton::Auxiliary),
-            WindowEvent::MouseInput {
+            WindowEvent::PointerButton {
                 state: ElementState::Released,
-                button: MouseButton::Right,
+                button: winit::event::ButtonSource::Mouse(MouseButton::Right),
                 ..
             } => self.release_button(cambium::PointerButton::Secondary),
             WindowEvent::Focused(false) => self.cancel_pointer(),
@@ -1240,7 +1243,11 @@ where
                     genet_winit_host::wheel_delta_from_winit_logical(delta, self.input_scale());
                 self.wheel(dx, dy);
             },
-            WindowEvent::Ime(ime) => self.ime(cambium_winit::composition_from_winit(&ime)),
+            WindowEvent::Ime(ime) => {
+                if let Some(event) = cambium_winit::composition_from_winit(&ime) {
+                    self.ime(event);
+                }
+            },
             WindowEvent::KeyboardInput {
                 event,
                 is_synthetic,
@@ -1297,34 +1304,37 @@ pub(crate) fn control_flow(policy: IdlePolicy) -> ControlFlow {
     }
 }
 
-impl<State, Logic, V> ApplicationHandler<HostEvent> for WinitHost<State, Logic, V>
+impl<State, Logic, V> ApplicationHandler for WinitHost<State, Logic, V>
 where
     State: 'static,
     Logic: FnMut(&State) -> V + 'static,
     V: RootView<State>,
 {
-    fn resumed(&mut self, event_loop: &ActiveEventLoop) {
+    fn can_create_surfaces(&mut self, event_loop: &dyn ActiveEventLoop) {
         self.open(event_loop).expect("boot genet host");
     }
 
-    fn suspended(&mut self, _event_loop: &ActiveEventLoop) {
+    fn destroy_surfaces(&mut self, _event_loop: &dyn ActiveEventLoop) {
         self.suspend_surface();
     }
 
-    fn about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
+    fn about_to_wait(&mut self, event_loop: &dyn ActiveEventLoop) {
         event_loop.set_control_flow(control_flow(self.idle_turn()));
     }
 
-    fn user_event(&mut self, event_loop: &ActiveEventLoop, event: HostEvent) {
-        match event {
-            HostEvent::Wake => self.wake_turn(),
-        }
+    fn proxy_wake_up(&mut self, event_loop: &dyn ActiveEventLoop) {
+        self.wake_turn();
         if self.s.close_requested {
             event_loop.exit();
         }
     }
 
-    fn window_event(&mut self, event_loop: &ActiveEventLoop, _id: WindowId, event: WindowEvent) {
+    fn window_event(
+        &mut self,
+        event_loop: &dyn ActiveEventLoop,
+        _id: WindowId,
+        event: WindowEvent,
+    ) {
         self.handle_window_event(event);
         if self.s.close_requested {
             event_loop.exit();

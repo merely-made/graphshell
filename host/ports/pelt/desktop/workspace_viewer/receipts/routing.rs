@@ -259,7 +259,7 @@ impl WorkspaceApp {
         });
         self.workspace_receipt_stage_started = Instant::now();
         if let Some(window) = self.window.as_ref() {
-            let _ = window.request_inner_size(winit::dpi::PhysicalSize::new(target.0, target.1));
+            let _ = window.request_surface_size(winit::dpi::PhysicalSize::new(target.0, target.1).into());
         }
         self.request_redraw();
     }

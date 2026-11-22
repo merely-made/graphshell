@@ -87,28 +87,27 @@ pub fn run_macos_calayer_present_smoke(
 
     #[cfg(target_vendor = "apple")]
     {
-        let event_loop = winit::event_loop::EventLoop::new()
+        use winit::event_loop::run_on_demand::EventLoopExtRunOnDemand;
+        let mut event_loop = winit::event_loop::EventLoop::new()
             .map_err(|error| format!("could not create event loop: {error}"))?;
         let mut app = MacosCALayerPresentApp::new(config);
         event_loop
-            .run_app(&mut app)
+            .run_app_on_demand(&mut app)
             .map_err(|error| format!("present-smoke event loop failed: {error}"))?;
-        if let Some(error) = app.error {
+        if let Some(error) = app.error.take() {
             return Err(error);
         }
-        app.outcome
-            .ok_or_else(|| "present smoke ended without an outcome".into())
+        Ok(app.outcome())
     }
 }
 
 #[cfg(all(feature = "macos-present", target_vendor = "apple"))]
 struct MacosCALayerPresentApp {
     config: MacosCALayerPresentSmokeConfig,
-    window: Option<winit::window::Window>,
+    window: Option<Box<dyn winit::window::Window>>,
     window_id: Option<winit::window::WindowId>,
     state: Option<MacosPresentState>,
     frames_presented: u32,
-    outcome: Option<MacosCALayerPresentSmokeOutcome>,
     error: Option<String>,
 }
 
@@ -179,12 +178,20 @@ impl MacosCALayerPresentApp {
             window_id: None,
             state: None,
             frames_presented: 0,
-            outcome: None,
             error: None,
         }
     }
 
-    fn fail(&mut self, event_loop: &winit::event_loop::ActiveEventLoop, message: String) {
+    fn outcome(&self) -> MacosCALayerPresentSmokeOutcome {
+        MacosCALayerPresentSmokeOutcome {
+            width: self.config.width,
+            height: self.config.height,
+            frames_presented: self.frames_presented,
+            created_window: self.window_id.is_some(),
+        }
+    }
+
+    fn fail(&mut self, event_loop: &dyn winit::event_loop::ActiveEventLoop, message: String) {
         self.error = Some(message);
         event_loop.exit();
     }
@@ -192,7 +199,7 @@ impl MacosCALayerPresentApp {
 
 #[cfg(all(feature = "macos-present", target_vendor = "apple"))]
 impl winit::application::ApplicationHandler for MacosCALayerPresentApp {
-    fn resumed(&mut self, event_loop: &winit::event_loop::ActiveEventLoop) {
+    fn can_create_surfaces(&mut self, event_loop: &dyn winit::event_loop::ActiveEventLoop) {
         if self.window.is_some() {
             return;
         }
@@ -200,7 +207,7 @@ impl winit::application::ApplicationHandler for MacosCALayerPresentApp {
         // 1. winit window
         let attributes = winit::window::WindowAttributes::default()
             .with_title(self.config.title.clone())
-            .with_inner_size(winit::dpi::LogicalSize::new(
+            .with_surface_size(winit::dpi::LogicalSize::new(
                 self.config.width as f64,
                 self.config.height as f64,
             ));
@@ -274,7 +281,7 @@ impl winit::application::ApplicationHandler for MacosCALayerPresentApp {
 
     fn window_event(
         &mut self,
-        event_loop: &winit::event_loop::ActiveEventLoop,
+        event_loop: &dyn winit::event_loop::ActiveEventLoop,
         window_id: winit::window::WindowId,
         event: winit::event::WindowEvent,
     ) {
@@ -284,9 +291,9 @@ impl winit::application::ApplicationHandler for MacosCALayerPresentApp {
 
         match event {
             winit::event::WindowEvent::CloseRequested => event_loop.exit(),
-            winit::event::WindowEvent::Resized(_) => {
+            winit::event::WindowEvent::SurfaceResized(_) => {
                 // Force a redraw so the master + per-surface
-                // CALayer pick up the new `inner_size` immediately.
+                // CALayer pick up the new `surface_size` immediately.
                 if let Some(window) = self.window.as_ref() {
                     window.request_redraw();
                 }
@@ -313,7 +320,7 @@ impl winit::application::ApplicationHandler for MacosCALayerPresentApp {
 
                 // 8a. synthetic scene at backing-pixel resolution
                 // of the *current* window. Pulling from
-                // `window.inner_size()` (already in physical/backing
+                // `window.surface_size()` (already in physical/backing
                 // pixels per winit's docs) instead of fixing
                 // `config.width × scale_factor` lets the master
                 // texture grow/shrink with window resize, which in
@@ -321,7 +328,7 @@ impl winit::application::ApplicationHandler for MacosCALayerPresentApp {
                 // `ServoCompositor` calls `backend.declare` again
                 // with the new dims and the per-surface CALayer
                 // gets a fresh frame.
-                let inner = window.inner_size();
+                let inner = window.surface_size();
                 let backing_w = inner.width.max(1);
                 let backing_h = inner.height.max(1);
                 let mut scene = netrender::Scene::new(backing_w, backing_h);
@@ -393,17 +400,5 @@ impl winit::application::ApplicationHandler for MacosCALayerPresentApp {
             },
             _ => {},
         }
-    }
-
-    fn exiting(&mut self, _event_loop: &winit::event_loop::ActiveEventLoop) {
-        if self.outcome.is_some() {
-            return;
-        }
-        self.outcome = Some(MacosCALayerPresentSmokeOutcome {
-            width: self.config.width,
-            height: self.config.height,
-            frames_presented: self.frames_presented,
-            created_window: self.window_id.is_some(),
-        });
     }
 }

@@ -282,6 +282,7 @@ fn blank(id: u64, role: DocumentA11yRole) -> DocumentA11yNode {
         numeric_value: None,
         numeric_minimum: None,
         numeric_maximum: None,
+        table: Default::default(),
         bounds: None,
         state: DocumentA11yState::default(),
         actions: Vec::new(),

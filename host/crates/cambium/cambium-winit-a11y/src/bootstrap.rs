@@ -33,7 +33,11 @@ impl A11yHost {
         self.requests.clear();
         self.envelopes.clear();
         self.namespace.clear();
-        match crate::forest_publisher::install_native(&mut self.bridge, &window, window_root()) {
+        match crate::forest_publisher::install_native(
+            &mut self.bridge,
+            window.as_ref(),
+            window_root(),
+        ) {
             Ok(()) => self.installed = true,
             Err(error) => {
                 eprintln!("[cambium-winit] accessibility window bootstrap failed: {error}");

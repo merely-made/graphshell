@@ -29,13 +29,13 @@ use winit::keyboard::{Key as WinitKey, ModifiersState, NamedKey as WinitNamedKey
 /// Dead and unidentified keys have no routable Cambium representation.
 pub fn key_event_from_winit(key: &WinitKey, mods: Modifiers) -> Option<KeyEvent> {
     let mapped = match key {
+        WinitKey::Character(s) if s.as_str() == " " => Key::Named(NamedKey::Space),
         WinitKey::Character(s) => Key::Character(s.to_string()),
         WinitKey::Named(named) => Key::Named(match named {
             WinitNamedKey::Backspace => NamedKey::Backspace,
             WinitNamedKey::Enter => NamedKey::Enter,
             WinitNamedKey::Tab => NamedKey::Tab,
             WinitNamedKey::Escape => NamedKey::Escape,
-            WinitNamedKey::Space => NamedKey::Space,
             WinitNamedKey::ArrowLeft => NamedKey::ArrowLeft,
             WinitNamedKey::ArrowRight => NamedKey::ArrowRight,
             WinitNamedKey::ArrowUp => NamedKey::ArrowUp,
@@ -61,7 +61,7 @@ pub fn modifiers_from_winit(state: ModifiersState) -> Modifiers {
         shift: state.shift_key(),
         ctrl: state.control_key(),
         alt: state.alt_key(),
-        meta: state.super_key(),
+        meta: state.meta_key(),
     }
 }
 
@@ -74,8 +74,8 @@ pub fn modifiers_from_winit(state: ModifiersState) -> Modifiers {
 /// composition itself: a browser reports the same four states through
 /// `compositionstart`/`update`/`end`, so the host takes this and each event
 /// source converts.
-pub fn composition_from_winit(ime: &Ime) -> CompositionEvent {
-    match ime {
+pub fn composition_from_winit(ime: &Ime) -> Option<CompositionEvent> {
+    Some(match ime {
         Ime::Enabled => CompositionEvent::Enabled,
         Ime::Preedit(text, selection) => CompositionEvent::Preedit {
             text: text.clone(),
@@ -83,20 +83,12 @@ pub fn composition_from_winit(ime: &Ime) -> CompositionEvent {
         },
         Ime::Commit(text) => CompositionEvent::Commit(text.clone()),
         Ime::Disabled => CompositionEvent::Disabled,
-    }
+        _ => return None,
+    })
 }
 
-pub fn ime_event_from_winit(ime: &Ime) -> KeyEvent {
-    let composition = match ime {
-        Ime::Enabled => CompositionEvent::Enabled,
-        Ime::Preedit(text, selection) => CompositionEvent::Preedit {
-            text: text.clone(),
-            selection: *selection,
-        },
-        Ime::Commit(text) => CompositionEvent::Commit(text.clone()),
-        Ime::Disabled => CompositionEvent::Disabled,
-    };
-    KeyEvent::new(Key::Composition(composition))
+pub fn ime_event_from_winit(ime: &Ime) -> Option<KeyEvent> {
+    composition_from_winit(ime).map(|event| KeyEvent::new(Key::Composition(event)))
 }
 
 #[cfg(test)]
@@ -145,7 +137,7 @@ mod tests {
     fn ime_preedit_and_commit_preserve_platform_payloads() {
         let preedit = ime_event_from_winit(&Ime::Preedit("かな".to_owned(), Some((3, 6))));
         assert!(matches!(
-            preedit.key,
+            preedit.unwrap().key,
             Key::Composition(CompositionEvent::Preedit {
                 ref text,
                 selection: Some((3, 6)),
@@ -154,7 +146,7 @@ mod tests {
 
         let commit = ime_event_from_winit(&Ime::Commit("仮名".to_owned()));
         assert!(matches!(
-            commit.key,
+            commit.unwrap().key,
             Key::Composition(CompositionEvent::Commit(ref text)) if text == "仮名"
         ));
     }

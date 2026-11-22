@@ -33,7 +33,7 @@ use winit::event::WindowEvent;
 use winit::event_loop::{ActiveEventLoop, ControlFlow, EventLoop};
 use winit::window::WindowId;
 
-use crate::{HostEvent, WinitHost, WinitWindow, control_flow, env_ui_zoom};
+use crate::{WinitHost, WinitWindow, control_flow, env_ui_zoom};
 
 /// A window's frame as its host sees it under the multi-window entry: a
 /// redraw it asks for is noted, and the idle turn serves every noted window.
@@ -129,10 +129,10 @@ where
     Logic: FnMut(&State) -> V + 'static,
     V: RootView<State>,
 {
-    let event_loop = EventLoop::<HostEvent>::with_user_event().build()?;
+    let event_loop = EventLoop::new()?;
     event_loop.set_control_flow(ControlFlow::Wait);
-    let mut windows = WinitWindows::new(&event_loop, Box::new(init), hooks);
-    event_loop.run_app(&mut windows)
+    let windows = WinitWindows::new(&event_loop, Box::new(init), hooks);
+    event_loop.run_app(windows)
 }
 
 type WindowsInitFn<State, Logic> = Box<dyn FnOnce(&HostWake) -> WindowsInit<State, Logic>>;
@@ -157,7 +157,7 @@ where
     V: RootView<State>,
 {
     pub(crate) fn new(
-        event_loop: &EventLoop<HostEvent>,
+        event_loop: &EventLoop,
         init: WindowsInitFn<State, Logic>,
         hooks: WindowHooks<State, Logic, V>,
     ) -> Self {
@@ -165,7 +165,7 @@ where
         let wake = HostWake::new(
             Arc::new(AtomicBool::new(false)),
             Arc::new(move || {
-                let _ = proxy.send_event(HostEvent::Wake);
+                proxy.wake_up();
             }),
         );
         Self {
@@ -197,7 +197,7 @@ where
     }
 
     /// Give window `id` its native window and first frame, in its turn.
-    fn show(&mut self, event_loop: &ActiveEventLoop, id: ProjectionId) {
+    fn show(&mut self, event_loop: &dyn ActiveEventLoop, id: ProjectionId) {
         let native = self.multi().with_window(id, |window| {
             let (native, restored) = window.open_native_window(event_loop);
             let native_id = native.id();
@@ -239,7 +239,7 @@ where
     /// change reached or a sheet swap left behind, which are asked for a frame.
     /// `acting` are the windows whose turns these were: a change a window made
     /// to itself is its own to show, as it is for a single window.
-    pub(crate) fn after_turn(&mut self, event_loop: &ActiveEventLoop, acting: &[ProjectionId]) {
+    pub(crate) fn after_turn(&mut self, event_loop: &dyn ActiveEventLoop, acting: &[ProjectionId]) {
         let mut closing = Vec::new();
         // A window opened from another window's first frame is opened too, to
         // a bound: a frame that opens a window every time would never end.
@@ -293,7 +293,7 @@ where
 
     /// Application results share one drain; image completions belong to each
     /// receiving window. A completion alone never fans out fresh frame demand.
-    fn process_wake_turns(&mut self, event_loop: &ActiveEventLoop) -> Vec<ProjectionId> {
+    fn process_wake_turns(&mut self, event_loop: &dyn ActiveEventLoop) -> Vec<ProjectionId> {
         let first = self.multi().windows().next();
         let application = first
             .and_then(|id| {
@@ -322,7 +322,7 @@ where
         collected
     }
 
-    fn launch(&mut self, event_loop: &ActiveEventLoop) {
+    fn launch(&mut self, event_loop: &dyn ActiveEventLoop) {
         let init = self.init.take().expect("launched once");
         let WindowsInit {
             state,
@@ -349,13 +349,13 @@ where
     }
 }
 
-impl<State, Logic, V> ApplicationHandler<HostEvent> for WinitWindows<State, Logic, V>
+impl<State, Logic, V> ApplicationHandler for WinitWindows<State, Logic, V>
 where
     State: 'static,
     Logic: FnMut(&State) -> V + 'static,
     V: RootView<State>,
 {
-    fn resumed(&mut self, event_loop: &ActiveEventLoop) {
+    fn can_create_surfaces(&mut self, event_loop: &dyn ActiveEventLoop) {
         if self.multi.is_none() {
             self.launch(event_loop);
             return;
@@ -367,14 +367,14 @@ where
         self.after_turn(event_loop, &[]);
     }
 
-    fn suspended(&mut self, _event_loop: &ActiveEventLoop) {
+    fn destroy_surfaces(&mut self, _event_loop: &dyn ActiveEventLoop) {
         let multi = self.multi();
         for id in multi.windows().collect::<Vec<_>>() {
             multi.with_window(id, |window| window.suspend_surface());
         }
     }
 
-    fn about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
+    fn about_to_wait(&mut self, event_loop: &dyn ActiveEventLoop) {
         let Some(multi) = self.multi.as_mut() else {
             return;
         };
@@ -450,17 +450,18 @@ where
         });
     }
 
-    fn user_event(&mut self, event_loop: &ActiveEventLoop, event: HostEvent) {
-        let collected = match event {
-            HostEvent::Wake => {
-                self.poll_shared_device_recovery();
-                self.process_wake_turns(event_loop)
-            },
-        };
+    fn proxy_wake_up(&mut self, event_loop: &dyn ActiveEventLoop) {
+        self.poll_shared_device_recovery();
+        let collected = self.process_wake_turns(event_loop);
         self.after_turn(event_loop, &collected);
     }
 
-    fn window_event(&mut self, event_loop: &ActiveEventLoop, native: WindowId, event: WindowEvent) {
+    fn window_event(
+        &mut self,
+        event_loop: &dyn ActiveEventLoop,
+        native: WindowId,
+        event: WindowEvent,
+    ) {
         let Some(&id) = self.by_native.get(&native) else {
             return;
         };
@@ -549,7 +550,7 @@ mod recovery_tests {
             wake,
             by_native: HashMap::new(),
         };
-        // This is the exact pre-drain method called by HostEvent::Wake; no
+        // This is the exact pre-drain method called by proxy_wake_up; no
         // event loop, adapter, native window or frame is constructed.
         windows.poll_shared_device_recovery();
         assert!(matches!(owner.status(), RecoveryStatus::Failed { .. }));

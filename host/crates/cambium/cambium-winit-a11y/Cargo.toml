@@ -24,7 +24,7 @@ sprigging = { version = ">=0.4.0", path = "../sprigging" }
 # request vocabulary lives there because it never named winit or AccessKit
 # in the first place; only the window handle below is ours.
 cambium-rootstock = { version = ">=0.1.0", path = "../cambium-rootstock", default-features = false }
-winit = "0.30.13"
+winit = ">=0.31.0-beta.4"
 accesskit.workspace = true
 uxtree.workspace = true
 genet-render = { workspace = true }
@@ -46,9 +46,6 @@ accesskit_consumer.workspace = true
 # uxtree P0 reads a real document session's revision and owner-side admission.
 genet-documents = { workspace = true, features = ["livery"] }
 netrender.workspace = true
-# Experiment E1b's probe (examples/e1b_two_sessions.rs) publishes joined trees
-# through AccessKit's own winit adapter and checks subtree actions and focus.
-accesskit_winit.workspace = true
 cambium-winit = { version = ">=0.4.0", path = "../cambium-winit" }
 
 [lints]

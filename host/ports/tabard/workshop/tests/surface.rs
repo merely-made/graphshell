@@ -467,7 +467,7 @@ fn native_keyboard_reaches_edits_and_can_undo_them() {
     host.key_named(NamedKey::Enter);
     assert_eq!(host.state().draft_theme(), &original);
     tab_to(&mut host, &action("redo"));
-    host.key_named(NamedKey::Space);
+    host.key_char(" ");
     assert_eq!(host.state().draft_theme(), &edited);
 
     tab_to(&mut host, &mode("dark"));

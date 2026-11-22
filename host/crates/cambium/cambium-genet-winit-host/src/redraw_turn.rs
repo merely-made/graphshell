@@ -58,7 +58,7 @@ where
             && let Some(window) = self.native_window.as_ref()
         {
             #[cfg(target_os = "macos")]
-            trace_owned_macos_window(window, "unpresented redraw");
+            trace_owned_macos_window(window.as_ref(), "unpresented redraw");
             if let Some(failure) = &self.s.last_presentation_failure {
                 eprintln!("[cambium-host] unpresented refusal: {failure}");
             }

@@ -100,7 +100,7 @@ impl A11yHost {
             contribution_issues,
         };
         if !self.installed {
-            match crate::forest_publisher::install_native(&mut self.bridge, &window, tree) {
+            match crate::forest_publisher::install_native(&mut self.bridge, window.as_ref(), tree) {
                 Ok(()) => {
                     self.installed = true;
                     self.requests = next;

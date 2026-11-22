@@ -56,17 +56,17 @@ pub fn run_wayland_subsurface_present_smoke(
 
     #[cfg(target_os = "linux")]
     {
-        let event_loop = winit::event_loop::EventLoop::new()
+        use winit::event_loop::run_on_demand::EventLoopExtRunOnDemand;
+        let mut event_loop = winit::event_loop::EventLoop::new()
             .map_err(|error| format!("could not create event loop: {error}"))?;
         let mut app = linux_impl::WaylandPresentApp::new(config);
         event_loop
-            .run_app(&mut app)
+            .run_app_on_demand(&mut app)
             .map_err(|error| format!("present-smoke event loop failed: {error}"))?;
-        if let Some(error) = app.error {
+        if let Some(error) = app.error.take() {
             return Err(error);
         }
-        app.outcome
-            .ok_or_else(|| "present smoke ended without an outcome".into())
+        Ok(app.outcome())
     }
 }
 
@@ -76,11 +76,10 @@ mod linux_impl {
 
     pub struct WaylandPresentApp {
         pub config: WaylandPresentSmokeConfig,
-        window: Option<winit::window::Window>,
+        window: Option<Box<dyn winit::window::Window>>,
         window_id: Option<winit::window::WindowId>,
         state: Option<WaylandPresentState>,
         frames_presented: u32,
-        pub outcome: Option<WaylandPresentSmokeOutcome>,
         pub error: Option<String>,
     }
 
@@ -97,12 +96,21 @@ mod linux_impl {
                 window_id: None,
                 state: None,
                 frames_presented: 0,
-                outcome: None,
                 error: None,
             }
         }
 
-        fn fail(&mut self, event_loop: &winit::event_loop::ActiveEventLoop, message: String) {
+        pub fn outcome(&self) -> WaylandPresentSmokeOutcome {
+            WaylandPresentSmokeOutcome {
+                width: self.config.width,
+                height: self.config.height,
+                frames_presented: self.frames_presented,
+                created_window: self.window_id.is_some(),
+                declared_subsurface: self.config.declare_subsurface,
+            }
+        }
+
+        fn fail(&mut self, event_loop: &dyn winit::event_loop::ActiveEventLoop, message: String) {
             self.error = Some(message);
             event_loop.exit();
         }
@@ -215,14 +223,14 @@ mod linux_impl {
     }
 
     impl winit::application::ApplicationHandler for WaylandPresentApp {
-        fn resumed(&mut self, event_loop: &winit::event_loop::ActiveEventLoop) {
+        fn can_create_surfaces(&mut self, event_loop: &dyn winit::event_loop::ActiveEventLoop) {
             if self.window.is_some() {
                 return;
             }
 
             let attributes = winit::window::WindowAttributes::default()
                 .with_title(self.config.title.clone())
-                .with_inner_size(winit::dpi::LogicalSize::new(
+                .with_surface_size(winit::dpi::LogicalSize::new(
                     self.config.width as f64,
                     self.config.height as f64,
                 ));
@@ -289,7 +297,7 @@ mod linux_impl {
 
         fn window_event(
             &mut self,
-            event_loop: &winit::event_loop::ActiveEventLoop,
+            event_loop: &dyn winit::event_loop::ActiveEventLoop,
             window_id: winit::window::WindowId,
             event: winit::event::WindowEvent,
         ) {
@@ -299,7 +307,7 @@ mod linux_impl {
 
             match event {
                 winit::event::WindowEvent::CloseRequested => event_loop.exit(),
-                winit::event::WindowEvent::Resized(_) => {
+                winit::event::WindowEvent::SurfaceResized(_) => {
                     if let Some(window) = self.window.as_ref() {
                         window.request_redraw();
                     }
@@ -316,7 +324,7 @@ mod linux_impl {
                         return;
                     }
 
-                    let inner = window.inner_size();
+                    let inner = window.surface_size();
                     let backing_w = inner.width.max(1);
                     let backing_h = inner.height.max(1);
                     let mut scene = netrender::Scene::new(backing_w, backing_h);
@@ -368,19 +376,6 @@ mod linux_impl {
                 },
                 _ => {},
             }
-        }
-
-        fn exiting(&mut self, _event_loop: &winit::event_loop::ActiveEventLoop) {
-            if self.outcome.is_some() {
-                return;
-            }
-            self.outcome = Some(WaylandPresentSmokeOutcome {
-                width: self.config.width,
-                height: self.config.height,
-                frames_presented: self.frames_presented,
-                created_window: self.window_id.is_some(),
-                declared_subsurface: self.config.declare_subsurface,
-            });
         }
     }
 }

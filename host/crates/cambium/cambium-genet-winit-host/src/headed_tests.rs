@@ -53,20 +53,20 @@ struct Driver {
     readings: Rc<RefCell<Option<Readings>>>,
 }
 
-impl ApplicationHandler<HostEvent> for Driver {
-    fn resumed(&mut self, event_loop: &ActiveEventLoop) {
-        self.host.resumed(event_loop);
+impl ApplicationHandler for Driver {
+    fn can_create_surfaces(&mut self, event_loop: &dyn ActiveEventLoop) {
+        self.host.can_create_surfaces(event_loop);
     }
 
-    fn user_event(&mut self, event_loop: &ActiveEventLoop, event: HostEvent) {
-        self.host.user_event(event_loop, event);
+    fn proxy_wake_up(&mut self, event_loop: &dyn ActiveEventLoop) {
+        self.host.proxy_wake_up(event_loop);
     }
 
-    fn window_event(&mut self, event_loop: &ActiveEventLoop, id: WindowId, event: WindowEvent) {
+    fn window_event(&mut self, event_loop: &dyn ActiveEventLoop, id: WindowId, event: WindowEvent) {
         self.host.window_event(event_loop, id, event);
     }
 
-    fn about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
+    fn about_to_wait(&mut self, event_loop: &dyn ActiveEventLoop) {
         self.host.about_to_wait(event_loop);
         if self.readings.borrow().is_some() {
             return;
@@ -85,12 +85,12 @@ impl ApplicationHandler<HostEvent> for Driver {
             presents_before: self.host.s.presentation_sequence,
             ..Readings::default()
         };
-        self.host.suspended(event_loop);
+        self.host.destroy_surfaces(event_loop);
         readings.surface_dropped = self.host.s.surface.is_none();
         if self.drop_core {
             self.host.s.shared.render_core = None;
         }
-        self.host.resumed(event_loop);
+        self.host.can_create_surfaces(event_loop);
         let after = self
             .host
             .s
@@ -116,7 +116,7 @@ impl ApplicationHandler<HostEvent> for Driver {
 }
 
 fn drive(drop_core: bool) -> Readings {
-    let mut builder = EventLoop::<HostEvent>::with_user_event();
+    let mut builder = EventLoop::builder();
     #[cfg(target_os = "windows")]
     {
         use winit::platform::windows::EventLoopBuilderExtWindows;
@@ -133,7 +133,7 @@ fn drive(drop_core: bool) -> Readings {
     let wake = HostWake::new(
         s.wake_pending.clone(),
         Arc::new(move || {
-            let _ = proxy.send_event(HostEvent::Wake);
+            proxy.wake_up();
         }),
     );
     let tenant = Rc::new(RefCell::new(None));
@@ -159,13 +159,13 @@ fn drive(drop_core: bool) -> Readings {
         images: Vec::new(),
     };
     let readings = Rc::new(RefCell::new(None));
-    let mut driver = Driver {
+    let driver = Driver {
         host: WinitHost::new(Host::new(options, Some(Box::new(init)), hooks, s, wake)),
         tenant,
         drop_core,
         readings: readings.clone(),
     };
-    event_loop.run_app(&mut driver).expect("the event loop ran");
+    event_loop.run_app(driver).expect("the event loop ran");
     let readings = readings
         .borrow_mut()
         .take()
@@ -388,7 +388,7 @@ impl WindowsDriver {
         };
     }
 
-    fn click(&mut self, event_loop: &ActiveEventLoop) {
+    fn click(&mut self, event_loop: &dyn ActiveEventLoop) {
         // A click in A, through A's host.
         let a_before = self.presents(A);
         let multi = self.windows.multi.as_mut().unwrap();
@@ -423,7 +423,7 @@ impl WindowsDriver {
 
     fn settling(
         &mut self,
-        event_loop: &ActiveEventLoop,
+        event_loop: &dyn ActiveEventLoop,
         stable: u32,
         last: (u64, u64),
         next: AfterSettle,
@@ -450,8 +450,8 @@ impl WindowsDriver {
         if let AfterSettle::Click { a_before } = next {
             self.readings.click_frames = now.0 - a_before;
             // Suspend and resume every window.
-            self.windows.suspended(event_loop);
-            self.windows.resumed(event_loop);
+            self.windows.destroy_surfaces(event_loop);
+            self.windows.can_create_surfaces(event_loop);
             self.readings.boots_after_resume = self.boots();
             self.step = Step::Settling {
                 stable: 0,
@@ -476,7 +476,7 @@ impl WindowsDriver {
         };
     }
 
-    fn animating(&mut self, event_loop: &ActiveEventLoop, a0: u64, b0: u64) {
+    fn animating(&mut self, event_loop: &dyn ActiveEventLoop, a0: u64, b0: u64) {
         let frames = self.presents(A).saturating_sub(a0);
         if frames < 8 {
             return;
@@ -517,23 +517,23 @@ impl WindowsDriver {
     }
 }
 
-impl ApplicationHandler<HostEvent> for WindowsDriver {
-    fn resumed(&mut self, event_loop: &ActiveEventLoop) {
-        self.windows.resumed(event_loop);
+impl ApplicationHandler for WindowsDriver {
+    fn can_create_surfaces(&mut self, event_loop: &dyn ActiveEventLoop) {
+        self.windows.can_create_surfaces(event_loop);
     }
 
-    fn user_event(&mut self, event_loop: &ActiveEventLoop, event: HostEvent) {
-        self.windows.user_event(event_loop, event);
+    fn proxy_wake_up(&mut self, event_loop: &dyn ActiveEventLoop) {
+        self.windows.proxy_wake_up(event_loop);
     }
 
-    fn window_event(&mut self, event_loop: &ActiveEventLoop, id: WindowId, event: WindowEvent) {
+    fn window_event(&mut self, event_loop: &dyn ActiveEventLoop, id: WindowId, event: WindowEvent) {
         if matches!(event, WindowEvent::RedrawRequested) {
             *self.redraws.entry(id).or_default() += 1;
         }
         self.windows.window_event(event_loop, id, event);
     }
 
-    fn about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
+    fn about_to_wait(&mut self, event_loop: &dyn ActiveEventLoop) {
         self.windows.about_to_wait(event_loop);
         if self.step == Step::Done {
             return;
@@ -566,7 +566,7 @@ impl ApplicationHandler<HostEvent> for WindowsDriver {
 }
 
 fn drive_windows(control: bool) -> WindowsReadings {
-    let mut builder = EventLoop::<HostEvent>::with_user_event();
+    let mut builder = EventLoop::builder();
     #[cfg(target_os = "windows")]
     {
         use winit::platform::windows::EventLoopBuilderExtWindows;
@@ -609,7 +609,7 @@ fn drive_windows(control: bool) -> WindowsReadings {
         images: Vec::new(),
         windows,
     };
-    let mut driver = WindowsDriver {
+    let driver = WindowsDriver {
         windows: WinitWindows::new(&event_loop, Box::new(init), hooks),
         animate_a,
         tenant,
@@ -619,7 +619,7 @@ fn drive_windows(control: bool) -> WindowsReadings {
         readings: WindowsReadings::default(),
         redraws: Default::default(),
     };
-    event_loop.run_app(&mut driver).expect("the event loop ran");
+    event_loop.run_app(driver).expect("the event loop ran");
     eprintln!("[headed] windows control={control} {:?}", driver.readings);
     assert_eq!(driver.step, Step::Done, "the driver finished");
     driver.readings

@@ -108,7 +108,7 @@ pub struct A11yHost {
     /// them. Until [`attach`](Self::attach), `sync` installs nothing and
     /// returns no requests, which is the honest answer for a tree no reader can
     /// see yet.
-    window: Option<std::sync::Arc<Window>>,
+    window: Option<std::sync::Arc<dyn Window>>,
     bridge: AccessKitBridge,
     installed: bool,
     /// Native publication IDs map to the last published contributor bindings.
@@ -162,7 +162,7 @@ impl A11yHost {
     /// original window and installed adapter together. Before attachment the
     /// host projects nothing; the first [`sync`](Accessibility::sync) then
     /// installs the tree and reveals the window.
-    pub fn attach(&mut self, window: std::sync::Arc<Window>) -> Result<(), String> {
+    pub fn attach(&mut self, window: std::sync::Arc<dyn Window>) -> Result<(), String> {
         attach_window(&mut self.window, window)
     }
 
@@ -213,7 +213,7 @@ impl A11yHost {
     }
 }
 
-fn attach_window<W>(
+fn attach_window<W: ?Sized>(
     current: &mut Option<std::sync::Arc<W>>,
     requested: std::sync::Arc<W>,
 ) -> Result<(), String> {

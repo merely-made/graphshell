@@ -386,7 +386,7 @@ impl WorkspaceAccessibility {
 
     pub(super) fn sync(
         &mut self,
-        window: &Window,
+        window: &dyn Window,
         projection: WorkspaceA11yProjection,
         scale_factor: f64,
     ) -> Vec<A11yActionRequest> {
@@ -929,6 +929,11 @@ impl WorkspaceApp {
             DocumentA11yRole::Table => Role::Table,
             DocumentA11yRole::Row => Role::Row,
             DocumentA11yRole::Cell => Role::Cell,
+            DocumentA11yRole::Grid => Role::Grid,
+            DocumentA11yRole::TreeGrid => Role::TreeGrid,
+            DocumentA11yRole::ColumnHeader => Role::ColumnHeader,
+            DocumentA11yRole::RowHeader => Role::RowHeader,
+            DocumentA11yRole::GridCell => Role::GridCell,
             DocumentA11yRole::Image => Role::Image,
             DocumentA11yRole::Form => Role::Form,
             DocumentA11yRole::Dialog => Role::Dialog,
@@ -1043,7 +1048,7 @@ impl WorkspaceApp {
         let projection = self.workspace_accessibility_projection()?;
         let _ = self
             .accessibility
-            .sync(&window, projection, self.scale_factor as f64);
+            .sync(window.as_ref(), projection, self.scale_factor as f64);
         if matches!(
             self.config.workspace_receipt,
             Some(
@@ -1075,7 +1080,7 @@ impl WorkspaceApp {
             return false;
         };
         self.accessibility
-            .sync(&window, projection, self.scale_factor as f64)
+            .sync(window.as_ref(), projection, self.scale_factor as f64)
             .into_iter()
             .fold(false, |redraw, request| {
                 self.apply_accessibility_request(request) || redraw
