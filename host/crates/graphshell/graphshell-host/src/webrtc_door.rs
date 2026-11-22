@@ -540,13 +540,37 @@ pub fn admit_webrtc_session(
     now_ms: u64,
     active_sessions: u32,
 ) -> (Vec<u8>, Result<AdmittedPrincipal, DenyReason>) {
-    crate::admission::admit_session(
+    admit_webrtc_session_with(
+        policy,
+        ledger,
+        hello_bytes,
+        shared_link,
+        now_ms,
+        active_sessions,
+        &crate::admission::serves_admitted,
+    )
+}
+
+#[cfg(all(feature = "native", not(target_arch = "wasm32")))]
+/// [`admit_webrtc_session`] with the host's own action check, for a host
+/// that serves a vocabulary of its own, such as one granted query.
+pub fn admit_webrtc_session_with(
+    policy: &LocalNetworkPolicy,
+    ledger: &RevocationLedger,
+    hello_bytes: &[u8],
+    shared_link: [u8; 16],
+    now_ms: u64,
+    active_sessions: u32,
+    serves: crate::admission::ActionCheck<'_>,
+) -> (Vec<u8>, Result<AdmittedPrincipal, DenyReason>) {
+    crate::admission::admit_session_with(
         policy,
         ledger,
         hello_bytes,
         &webrtc_session_facts(shared_link),
         now_ms,
         active_sessions,
+        serves,
     )
 }
 
@@ -621,6 +645,29 @@ pub fn open_webrtc_session<P: IdentityProvider>(
         ephemeral,
         network,
         profile,
+        TrafficClass::Interactive,
+        nonce,
+        &link_binding(shared_link),
+        delegations,
+    )
+}
+
+/// [`open_webrtc_session`] asking for `action` rather than `connect`: the
+/// action the invitation grants, such as one query (graphshell:mere-cli D11).
+pub fn open_webrtc_session_for<P: IdentityProvider>(
+    ephemeral: &P,
+    network: NetworkId,
+    profile: ProfileRef,
+    action: RequestedAction,
+    nonce: [u8; 32],
+    shared_link: [u8; 16],
+    delegations: Vec<SignedDelegationCertificate>,
+) -> Result<SessionHello, HandshakeError> {
+    crate::admission::open_session_for(
+        ephemeral,
+        network,
+        profile,
+        action,
         TrafficClass::Interactive,
         nonce,
         &link_binding(shared_link),

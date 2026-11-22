@@ -32,7 +32,7 @@ mod projection_contract {
         CarrierResponseBody, EndpointDescriptor, IntentInvocation, IntentResult,
         LiveViewReferenceV1, ProjectionRequest, ProjectionSnapshot, ResourceChunkRequest,
         ResourceChunkResponse, ResourceRequest, ResourceResponse, ResumeReply, ResumeRequest,
-        RetainedPagesRequest, RetainedPagesResponse, SessionOpen,
+        QueryRequest, QueryResponse, RetainedPagesRequest, RetainedPagesResponse, SessionOpen,
     };
 
     /// Everything a carrier needs from an endpoint to serve the common verbs.
@@ -109,6 +109,13 @@ mod projection_contract {
         ) -> Result<Option<RetainedPagesResponse>, Self::Error> {
             Ok(None)
         }
+
+        /// A page of a SPARQL query's result over this endpoint's dataset
+        /// (graphshell:mere-cli D4). Defaulted to `Ok(None)`, "this endpoint
+        /// holds no dataset", which `dispatch_common` reports as a refusal.
+        fn query(&mut self, _request: QueryRequest) -> Result<Option<QueryResponse>, Self::Error> {
+            Ok(None)
+        }
     }
 
     /// Reconnect and acknowledgement boundary. An endpoint may replay contiguous
@@ -182,6 +189,11 @@ mod projection_contract {
                 .map_err(|error| error.to_string())
                 .and_then(|pages| pages.ok_or_else(|| "this endpoint retains no page text".into()))
                 .map(|pages| CarrierResponseBody::RetainedPages(Box::new(pages))),
+            CarrierRequestBody::Query(request) => endpoint
+                .query(request)
+                .map_err(|error| error.to_string())
+                .and_then(|page| page.ok_or_else(|| "this endpoint holds no dataset".into()))
+                .map(|page| CarrierResponseBody::Query(Box::new(page))),
             CarrierRequestBody::Resume(request) => {
                 resume(endpoint, request).map(CarrierResponseBody::Resume)
             },

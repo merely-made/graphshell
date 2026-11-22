@@ -44,6 +44,7 @@ members = [
     "crates/system/surface-api",
     "crates/system/tabard",
     "testing/cambium-embed",
+    "ports/mere-cli",
     "ports/mere-resident",
     "ports/moot",
     "ports/pelt/core",

@@ -1,8 +1,9 @@
 # Guest runtime plan: where wasm guests run when Wasmtime's compiler cannot
 
-**Status:** 2026-11-21. In progress. P0 is met, and P1 is met for the projection guest: converted to
-modules, it reproduces the native transcript in a browser, all 20 calls. P1's document-guest half and
-P2 to P5 are not started. D1 to D3 ruled the same day.
+**Status:** 2026-11-21. In progress. P0 and P1 are met. Converted to modules, the projection guest
+reproduces the native transcript in a browser, all 20 calls, and the document guest runs there under
+its time limit, memory cap and fetch rules, each beside a control (Findings 14 to 16). P2 to P5 are
+not started. D1 to D7 ruled the same day.
 
 **For:** the web build. Graphshell's wasm hosts run guests on Wasmtime, which compiles them to machine
 code, and a browser grants no page the right to do that. No ruling says how a component guest runs when
@@ -75,7 +76,7 @@ building, whether Wasmer earns a second look).
 ## Decisions
 
 Each records the evidence put to Mark, what was offered, his answer in his words, what follows, and an
-outcome. D1 to D3 are in answer order.
+outcome. D1 to D7 are in answer order.
 
 - **D1. The web build runs guests on the browser's own engine (Mark, 2026-11-21):** Evidence: Wasmtime
   cannot compile inside a browser (`mere/design_docs/archive_docs/2026-08-20_completed_plans/2026-06-03_actor_constellation_plan.md:388`);
@@ -106,10 +107,54 @@ outcome. D1 to D3 are in answer order.
 
   Links: area The stack · plans guest-runtime P3, guest-runtime P4 · summary wasmi and Wasmer are studied on paper with one plain-module probe each; P3 documents components as modules and the layer a module runtime needs.
 
+- **D4. The document stays with the host, outside the worker (Mark, 2026-11-21):** Evidence: a browser
+  cannot interrupt wasm from the thread running it, so a time limit needs a worker a supervisor can
+  terminate; the guest only reads a view through `inspect` and returns a batch for the host to apply;
+  and natively a trapped turn already ends the script with "the host survives and the DOM is unchanged;
+  the caller should detach the script" (`host/crates/script/document-host/src/script.rs:131`). Offered:
+  the document with the host, a snapshot sent each turn (recommended); the document inside the worker.
+  Answer: "With the host, outside the worker (Recommended)". What follows: each turn the supervisor
+  sends the event and a view snapshot, the worker returns a batch and its log lines, the supervisor
+  applies it; terminating a runaway leaves the document untouched. Outcome: applies `mere:stack.8`.
+
+  Links: area The stack · draws on mere:stack.8 · plans guest-runtime P1 · summary In a browser the guest runs in a worker a supervisor can terminate; the document stays with the host and crosses as a snapshot per turn.
+
+- **D5. Memory is capped when a script loads (Mark, 2026-11-21):** Evidence: the guest's core module
+  defines its own memory with no maximum and the generated glue does not expose it (Findings 12);
+  natively the cap is a per-script quota, 64 MiB by default. Offered: set a maximum when the script
+  loads (recommended); set one when the guest is converted; no cap in the browser. Answer: "Set a
+  maximum when the script loads (Recommended)". What follows: the host rewrites the module's memory
+  limit just before compiling it, so the engine refuses growth itself. Outcome: applies `mere:stack.8`.
+
+  Links: area The stack · draws on mere:stack.8 · plans guest-runtime P1 · summary The browser host caps a guest's memory by rewriting the module's memory maximum per script before compiling it.
+
+- **D6. The probe reuses the fetch-rule file; the split waits (Mark, 2026-11-21):** Evidence: the
+  per-turn count and the origin check are host code in one import
+  (`host/crates/script/document-host/src/host.rs:66`); the origin rule is in `net.rs`, which uses only
+  the standard library, but its crate depends on Wasmtime and does not build for a browser. Offered:
+  compile that one file into the probe and take the split to the readout (recommended); split
+  `document-host` first; leave fetch out. Answer: "Reuse the one file in the probe, split later
+  (Recommended)". What follows: the probe's browser host includes `net.rs` by path; whether
+  `document-host` becomes a runtime-free core and a Wasmtime shell is a P5 question. Outcome: a method
+  choice for this plan; it bears on no doctrine statement.
+
+  Links: area The stack · plans guest-runtime P1, guest-runtime P5 · summary The probe compiles document-host's net.rs into its browser host; splitting document-host is left to the readout.
+
+- **D7. Fetching is faked in the probe (Mark, 2026-11-21):** Evidence: the guest's `fetch` is a
+  synchronous call and a browser's network calls are not; the native tests use a fetcher that echoes.
+  Offered: the echo fetcher only, with the real routes recorded (recommended); also a blocking request
+  in the worker; also promise integration. Answer: "Echo fetcher only, record the routes
+  (Recommended)". What follows: the guards are tested with the echo fetcher; the two real routes, a
+  blocking request from inside the worker and the browser's promise integration for wasm, go to P5
+  untested. Outcome: a method choice for this plan; it bears on no doctrine statement.
+
+  Links: area The stack · plans guest-runtime P1, guest-runtime P5 · summary The probe tests the fetch rules with an echo fetcher; real network routes for a guest in a browser are recorded, not tried.
+
 ## Open questions
 
-1. Whether the time limit can be reproduced in a browser at all, or only replaced by terminating a
-   worker, which also discards the guest's state.
+1. Answered 2026-11-21 (D4): the time limit is a supervisor terminating the guest's worker. Natively
+   a trapped turn also ends the script, so the lost state matches; what the browser cannot do is trap
+   and keep the instance.
 2. Answered 2026-11-21: `js-component-bindgen` 2.19.1 converts both guests from Rust (Findings 7), so
    the web build needs no Node tool.
 3. Whether any shipping profile needs native execution without a compiler. If none does, Pulley, wasmi
@@ -148,9 +193,39 @@ outcome. D1 to D3 are in answer order.
     (`crates/graphshell-endpoint/src/wit/server.rs:265`). The fixture script never reaches the sleep, so
     the transcript is unaffected, but a host on a browser's main thread cannot block that way.
 
+11. Read 2026-11-21: the time and memory guards are tested natively with a separate bomb guest (an
+    endless loop, an endless 8 MiB allocation) through `run_guarded`
+    (`document-host/tests/guarded.rs:32`, `:44`); the fetch rules with the ordinary guest
+    (`tests/document_script.rs:194`, `:224`). No test takes a turn after a trap.
+12. The document guest's core module has one memory, 17 pages at start with no maximum, exported and
+    not imported; the glue keeps it in a closure. Every import is called synchronously by the glue,
+    including `fetch`, and a returned promise would be wrapped as a value, not awaited.
+13. `ScriptHost` mixes the document and fetch state with Wasmtime's `WasiCtx`, `ResourceTable` and
+    `StoreLimits`; `dom_view.rs` names the binding-generated types. So the document logic does not
+    build for a browser as it stands, and the probe's document is a fixture, not Genet's DOM.
+
+14. Run 2026-11-21 in Node 24 and Chromium 156: the document guest's guards hold on the engine's own
+    wasm, by other means than Wasmtime's. Time: a supervisor terminated the guest's worker 1,008 ms
+    into a turn limited to 1,000 ms; the document was untouched and a fresh worker took the next
+    turn. Memory: a maximum written into the core module before it compiles; the engine refused
+    growth and the bomb guest trapped at 26.3 MiB under a 32 MiB cap and 59.8 MiB under 64 MiB.
+    Fetch: `FetchGate` compiles `document-host`'s `net.rs` unchanged, and the refusals carry the same
+    text as native for a foreign origin and for a flood past the per-turn cap.
+15. What the browser route does not give: a trap that keeps the instance (a terminated worker is
+    gone, as a trapped native script is ended); a cap the host can change after load (the maximum is
+    in the module); and a guest on the document's own thread. Each turn the worker is sent a snapshot
+    of the document view and returns a batch, so a turn costs one copy of the view each way.
+16. Not tested by the probe: Genet's DOM (the document is a fixture, Findings 13), any real network
+    route (D7), and a turn that waits on a slow fetch, since the glue calls `fetch` synchronously
+    (Findings 12).
+
 ## Progress
 
 - 2026-11-21: plan written; D1 to D3 ruled.
 - 2026-11-21: P0 met (both guests rebuilt; projection 2 passed and document-host 56 passed on Wasmtime
   51). P1 met for the projection guest in Node and in a browser, each with a control that alters one
   reference outcome and is caught. The document guest's half of P1 is next.
+- 2026-11-21: D4 to D7 ruled for the document guest; its browser run is being built in
+  `host/testing/guest-runtime-p1/`.
+- 2026-11-21: P1 met. The document guest's half landed in `a1a47e24`; five cases with their controls
+  pass in Node and in a browser. Receipts carry the readings. P2 is next.

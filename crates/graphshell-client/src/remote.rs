@@ -58,6 +58,17 @@ pub enum RemoteOp {
     Invoke,
     Poll,
     Resume,
+    Query,
+}
+
+/// A query this session asks instead of mounting (graphshell:mere-cli D21):
+/// the rows so far, and whether the last page has arrived.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct QueryRead {
+    pub query: String,
+    pub variables: Vec<String>,
+    pub rows: Vec<chirograph::QueryRow>,
+    pub done: bool,
 }
 
 /// The action surface: its status line, how many invocations were sent, and
@@ -228,6 +239,7 @@ pub struct RemoteSession {
     pub form: ActionForm,
     outbox: VecDeque<String>,
     events: Vec<String>,
+    query: Option<QueryRead>,
 }
 
 impl RemoteSession {
@@ -248,7 +260,24 @@ impl RemoteSession {
             form: ActionForm::new("Ready"),
             outbox: VecDeque::new(),
             events: Vec::new(),
+            query: None,
         }
+    }
+
+    /// A session that reads one query's rows rather than mounting a
+    /// projection: discovery is followed by the query, page by page.
+    pub fn querying(profile: CapabilityProfile, query: impl Into<String>) -> Self {
+        let mut session = Self::new(profile);
+        session.query = Some(QueryRead {
+            query: query.into(),
+            ..QueryRead::default()
+        });
+        session
+    }
+
+    /// The query this session reads, and its rows so far.
+    pub fn query_read(&self) -> Option<&QueryRead> {
+        self.query.as_ref()
     }
 
     // ── Reading ─────────────────────────────────────────────────────────────
@@ -665,6 +694,12 @@ impl RemoteSession {
                         _ => Err("not mounted".to_string()),
                     };
                     self.begin(RemoteOp::Resume, progress);
+                } else if let Some(read) = &self.query {
+                    let request = chirograph::QueryRequest::first(
+                        ProjectionSession("query".into()),
+                        read.query.clone(),
+                    );
+                    self.ask(request);
                 } else {
                     let progress = self
                         .driver
@@ -672,6 +707,26 @@ impl RemoteSession {
                         .ok_or_else(|| "not discovered".to_string())
                         .and_then(|core| core.mount(0));
                     self.begin(RemoteOp::Mount, progress);
+                }
+            },
+            (Some(RemoteOp::Query), Outcome::QueryPage(page)) => {
+                let next = self.query.as_mut().and_then(|read| {
+                    read.variables = page.variables.clone();
+                    read.rows.extend(page.rows.iter().cloned());
+                    let request = chirograph::QueryRequest::first(
+                        page.session.clone(),
+                        read.query.clone(),
+                    );
+                    let next = request.next(&page);
+                    read.done = next.is_none();
+                    next
+                });
+                match next {
+                    Some(request) => self.ask(request),
+                    None => {
+                        let rows = self.query.as_ref().map_or(0, |read| read.rows.len());
+                        self.status = format!("answered · {rows} row(s)");
+                    },
                 }
             },
             (Some(RemoteOp::Mount), Outcome::Mounted(session)) => {
@@ -734,6 +789,16 @@ impl RemoteSession {
             },
             (op, outcome) => self.fail(format!("unexpected answer to {op:?}: {outcome:?}")),
         }
+    }
+
+    fn ask(&mut self, request: chirograph::QueryRequest) {
+        self.status = "querying".to_string();
+        let progress = self
+            .driver
+            .core_mut()
+            .map(|core| core.query(request))
+            .ok_or_else(|| "not discovered".to_string());
+        self.begin(RemoteOp::Query, progress);
     }
 
     /// Resume from the next queued bell, if nothing else is in flight.

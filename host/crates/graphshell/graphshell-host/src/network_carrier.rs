@@ -44,6 +44,9 @@ pub enum DialError {
     /// The handshake could not complete on the connected stream.
     #[error(transparent)]
     Handshake(#[from] IoHandshakeError),
+    /// The hello could not be built for the opened session's binding.
+    #[error("projection hello could not be built: {0}")]
+    Hello(String),
 }
 
 /// The binding an initiator signs for a projection session.
@@ -73,6 +76,26 @@ pub async fn dial_projection_session<T: Transport>(
 ) -> Result<Result<T::Stream, DenyReason>, DialError> {
     let mut stream = transport.connect(peer, projection_alpn()).await?;
     match initiate_session(&mut stream, hello, limits).await? {
+        SessionReply::Reject { reason } => Ok(Err(reason)),
+        SessionReply::Accept { .. } => Ok(Ok(stream)),
+    }
+}
+
+/// [`dial_projection_session`] for a carrier whose binding is known only once
+/// the session is open, such as a Reticulum link: `hello` is built from the
+/// binding the opened session reports ([`transport::OutboundSession::proof_binding`]),
+/// which is the binding the responder derives on acceptance. On an
+/// authenticating carrier it equals [`projection_binding`] of the local peer.
+pub async fn dial_projection_session_bound<T: Transport>(
+    transport: &T,
+    peer: PeerID,
+    hello: impl FnOnce(&ProofBinding) -> Result<SessionHello, String>,
+    limits: &HandshakeLimits,
+) -> Result<Result<T::Stream, DenyReason>, DialError> {
+    let session = transport.connect_session(peer, projection_alpn()).await?;
+    let hello = hello(&session.proof_binding()).map_err(DialError::Hello)?;
+    let mut stream = session.stream;
+    match initiate_session(&mut stream, &hello, limits).await? {
         SessionReply::Reject { reason } => Ok(Err(reason)),
         SessionReply::Accept { .. } => Ok(Ok(stream)),
     }

@@ -553,6 +553,14 @@ pub use retained::{
     RetainedTruncation, RetainedUnretainedWire, RetainedVersionWire,
 };
 
+#[path = "query.rs"]
+mod query;
+
+pub use query::{
+    MAX_QUERY_PAGE_BYTES, MAX_QUERY_TEXT_BYTES, QueryPageError, QueryRequest, QueryResponse,
+    QueryRow,
+};
+
 #[path = "carrier.rs"]
 mod carrier;
 

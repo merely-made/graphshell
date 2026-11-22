@@ -957,3 +957,71 @@ fn a_refused_draft_leaves_the_adapters_pending_as_it_was() {
     assert_eq!(cards(&remote), 2);
     assert!(!remote.in_flight());
 }
+
+/// A query endpoint, as graphshell-host's `QueryEndpoint` answers: no
+/// projections, and pages of one granted query's rows.
+fn query_answer(line: &str, granted: &str, rows: &[chirograph::QueryRow]) -> String {
+    let request: CarrierRequest = serde_json::from_str(line).expect("a request line");
+    let body = match request.body {
+        CarrierRequestBody::Discover => Ok(CarrierResponseBody::Descriptor(EndpointDescriptor {
+            label: "Mere query".into(),
+            projections: Vec::new(),
+        })),
+        CarrierRequestBody::Query(query) if query.query == granted => {
+            let mut query = query;
+            query.max_bytes = 40;
+            chirograph::QueryResponse::page(&query, vec!["s".into()], rows)
+                .map(|page| CarrierResponseBody::Query(Box::new(page)))
+                .map_err(|error| CarrierFailure {
+                    message: error.to_string(),
+                })
+        },
+        _ => Err(CarrierFailure {
+            message: "query is not enabled by this invitation".into(),
+        }),
+    };
+    serde_json::to_string(&CarrierOutput::Response(CarrierResponse {
+        id: request.id,
+        body,
+    }))
+    .unwrap()
+}
+
+#[test]
+fn a_querying_session_discovers_then_reads_every_page_instead_of_mounting() {
+    let rows: Vec<chirograph::QueryRow> = (0..9)
+        .map(|i| vec![Some(format!("urn:row:{i}"))])
+        .collect();
+    let mut remote = RemoteSession::querying(profile(), "SELECT ?s {}");
+    remote.joined();
+    let mut pages = 0;
+    for _ in 0..64 {
+        let outgoing = remote.take_outgoing();
+        if outgoing.is_empty() {
+            break;
+        }
+        for line in outgoing {
+            pages += usize::from(line.contains("\"query\""));
+            remote.on_line(&query_answer(&line, "SELECT ?s {}", &rows));
+        }
+    }
+    let read = remote.query_read().expect("a querying session");
+    assert!(read.done, "{}", remote.status());
+    assert_eq!(read.rows, rows);
+    assert_eq!(read.variables, vec!["s".to_string()]);
+    assert!(pages > 1, "nine rows in 40-byte pages need several");
+    assert!(remote.status().starts_with("answered"), "{}", remote.status());
+}
+
+#[test]
+fn a_query_the_endpoint_refuses_fails_the_session_visibly() {
+    let mut remote = RemoteSession::querying(profile(), "SELECT * { ?s ?p ?o }");
+    remote.joined();
+    for _ in 0..8 {
+        for line in remote.take_outgoing() {
+            remote.on_line(&query_answer(&line, "SELECT ?s {}", &[]));
+        }
+    }
+    assert!(!remote.query_read().unwrap().done);
+    assert!(remote.status().contains("not enabled"), "{}", remote.status());
+}

@@ -260,4 +260,17 @@ mod tests {
         let error = carrier.request(CarrierRequestBody::Close).unwrap_err();
         assert!(error.message().contains("session plane"), "{error}");
     }
+
+    #[test]
+    fn an_endpoint_without_a_dataset_refuses_a_query() {
+        let mut carrier = carrier();
+        let error = carrier
+            .request(CarrierRequestBody::Query(chirograph::QueryRequest::first(
+                chirograph::ProjectionSession("counting".into()),
+                "ASK {}",
+            )))
+            .unwrap_err();
+        assert!(error.message().contains("holds no dataset"), "{error}");
+        assert!(!error.is_disconnected(), "a refusal leaves the session intact");
+    }
 }

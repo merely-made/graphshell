@@ -216,19 +216,21 @@ fn a_reconnect_is_a_new_session_when_the_link_or_the_nonce_is_fresh() {
 }
 
 #[test]
-fn endpoint_context_carries_only_the_admitted_session_and_subject() {
+fn endpoint_context_carries_only_the_admitted_session_subject_and_action() {
     let authority = authority();
     let context = authority.endpoint_context();
 
     assert_eq!(context.session(), authority.session());
     assert_eq!(context.subject(), authority.principal().subject);
     assert_eq!(context.application(), None, "only a door names one");
+    assert_eq!(context.action(), Some(&authority.principal().action));
     assert_eq!(
         context,
         AdmittedEndpointContext::new(
             authority.session().clone(),
             authority.principal().subject,
         )
+        .with_action(authority.principal().action.clone())
     );
 }
 

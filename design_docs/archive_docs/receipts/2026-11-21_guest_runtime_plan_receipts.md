@@ -39,3 +39,30 @@ No console errors in the browser. `guest.run()` took 102 ms under Node and 130 m
 browser loads; these are single unrepeated readings, not a speed measurement.
 
 Not run: the document guest in a browser, and so none of its three guards.
+
+## 2026-11-21: P1 on the document guest
+
+Machine: the Windows laptop. Graphshell at `a1a47e24`, everything rebuilt in the main checkout. Node
+24.11.0; the built-in browser, `Chrome/156.0.8078.100`. `web-host` now carries `FetchGate` and
+`limitMemory`: 954,043 B of module and 18,914 B of glue after `wasm-bindgen`. The bomb guest converts to
+53,382 B of module and 290,972 B of glue.
+
+`node run-node-document.mjs` and `document.html`; both report `passed: true` and every check true.
+
+| Case | Node | Browser | Native outcome matched |
+| --- | --- | --- | --- |
+| Time limit, 1,000 ms: runaway loop | terminated at 1,015 ms | terminated at 1,008 ms | trapped |
+| Control: a noop turn, same limit | applied in 1.9 ms | applied in 1.2 ms | completed |
+| Memory cap 32 MiB: allocation bomb | trapped at 26,279,936 B | trapped at 26,279,936 B | trapped |
+| Memory cap 64 MiB (the control) | trapped at 59,834,368 B | trapped at 59,834,368 B | trapped |
+| Origin gate: `https://attacker.test/leak` | refused, native text | refused, native text | Refused, text Hello |
+| Control: an allowed origin | applied, text changed | applied, text changed | Applied |
+| Fetch cap 1: two fetches in a turn | second refused, native text | second refused, native text | Refused |
+| Fetch cap 2 over two turns (the control) | both applied | both applied | Applied(1), Applied(2) |
+
+After the time-limit trap the script is detached, the document is unchanged and a fresh worker completes
+a turn. The bomb's trap is the guest's own (`unreachable`, its allocator failing) once the engine
+refuses to grow past the written maximum. No console errors in the browser. The projection page and its
+control were rerun on the same build: 20 of 20, 1 closed and 0 open, control caught at call 3.
+
+Not run: Genet's DOM, any real network route, and any browser other than Chromium.

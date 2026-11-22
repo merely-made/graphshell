@@ -1,0 +1,20 @@
+<!doctype html>
+<!-- Copyright 2026 Mark Alan Boykin. SPDX-License-Identifier: MPL-2.0.
+     The page for the document guest probe (guest runtime plan, P1): it runs
+     the guard cases on the browser's own wasm engine, the guest in a worker
+     and a supervisor here, and shows whether each guard and control held. -->
+<meta charset="utf-8">
+<title>guest runtime probe: document guest</title>
+<pre id="result">running</pre>
+<script type="module">
+  import { runDocument, toJson } from './run-document.js';
+  const out = document.getElementById('result');
+  try {
+    const result = await runDocument();
+    window.__result = JSON.parse(toJson(result));
+    out.textContent = toJson(result);
+  } catch (error) {
+    window.__result = { passed: false, error: String(error?.stack ?? error) };
+    out.textContent = window.__result.error;
+  }
+</script>

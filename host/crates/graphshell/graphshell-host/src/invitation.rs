@@ -19,6 +19,7 @@
 //! stay in the custodian.
 
 use crate::admission::open_session_for;
+use chirograph::ContentHash;
 use crate::network_carrier::projection_binding;
 use insigne::{
     DerivedKeyAttestation,
@@ -33,6 +34,9 @@ use notochord::{
 use personae::IdentityProvider;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+
+/// The action an invitation to one query grants (graphshell:mere-cli D7).
+pub const QUERY_ACTION: &str = "query";
 
 /// What one product's invitations name. A guest's key is derived under
 /// `salt`; its grant covers `domain` at `path_root/<session>`.
@@ -51,6 +55,21 @@ impl InvitationTerms {
     pub fn network(&self, owner: [u8; 32], session: Uuid) -> [u8; 32] {
         *blake3::hash(&[self.network_label, &owner, session.as_bytes()].concat()).as_bytes()
     }
+    /// The path a grant of one query names: its digest below the session.
+    pub fn query_path(&self, session: Uuid, query: &ContentHash) -> String {
+        format!("{}/query/{query}", self.path(session))
+    }
+    /// The session and query an admitted action under these terms was
+    /// granted, or `None` when it was not a query grant.
+    pub fn granted_query(&self, action: &RequestedAction) -> Option<(Uuid, ContentHash)> {
+        if action.domain != self.domain || action.action != QUERY_ACTION {
+            return None;
+        }
+        let rest = action.path.strip_prefix(self.path_root)?.strip_prefix('/')?;
+        let (session, digest) = rest.split_once("/query/")?;
+        let granted = (Uuid::parse_str(session).ok()?, ContentHash::from_hex(digest).ok()?);
+        (self.query_path(granted.0, &granted.1) == action.path).then_some(granted)
+    }
     pub fn scope(&self, owner: [u8; 32], session: Uuid) -> CapabilityScope {
         CapabilityScope {
             domain: self.domain.into(),
@@ -59,8 +78,19 @@ impl InvitationTerms {
             actions: ["connect".into()].into_iter().collect(),
         }
     }
-    fn invitation_scope(&self, owner: [u8; 32], session: Uuid, write: bool) -> CapabilityScope {
+    fn invitation_scope(
+        &self,
+        owner: [u8; 32],
+        session: Uuid,
+        write: bool,
+        query: Option<&ContentHash>,
+    ) -> CapabilityScope {
         let mut value = self.scope(owner, session);
+        if let Some(query) = query {
+            value.path_prefix = self.query_path(session, query);
+            value.actions = [QUERY_ACTION.into()].into_iter().collect();
+            return value;
+        }
         if write {
             value.actions.insert("edit".into());
         }
@@ -160,6 +190,10 @@ pub struct Invitation {
     pub guest: Contact,
     pub write: bool,
     pub grant: SignedDelegationCertificate,
+    /// The one query this invitation grants, by digest (D7); `None` grants
+    /// the session. Absent from saved session invitations.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub query: Option<ContentHash>,
 }
 
 impl Invitation {
@@ -171,6 +205,34 @@ impl Invitation {
         session: Uuid,
         guest: Contact,
         write: bool,
+        now: u64,
+        expires: u64,
+    ) -> Result<Self, String> {
+        Self::issue_grant(signer, terms, session, guest, write, None, now, expires)
+    }
+
+    /// Issue a read-only grant of exactly one query, named by its digest
+    /// (graphshell:mere-cli D7), from `signer` to `guest`.
+    pub fn issue_query(
+        signer: &dyn Signer,
+        terms: &InvitationTerms,
+        session: Uuid,
+        guest: Contact,
+        query: ContentHash,
+        now: u64,
+        expires: u64,
+    ) -> Result<Self, String> {
+        Self::issue_grant(signer, terms, session, guest, false, Some(query), now, expires)
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn issue_grant(
+        signer: &dyn Signer,
+        terms: &InvitationTerms,
+        session: Uuid,
+        guest: Contact,
+        write: bool,
+        query: Option<ContentHash>,
         now: u64,
         expires: u64,
     ) -> Result<Self, String> {
@@ -188,7 +250,7 @@ impl Invitation {
             DelegationParent::Root(owner),
             owner,
             guest.peer(),
-            terms.invitation_scope(owner, session, write),
+            terms.invitation_scope(owner, session, write, query.as_ref()),
             now.saturating_sub(30_000),
             now.saturating_sub(30_000),
             Some(expires),
@@ -202,6 +264,7 @@ impl Invitation {
             guest,
             write,
             grant,
+            query,
         };
         invitation.check(terms)?;
         Ok(invitation)
@@ -218,12 +281,31 @@ impl Invitation {
             || c.issuer != self.owner.root()
             || c.subject != self.guest.peer()
             || c.parent != DelegationParent::Root(self.owner.root())
-            || c.scope != terms.invitation_scope(self.owner.root(), self.session, self.write)
+            || c.scope
+                != terms.invitation_scope(self.owner.root(), self.session, self.write, self.query.as_ref())
             || c.remaining_delegation_depth != 0
+            || (self.write && self.query.is_some())
         {
             return Err("invitation does not bind this owner, graph and guest".into());
         }
         Ok(())
+    }
+
+    /// What this invitation's guest asks admission for: the session's
+    /// `connect`, or its one query.
+    pub fn action(&self, terms: &InvitationTerms) -> RequestedAction {
+        match &self.query {
+            Some(query) => RequestedAction {
+                domain: terms.domain.into(),
+                path: terms.query_path(self.session, query),
+                action: QUERY_ACTION.into(),
+            },
+            None => RequestedAction {
+                domain: terms.domain.into(),
+                path: terms.path(self.session),
+                action: "connect".into(),
+            },
+        }
     }
 
     /// Whether `peer` is this invitation's guest with live, sufficient access.
@@ -246,7 +328,7 @@ impl Invitation {
     }
 
     /// The owner's admission check: the admitted principal is this guest,
-    /// connecting to this session's path with exactly this grant.
+    /// asking for exactly this invitation's action with exactly this grant.
     pub fn admits(
         &self,
         terms: &InvitationTerms,
@@ -256,9 +338,7 @@ impl Invitation {
         now: u64,
     ) -> Result<(), String> {
         self.guest_access(principal.subject, false, revoked, now)?;
-        if principal.action.domain != terms.domain
-            || principal.action.path != terms.path(self.session)
-            || principal.action.action != "connect"
+        if principal.action != self.action(terms)
             || chain.len() != 1
             || chain[0] != self.grant
         {
@@ -292,6 +372,19 @@ impl Invitation {
         profile: ProfileRef,
         local_peer: transport::PeerID,
     ) -> Result<SessionHello, String> {
+        self.hello_bound(terms, identity, profile, &projection_binding(local_peer))
+    }
+
+    /// [`Self::hello`] bound to what the opened session reports, for a carrier
+    /// whose binding is known only once it is open
+    /// ([`crate::network_carrier::dial_projection_session_bound`]).
+    pub fn hello_bound(
+        &self,
+        terms: &InvitationTerms,
+        identity: &dyn IdentityProvider,
+        profile: ProfileRef,
+        binding: &notochord::ProofBinding,
+    ) -> Result<SessionHello, String> {
         if identity.master_public_key().to_bytes() != self.guest.root() {
             return Err("contact or invitation belongs to another graph or person".into());
         }
@@ -303,14 +396,10 @@ impl Invitation {
             &signing,
             NetworkId(terms.network(self.owner.root(), self.session)),
             profile,
-            RequestedAction {
-                domain: terms.domain.into(),
-                path: terms.path(self.session),
-                action: "connect".into(),
-            },
+            self.action(terms),
             TrafficClass::Interactive,
             nonce,
-            &projection_binding(local_peer),
+            binding,
             vec![self.grant.clone()],
         )
         .map_err(|e| e.to_string())

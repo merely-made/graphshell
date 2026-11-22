@@ -1,6 +1,6 @@
 # Mere CLI plan: the query tool, rebuilt on the host toolkit
 
-**Status:** 2026-11-21: Q1 to Q3 built on branch `cli-q1`, unlanded. D1 to D21 ruled.
+**Status:** 2026-11-21: landed (Q1 to Q5). D1 to D22 ruled.
 
 **For:** the `mere` command-line tool. It queries a linked-data graph locally, or
 serves one allowed SPARQL query to an invited peer over iroh, Reticulum, I2P or a
@@ -28,7 +28,7 @@ Read at Mere `aae4d3ba1`, Graphshell `8cc8c6bf`, dramatis and murm main, 2026-11
 
 ## Decisions
 
-Mark answered twenty-four question cards on 2026-11-21, plus four free-text answers. Each
+Mark answered twenty-five question cards on 2026-11-21, plus four free-text answers. Each
 entry quotes his answer.
 
 - **D1, the tool lives in Graphshell's host workspace, rebuilt on the stack.**
@@ -190,6 +190,16 @@ entry quotes his answer.
 
   Links: summary Turnstone's web app gains query.html beside co_op.html, and graphshell-client's RemoteSession gains a paged query operation.
 
+- **D22, snow's duplicates are skipped in host.** The CLI's I2P carrier brings
+  murm's Noise layer, snow 0.10.0 (its latest release), into Graphshell's host
+  graph, and with it six crates of the older RustCrypto generation: blake2,
+  chacha20, chacha20poly1305, curve25519-dalek 4, fiat-crypto and poly1305.
+  murm's deny.toml already skips the same six. Mark chose "Six skips, held by
+  snow (Recommended)" over porting snow forward first or landing without I2P.
+  The skips go when snow moves to the current generation.
+
+  Links: summary Host's deny.toml skips the six crates snow 0.10.0 holds back, under the CLI's I2P carrier, until snow moves.
+
 ## Phases
 
 Each phase is verified in its own worktree. Nothing reaches main until Q5, which
@@ -256,3 +266,19 @@ lands everything together (D3).
   query answers, another refused, a tampered invitation refused, a revocation
   stops it) passes over iroh. The browser's hello now asks for the invite's
   action. D18 to D21 ruled for the browser path.
+- 2026-11-21: landed, one push per repository: murm (`I2pTransport`), Graphshell
+  (Q1 to Q4 and the tool), Turnstone (C4 on `signaling`, `query.html`), Mere
+  (`crates/cli` removed; bans passes with no duplicates). Verified: the reader
+  flow over iroh, I2P (murm's SAM fixture) and Reticulum (loopback TCP); a
+  browser-shaped str0m peer through the door; `query.html` in a real browser
+  against a loopback serve, three rows; C4's signaling test on the lifted
+  module. Q2's revocation test found the host admitting a grant revoked while
+  it waited for a peer; admission now reads the ledger after the peer arrives.
+- Owed: the real `ReleaseRefV1` for browser invites (D19). Turnstone's full
+  default web build does not check for wasm on a fresh resolve because
+  `cubecl-runtime 0.12.0-pre.2` (burn) gates a module off on wasm; the recorded
+  resolve has the same version, so it predates this plan. The query page was
+  verified in a `--no-default-features --features remote` build.
+  graphshell-host's `p2panda_murm_grant_is_refused_before_projection_bytes`
+  times out intermittently under load (two of five full runs); it does not touch
+  this plan's code.

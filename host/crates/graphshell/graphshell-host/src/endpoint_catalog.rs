@@ -17,8 +17,9 @@ use std::fmt::Display;
 
 use chirograph::{
     CarrierNotice, EndpointDescriptor, IntentInvocation, IntentResult, ProjectionRequest,
-    ProjectionSnapshot, ResourceChunkRequest, ResourceChunkResponse, ResourceRequest,
-    ResourceResponse, ResumeReply, ResumeRequest, RetainedPagesRequest, RetainedPagesResponse,
+    ProjectionSnapshot, QueryRequest, QueryResponse, ResourceChunkRequest, ResourceChunkResponse,
+    ResourceRequest, ResourceResponse, ResumeReply, ResumeRequest, RetainedPagesRequest,
+    RetainedPagesResponse,
 };
 use graphshell_endpoint::{
     IntentSink, PresentationSource, ProjectionCatalog, ProjectionNoticeSource, ProjectionSource,
@@ -78,6 +79,12 @@ pub trait ResidentEndpoint: Send {
         _request: RetainedPagesRequest,
     ) -> Result<RetainedPagesResponse, String> {
         Err("this endpoint retains no page text".to_string())
+    }
+
+    /// A page of a SPARQL query's result (graphshell:mere-cli D4). Defaulted:
+    /// most endpoints hold no dataset.
+    fn query(&mut self, _request: QueryRequest) -> Result<QueryResponse, String> {
+        Err("this endpoint holds no dataset".to_string())
     }
 
     /// A product that does not emit revision bells remains a valid resident
@@ -379,6 +386,10 @@ impl PresentationSource for ResidentEndpointSession {
     ) -> Result<Option<RetainedPagesResponse>, Self::Error> {
         self.endpoint.retained_pages(request).map(Some)
     }
+
+    fn query(&mut self, request: QueryRequest) -> Result<Option<QueryResponse>, Self::Error> {
+        self.endpoint.query(request).map(Some)
+    }
 }
 
 impl IntentSink for ResidentEndpointSession {
@@ -516,6 +527,13 @@ where
             .retained_pages(request)
             .map_err(|error| error.to_string())?
             .ok_or_else(|| "this endpoint retains no page text".to_string())
+    }
+
+    fn query(&mut self, request: QueryRequest) -> Result<QueryResponse, String> {
+        self.endpoint
+            .query(request)
+            .map_err(|error| error.to_string())?
+            .ok_or_else(|| "this endpoint holds no dataset".to_string())
     }
 
     fn poll_notice(&mut self) -> Result<Option<CarrierNotice>, String> {

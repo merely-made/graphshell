@@ -193,6 +193,11 @@ title = "The WebGL crates join the chain (Mark, 2026-11-21)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-05_cambium_publish_plan.md"
 summary = "genet-presenter's native-webgl dependencies publish, with the xpath crate renamed genet-xpath."
 
+[decisions."cambium-publish D15"]
+title = "The dialog fork publishes under our own name (Mark, 2026-11-21)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-05_cambium_publish_plan.md"
+summary = "cambium-desktop's patched light-file-dialog publishes as a renamed fork."
+
 [decisions."compositor-placement D1"]
 title = "Both motions (Mark, 2026-11-20)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-20_compositor_placement_plan.md"
@@ -245,6 +250,36 @@ title = "wasmi and Wasmer get a desk study, a small probe, and the module questi
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_guest_runtime_plan.md"
 area = "The stack"
 summary = "wasmi and Wasmer are studied on paper with one plain-module probe each; P3 documents components as modules and the layer a module runtime needs."
+plans = ["guest-runtime"]
+
+[decisions."guest-runtime D4"]
+title = "The document stays with the host, outside the worker (Mark, 2026-11-21)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_guest_runtime_plan.md"
+area = "The stack"
+summary = "In a browser the guest runs in a worker a supervisor can terminate; the document stays with the host and crosses as a snapshot per turn."
+draws_on = ["mere:stack.8"]
+plans = ["guest-runtime"]
+
+[decisions."guest-runtime D5"]
+title = "Memory is capped when a script loads (Mark, 2026-11-21)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_guest_runtime_plan.md"
+area = "The stack"
+summary = "The browser host caps a guest's memory by rewriting the module's memory maximum per script before compiling it."
+draws_on = ["mere:stack.8"]
+plans = ["guest-runtime"]
+
+[decisions."guest-runtime D6"]
+title = "The probe reuses the fetch-rule file; the split waits (Mark, 2026-11-21)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_guest_runtime_plan.md"
+area = "The stack"
+summary = "The probe compiles document-host's net.rs into its browser host; splitting document-host is left to the readout."
+plans = ["guest-runtime"]
+
+[decisions."guest-runtime D7"]
+title = "Fetching is faked in the probe (Mark, 2026-11-21)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_guest_runtime_plan.md"
+area = "The stack"
+summary = "The probe tests the fetch rules with an echo fetcher; real network routes for a guest in a browser are recorded, not tried."
 plans = ["guest-runtime"]
 
 [decisions."key-lane D1"]
@@ -372,6 +407,11 @@ summary = "A CLI browser invite allows eight sessions by default, adjustable wit
 title = "the query view is a page beside co-op's"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_mere_cli_plan.md"
 summary = "Turnstone's web app gains query.html beside co_op.html, and graphshell-client's RemoteSession gains a paged query operation."
+
+[decisions."mere-cli D22"]
+title = "snow's duplicates are skipped in host"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_mere_cli_plan.md"
+summary = "Host's deny.toml skips the six crates snow 0.10.0 holds back, under the CLI's I2P carrier, until snow moves."
 
 [decisions."primitive-representations D1"]
 title = "The brief's scope (Mark, 2026-11-13)"

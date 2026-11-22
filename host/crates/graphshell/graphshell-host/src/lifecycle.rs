@@ -48,7 +48,8 @@ use chirograph::{
 use graphshell_client::ClientState;
 use insigne::delegation::SignedDelegationCertificate;
 use notochord::{
-    AdmittedPrincipal, AdmittedSession, AuthorityLapse, RetainedAuthority, RevocationLedger,
+    AdmittedPrincipal, AdmittedSession, AuthorityLapse, RequestedAction, RetainedAuthority,
+    RevocationLedger,
 };
 
 use crate::admission::{CONNECT_ACTION, PROJECTION_SERVICE};
@@ -128,6 +129,7 @@ pub struct AdmittedEndpointContext {
     session: ProjectionSession,
     subject: [u8; 32],
     application: Option<String>,
+    action: Option<RequestedAction>,
 }
 
 impl AdmittedEndpointContext {
@@ -138,7 +140,16 @@ impl AdmittedEndpointContext {
             session,
             subject,
             application: None,
+            action: None,
         }
+    }
+
+    /// This context, naming the action admission granted, for an endpoint
+    /// whose answer depends on what was granted (a query grant names its
+    /// query, graphshell:mere-cli D7).
+    pub fn with_action(mut self, action: RequestedAction) -> Self {
+        self.action = Some(action);
+        self
     }
 
     /// This context, naming the first-party application the door admitted:
@@ -163,6 +174,11 @@ impl AdmittedEndpointContext {
     /// where no door names one, such as the browser's.
     pub fn application(&self) -> Option<&str> {
         self.application.as_deref()
+    }
+
+    /// The action admission granted, where the host recorded it.
+    pub fn action(&self) -> Option<&RequestedAction> {
+        self.action.as_ref()
     }
 }
 
@@ -214,6 +230,7 @@ impl SessionAuthority {
     /// Create the bounded product handoff for this already-admitted session.
     pub fn endpoint_context(&self) -> AdmittedEndpointContext {
         AdmittedEndpointContext::new(self.session.clone(), self.principal().subject)
+            .with_action(self.principal().action.clone())
     }
 
     /// When this session's authority runs out, if it does.

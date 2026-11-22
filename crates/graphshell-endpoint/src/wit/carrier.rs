@@ -210,6 +210,10 @@ impl<C: SessionCalls> Carrier for WitCarrier<C> {
                     "this carrier has no retained page text read".into(),
                 ));
             },
+            // Nor a query call (graphshell:mere-cli D4); the door carries it.
+            Q::Query(_) => {
+                return Err(CarrierError::Refused("this carrier has no query call".into()));
+            },
             Q::Close => {
                 let session = self
                     .session
