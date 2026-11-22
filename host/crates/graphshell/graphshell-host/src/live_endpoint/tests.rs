@@ -101,10 +101,7 @@ fn a_stale_invocation_is_told_where_the_scene_is() {
 
     assert_eq!(
         result,
-        IntentResult::Stale {
-            current_epoch: EPOCH,
-            current_revision: current,
-        }
+        IntentResult::stale(EPOCH, current)
     );
     assert_eq!(
         endpoint.current_revision(),

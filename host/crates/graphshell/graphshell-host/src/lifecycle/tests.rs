@@ -402,10 +402,7 @@ fn an_intent_against_a_superseded_revision_is_stale() {
     );
     assert_eq!(
         result,
-        IntentResult::Stale {
-            current_epoch: SceneEpoch(1),
-            current_revision: Revision(4),
-        }
+        IntentResult::stale(SceneEpoch(1), Revision(4))
     );
 }
 

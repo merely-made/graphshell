@@ -31,7 +31,7 @@ pub use titulus::{
 };
 
 pub use presentation::{PresentationValidationError, validate_presentation};
-pub use scenotime::{Revision, SceneDiff, SceneEpoch, SceneSnapshot};
+pub use scenotime::{EngineRevision, Revision, SceneDiff, SceneEpoch, SceneSnapshot};
 
 // Portable projection captures, apart from the live wire they snapshot.
 mod capture;
@@ -475,6 +475,11 @@ pub enum IntentResult {
     Stale {
         current_epoch: SceneEpoch,
         current_revision: Revision,
+        /// The engine revision now current, when the endpoint is backed by
+        /// one (engine split D193). Absent on the wire when unset, so older
+        /// readers see the reply they knew.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        current_engine_revision: Option<EngineRevision>,
     },
 }
 
@@ -485,6 +490,20 @@ impl IntentResult {
         Self::Stale {
             current_epoch,
             current_revision,
+            current_engine_revision: None,
+        }
+    }
+
+    /// A stale reply that also names the engine revision now current.
+    pub fn stale_at_engine(
+        current_epoch: SceneEpoch,
+        current_revision: Revision,
+        current_engine_revision: Option<EngineRevision>,
+    ) -> Self {
+        Self::Stale {
+            current_epoch,
+            current_revision,
+            current_engine_revision,
         }
     }
 }

@@ -559,3 +559,23 @@ fn the_stale_constructor_names_the_scene_now_current() {
     };
     assert_eq!((current_epoch, current_revision), (SceneEpoch(3), Revision(41)));
 }
+
+#[test]
+fn a_stale_reply_carries_the_engine_revision_only_when_named() {
+    let bare = IntentResult::stale(SceneEpoch(3), Revision(41));
+    let text = serde_json::to_string(&bare).unwrap();
+    assert!(!text.contains("current_engine_revision"), "{text}");
+    // A reply written before D193 still reads.
+    let old = r#"{"Stale":{"current_epoch":3,"current_revision":41}}"#;
+    assert_eq!(serde_json::from_str::<IntentResult>(old).unwrap(), bare);
+
+    let engine = EngineRevision {
+        session: "s".into(),
+        cursor: 7,
+        digest: "d".into(),
+    };
+    let named = IntentResult::stale_at_engine(SceneEpoch(3), Revision(41), Some(engine));
+    let text = serde_json::to_string(&named).unwrap();
+    assert!(text.contains("current_engine_revision"), "{text}");
+    assert_eq!(serde_json::from_str::<IntentResult>(&text).unwrap(), named);
+}

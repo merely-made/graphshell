@@ -179,10 +179,7 @@ impl PublishedSiteEndpoint {
             });
         }
         if intent.observed_epoch != SceneEpoch(1) || intent.observed_revision != Revision(1) {
-            return Err(IntentResult::Stale {
-                current_epoch: SceneEpoch(1),
-                current_revision: Revision(1),
-            });
+            return Err(IntentResult::stale(SceneEpoch(1), Revision(1)));
         }
         Ok(())
     }

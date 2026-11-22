@@ -384,10 +384,7 @@ impl ReservoirEndpoint {
         }
         let current = self.revision();
         if intent.observed_epoch != EPOCH || intent.observed_revision != current {
-            return Err(IntentResult::Stale {
-                current_epoch: EPOCH,
-                current_revision: current,
-            });
+            return Err(IntentResult::stale(EPOCH, current));
         }
         Ok(())
     }

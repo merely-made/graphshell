@@ -395,10 +395,7 @@ impl IntentSink for FixtureEndpoint {
         if intent.observed_epoch != self.snapshot.scene.epoch
             || intent.observed_revision != self.snapshot.scene.revision
         {
-            return Ok(IntentResult::Stale {
-                current_epoch: self.snapshot.scene.epoch,
-                current_revision: self.snapshot.scene.revision,
-            });
+            return Ok(IntentResult::stale(self.snapshot.scene.epoch, self.snapshot.scene.revision));
         }
         match intent.intent.as_str() {
             "fixture.open-note" => Ok(IntentResult::Accepted),

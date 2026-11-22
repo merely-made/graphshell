@@ -181,10 +181,7 @@ impl Board {
             CarrierRequestBody::Intent(invocation) => {
                 self.log.push("intent");
                 let result = if invocation.observed_revision.0 != self.revision {
-                    IntentResult::Stale {
-                        current_epoch: SceneEpoch(1),
-                        current_revision: Revision(self.revision),
-                    }
+                    IntentResult::stale(SceneEpoch(1), Revision(self.revision))
                 } else if invocation.intent == FORBIDDEN {
                     IntentResult::Rejected {
                         reason: "forbidden by the board".into(),

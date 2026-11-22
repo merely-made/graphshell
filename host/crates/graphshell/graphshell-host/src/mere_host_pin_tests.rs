@@ -177,25 +177,23 @@ fn an_intent_from_a_view_the_engine_moved_past_is_stale_and_applies_from_a_curre
     let refused = host.invoke(old_action.clone()).unwrap();
     assert_eq!(
         refused,
-        IntentResult::Stale {
-            current_epoch: old.epoch,
-            current_revision: old.revision,
-        }
+        IntentResult::stale_at_engine(old.epoch, old.revision, Some(current.clone()))
     );
     assert_eq!(host.access_history_for(&url(1)).unwrap().records.len(), 1);
 
     // The same action from a current view applies.
     host.follow_live();
     let fresh = scene(&mut host);
-    assert_eq!(fresh.engine_revision, Some(current));
+    assert_eq!(fresh.engine_revision, Some(current.clone()));
     assert!(
         fresh.revision > old.revision,
         "one counter value, one engine revision"
     );
-    assert!(matches!(
+    // The counter moved too; the reply still names the engine revision.
+    assert_eq!(
         host.invoke(old_action).unwrap(),
-        IntentResult::Stale { .. }
-    ));
+        IntentResult::stale_at_engine(fresh.epoch, fresh.revision, Some(current.clone()))
+    );
     assert_eq!(
         host.invoke(open(&host, &fresh, 1)).unwrap(),
         IntentResult::Accepted

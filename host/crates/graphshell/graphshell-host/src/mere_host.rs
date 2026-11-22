@@ -1593,17 +1593,11 @@ impl<B: Backend> IntentSink for MereHost<B> {
         if intent.observed_epoch != SceneEpoch(self.projection_epoch)
             || intent.observed_revision != Revision(self.projection_revision)
         {
-            return Ok(IntentResult::Stale {
-                current_epoch: SceneEpoch(self.projection_epoch),
-                current_revision: Revision(self.projection_revision),
-            });
+            return self.stale_reply();
         }
         // The engine moved under the scene the intent was made in (D188).
         if self.engine_moved()? {
-            return Ok(IntentResult::Stale {
-                current_epoch: SceneEpoch(self.projection_epoch),
-                current_revision: Revision(self.projection_revision),
-            });
+            return self.stale_reply();
         }
         let Some(target) = intent
             .target

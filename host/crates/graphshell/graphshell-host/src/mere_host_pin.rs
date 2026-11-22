@@ -112,6 +112,16 @@ impl<B: Backend> MereHost<B> {
 
     /// Whether the engine has moved past the scene last served, which an
     /// intent observing the current counter was made against.
+    /// A stale reply naming the scene counter and the live engine revision
+    /// an intent would now apply to (engine split D193).
+    pub(super) fn stale_reply(&self) -> Result<IntentResult, MereHostError> {
+        Ok(IntentResult::stale_at_engine(
+            SceneEpoch(self.projection_epoch),
+            Revision(self.projection_revision),
+            Some(self.live_engine_revision()?),
+        ))
+    }
+
     pub(super) fn engine_moved(&self) -> Result<bool, MereHostError> {
         let Some(stamped) = &self.scene_engine else {
             return Ok(false);

@@ -112,10 +112,7 @@ impl IntentSink for FixtureEndpoint {
     type Error = String;
     fn invoke(&mut self, intent: IntentInvocation) -> Result<IntentResult, String> {
         if intent.observed_revision != Revision(1) {
-            return Ok(IntentResult::Stale {
-                current_epoch: SceneEpoch(1),
-                current_revision: Revision(2),
-            });
+            return Ok(IntentResult::stale(SceneEpoch(1), Revision(2)));
         }
         self.notices.push_back(CarrierNotice {
             session: intent.session,

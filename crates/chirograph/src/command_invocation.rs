@@ -89,10 +89,8 @@ impl IntentResult {
         match outcome {
             Outcome::Done => None,
             Outcome::Refused { reason } => Some(Self::Rejected { reason }),
-            Outcome::Stale => current.map(|(current_epoch, current_revision)| Self::Stale {
-                current_epoch,
-                current_revision,
-            }),
+            Outcome::Stale => current
+                .map(|(current_epoch, current_revision)| Self::stale(current_epoch, current_revision)),
         }
     }
 }
@@ -173,10 +171,7 @@ mod tests {
             IntentResult::from_command_outcome(refused.command_outcome().unwrap(), None),
             Some(refused)
         );
-        let stale = IntentResult::Stale {
-            current_epoch: SceneEpoch(5),
-            current_revision: Revision(12),
-        };
+        let stale = IntentResult::stale(SceneEpoch(5), Revision(12));
         assert_eq!(stale.command_outcome(), Some(Outcome::Stale));
         assert_eq!(
             IntentResult::from_command_outcome(Outcome::Stale, Some((SceneEpoch(5), Revision(12)))),

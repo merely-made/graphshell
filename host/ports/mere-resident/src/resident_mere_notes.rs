@@ -282,10 +282,7 @@ impl MereEndpoint {
         // By intent at any revision of the session, but not across an epoch.
         if intent.observed_epoch != graph.0 {
             let (current_epoch, current_revision) = self.notes_position(graph);
-            return Ok(IntentResult::Stale {
-                current_epoch,
-                current_revision,
-            });
+            return Ok(IntentResult::stale(current_epoch, current_revision));
         }
         let reject = |reason: String| Ok(IntentResult::Rejected { reason });
         if intent.target != InstanceId(0) {

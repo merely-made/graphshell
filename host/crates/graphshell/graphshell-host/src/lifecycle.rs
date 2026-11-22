@@ -311,10 +311,7 @@ pub fn adjudicate_intent(
     if invocation.observed_epoch != current_epoch
         || invocation.observed_revision != current_revision
     {
-        return IntentResult::Stale {
-            current_epoch,
-            current_revision,
-        };
+        return IntentResult::stale(current_epoch, current_revision);
     }
     IntentResult::Accepted
 }

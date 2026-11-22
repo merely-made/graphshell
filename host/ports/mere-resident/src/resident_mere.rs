@@ -1468,10 +1468,7 @@ impl MereEndpoint {
 
     fn invoke_archive(&mut self, intent: IntentInvocation) -> Result<IntentResult, String> {
         if intent.observed_epoch != SESSIONS_EPOCH {
-            return Ok(IntentResult::Stale {
-                current_epoch: SESSIONS_EPOCH,
-                current_revision: self.sessions_revision(),
-            });
+            return Ok(IntentResult::stale(SESSIONS_EPOCH, self.sessions_revision()));
         }
         let outcome = (|| -> Result<Option<(SessionId, SharedHost)>, String> {
             let payload: ArchiveActionV1 =
@@ -1559,10 +1556,7 @@ impl MereEndpoint {
         // A step names its session by id, so it is taken at any revision of
         // the list (§7 item 33), though not across an epoch.
         if intent.observed_epoch != SESSIONS_EPOCH {
-            return Ok(IntentResult::Stale {
-                current_epoch: SESSIONS_EPOCH,
-                current_revision: self.sessions_revision(),
-            });
+            return Ok(IntentResult::stale(SESSIONS_EPOCH, self.sessions_revision()));
         }
         if matches!(
             intent.intent.as_str(),
@@ -1850,10 +1844,10 @@ impl MereEndpoint {
                 return (IntentResult::Rejected { reason }, None);
             }
             if intent.observed_epoch != host.projection_epoch() {
-                let stale = IntentResult::Stale {
-                    current_epoch: host.projection_epoch(),
-                    current_revision: host.projection_revision(),
-                };
+                let stale = IntentResult::stale(
+                    host.projection_epoch(),
+                    host.projection_revision(),
+                );
                 return (stale, None);
             }
             let outcome = match serde_json::from_slice::<SetAttentionV1>(&intent.payload) {
@@ -1907,10 +1901,10 @@ impl MereEndpoint {
             let candidate = run(async move {
                 let parent = parent.lock().await;
                 if intent.observed_epoch != parent.projection_epoch() {
-                    return Ok::<_, String>(Err(IntentResult::Stale {
-                        current_epoch: parent.projection_epoch(),
-                        current_revision: parent.projection_revision(),
-                    }));
+                    return Ok::<_, String>(Err(IntentResult::stale(
+                        parent.projection_epoch(),
+                        parent.projection_revision(),
+                    )));
                 }
                 if Some(intent.target) != parent.session_instance() {
                     return Ok(Err(IntentResult::Rejected {
@@ -1936,10 +1930,10 @@ impl MereEndpoint {
                             .expected_revision
                             .is_some_and(|expected| expected != parent.projection_revision())
                         {
-                            return Ok(Err(IntentResult::Stale {
-                                current_epoch: parent.projection_epoch(),
-                                current_revision: parent.projection_revision(),
-                            }));
+                            return Ok(Err(IntentResult::stale(
+                                parent.projection_epoch(),
+                                parent.projection_revision(),
+                            )));
                         }
                         fork.apply_now(author, payload.edits)
                             .map_err(|e| e.to_string())?;
@@ -2020,10 +2014,7 @@ impl MereEndpoint {
             let (epoch, revision) = (host.projection_epoch(), host.projection_revision());
             // By id at any revision (§7 item 32), but not across an epoch.
             if intent.observed_epoch != epoch {
-                let stale = IntentResult::Stale {
-                    current_epoch: epoch,
-                    current_revision: revision,
-                };
+                let stale = IntentResult::stale(epoch, revision);
                 return (Ok(stale), None);
             }
             let outcome = match intent.intent.as_str() {
@@ -2035,10 +2026,7 @@ impl MereEndpoint {
                                 .is_some_and(|expected| expected != revision)
                             {
                                 return (
-                                    Ok(IntentResult::Stale {
-                                        current_epoch: epoch,
-                                        current_revision: revision,
-                                    }),
+                                    Ok(IntentResult::stale(epoch, revision)),
                                     None,
                                 );
                             }

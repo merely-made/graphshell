@@ -88,10 +88,7 @@ impl IntentSink for Endpoint {
             return Err("not an owner control request".into());
         }
         if intent.observed_epoch != SceneEpoch(1) || intent.observed_revision != self.revision {
-            return Ok(IntentResult::Stale {
-                current_epoch: SceneEpoch(1),
-                current_revision: self.revision,
-            });
+            return Ok(IntentResult::stale(SceneEpoch(1), self.revision));
         }
         let request = serde_json::from_slice(&intent.payload).map_err(|e| e.to_string())?;
         match (self.call)(request) {

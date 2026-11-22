@@ -260,10 +260,7 @@ impl IntentSink for ResumeFixtureEndpoint {
         if intent.observed_epoch != self.current.scene.epoch
             || intent.observed_revision != self.current.scene.revision
         {
-            return Ok(IntentResult::Stale {
-                current_epoch: self.current.scene.epoch,
-                current_revision: self.current.scene.revision,
-            });
+            return Ok(IntentResult::stale(self.current.scene.epoch, self.current.scene.revision));
         }
         Ok(IntentResult::Accepted)
     }

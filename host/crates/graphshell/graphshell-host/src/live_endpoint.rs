@@ -369,10 +369,7 @@ impl IntentSink for LiveEndpoint {
             return Err(LiveEndpointError::WrongSession);
         }
         if intent.observed_epoch != EPOCH || intent.observed_revision != self.revision {
-            return Ok(IntentResult::Stale {
-                current_epoch: EPOCH,
-                current_revision: self.revision,
-            });
+            return Ok(IntentResult::stale(EPOCH, self.revision));
         }
         if intent.intent == REFUSED_INTENT {
             return Ok(IntentResult::Rejected {

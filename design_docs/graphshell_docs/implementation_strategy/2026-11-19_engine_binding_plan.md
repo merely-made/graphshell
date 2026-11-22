@@ -86,6 +86,13 @@ evidence actions become stale. The scene envelope and its intent routing remain 
 
 ## Progress
 
+- 2026-11-22: E2's stale reply names the engine revision (`mere:engine-split D193`).
+  `IntentResult::Stale` carries an optional `current_engine_revision`, absent on the wire when
+  unset so older readers see the reply they knew; `IntentResult::stale_at_engine` builds it, and
+  Graphshell's 25 literal stale replies now go through the constructors. `MereHost` names the live
+  engine revision in both stale branches, so a reply refused only because the engine moved no
+  longer repeats a counter the caller already holds. The pin test checks both branches, and a
+  chirograph test reads a pre-D193 reply and round-trips one that names the revision.
 - 2026-11-20: E1 and E2 built (`19bd3652`), probe 3's content check (`1b6b9793`). `MereHost` holds an
   optional `PinnedView` and builds scenes from the pin's graph or the live graph, and every snapshot
   carries the engine revision it was built from (`mere:engine-split D187` to `D189`). An intent is
