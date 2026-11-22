@@ -103,7 +103,7 @@ fn the_participant_matches_the_native_transcript() {
     assert_outcomes(&reference);
 
     let gate = Shared::default();
-    let engine = Engine::default();
+    let engine = Engine::new(&app_host::engine_config()).unwrap();
     let mut script = participant(
         &engine,
         Box::new(SettingsServer::new(FixtureOwner::default(), gate.clone())),
@@ -117,7 +117,7 @@ fn the_participant_matches_the_native_transcript() {
 
 #[test]
 fn each_participant_answers_to_its_own_gate() {
-    let engine = Engine::default();
+    let engine = Engine::new(&app_host::engine_config()).unwrap();
     let granted = Shared::default();
     let mut a = participant(
         &engine,
@@ -199,7 +199,7 @@ impl ws::Host for Host {
 
 #[test]
 fn values_cross_wasmtime_unchanged() {
-    let engine = Engine::default();
+    let engine = Engine::new(&app_host::engine_config()).unwrap();
     let component = Component::from_file(&engine, guest_component()).expect("guest loads");
     let mut linker = Linker::new(&engine);
     wasmtime_wasi::p2::add_to_linker_sync(&mut linker).unwrap();

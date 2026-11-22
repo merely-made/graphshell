@@ -10,8 +10,8 @@ need, and wasmi ran a plain module natively and in a browser with its fuel limit
 24). P4 is met except its native run: Wasmer's desk study is written and its `js` flavour ran
 the module in Node and a browser, but its compilers do not build on Windows (Findings 25 to 28).
 P5 is met: the readout table is below and its questions are ruled (D8 to D11), which add two
-phases, P6 (a Pulley switch in the hosts) and P7 (a guest on Wasmtime in a page). Neither is
-started.
+phases. P6 is met: each wasm host has a `pulley` feature, off by default (Findings 29). P7 (a guest on
+Wasmtime in a page) is not started.
 
 **For:** the web build. Graphshell's wasm hosts run guests on Wasmtime, which compiles them to machine
 code, and a browser grants no page the right to do that. No ruling says how a component guest runs when
@@ -370,6 +370,12 @@ outcome. D1 to D11 are in answer order.
     not support WebAssembly execution", and Bole (the Boa fork) has no `WebAssembly` object. The
     reverse is open: wasmi or Wasmtime on Pulley could give either a `WebAssembly` object.
 
+29. P6, run 2026-11-22: `app-host`, `document-host`, `block-host` and `authority-host` each have a
+    `pulley` feature and an `engine_config()` every engine of theirs starts from. With the feature
+    off and with it on, all four crates' tests pass, and a test in each asserts the engine is Pulley
+    exactly when the feature is on. The projection test first failed in both modes because its guest
+    was built before `main` moved (Findings 5 again); rebuilt, it passes in both.
+
 ## Progress
 
 - 2026-11-21: plan written; D1 to D3 ruled.
@@ -389,3 +395,4 @@ outcome. D1 to D11 are in answer order.
 - 2026-11-22: P4 met except the native run. The desk study and probe are
   `host/testing/guest-runtime-p4/`; the `js` flavour passes in Node and Chromium. P5 is next.
 - 2026-11-22: P5 met. The readout table is written; D8 to D11 ruled. P6 and P7 added.
+- 2026-11-22: P6 met. The hosts' `pulley` feature landed. P7 is next.

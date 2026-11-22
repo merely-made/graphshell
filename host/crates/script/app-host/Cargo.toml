@@ -20,6 +20,11 @@ publish = false
 [lib]
 path = "src/lib.rs"
 
+[features]
+# Run guests on Wasmtime's interpreter, Pulley, not its compiler: for a platform a compiler
+# cannot serve. Off, nothing changes (guest runtime plan D8).
+pulley = ["wasmtime/pulley"]
+
 [dependencies]
 # The WIT world lives in this package; its build script publishes the directory to
 # this crate's build script as DEP_GRAPHSHELL_ENDPOINT_WIT (Cargo passes `links`

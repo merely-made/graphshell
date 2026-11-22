@@ -98,7 +98,7 @@ impl ActionSink for StubGate {
 }
 
 async fn attached(granted: Vec<&'static str>) -> AppScript<StubGate> {
-    let engine = Engine::default();
+    let engine = Engine::new(&app_host::engine_config()).unwrap();
     let mut script = AppScript::attach(
         &engine,
         &guest_component(),
@@ -117,7 +117,7 @@ async fn attached_bytes(
     bytes: &[u8],
     granted: Vec<&'static str>,
 ) -> AppScript<StubGate> {
-    let engine = Engine::default();
+    let engine = Engine::new(&app_host::engine_config()).unwrap();
     let mut script = AppScript::attach_bytes(
         &engine,
         bytes,

@@ -43,6 +43,24 @@ use wasmtime::{Config, Engine, ResourceLimiter, Store};
 use wasmtime_wasi::clocks::{HostMonotonicClock, HostWallClock};
 use wasmtime_wasi::{WasiCtx, WasiCtxBuilder, WasiCtxView, WasiView};
 
+/// The Pulley target for this machine's pointer width.
+#[cfg(all(feature = "pulley", target_pointer_width = "64"))]
+const PULLEY_TARGET: &str = "pulley64";
+#[cfg(all(feature = "pulley", target_pointer_width = "32"))]
+const PULLEY_TARGET: &str = "pulley32";
+
+/// The configuration every engine of this host starts from: Wasmtime's compiler, or, with the
+/// `pulley` feature, its interpreter (for a platform a compiler cannot serve).
+pub fn engine_config() -> Config {
+    #[allow(unused_mut)]
+    let mut config = Config::new();
+    #[cfg(feature = "pulley")]
+    config
+        .target(PULLEY_TARGET)
+        .expect("the pulley feature builds Wasmtime's Pulley target");
+    config
+}
+
 wasmtime::component::bindgen!({
     // The shared `mere:script` contract (one WIT, many worlds).
     path: "../wit",
@@ -272,7 +290,7 @@ pub struct AuthorityComponent {
 impl AuthorityComponent {
     /// An engine with fuel metering on, for [`Self::load`]. Share one between components.
     pub fn engine() -> wasmtime::Result<Engine> {
-        let mut config = Config::new();
+        let mut config = engine_config();
         config.consume_fuel(true);
         Engine::new(&config)
     }

@@ -31,7 +31,7 @@ pub async fn run_guarded(
     mem_bytes: usize,
     epoch_deadline_ticks: u64,
 ) -> wasmtime::Result<Guarded> {
-    let mut config = Config::new();
+    let mut config = crate::engine_config();
     config.epoch_interruption(true);
     let engine = Arc::new(Engine::new(&config)?);
     let component = Component::from_file(&engine, component_path)?;
@@ -210,7 +210,7 @@ pub(crate) fn link_with_grant(
 /// [`precompile_to_cwasm`] so an AOT `.cwasm` is config-compatible with the engine
 /// that loads it (`deserialize` checks the compile config matches).
 pub(crate) fn guarded_engine() -> wasmtime::Result<Engine> {
-    let mut config = Config::new();
+    let mut config = crate::engine_config();
     config.epoch_interruption(true);
     Engine::new(&config)
 }
@@ -269,7 +269,7 @@ pub(crate) async fn build_instance(
 /// runtime, not by host convention. The seed DOM + granted names are wired so the
 /// guest (and a future `caps.granted()`) see exactly what was allowed.
 pub async fn instantiate_with_grant(component_path: &Path, grant: &Grant) -> wasmtime::Result<()> {
-    let engine = Engine::default();
+    let engine = Engine::new(&crate::engine_config())?;
     let (mut store, bindings) = build_instance(
         &engine,
         component_path,

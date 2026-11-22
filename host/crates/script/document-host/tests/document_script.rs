@@ -324,7 +324,7 @@ fn timing_of_attach_and_turns() {
     turn_us.sort_by(f64::total_cmp);
     println!(
         "document timing: backend={} attaches={ATTACHES} turns={TURNS} attach_ms={:.2} turn_us={:.2} (medians)",
-        if wasmtime::Engine::default().is_pulley() {
+        if wasmtime::Engine::new(&document_host::engine_config()).unwrap().is_pulley() {
             "pulley"
         } else {
             "compiler"

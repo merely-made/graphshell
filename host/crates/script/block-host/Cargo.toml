@@ -16,6 +16,9 @@ publish = false
 path = "src/lib.rs"
 
 [features]
+# Run guests on Wasmtime's interpreter, Pulley, not its compiler: for a platform a compiler
+# cannot serve. Off, nothing changes (guest runtime plan D8).
+pulley = ["wasmtime/pulley"]
 # The fixture guest this crate builds for its own tests, exposed to other crates' tests
 # (`block_host::test_support`; engine split D121: the owner crate exposes it).
 test-support = []

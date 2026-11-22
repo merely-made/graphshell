@@ -180,7 +180,7 @@ pub(crate) fn new_host(dom: ScriptedDom, granted: Vec<String>, limits: StoreLimi
 /// returned batch against the live DOM + revision, `deactivate`, and report.
 /// Async because exports are invoked via `call_async`.
 pub async fn run_turns(component_path: &Path, turns: &[(&str, &str)]) -> wasmtime::Result<TurnLog> {
-    let engine = Engine::default();
+    let engine = Engine::new(&crate::engine_config())?;
     let component = Component::from_file(&engine, component_path)?;
 
     let linker = full_linker(&engine)?;

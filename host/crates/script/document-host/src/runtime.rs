@@ -81,7 +81,8 @@ impl DocumentScriptRuntime {
     /// manifest requests anything outside this set is refused at `activate`.
     pub fn new(allowed: Vec<ModCapability>) -> Self {
         Self {
-            engine: Engine::default(),
+            engine: Engine::new(&crate::engine_config())
+                .expect("the host's engine configuration is valid"),
             allowed,
             active: Mutex::new(HashMap::new()),
         }

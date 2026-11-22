@@ -168,7 +168,7 @@ impl ps::HostSession for Host {
 }
 
 fn load() -> (Store<Host>, ProjectionConsumer) {
-    let engine = Engine::default();
+    let engine = Engine::new(&app_host::engine_config()).unwrap();
     let component = Component::from_file(&engine, guest_component()).expect("guest loads");
     let mut linker = Linker::new(&engine);
     wasmtime_wasi::p2::add_to_linker_sync(&mut linker).unwrap();
@@ -258,7 +258,7 @@ fn timing_of_compile_instantiate_and_run() {
 
     let (mut compile, mut instantiate, mut call) = (Vec::new(), Vec::new(), Vec::new());
     for _ in 0..ROUNDS {
-        let engine = Engine::default();
+        let engine = Engine::new(&app_host::engine_config()).unwrap();
         let started = Instant::now();
         let component = Component::from_file(&engine, guest_component()).expect("guest loads");
         compile.push(started.elapsed().as_secs_f64() * 1e3);
@@ -286,7 +286,7 @@ fn timing_of_compile_instantiate_and_run() {
     }
     println!(
         "projection timing: backend={} rounds={ROUNDS} compile_ms={:.2} instantiate_ms={:.3} run_ms={:.3} (medians)",
-        if Engine::default().is_pulley() {
+        if Engine::new(&app_host::engine_config()).unwrap().is_pulley() {
             "pulley"
         } else {
             "compiler"

@@ -86,7 +86,7 @@ async fn timing_of_the_allocation_bomb() {
     ms.sort_by(f64::total_cmp);
     println!(
         "bomb timing: backend={} rounds={ROUNDS} cap_mib=256 grow_to_trap_ms={:.2} (median, compile included)",
-        if wasmtime::Engine::default().is_pulley() {
+        if wasmtime::Engine::new(&document_host::engine_config()).unwrap().is_pulley() {
             "pulley"
         } else {
             "compiler"
