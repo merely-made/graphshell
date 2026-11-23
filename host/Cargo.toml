@@ -531,6 +531,10 @@ muniment = { git = "https://github.com/merely-made/eidetic.git", branch = "main"
 # by reducing unit stage partitions after register partitions reach one.
 # Remove when upstream selection admits the same bounded packed-weight rows.
 cubek-matmul = { path = "support/patches/cubek-matmul" }
+# rust-ipns 0.9.0 (its latest release) takes libp2p-identity 0.2, which holds
+# the elliptic-curve 0.13 / ed25519-dalek 2 / rand 0.8 stack. Upstream main
+# already takes libp2p-identity 0.3 (9e3dcb37); the row leaves when that releases.
+rust-ipns = { git = "https://github.com/dariusc93/rust-ipfs", branch = "libp2p-next" }
 # house patches --from https://github.com/merely-made/mere.git
 # Written by `house patches` (eidetic, crates/house) from the upstream's [patch.crates-io]; `house patches --check` fails when they drift.
 oxjsonld = { git = "https://github.com/mark-ik/oxigraph", branch = "mark-ik/0.5" }

@@ -8,7 +8,7 @@ description = "Verified IPNS and UnixFS reads through a host-supplied block tran
 
 [dependencies]
 cid = "0.11.3"
-libp2p-identity = { version = "0.2", features = ["peerid"] }
+libp2p-identity = { version = ">=0.3.1", features = ["peerid"] }
 percent-encoding = "2"
 rust-ipns = { version = "0.9", features = ["ed25519", "rsa"] }
 rust-unixfs = "0.6"

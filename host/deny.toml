@@ -229,6 +229,10 @@ crate = "jni-sys@0.3.1"
 reason = "held by jni 0.21.1, ndk 0.9.0, ndk-sys 0.6.0+11769913; gone when its holders move to jni-sys 0.4.1 (jni 0.21.1 in the graph, 0.22.4 newest; ndk 0.9.0 is its latest release)"
 
 [[bans.skip]]
+crate = "keccak@0.1.6"
+reason = "held by sha3 0.10.9; gone when sha3 0.10.9 leaves the graph (see its skip)"
+
+[[bans.skip]]
 crate = "libloading@0.8.9"
 reason = "held by ash 0.38.0, khronos-egl 6.0.0, wgpu-hal 30.0.2; gone when its holders move to libloading 0.9.1 (all are their latest releases)"
 
@@ -364,6 +368,10 @@ crate = "sha2@0.10.9"
 reason = "held by wasmtime-environ 45.0.3, wasmtime-internal-cache 45.0.3; gone when its holders move to sha2 0.11.1 (wasmtime 45 in the graph, 50 newest)"
 
 [[bans.skip]]
+crate = "sha3@0.10.9"
+reason = "held by lalrpop 0.22.2 under wgsl-parse 0.4.0, beside sha3 0.11.0 from multihash-codetable 0.2.2 under rust-unixfs; gone when wgsl-parse moves (0.6.0 newest; lalrpop 0.23.2 takes sha3 0.12) and multihash-codetable releases on the same sha3 (0.2.2 is its latest release)"
+
+[[bans.skip]]
 crate = "smol_str@0.1.24"
 reason = "held by acto 0.8.2; gone when its holders move to smol_str 0.3.7 (acto 0.8.2 is its latest release)"
 
@@ -390,6 +398,10 @@ reason = "held by arg_enum_proc_macro 0.3.4, aristo-macros 0.4.1, asn1-rs-derive
 [[bans.skip]]
 crate = "thiserror@1.0.69"
 reason = "held by calloop 0.13.0, djinn-testkit 0.0.1, jni 0.21.1, mere-transport 0.0.2, murm-ocapn 0.1.0, murm-sync 0.0.1, murm-webrtc 0.0.1, ndk 0.9.0, nvml-wrapper 0.13.0, redox_users 0.4.6, smithay-client-toolkit 0.19.2, sysctl 0.6.0, witx 0.9.1; moves when the holding crates (git/reg/ws) move to thiserror 2.0.21"
+
+[[bans.skip]]
+crate = "synstructure@0.13.2"
+reason = "held by multihash-derive-impl 0.1.3 under rust-unixfs; gone when its holder moves to synstructure 0.14.0 (0.1.3 is its latest release)"
 
 [[bans.skip]]
 crate = "thiserror-impl@1.0.69"

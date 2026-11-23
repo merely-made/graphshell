@@ -13,6 +13,10 @@ fn a_timed_out_waiter_releases_its_pending_reservation_only_after_task_destructi
     assert!(actor.command(page(91, server.url("/held"))));
     let first_request = server.seen.recv_timeout(WAIT).unwrap_or_else(|error| {
         let diagnostic = match updates.try_recv() {
+            #[cfg(feature = "peer-editions")]
+            Ok(FetchUpdate::PeerAssets { request, url, .. }) => {
+                format!("request {request:?} returned peer assets for {url}")
+            },
             Ok(FetchUpdate::Page(outcome)) => format!(
                 "request {} for {} returned {:?}",
                 outcome.request, outcome.url, outcome.result
