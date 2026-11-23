@@ -13,10 +13,10 @@ Meerkat host is gone.
 **For:** behaviors as participants with a trigger: the participant gate answers "may it write", this
 plan answers "when does it run" and how a resident run is admitted, recorded and recovered (Mark's
 "neat lil ideas" conversation of 2026-08-13); and the mod authoring loop, create a mod, let a model
-edit it, check, build, load at runtime, test against a fixture and reload, with Rhai as the local
-command lane and Wasm components as the portable untrusted lane (2026-06-30). Where the Rhai command
-packs and the authoring pane live now that Meerkat is gone is an open question here, together with
-the overlap with the Hest H4 Rhai command evaluator.
+edit it, check, build, load at runtime, test against a fixture and reload, with Lua as the local
+command lane (Rhai until 2026-11-23) and Wasm components as the portable untrusted lane (2026-06-30).
+Where the Lua command packs and the authoring pane live now that Meerkat is gone is an open question
+here, together with the overlap with the Lua command lane in `script-didge`.
 Not here: the workshop composition and the first retained-passage evidence-brief workflow in
 Turnstone and Graphshell (`2026-10-28_alembic_implementation_plan.md`; R2 and R3 do not gate it);
 projection-tier rules such as nearby refresh, staleness badges and rollup counts, which field
@@ -48,13 +48,13 @@ Evidence that matters is a test in the repository or a line in Findings.
   beside the rings, and a later addition is a widening and re-reviews; the cascade budget is a
   setting, default 4 rounds, live-switchable, floor 1, no unlimited value, taking effect on the next
   cascade without a restart.
-- No new scripting language or lane: rhai for privileged local automation, piccolo Lua for sandboxed
-  participant bodies, Wasm components for portable untrusted mods (the memory-level lane map should
-  read five lanes). A new capability never rides an existing preselected grant, which would silently
-  widen installed packs; authoring earned its own ring (`:62-80,417-435`).
-- Amended 2026-11-21 (`inker:lua-evaluator D1`; Mark: "Decide now: Lua replaces Rhai"): Lua on
-  didgeridoo takes local automation as well as sandboxed participant bodies. Rhai stays until Inker's
-  `2026-11-21_lua_evaluator_plan.md` retires it, and the lane count above predates this.
+- No new scripting language or lane. Since 2026-11-23 (`inker:lua-evaluator` L6) the lanes are:
+  Lua on didgeridoo for privileged local automation (`script-didge`: note fences, presentation rules,
+  `lua-command` batches) and for sandboxed participant bodies (Genet's piccolo engine), and Wasm
+  components for portable untrusted mods. Rhai is retired; an old `rhai` fence is refused with a
+  message naming the Lua form (`inker:lua-evaluator D1`, D27; Mark: "Decide now: Lua replaces
+  Rhai"). A new capability never rides an existing preselected grant, which would silently widen
+  installed packs; authoring earned its own ring (`:62-80,417-435`).
 - Non-goals (`:467-478`): operative edges or edge-kind variants, a general scheduler (the cascade
   runner is a bounded drain loop; depth machinery waits for evidence), spatial influence through
   petitions, universal undo.
@@ -78,8 +78,8 @@ Evidence that matters is a test in the repository or a line in Findings.
   versions, and no adoption rewriting grants.
 - Mod loop
   (`archive_docs/2026-10-28/2026-06-30_runtime_mod_authoring_loop_plan.md:13-30,76-145,179-213`):
-  the shared contract is the host capability surface, not a source language; a Rhai command pack
-  never receives a live host handle (read a context snapshot, return requested actions, the host
+  the shared contract is the host capability surface, not a source language; a command pack (Rhai
+  in the source, Lua now) never receives a live host handle (read a context snapshot, return requested actions, the host
   validates and executes); a mod holds only what its manifest requested and host policy granted,
   with filesystem, network, storage, personal mesh jobs, private graph reads and credentialed
   fetches granted separately; a new GPU or web engine is a native adapter unless it lowers into a
@@ -165,7 +165,7 @@ thresholds.
 
 ### GB6. The runtime mod authoring loop (host open)
 Five phases, none started, none of the plan's objects existing (`install_mod`, `CommandModManifest`,
-`ModProject`, `meerkat.mod.*`). P1 Rhai command packs: dynamic command entries from a manifest, a
+`ModProject`, `meerkat.mod.*`). P1 Lua command packs (Rhai in the source): dynamic command entries from a manifest, a
 `CommandContext` snapshot, an action-request return type, install, reload, unload and run commands,
 palette and menu exposure; the diagnostic names (`meerkat.mod.*`) need replacing. P2 Wasm mod
 projects: a `ModProject` store, a component build and check command, attach, run and reload through
@@ -177,7 +177,7 @@ mods: `discover_wasm_mods_in_dir` has no production caller and no `<mere_root>/m
 Tails from the document-script net hardening plan: mod install, approval and optional signing (its
 E3), `.cwasm` mods invisible to discovery (its B4), uncredentialed same-origin `net.fetch`, and
 cross-origin `net` declarations for mods with broad-glob guards.
-- Done when: a Rhai command pack installs at runtime and appears in the palette without a Rust enum
+- Done when: a Lua command pack installs at runtime and appears in the palette without a Rust enum
   variant; the command gets a read-only context and returns an action request; an unauthorized
   request is rejected with a visible reason; reloading changes behaviour without a restart; a Wasm
   `DocumentScript` project is edited, checked, loaded, attached, exercised with a fixture and
@@ -201,13 +201,14 @@ on a live moot, the mere-native meadowcap structural-cap layer, and "broader con
 
 ## Open questions
 
-- Where do the Rhai command packs and the authoring pane live now that Meerkat is gone: retarget
+- Where do the Lua command packs and the authoring pane live now that Meerkat is gone: retarget
   onto a living host (Turnstone or Cambium, with the registry's `mod_loader`), or keep the mod plan
   as a historical design record, the authoring-ergonomics source that this plan and the participant
-  gate packs plan cite? And how does P1 relate to the Hest H4 `script_rhai::command` evaluator,
-  which already collects command invocations through the shared sandbox from a host-supplied
-  `CommandSet` and registers a separately allowlisted `rhai-command` block evaluator that returns
-  invocation data and never executes it: reuse it, supersede it or stay separate? From:
+  gate packs plan cite? And how does P1 relate to `script-didge`'s command lane
+  (`collect_invocations`, which replaced Hest H4's `script_rhai::command`), which already collects
+  command invocations through the shared sandbox from a host-supplied `CommandSet` and registers a
+  separately allowlisted `lua-command` block evaluator that returns invocation data and never
+  executes it: reuse it, supersede it or stay separate? From:
   `archive_docs/2026-10-28/2026-06-30_runtime_mod_authoring_loop_plan.md:43-55,297-312`;
   `archive_docs/2026-10-28/2026-10-20_hest_command_architecture_plan.md:174-190`
 - Does the repin to mere `bd5912fb` plus the Cargo runs close R1a and R1b validation, or does R1
@@ -234,6 +235,8 @@ on a live moot, the mere-native meadowcap structural-cap layer, and "broader con
 ## Progress
 
 - 2026-10-28: cut from the two sources named in Status; nothing new landed.
+- 2026-11-23: Rhai retired (`inker:lua-evaluator` L6). The lane constraint, GB6 and the host
+  question read Lua; the command lane is `script-didge`'s `lua-command`.
 
 ## Received from the backlog holder, 2026-10-28
 
