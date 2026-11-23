@@ -98,6 +98,19 @@ Each returns as its own round of questions and none is a track. Wallpapers and p
 - Rulings: -
 - From: `archive_docs/2026-10-28/2026-10-07_scenograph_editor_plan.md:48,61-62,668-706`
 
+## Decisions
+
+- **D1. A rule's `states` is a set (Mark, 2026-11-23):** Evidence: SE92 bound `states` as a list of
+  names, so a Lua rule testing one state walked it with `ipairs` (`inker:lua-evaluator` Findings 29);
+  no authored rule reads `states` from script, only the rule runner's tests, and the declarative
+  `Condition::State` already tests a single state. Offered: a set, `states.selected` (recommended);
+  the list plus a host `has_state()`; keep the list. Answer: "A set: states.selected
+  (Recommended)". What follows: each held state's snake_case name maps to `true`; a state not held
+  reads as `nil`, which is already no match. The binding is engine-neutral (`ScriptValue::Map`).
+  Outcome: refines SE92.
+
+  Links: area The stack · plans scenograph-editor R2 · summary A script rule reads states as a set: states.selected is true when held and nil otherwise.
+
 ## Open questions
 
 - Does Turnstone move its command-menu store from its session sidecar (`ViewIntentV1.command_menu`) onto the shared Hest type? Mark's to rule; SE45 was a reading, not ruled. From: `archive_docs/2026-10-28/2026-10-07_scenograph_editor_plan.md:166,659-664`
@@ -119,3 +132,5 @@ Each returns as its own round of questions and none is a track. Wallpapers and p
 ## Progress
 
 - 2026-10-28: cut from `2026-10-07_scenograph_editor_plan.md`; nothing new landed.
+- 2026-11-23: D1 ruled and applied: `states` binds as a set in `scripts.rs`; the presentation tests
+  and the Lua rule tests read it as `states.selected`.

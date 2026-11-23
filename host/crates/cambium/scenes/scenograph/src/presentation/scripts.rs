@@ -22,7 +22,8 @@ impl RuleSet {
     /// Resolve with script conditions run on `engine` (SE92). Before each
     /// script rule the engine's globals are set to the occurrence:
     /// `id` and `kind` (text), `facts` (a map; numbers are floats), `states`
-    /// (a list of names), `screen_size` (a float, or unit when unmeasured) and
+    /// (a set: each held state's name maps to true, so a script reads
+    /// `states.selected`), `screen_size` (a float, or unit when unmeasured) and
     /// `previously_matched` (a bool, for a script's own hysteresis). What a
     /// script may call is whatever the host registered on `engine`.
     pub fn resolve_with_scripts(
@@ -63,8 +64,8 @@ pub(super) fn run(source: &str, engine: &mut Engine<'_>) -> Result<(bool, String
     }
 }
 
-/// The occurrence as a script sees it. Facts keep their types; states are the
-/// snake_case names `ViewState` serializes to.
+/// The occurrence as a script sees it. Facts keep their types; states are a set
+/// keyed by the snake_case names `ViewState` serializes to (scenograph-editor D1).
 fn bind_globals(
     engine: &mut dyn ValueEngine,
     context: &Context,
@@ -94,12 +95,16 @@ fn bind_globals(
     )?;
     engine.set_global(
         "states",
-        ScriptValue::List(
+        ScriptValue::Map(
             context
                 .states
                 .iter()
                 .filter_map(|state| serde_json::to_value(state).ok())
-                .filter_map(|value| value.as_str().map(|name| text(name)))
+                .filter_map(|value| {
+                    value
+                        .as_str()
+                        .map(|name| (name.to_owned(), ScriptValue::Bool(true)))
+                })
                 .collect(),
         ),
     )?;

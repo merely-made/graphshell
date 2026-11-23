@@ -720,6 +720,13 @@ title = "Plan adopting the separate key-agreement lane (Mark, 2026-11-05)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-05_resident_split_plan.md"
 summary = "Key agreement moves onto Eidetic's GroupKeyLane and Murm's GroupKeySync under its own plan; roster reconciliation stays in Mere."
 
+[decisions."scenograph-editor D1"]
+title = "A rule's `states` is a set (Mark, 2026-11-23)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-10-28_scenograph_editor_plan.md"
+area = "The stack"
+summary = "A script rule reads states as a set: states.selected is true when held and nil otherwise."
+plans = ["scenograph-editor"]
+
 [decisions."table-projection D1"]
 title = "Rows are instances, cells are addressed (Mark, 2026-11-14)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"

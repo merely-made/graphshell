@@ -10,7 +10,8 @@
 //!
 //! The rules are Lua as the Lua evaluator plan rules it: a fact that may be
 //! missing is guarded and `nil` is no match (D6); maths is Lua's own `math`
-//! library, with no host maths registered (D17).
+//! library, with no host maths registered (D17). `states` is a set, so a state
+//! not held reads as `nil` (scenograph-editor D1).
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -71,15 +72,7 @@ fn winner(set: &RuleSet, context: &Context, engine: &mut LuaValueEngine) -> Opti
 fn a_rule_reads_facts_and_states() {
     let rules = set(vec![
         rule("heavy", 1, "facts.weight and facts.weight > 2.0", true),
-        rule(
-            "picked",
-            2,
-            r#"for _, state in ipairs(states) do
-                 if state == "selected" then return true end
-               end
-               return false"#,
-            true,
-        ),
+        rule("picked", 2, "states.selected", true),
         rule("image", 3, r#"facts.mime == "image/png""#, true),
     ]);
     let mut item = node("a");

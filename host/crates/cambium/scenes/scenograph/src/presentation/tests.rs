@@ -405,7 +405,10 @@ fn the_script_sees_the_occurrence() {
     );
     assert_eq!(
         engine.globals["states"],
-        ScriptValue::List(vec![text("selected"), text("overview")])
+        ScriptValue::Map(BTreeMap::from([
+            ("overview".to_string(), ScriptValue::Bool(true)),
+            ("selected".to_string(), ScriptValue::Bool(true)),
+        ]))
     );
     assert_eq!(engine.globals["screen_size"], ScriptValue::Float(100.0));
     assert_eq!(
