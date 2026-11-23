@@ -1,0 +1,37 @@
+<!doctype html>
+<!-- Copyright 2026 Mark Alan Boykin. SPDX-License-Identifier: MPL-2.0.
+     The page for the guest-in-a-page probe (guest runtime plan, P7): Wasmtime
+     built for wasm32-unknown-unknown runs the projection guest and the
+     document guests as Pulley bytecode, and the page shows whether the
+     transcript matches the native reference and every case passes. -->
+<meta charset="utf-8">
+<title>guest runtime probe: Wasmtime in a page</title>
+<pre id="result">running</pre>
+<script type="module">
+  import { CONTROL_CALL, runCases, runProjection, toJson } from './run-p7.js';
+  const load = async (path) => {
+    const response = await fetch(new URL('../' + path, import.meta.url));
+    if (!response.ok) throw new Error(`${path}: ${response.status}`);
+    return new Uint8Array(await response.arrayBuffer());
+  };
+  const out = document.getElementById('result');
+  try {
+    const projection = await runProjection(load);
+    const control = await runProjection(load, { control: true });
+    const cases = await runCases(load);
+    const projectionPassed = projection.equal && projection.closedSessions === 1 && projection.openSessions === 0;
+    // The control alters one reference outcome and must be caught there.
+    const controlPassed = !control.equal && control.differsAt === CONTROL_CALL;
+    window.__result = {
+      passed: projectionPassed && controlPassed && cases.passed,
+      userAgent: navigator.userAgent,
+      projection: { passed: projectionPassed, ...projection },
+      control: { passed: controlPassed, differsAt: control.differsAt, got: control.got, want: control.want },
+      cases,
+    };
+    out.textContent = toJson(window.__result);
+  } catch (error) {
+    window.__result = { passed: false, error: String(error?.stack ?? error) };
+    out.textContent = window.__result.error;
+  }
+</script>

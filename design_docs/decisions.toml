@@ -310,6 +310,20 @@ area = "The stack"
 summary = "Giving Vano or Bole a WebAssembly object through an embedded wasm runtime gets its own probe plan in Genet."
 plans = ["guest-runtime"]
 
+[decisions."guest-runtime D12"]
+title = "The browser's own engine stays the web route; Wasmtime on Pulley is recorded beside it (Mark, 2026-11-23)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_guest_runtime_plan.md"
+area = "The stack"
+summary = "The web build runs guests on the browser's own engine; Wasmtime on Pulley in a page is a recorded, working alternative."
+plans = ["guest-runtime"]
+
+[decisions."guest-runtime D13"]
+title = "No module layer for wasmi (Mark, 2026-11-23)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_guest_runtime_plan.md"
+area = "The stack"
+summary = "No Canonical ABI layer is built for wasmi or Wasmer; our guests stay components on Wasmtime."
+plans = ["guest-runtime"]
+
 [decisions."key-lane D1"]
 title = "Prekeys travel on the lane (Mark, 2026-11-06)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-06_key_lane_plan.md"

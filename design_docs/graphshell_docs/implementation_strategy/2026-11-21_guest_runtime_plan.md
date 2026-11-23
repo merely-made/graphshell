@@ -10,8 +10,10 @@ need, and wasmi ran a plain module natively and in a browser with its fuel limit
 24). P4 is met except its native run: Wasmer's desk study is written and its `js` flavour ran
 the module in Node and a browser, but its compilers do not build on Windows (Findings 25 to 28).
 P5 is met: the readout table is below and its questions are ruled (D8 to D11), which add two
-phases. P6 is met: each wasm host has a `pulley` feature, off by default (Findings 29). P7 (a guest on
-Wasmtime in a page) is not started.
+phases, both met. P6: each wasm host has a `pulley` feature, off by default (Findings 29). P7: both
+guests run on Wasmtime built for the browser target, in Chromium, with fuel and a store limit
+holding as they do natively (Findings 30 to 33). D12 keeps D1's route with this one recorded beside
+it; D13 closes the module layer. The plan is complete but for P4's native Wasmer run.
 
 **For:** the web build. Graphshell's wasm hosts run guests on Wasmtime, which compiles them to machine
 code, and a browser grants no page the right to do that. No ruling says how a component guest runs when
@@ -117,7 +119,7 @@ over the engine D1 already uses. Pulley costs 8 to 32 times the compiler's run t
 ## Decisions
 
 Each records the evidence put to Mark, what was offered, his answer in his words, what follows, and an
-outcome. D1 to D11 are in answer order.
+outcome. D1 to D13 are in answer order.
 
 - **D1. The web build runs guests on the browser's own engine (Mark, 2026-11-21):** Evidence: Wasmtime
   cannot compile inside a browser (`mere/design_docs/archive_docs/2026-08-20_completed_plans/2026-06-03_actor_constellation_plan.md:388`);
@@ -230,6 +232,27 @@ outcome. D1 to D11 are in answer order.
   is built under this plan. Outcome: new; answers open question 7.
 
   Links: area The stack · plans guest-runtime P5 · summary Giving Vano or Bole a WebAssembly object through an embedded wasm runtime gets its own probe plan in Genet.
+
+- **D12. The browser's own engine stays the web route; Wasmtime on Pulley is recorded beside it (Mark,
+  2026-11-23):** Evidence: in Chromium the projection run takes 49 ms on the browser's own engine and
+  518 ms on Wasmtime on Pulley in the page; D1's route has a wall-clock limit through a terminated
+  worker, which one thread cannot have; the Pulley route keeps fuel, store limits and the fetch gate
+  identical to native, attaches and turns faster on the fixture document, and needs guests compiled
+  natively with matching settings (Findings 30 to 33). Offered: keep D1 and record Pulley as a second
+  option (recommended); switch to Wasmtime on Pulley; both, chosen per guest. Answer: "Keep D1; record
+  Pulley as a second option (Recommended)". What follows: the web build runs guests on the browser's
+  own engine; `host/testing/guest-runtime-p7/` stays as the working second route. Outcome: applies D1.
+
+  Links: area The stack · plans guest-runtime P7 · summary The web build runs guests on the browser's own engine; Wasmtime on Pulley in a page is a recorded, working alternative.
+
+- **D13. No module layer for wasmi (Mark, 2026-11-23):** Evidence: D10 left the Canonical ABI layer
+  for module-only runtimes until the page probe; P7 shows Wasmtime on Pulley runs our component guests
+  unmodified in a page, so the layer has no job for guests. Offered: close it (recommended); keep it
+  as a sketched fallback; build it anyway. Answer: "Close it (Recommended)". What follows: nothing is
+  built; wasmi stays only as the candidate backend for Genet's `WebAssembly` object, which needs core
+  modules, not components (Genet's `2026-11-22_webassembly_object_plan.md`). Outcome: answers D10.
+
+  Links: area The stack · plans guest-runtime P3, guest-runtime P7 · summary No Canonical ABI layer is built for wasmi or Wasmer; our guests stay components on Wasmtime.
 
 ## Open questions
 
@@ -376,6 +399,31 @@ outcome. D1 to D11 are in answer order.
     exactly when the feature is on. The projection test first failed in both modes because its guest
     was built before `main` moved (Findings 5 again); rebuilt, it passes in both.
 
+30. P7, run 2026-11-23: both guests run on Wasmtime built for `wasm32-unknown-unknown`, from Pulley
+    bytecode compiled natively beforehand, in Node 24 and Chromium 156. The projection transcript
+    equals the reference in 20 of 20 calls and an altered reference is caught. The host module is
+    2.79 MB with no imports: its two platform functions and all 24 WASI imports (granting nothing) are
+    defined inside it, so the page supplies only the bytes. The projection run called none of the
+    WASI functions.
+31. The guards there, each beside a control. Fuel cuts off a runaway loop. A store limit denies the
+    allocation bomb at the same sizes D1's route and native Pulley reach (26.3 MiB under 32 MiB,
+    59.8 MiB under 64 MiB). The fetch gate refuses with the native text. An epoch deadline works only
+    when something ticks it: on one thread that is the host's own imports, so a guest that loops
+    without calling out is not stopped by an epoch, and fuel is what ends it. There is no wall-clock
+    limit on one thread; that needs D1's worker, or fuel as a count of work.
+32. What does not build or run there: `wasmtime-wasi` (it stops at `mio`, then at `getrandom`), which
+    is why the WASI imports are hand-written; async, since wasm32 has no stack switching, so a guest
+    cannot be paused and resumed on fuel; a clock, since both WASI clocks answer zero. Every guest must
+    be compiled natively with the same Wasmtime and settings, fuel and epochs included, because both
+    change the generated code, and the page must load only bytecode its own build wrote.
+33. Timing beside D1's route, same machine, medians, single sessions. The projection run takes about
+    ten times longer on Pulley in the page (518 ms against 49 ms in Chromium). Attaching a document
+    guest and one `set` turn are faster there (0.3 ms against 22.5 ms; 0.037 ms against 0.253 ms),
+    because D1's route starts a worker, compiles in the page and sends a snapshot each way, while the
+    Pulley guest arrives compiled and runs on the calling thread. The document is a fixture, so
+    neither turn time speaks for Genet's DOM. The bytecode is larger than the guest: 4.1 MB for the
+    1.8 MB projection component.
+
 ## Progress
 
 - 2026-11-21: plan written; D1 to D3 ruled.
@@ -396,3 +444,6 @@ outcome. D1 to D11 are in answer order.
   `host/testing/guest-runtime-p4/`; the `js` flavour passes in Node and Chromium. P5 is next.
 - 2026-11-22: P5 met. The readout table is written; D8 to D11 ruled. P6 and P7 added.
 - 2026-11-22: P6 met. The hosts' `pulley` feature landed. P7 is next.
+- 2026-11-23: P7 met. The probe is `host/testing/guest-runtime-p7/`; it passes in Node and
+  Chromium. Every phase of this plan is met but P4's native Wasmer run.
+- 2026-11-23: D12 and D13 ruled; the plan is complete but for P4's native Wasmer run.

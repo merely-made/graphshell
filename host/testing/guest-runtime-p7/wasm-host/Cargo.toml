@@ -1,0 +1,31 @@
+# Guest runtime plan, P7: Wasmtime built for wasm32-unknown-unknown, with the
+# component model and no compiler, holding the projection guest and the
+# document guests as Pulley bytecode compiled ahead of time. Its own workspace,
+# outside the host workspace.
+[package]
+name = "guest-runtime-p7-wasm-host"
+version = "0.0.1"
+edition = "2024"
+license = "MPL-2.0"
+publish = false
+
+[workspace]
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+# No `std` feature: with it Wasmtime does not compile for this target (P2).
+wasmtime = { version = "51", default-features = false, features = ["runtime", "pulley", "component-model"] }
+# The fixture endpoint, gate and call script the projection guest is served from.
+graphshell-endpoint = { path = "../../../../crates/graphshell-endpoint", features = ["wit-testkit"] }
+serde_json = "1"
+wasmtime-wasi = { version = "51", default-features = false, features = ["p2"], optional = true }
+
+[features]
+# Attempts, not part of the build the probe runs: each is here so its failure
+# can be reproduced (see the README).
+# Wasmtime's async support, for yielding on fuel or epochs.
+async = ["wasmtime/async"]
+# `wasmtime-wasi` in place of the stubs.
+wasi = ["dep:wasmtime-wasi"]

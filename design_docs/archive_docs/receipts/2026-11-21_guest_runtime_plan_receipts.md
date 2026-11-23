@@ -166,3 +166,55 @@ The module is P3's; `run()` must return 1542256704.
 
 Not run: Wasmer natively; its `v8` flavour (the build downloads a prebuilt V8); any guard under `js`;
 any Graphshell guest.
+
+## 2026-11-23: P7, a guest on Wasmtime in a page
+
+Machine: the Windows laptop. Graphshell at `39bd50c7` plus the probe. Wasmtime 51.0.0 with `runtime`,
+`pulley` and `component-model`, no `std`; Node 24.11.0; the built-in browser, `Chrome/156.0.8078.100`.
+Commands are in `host/testing/guest-runtime-p7/README.md`. The lane ran everything; `node run-node.mjs`
+and the page were rerun afterwards on the same build and agree.
+
+**Artefacts:** the wasm-built host 2,789,715 B, no imports. Bytecode for `pulley32`: projection
+4,146,888 B, document 250,144 B, bomb 214,104 B. The guest components are 1,779,273 B, 74,111 B and
+62,321 B.
+
+**Projection guest:** equal to the native reference in 20 of 20 calls, 1 session closed and 0 open; a
+reference altered at call 3 is caught at call 3. The same on native `pulley64` with the same settings
+(the control that the bindings and settings are right), in Node and in Chromium. No console errors.
+
+**Document guest, 13 cases and the persistence checks, all pass in the three places:**
+
+| Guard | Case | Control |
+| --- | --- | --- |
+| Fuel | a runaway loop at 2,000,000 fuel traps, "all fuel consumed by WebAssembly" | a noop turn under the same fuel completes on 7,138 |
+| Epoch | a `set` turn with deadline 1 and a tick on every import traps, "interrupt" | the same turn with nothing ticking applies |
+| Epoch, its limit | a loop that calls no import is not stopped by the epoch; fuel ends it | |
+| Store limit | the bomb at a 32 MiB cap traps at 26,279,936 B, 2 growths denied | at 64 MiB it reaches 59,834,368 B; a noop under 32 MiB has none denied |
+| Fetch gate | a foreign origin is refused with the native text | an allowed origin applies |
+| Fetch cap | a second fetch past a cap of 1 is refused | with a cap of 2 it applies |
+| Script | turns persist the document and instance; a cut-off turn ends the script and a fresh attach completes a turn | a wrong expectation is reported as failing |
+
+**Timing beside D1's route** (medians; Node shows two runs; the browser's timer is coarsened to
+0.1 ms; D1's per-turn figure carries a listener added each turn in P1's supervisor):
+
+| Workload | D1, the engine's own wasm | Wasmtime on Pulley, in wasm |
+| --- | --- | --- |
+| Projection, 20 calls, run only (7 rounds), Node | 60.8 / 53.3 ms | 578.2 / 556.8 ms |
+| the same, Chromium | 49.3 ms | 517.5 ms |
+| Projection, load to result, Chromium | 63.8 ms | 525.7 ms |
+| Document `set` turn (200 turns, 5 rounds), Node | 0.275 / 0.251 ms | 0.038 / 0.044 ms |
+| the same, Chromium | 0.253 ms | 0.037 ms |
+| Document attach, Node | 82.8 / 76.5 ms | 0.47 / 0.32 ms |
+| the same, Chromium | 22.5 ms | 0.3 ms |
+| Bomb to a 256 MiB cap, Chromium | 51.3 ms | 27.0 ms |
+| Runaway loop cut off | at its time limit (P1: 1,008 ms of 1,000) | by fuel: 2,000,000 in 23.7 ms; 50,000,000 in about 520 ms |
+
+Deserializing the 4.1 MB projection bytecode took 1.9 ms in Node. Natively on the same cases, release,
+15 rounds: the projection run 40.6 ms on the compiler and 482.3 ms on `pulley64`.
+
+**What the page supplied:** the host module and the bytecode, copied in; nothing else. Not built for
+the target: `wasmtime-wasi` ("This wasm target is unsupported by mio", then getrandom's "not supported
+by default"). Not available: async (no stack switching on wasm32), a clock.
+
+Not run: any browser but Chromium 156; Genet's DOM; a real network route; an epoch ticked from another
+thread; size work on the host module.

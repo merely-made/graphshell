@@ -1,0 +1,89 @@
+[
+  {
+    "name": "turn: an ordinary set applies",
+    "group": "turn",
+    "request": { "guest": "document", "kind": "set", "payload": "x", "fuel": 5000000 },
+    "expect": { "outcome": "applied", "appliedRevision": 1, "text": "x" }
+  },
+  {
+    "name": "fuel: a runaway loop is cut off",
+    "group": "fuel",
+    "request": { "guest": "bomb", "kind": "loop", "payload": "", "fuel": 2000000 },
+    "expect": { "outcome": "trapped", "messageIncludes": "all fuel consumed", "fuelUsedAtLeast": 2000000 }
+  },
+  {
+    "name": "fuel control: a noop turn under the same fuel completes",
+    "group": "fuel",
+    "request": { "guest": "bomb", "kind": "noop", "payload": "", "fuel": 2000000 },
+    "expect": { "outcome": "applied", "fuelUsedAtMost": 1999999 }
+  },
+  {
+    "name": "epoch: a turn is cut off when its imports tick the deadline",
+    "group": "epoch",
+    "request": { "guest": "document", "kind": "set", "payload": "x", "epochDeadline": 1, "tickEveryImports": 1 },
+    "expect": { "outcome": "trapped", "messageIncludes": "interrupt" }
+  },
+  {
+    "name": "epoch control: the same turn with nothing ticking completes",
+    "group": "epoch",
+    "request": { "guest": "document", "kind": "set", "payload": "x", "epochDeadline": 1, "tickEveryImports": 0 },
+    "expect": { "outcome": "applied", "text": "x" }
+  },
+  {
+    "name": "epoch: a loop that calls no import is not cut off by the epoch (fuel backstop ends it)",
+    "group": "epoch",
+    "request": { "guest": "bomb", "kind": "loop", "payload": "", "epochDeadline": 1, "tickEveryImports": 1, "fuel": 2000000 },
+    "expect": { "outcome": "trapped", "messageIncludes": "all fuel consumed" }
+  },
+  {
+    "name": "memory: the allocation bomb is denied at a 32 MiB cap",
+    "group": "memory",
+    "request": { "guest": "bomb", "kind": "grow", "payload": "", "memoryCap": 33554432 },
+    "expect": { "outcome": "trapped", "growthsDeniedAtLeast": 1, "memoryPeakAtMost": 33554432, "memoryPeakAtLeast": 16777216 }
+  },
+  {
+    "name": "memory control: at a 64 MiB cap the same bomb gets further",
+    "group": "memory",
+    "request": { "guest": "bomb", "kind": "grow", "payload": "", "memoryCap": 67108864 },
+    "expect": { "outcome": "trapped", "growthsDeniedAtLeast": 1, "memoryPeakAtMost": 67108864, "memoryPeakAtLeast": 33554433 }
+  },
+  {
+    "name": "memory control: a noop turn under the 32 MiB cap completes with nothing denied",
+    "group": "memory",
+    "request": { "guest": "bomb", "kind": "noop", "payload": "", "memoryCap": 33554432 },
+    "expect": { "outcome": "applied", "growthsDenied": 0 }
+  },
+  {
+    "name": "fetch: a foreign origin is refused",
+    "group": "fetch",
+    "request": { "guest": "document", "kind": "fetch", "payload": "https://attacker.test/leak" },
+    "expect": {
+      "outcome": "refused",
+      "messageEquals": "fetch failed: net.fetch: https://attacker.test/leak is outside this script's net origins",
+      "text": "Hello",
+      "revision": 0
+    }
+  },
+  {
+    "name": "fetch control: an allowed origin is applied",
+    "group": "fetch",
+    "request": { "guest": "document", "kind": "fetch", "payload": "https://example.com/x" },
+    "expect": { "outcome": "applied", "appliedRevision": 1, "text": "fetched:https://example.com/x" }
+  },
+  {
+    "name": "fetch: a second fetch past a cap of 1 is refused",
+    "group": "fetch",
+    "request": { "guest": "document", "kind": "fetch-twice", "payload": "https://example.com/x", "maxFetches": 1 },
+    "expect": {
+      "outcome": "refused",
+      "messageEquals": "fetch 2 failed: net.fetch: per-turn request limit reached (1)",
+      "text": "Hello"
+    }
+  },
+  {
+    "name": "fetch control: with a cap of 2 the same event is applied",
+    "group": "fetch",
+    "request": { "guest": "document", "kind": "fetch-twice", "payload": "https://example.com/x", "maxFetches": 2 },
+    "expect": { "outcome": "applied", "appliedRevision": 1, "text": "fetched:https://example.com/x" }
+  }
+]

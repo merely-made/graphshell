@@ -1,0 +1,26 @@
+<!doctype html>
+<!-- Copyright 2026 Mark Alan Boykin. SPDX-License-Identifier: MPL-2.0.
+     Timing page for the guest-in-a-page probe (guest runtime plan, P7): the
+     same cases on D1's route (P1's converted guests) and on Wasmtime in a
+     page. Serve host/testing/ so P1's files are reachable. -->
+<meta charset="utf-8">
+<title>guest runtime probe: timing</title>
+<pre id="result">running</pre>
+<script type="module">
+  import { timeAll } from './timing.js';
+  const load = async (path) => {
+    const response = await fetch(new URL('../' + path, import.meta.url));
+    if (!response.ok) throw new Error(`${path}: ${response.status}`);
+    return new Uint8Array(await response.arrayBuffer());
+  };
+  const out = document.getElementById('result');
+  try {
+    const result = await timeAll(load);
+    result.userAgent = navigator.userAgent;
+    window.__result = { passed: true, ...result };
+    out.textContent = JSON.stringify(window.__result, null, 2);
+  } catch (error) {
+    window.__result = { passed: false, error: String(error?.stack ?? error) };
+    out.textContent = window.__result.error;
+  }
+</script>

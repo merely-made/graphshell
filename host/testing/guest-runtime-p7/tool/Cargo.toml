@@ -1,0 +1,21 @@
+# Native tool for the guest runtime plan, P7: compiles the guests to Pulley
+# bytecode for the wasm-built host, runs the native controls, writes the
+# reference transcript and times the native side. Its own workspace, outside
+# the host workspace.
+[package]
+name = "guest-runtime-p7-tool"
+version = "0.0.1"
+edition = "2024"
+license = "MPL-2.0"
+publish = false
+
+[workspace]
+
+[dependencies]
+# The same feature set as wasm-host plus the compiler and `std`, so both
+# engines agree on which wasm features exist.
+wasmtime = { version = "51", default-features = false, features = ["runtime", "pulley", "cranelift", "component-model", "std"] }
+# The fixture endpoint, gate and call script the projection guest is checked with.
+graphshell-endpoint = { path = "../../../../crates/graphshell-endpoint", features = ["wit-testkit"] }
+script-wire = { path = "../../../../crates/script-wire" }
+serde_json = "1"

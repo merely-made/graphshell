@@ -1,0 +1,5 @@
+# Build products of the probe: the wasm-built host, the precompiled guests, the
+# reference transcript and the native and Node results.
+/build/
+/tool/target/
+/wasm-host/target/
