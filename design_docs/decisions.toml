@@ -1010,6 +1010,106 @@ title = "The text frame merges in place (Mark, 2026-11-20)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
 summary = "TextFrame removes leaving sources and adds entering ones in place rather than copying the frame."
 
+[decisions."table-projection D59"]
+title = "Publish only the changed accessibility nodes (Mark, 2026-11-20)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "The accessibility publish sends only the nodes a batch changed, with the row strip's offset carried as a transform."
+
+[decisions."table-projection D60"]
+title = "The box tree stays until the gate is closer (Mark, 2026-11-20)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "The scroll-batch route keeps rebuilding the box tree until the larger frame costs are cut."
+
+[decisions."table-projection D61"]
+title = "No attribute skip; the selector tree is noted (Mark, 2026-11-20)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "The style session gets no attribute skip; its whole-document selector tree is a candidate cut after the accessibility publish."
+
+[decisions."table-projection D62"]
+title = "The retained projection is a session in Genet (Mark, 2026-11-20)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "Genet owns a retained accessibility projection session that reports a per-batch change set."
+
+[decisions."table-projection D63"]
+title = "The session admits or refuses (Mark, 2026-11-20)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "The accessibility session patches only batches it can prove local and otherwise rebuilds the whole projection."
+
+[decisions."table-projection D64"]
+title = "The partial update reaches AccessKit (Mark, 2026-11-20)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "A batch's accessibility change set flows through Rootstock and the adapter to a partial AccessKit update."
+
+[decisions."table-projection D65"]
+title = "A generic container is named only from its own direct text (Mark, 2026-11-20)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "Until Genet projects text nodes, a generic container takes a name from content only when it has a direct text child."
+
+[decisions."table-projection D66"]
+title = "The change set is ids (Mark, 2026-11-20)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "The accessibility session reports a batch as added, changed and removed node ids, or as rebuilt."
+
+[decisions."table-projection D67"]
+title = "The session refuses on what the projection reads (Mark, 2026-11-20)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "The accessibility session refuses a batch only for dependencies the projection reads today."
+
+[decisions."table-projection D68"]
+title = "Writes on kept elements use the restyled set (Mark, 2026-11-20)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "The accessibility session re-projects kept nodes named by the style session's restyled set and reports only real differences."
+
+[decisions."table-projection D69"]
+title = "Bounds refresh every update and report apart (Mark, 2026-11-20)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "The accessibility session refreshes all bounds each update and reports bounds-only moves apart from changed nodes."
+
+[decisions."table-projection D70"]
+title = "Focus moves are node changes (Mark, 2026-11-20)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "The accessibility session reports a focus move as changes to the two nodes whose focused state differs."
+
+[decisions."table-projection D71"]
+title = "Every accessibility node is placed relative to its parent (Mark, 2026-11-20)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "Rootstock publishes each accessibility node as a translate from its parent with bounds at its own origin."
+
+[decisions."table-projection D72"]
+title = "Genet's AccessKit bridge keeps the whole tree (Mark, 2026-11-20)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "Genet's AccessKit bridge retains the whole tree and takes partial updates, so a late reader still gets the current tree."
+
+[decisions."table-projection D73"]
+title = "The structure lint runs on the whole retained tree (Mark, 2026-11-20)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "Every accessibility publish, partial or full, lints the adapter's whole retained tree."
+
+[decisions."table-projection D74"]
+title = "One geometry walk, offsets diffed (Mark, 2026-11-20)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "Rootstock finds moved accessibility nodes with one painted-geometry walk per publish, diffing parent-relative offsets."
+
+[decisions."table-projection D75"]
+title = "Parent-relative bounds everywhere, and the web host takes the change set (Mark, 2026-11-20)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "The shared composition is parent-relative for both hosts, and the web mirror moves onto the session's change set after the native path."
+
+[decisions."table-projection D76"]
+title = "The session lives while something consumes it (Mark, 2026-11-20)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "Rootstock keeps the accessibility session only while an adapter or the web mirror consumes it."
+
+[decisions."table-projection D77"]
+title = "Kept envelopes re-check their lives each publish (Mark, 2026-11-20)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "A partial accessibility publish re-checks the owner and mount lives of every envelope it keeps."
+
+[decisions."table-projection D78"]
+title = "Genet projects grid roles and grid properties (Mark, 2026-11-22)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "Genet's accessibility projection carries grid roles and the row, column and sort properties a virtualized table needs."
+
 [decisions."uxtree-spine D1"]
 title = "The spine is federated (Mark, 2026-11-11)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-11_uxtree_spine_plan.md"

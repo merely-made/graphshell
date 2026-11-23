@@ -653,6 +653,203 @@ Left from the headed pages (T4):
 
   *Applies D51.*
 
+- **D59. Publish only the changed accessibility nodes (Mark, 2026-11-20):** "Publish only
+  changed nodes". The publish rebuilds 526 nodes each scroll frame though about two rows
+  change, 7.1 ms of a 21 ms frame: Genet's projection 3.2 ms, AccessKit's submit 1.7, two
+  geometry walks 1.0, envelopes and native ids 0.9. Genet projects only the subtrees a
+  batch touched, the host keeps the last tree and sends a partial update, and the strip
+  carries a transform so a kept row's bounds do not change. Publishing only when a scroll
+  settles was the option not taken.
+
+  Links: summary The accessibility publish sends only the nodes a batch changed, with the row strip's offset carried as a transform.
+
+  *New.*
+
+- **D60. The box tree stays until the gate is closer (Mark, 2026-11-20):** "Leave it until
+  the gate is closer". Layout is 3.3 ms of the frame; the accessibility publish, the paint
+  list and the render worker are larger and go first.
+
+  Links: summary The scroll-batch route keeps rebuilding the box tree until the larger frame costs are cut.
+
+  *Refines D56.*
+
+- **D61. No attribute skip; the selector tree is noted (Mark, 2026-11-20):** "Withdraw D61,
+  note the selector tree". A skip for attribute writes no selector reads was ruled on a
+  lane's claim of 210 re-cascaded nodes a frame, then withdrawn the same day: measured, a
+  scroll frame restyles 23 or 45 elements, exactly the entering rows, and every attribute
+  write lands on a row its insertion already cascades. The style pass does build its
+  selector tree over 512 elements, the whole document, each frame; that is assessed after
+  D59, with the box tree (D60).
+
+  Links: summary The style session gets no attribute skip; its whole-document selector tree is a candidate cut after the accessibility publish.
+
+  *New.*
+
+- **D62. The retained projection is a session in Genet (Mark, 2026-11-20):** "A retained
+  session in Genet". genet-render gains an accessibility session, like the style session:
+  it takes the DOM, the layout and a batch's mutations, projects only the touched
+  subtrees, and reports the nodes changed, added and removed. Rootstock and the winit
+  adapter consume that change set; Pelt and Pictograph can too.
+
+  Links: summary Genet owns a retained accessibility projection session that reports a per-batch change set.
+
+  *Applies D59.*
+
+- **D63. The session admits or refuses (Mark, 2026-11-20):** "Admit or refuse, like the
+  scroll batch". A name can read other nodes, so the session patches only a batch it can
+  prove local: subtrees inserted or removed that nothing references by id and that
+  reference nothing outside, and attribute writes inside them. Any other batch rebuilds
+  the whole projection. Tests compare each patched projection against a full one.
+
+  Links: summary The accessibility session patches only batches it can prove local and otherwise rebuilds the whole projection.
+
+  *Applies D59.*
+
+- **D64. The partial update reaches AccessKit (Mark, 2026-11-20):** "All the way to
+  AccessKit". The change set passes through Rootstock's composition and the adapter's id
+  map, envelopes and routes, and AccessKit receives a partial tree update.
+
+  Links: summary A batch's accessibility change set flows through Rootstock and the adapter to a partial AccessKit update.
+
+  *Applies D59.*
+
+- **D65. A generic container is named only from its own direct text (Mark, 2026-11-20):**
+  "Name a generic only from its own direct text". Genet named every plain `div` from all
+  its text, so the table's strip carried 30 rows' text (1,680 characters) and each
+  entering row renamed two ancestors. Exact AccName 1.2 step 2F ("Follow AccName: generic
+  containers get no name") was ruled first and reopened the same day: Genet projects no
+  text nodes, so a `<p>`'s text reaches a reader only as its name, which is why Genet's
+  names plan keeps its 15 October denylist "until real projected text nodes permit a full
+  allowlist". So a generic keeps a name from content when it has a direct text child and
+  gets none when it has only element children. Direct text is read in the flat tree and
+  includes generated text ("Flat-tree children and generated text count"), as Genet names
+  those today. Interim until text nodes are projected.
+
+  Links: summary Until Genet projects text nodes, a generic container takes a name from content only when it has a direct text child.
+
+  *New.*
+
+- **D66. The change set is ids (Mark, 2026-11-20):** "Ids only: added, changed, removed". An update returns the ids of
+  nodes added, changed and removed, or says it rebuilt; the host reads node data from the
+  session by id. Equality with a full projection is by id, each node's child order exact.
+
+  Links: summary The accessibility session reports a batch as added, changed and removed node ids, or as rebuilt.
+
+  *Applies D62.*
+
+- **D67. The session refuses on what the projection reads (Mark, 2026-11-20):** "Refuse on what the projection reads". It
+  refuses when an inserted or removed id is named by any reference, dangling ones
+  included; when an inserted reference resolves outside its subtree; when a control,
+  label, heading or caption crosses a kept owner; under an `aria-hidden` ancestor; and at
+  a shadow host or slot. The reference attribute names are one list exported by the name
+  code. `aria-owns`, `aria-controls`, `aria-activedescendant` and `form=` are not read
+  today and do not refuse.
+
+  Links: summary The accessibility session refuses a batch only for dependencies the projection reads today.
+
+  *Refines D63.*
+
+- **D68. Writes on kept elements use the restyled set (Mark, 2026-11-20):** "Use the style session's restyled set". The session
+  re-projects each written or restyled kept node and reports it changed only when its
+  node data differs; a write to a reference attribute refuses. No list of inert
+  attributes.
+
+  Links: summary The accessibility session re-projects kept nodes named by the style session's restyled set and reports only real differences.
+
+  *Applies D55.*
+
+- **D69. Bounds refresh every update and report apart (Mark, 2026-11-20):** "Refresh all, report separately". The strip's
+  `top` write moves about 500 nodes a frame; refreshing every node's bounds costs 0.04 ms.
+  Bounds-only moves stay out of the changed list and are reported separately, so a host
+  that owns bounds ignores them.
+
+  Links: summary The accessibility session refreshes all bounds each update and reports bounds-only moves apart from changed nodes.
+
+  *Applies D59.*
+
+- **D70. Focus moves are node changes (Mark, 2026-11-20):** "As node changes". The update takes the focus; the old and new
+  focused nodes appear as changed, and a removed focused node as removed.
+
+  Links: summary The accessibility session reports a focus move as changes to the two nodes whose focused state differs.
+
+  *Applies D62.*
+
+- **D71. Every accessibility node is placed relative to its parent (Mark, 2026-11-20):**
+  "Every node relative to its parent". Rootstock published bounds in window coordinates,
+  so the strip's move rewrote about 510 nodes a frame. Each node now carries a translate
+  from its accessibility parent and bounds at its own origin; a moved container changes
+  one node, and no rule picks special elements. Final positions are unchanged.
+
+  Links: summary Rootstock publishes each accessibility node as a translate from its parent with bounds at its own origin.
+
+  *Refines D59.*
+
+- **D72. Genet's AccessKit bridge keeps the whole tree (Mark, 2026-11-20):** "Change Genet's bridge to keep the tree". The bridge held
+  one initial tree and the last update, so a partial update was right for a reader
+  attaching later only if the caller re-sent the whole tree each publish. The bridge
+  retains and patches the whole tree itself; the adapter sends only the partial update.
+  The adapter cloning its tree each publish (0.23 ms) was the option not taken.
+
+  Links: summary Genet's AccessKit bridge retains the whole tree and takes partial updates, so a late reader still gets the current tree.
+
+  *Applies D64.*
+
+- **D73. The structure lint runs on the whole retained tree (Mark, 2026-11-20):** "Lint the whole retained tree each publish". 0.42 ms
+  a publish, about 2%; today's guarantee is kept exactly.
+
+  Links: summary Every accessibility publish, partial or full, lints the adapter's whole retained tree.
+
+  *Applies D64.*
+
+- **D74. One geometry walk, offsets diffed (Mark, 2026-11-20):** "Merge into one walk and diff offsets". Rootstock walks
+  the painted geometry once a publish instead of twice and compares each node's
+  parent-relative offset with the retained one. Genet's moved list ignores Rootstock's
+  scroll planes and is not used. Skipping the walk on a layout signal is left for later.
+
+  Links: summary Rootstock finds moved accessibility nodes with one painted-geometry walk per publish, diffing parent-relative offsets.
+
+  *Applies D71.*
+
+- **D75. Parent-relative bounds everywhere, and the web host takes the change set (Mark, 2026-11-20):** "2, 3". Of three
+  options he chose the second and third together: the shared composition becomes
+  parent-relative and the web mirror sums translates ("Relative everywhere"), and the web
+  mirror then consumes the session's change set as the native adapter does ("Move the web
+  host onto the change set too"), in its own lane after the native path.
+
+  Links: summary The shared composition is parent-relative for both hosts, and the web mirror moves onto the session's change set after the native path.
+
+  *Refines D71.*
+
+- **D76. The session lives while something consumes it (Mark, 2026-11-20):** "Only while something consumes it". Rootstock
+  creates the session on the first publish for a native adapter or the web mirror, drops
+  it when the adapter, owner or DOM is replaced, and collects mutations and restyled sets
+  only meanwhile. Batches between publishes accumulate; a missing restyled set or a full
+  layout in between rebuilds.
+
+  Links: summary Rootstock keeps the accessibility session only while an adapter or the web mirror consumes it.
+
+  *Applies D62.*
+
+- **D77. Kept envelopes re-check their lives each publish (Mark, 2026-11-20):** "Re-check owner and mount each publish". A partial
+  publish reuses the envelopes of unchanged nodes and re-checks their owner and mount
+  lives every time.
+
+  Links: summary A partial accessibility publish re-checks the owner and mount lives of every envelope it keeps.
+
+  *Applies D64.*
+
+- **D78. Genet projects grid roles and grid properties (Mark, 2026-11-22):** "Roles and the
+  grid properties". Genet's neutral roles had Table, Row and Cell only: `role=grid` and
+  `role=columnheader` fell to Unknown and no row count, index or sort was projected, so a
+  reader heard neither a grid nor where a row sat among the table's 10,001. Genet adds
+  Grid, TreeGrid, ColumnHeader, RowHeader and GridCell, with row and column counts,
+  indexes, spans and sort direction, lowered to AccessKit. Roles alone was the option not
+  taken.
+
+  Links: summary Genet's accessibility projection carries grid roles and the row, column and sort properties a virtualized table needs.
+
+  *New.*
+
 ## Findings
 
 - 2026-11-15: adding a slot to a recipe type breaks every repository that builds one as a
@@ -994,3 +1191,37 @@ Left from the headed pages (T4):
   publish, 10.7 ms in these runs, is now the frame's largest cost. What is left in the
   route is whole-document work: D55 to D58
   (`testing/graphshell/frame-cost/scroll-batch/`, `scroll-batch-baseline/`).
+- 2026-11-20: D55, D57 and D58 are built and the route is on Genet's main with Rootstock's
+  caller. Same session, mean of 142 changed frames, every one taking the route: layout
+  3.3 ms (19.0 on Genet main, 8.8 before these cuts), the whole frame 31.1 ms, scroll at
+  the 95th percentile 36.5 ms. The captures match the full layout's to one part in 255,
+  which two full-layout runs also differ by. The speed gate is not met: the accessibility
+  publish is 11.4 ms of the frame in these runs, then the paint list at 4.9 ms. Open: the
+  box tree (D56), about 2.3 of the route's remaining 5.3 ms on Genet's own fixture, and
+  the style pass (see D61)
+  (`testing/graphshell/frame-cost/scroll-batch-2/`).
+- 2026-11-20: the accessibility publish by stage, mean of 160 scroll frames on a calmer
+  machine (whole frame about 21 ms, publish 7.1): Genet's document projection 3.2 ms,
+  AccessKit's submit 1.7, the two painted-geometry walks 0.6 and 0.4, native ids 0.5,
+  envelopes 0.4, lowering 0.1; 526 nodes each frame. D59 to D61 follow
+  (`testing/graphshell/frame-cost/a11y-stages/`).
+- 2026-11-20: what a scroll batch restyles, counted on the table: 83 mutations (27
+  insertions, 1 removal, 55 attribute writes, all on the entering row) restyle 23
+  elements, 165 restyle 45; the selector tree covers 512 elements either way. A sort
+  replaces every row: about 1,890 mutations, 507 to 516 restyled.
+- 2026-11-20: Genet's projection by stage on a 525-node fixture shaped like the table
+  (release, whole 5.97 ms): names 2.13 ms, descriptions 1.83, roles and states 0.55,
+  bounds 0.04, the rest about 1. A description recomputes the whole name only to decide
+  whether `title` may describe the node; checking for `title` first gives the same result
+  and is being made. The strip's own name alone is 0.38 ms (D65).
+- 2026-11-20: Genet's accessibility session is on its main (b7ef644b623). On the fixture
+  a table scroll batch patches in 0.75 ms against 4.02 ms for a full projection (release,
+  one run; later runs on a loaded machine kept the ratio near 0.19). Rootstock and the
+  winit adapter do not use it yet (D64, D71).
+- 2026-11-20: the native publish by stage on Genet b7ef644b623, a busy machine, means of
+  142 changed frames, 528 nodes (publish 12.9 ms, p95 14.3): composition (Genet's
+  projection, both walks, lowering) 11.2 ms, AccessKit's submit 4.27, envelopes 1.31, id
+  remap 1.13, structure lint 0.42, the whole-tree clone in `submit_root` 0.23. A write to
+  an attribute Rootstock reads itself (`data-cambium-text-value`, `data-key`, `id` and
+  the like) never appears in the session's change set, so such a batch publishes whole
+  (`testing/graphshell/frame-cost/a11y-host-baseline-b7ef/`, `a11y-host-probe-b7ef/`).

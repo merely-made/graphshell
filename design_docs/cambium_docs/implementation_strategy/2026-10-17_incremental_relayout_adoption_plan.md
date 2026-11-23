@@ -281,6 +281,30 @@ positioned box), and insert and remove, not only replace, for fragments, boxes a
 frame. Expected, until measured: layout 11.6 ms to about 1 to 3 ms, which leaves the frame
 near 20 ms until step 6's accessibility publish.
 
+Landed 2026-11-20 (table plan D51, D53 to D58). Buckram's `FragmentTree` gained
+`insert_subtree` and `remove_subtree`; the style session reports the nodes it re-cascaded
+and the route resolves and compares only those, patching the caller's plane in place; every
+refusing check runs before the first change; the text frame is spliced in place. Measured
+on the table, release, a busy machine, the mean of the 142 changed scroll frames of one
+run each (`testing/graphshell/frame-cost/scroll-batch-baseline/`, `scroll-batch-2/`):
+
+| ms | Genet main | with the route |
+|---|---|---|
+| layout and text | 19.0 | 3.3 |
+| whole UI frame | 46.9 | 31.1 |
+| accessibility publish | 11.1 | 11.4 |
+| paint list | 4.8 | 4.9 |
+| style | 1.8 | 1.9 |
+| scroll frame, 95th percentile | 58.7 | 36.5 |
+
+The route was taken on all 142 frames. These runs are slower throughout than the quiet
+run above (layout 11.6 ms, scroll 33.1 ms on Genet main), so compare the columns, not the
+tables. Left in the route, by Genet's own release breakdown on a 546-element fixture
+(5.3 ms a frame against 39.6 ms for a full layout): rebuilding and reconciling the box
+tree 2.3 ms (table plan D56, undecided), patching restyled styles 1.1 ms, formatting the
+entering row 0.6 ms. The scroll gate now turns on step 6: the accessibility publish is
+the largest cost in the frame.
+
 ## Decisions for the owner
 
 1. Approve the Genet extraction (P2) as the route, versus owning a Rootstock-side copy of the
