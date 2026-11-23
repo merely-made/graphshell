@@ -49,12 +49,14 @@ pub(super) fn bind(
 }
 
 /// Evaluate one script condition, preserving failure until the rule boundary.
-/// Boolean composition must not turn an engine failure into a match.
+/// Boolean composition must not turn an engine failure into a match. No value
+/// (Lua's `nil`, say from a guarded missing fact) is no match, as `false` is.
 pub(super) fn run(source: &str, engine: &mut Engine<'_>) -> Result<(bool, String), String> {
     match engine {
         None => Err("script: no script engine".into()),
         Some(engine) => match engine.eval(source, Budget::Steps(SCRIPT_STEP_BUDGET)) {
             Ok(ScriptValue::Bool(matched)) => Ok((matched, format!("script: {matched}"))),
+            Ok(ScriptValue::Unit) => Ok((false, "script: no value".into())),
             Ok(other) => Err(format!("script: returned {}, wanted a bool", other.kind())),
             Err(error) => Err(format!("script: {error}")),
         },

@@ -330,6 +330,7 @@ impl ValueEngine for Scripted {
             "yes" => Ok(ScriptValue::Bool(true)),
             "no" => Ok(ScriptValue::Bool(false)),
             "number" => Ok(ScriptValue::Int(1)),
+            "nothing" => Ok(ScriptValue::Unit),
             "over" => Err(ValueError::Budget),
             _ => Err(ValueError::Script(format!("cannot run {source}"))),
         }
@@ -440,6 +441,30 @@ fn a_failing_script_leaves_its_rule_unmatched_and_the_rest_resolve() {
     assert_eq!(reasons[0], "script: script error: cannot run boom");
     assert_eq!(reasons[1], "script: the script ran past its budget");
     assert_eq!(reasons[2], "script: returned int, wanted a bool");
+}
+
+#[cfg(feature = "scripts")]
+#[test]
+fn no_value_is_no_match_and_negates_like_false() {
+    let set = rules(vec![
+        scripted("nothing", 9, "nothing", Representation::Glyph),
+        rule(
+            "not-nothing",
+            8,
+            Condition::Not {
+                condition: Box::new(Condition::Script {
+                    source: "nothing".into(),
+                }),
+            },
+            Representation::Card,
+        ),
+    ]);
+    let resolved = set
+        .resolve_with_scripts(&context("a"), &mut Scripted::default())
+        .unwrap();
+    assert_eq!(resolved.traces[0].reason, "script: no value");
+    assert!(!resolved.matched_rules.contains("nothing"));
+    assert!(resolved.matched_rules.contains("not-nothing"));
 }
 
 #[cfg(feature = "scripts")]

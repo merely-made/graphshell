@@ -38,13 +38,13 @@ scripts = ["dep:script-engine-api"]
 toml = ["dep:toml"]
 
 [dev-dependencies]
-# The rule runner on a real engine: a consumer test of script-rhai, kept here
+# The rule runner on a real engine: a consumer test of script-didge, kept here
 # so the reading-side crate carries no dev edge back to the host (engine split P1).
-script-rhai = { workspace = true }
+script-didge = { workspace = true }
 libm = { workspace = true }
 
 [[test]]
-name = "script_rhai_rules"
+name = "script_lua_rules"
 required-features = ["scripts"]
 
 [lints]
