@@ -57,7 +57,7 @@ Surface lifetimes do not settle source-specific ones. Link, field and assertion 
 Native ROOT publication and ID remapping are implemented. The AccessKit hook is a local pinned 0.25.1 patch with upstream provenance under `support/patches/accesskit` *(historical citation)* <!-- doc-audit: historical-path -->, and Cargo patch tables do not propagate, so a standalone native consumer must declare the same patch at its own root. Open: promoting the AccessKit traversal API and coordinating patch and lock intake before external pins advance; guest compositor namespaces, grafts and trees (the publisher is ROOT-only and refuses them), install, reset and replay, and `SetTextSelection` ingress; `attach` refuses a different window handle and is idempotent for the same one, but has no explicit replacement protocol, and install success, permanent unsupported status, bounded recovery and window replacement must stay distinct states; separating adapter installation from OS traversal for the case where VoiceOver cannot enter the window tree; and Rootstock's intrinsic sizing and Path-B raster for custom leaves (`Leaf::measure` and `layout_dirty` are not received, and `RenderedLeaves::scenes` has only test consumers).
 - Done when: each of these is received with its own qualification path; the headed halves (old platform events, partial-install recovery and a retry policy on a real failure) belong to platform qualification.
 - Needs: M6 for external pins; platform qualification for headed receipts.
-- Rulings: -
+- Rulings: D1
 - From: `archive_docs/2026-10-28/2026-06-08_system_diagnostics_and_accessibility_plan.md:142-145,187-199,243-258,316-337,382-385,498-503,599-603`; `archive_docs/2026-10-28/2026-07-03_archived_plan_tails_plan.md:236-239`
 
 ### M5. A supplier-qualified semantic model and forward geometry
@@ -178,6 +178,24 @@ in a real queue submission, with native-window lifetime, surface generation
 and render-attempt identity. It does not claim display acknowledgement or M7
 frame/readback correlation. No new Meristem public trait, binding service or
 scheduler was needed; `no_std` plus `alloc` remains its contract.
+
+## Decisions
+
+- **D1. The window root keeps its native ID across activations (Mark, 2026-11-23):** "Keep
+  the host root's ID". On each new activation epoch `ForestPublisher::publish_at` cleared its
+  namespace, so every native ID was reallocated, the window root included. AccessKit hands
+  the activating reader the previous epoch's snapshot, so the root provider that reader had
+  just received (#2282 in the probe) died about 20 ms later, when the recomposed publication
+  replaced the root (#2338). Every property read on it then returned
+  `UIA_E_ELEMENTNOTAVAILABLE`, and Turnstone's p11 observer failed on its first query. The
+  window root now takes one native ID at install, used by the bootstrap and by every later
+  publication. Guest and admitted nodes still renew on each activation, so a stale action
+  target stays unadmittable. Keeping every ID across epochs, a fixed process-wide root ID,
+  and a retry in the p11 observer were the options not taken.
+
+  Links: summary The window root keeps one native ID for the window's life; every other native ID still renews on each activation.
+
+  *New.*
 
 ## Open questions
 

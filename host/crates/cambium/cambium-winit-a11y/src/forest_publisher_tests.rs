@@ -214,3 +214,29 @@ fn a_new_supplier_lineage_gets_new_ids_after_pair_reuse() {
     assert_eq!(native(&old, address), native(&same, address));
     assert_ne!(native(&old, address), native(&replacement, address));
 }
+
+#[test]
+fn a_new_activation_keeps_the_window_root_and_renews_the_rest() {
+    let host_root = allocate_id();
+    let first = ForestNamespace::hosted(host_root)
+        .prepare(nested_forest(), &HashMap::new(), &mut HashSet::new())
+        .unwrap();
+    // An epoch change starts from an empty namespace for the same window.
+    let mut changed = HashSet::new();
+    let next = ForestNamespace::hosted(host_root)
+        .prepare(nested_forest(), &HashMap::new(), &mut changed)
+        .unwrap();
+    let root = (TreeId::ROOT, NodeId(1));
+    assert_eq!(native(&first, root), (TreeId::ROOT, host_root));
+    assert_eq!(native(&next, root), (TreeId::ROOT, host_root));
+    assert_eq!(next.updates[0].tree.as_ref().unwrap().root, host_root);
+    assert!(changed.contains(&root));
+    let leaf = (CHILD, LEAF);
+    assert_ne!(native(&first, leaf), native(&next, leaf));
+    let same = first
+        .namespace
+        .prepare(nested_forest(), &HashMap::new(), &mut HashSet::new())
+        .unwrap();
+    assert_eq!(native(&same, root), (TreeId::ROOT, host_root));
+    assert_eq!(native(&same, leaf), native(&first, leaf));
+}

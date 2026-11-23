@@ -25,6 +25,7 @@ pub struct ForestPublisher<A> {
     queue: ActionQueue<A>,
     namespace: ForestNamespace,
     epoch: Option<u64>,
+    host_root: NodeId,
 }
 
 impl<A: Clone + Send + 'static> ForestPublisher<A> {
@@ -44,18 +45,20 @@ impl<A: Clone + Send + 'static> ForestPublisher<A> {
                 data: request.data,
             });
         });
+        let host_root = allocate_id();
         let mut publisher = Self {
             bridge,
             queue,
-            namespace: ForestNamespace::default(),
+            namespace: ForestNamespace::hosted(host_root),
             epoch: None,
+            host_root,
         };
         let mut root = Node::new(Role::Window);
         root.set_label(label);
         if let Err(error) = install_native(
             &mut publisher.bridge,
             window,
-            root_only(TreeInfo::new(allocate_id()), root),
+            root_only(TreeInfo::new(host_root), root),
         ) {
             eprintln!("[cambium-winit] accessibility install failed: {error}");
         }
@@ -150,7 +153,7 @@ impl<A: Clone + Send + 'static> ForestPublisher<A> {
     }
 
     fn clear_publication(&mut self) {
-        self.namespace = ForestNamespace::default();
+        self.namespace = ForestNamespace::hosted(self.host_root);
         self.queue.clear_publication();
     }
 }

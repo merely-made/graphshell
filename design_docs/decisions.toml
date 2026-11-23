@@ -230,6 +230,11 @@ title = "the relay runs on mesh machines behind a port forward"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-10-28_device_pairing_plan.md"
 summary = "The self-hosted iroh relay runs on T-PC behind a mesh port forward and dynamic DNS, with idle mesh machines as further relays."
 
+[decisions."diagnostics-and-accessibility D1"]
+title = "The window root keeps its native ID across activations (Mark, 2026-11-23)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-10-28_diagnostics_and_accessibility_plan.md"
+summary = "The window root keeps one native ID for the window's life; every other native ID still renews on each activation."
+
 [decisions."guest-runtime D1"]
 title = "The web build runs guests on the browser's own engine (Mark, 2026-11-21)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_guest_runtime_plan.md"

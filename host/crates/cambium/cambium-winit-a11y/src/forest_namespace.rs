@@ -15,6 +15,9 @@ use crate::{native_addresses::NativeAddresses, remap::try_map_node_ids};
 pub(super) struct ForestNamespace {
     nodes: NativeAddresses<Option<u64>>,
     replay: ForestReplay,
+    // The window root keeps one native ID for the window's life, so the
+    // provider a reader receives at activation survives the republication.
+    host_root: Option<NodeId>,
 }
 
 pub(super) struct PreparedForest {
@@ -24,6 +27,13 @@ pub(super) struct PreparedForest {
 }
 
 impl ForestNamespace {
+    pub fn hosted(host_root: NodeId) -> Self {
+        Self {
+            host_root: Some(host_root),
+            ..Self::default()
+        }
+    }
+
     pub fn native_address(&self, source: TreeAddress) -> Option<TreeAddress> {
         self.nodes.get(source).map(|node| (source.0, node))
     }
@@ -39,12 +49,23 @@ impl ForestNamespace {
         changed: &mut HashSet<TreeAddress>,
     ) -> Result<PreparedForest, String> {
         validate_forest(&updates)?;
+        let host_root = self
+            .host_root
+            .zip(updates[0].tree.as_ref())
+            .map(|(native, tree)| ((updates[0].tree_id, tree.root), native));
         let mut nodes = NativeAddresses::default();
         let mut sources = HashMap::new();
         for update in &updates {
             for (id, _) in &update.nodes {
                 let address = (update.tree_id, *id);
                 let tree_lineage = tree_lineages.get(&update.tree_id).copied();
+                if let Some((_, native)) = host_root.filter(|(root, _)| *root == address) {
+                    if nodes.pin(&self.nodes, address, native, tree_lineage) {
+                        changed.insert(address);
+                    }
+                    sources.insert((update.tree_id, native), address);
+                    continue;
+                }
                 let (native, assigned) = nodes.bind(
                     &self.nodes,
                     address,
@@ -75,7 +96,11 @@ impl ForestNamespace {
         }
         let replay = self.replay.prepare(&updates)?;
         Ok(PreparedForest {
-            namespace: Self { nodes, replay },
+            namespace: Self {
+                nodes,
+                replay,
+                host_root: self.host_root,
+            },
             updates,
             sources,
         })

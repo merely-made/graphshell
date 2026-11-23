@@ -37,6 +37,18 @@ impl<I> NativeAddresses<I> {
 }
 
 impl<I: PartialEq> NativeAddresses<I> {
+    /// Bind a source to a native ID chosen by the caller. True if it is new.
+    pub fn pin(
+        &mut self,
+        previous: &Self,
+        source: TreeAddress,
+        native: NodeId,
+        identity: I,
+    ) -> bool {
+        self.0.insert(source, Entry { native, identity });
+        previous.get(source) != Some(native)
+    }
+
     pub fn bind(
         &mut self,
         previous: &Self,
