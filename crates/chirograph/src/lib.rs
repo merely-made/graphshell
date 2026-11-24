@@ -31,6 +31,9 @@ pub use titulus::{
 };
 
 pub use presentation::{PresentationValidationError, validate_presentation};
+// Resume: the acknowledgement, the request and its reply.
+mod resume;
+pub use resume::{ProjectionAck, ResumeReply, ResumeRequest};
 pub use scenotime::{EngineRevision, Revision, SceneDiff, SceneEpoch, SceneSnapshot};
 
 // Portable projection captures, apart from the live wire they snapshot.
@@ -381,31 +384,6 @@ pub struct ProjectionDiff {
     pub scene: SceneDiff,
     pub presentation: Vec<PresentationChange>,
     pub status: Option<SessionStatus>,
-}
-
-/// The last revision a client has applied in memory: the session, epoch and
-/// revision of its mounted scene. It says nothing about what the client has
-/// stored.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub struct ProjectionAck {
-    pub session: ProjectionSession,
-    pub epoch: SceneEpoch,
-    pub revision: Revision,
-}
-
-/// Reconnect from a client's last acknowledged epoch and revision.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub struct ResumeRequest {
-    pub session: ProjectionSession,
-    pub epoch: SceneEpoch,
-    pub revision: Revision,
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub enum ResumeReply {
-    Current(ProjectionAck),
-    Diffs(Vec<ProjectionDiff>),
-    Snapshot(Box<ProjectionSnapshot>),
 }
 
 /// Most raw bytes one resource chunk carries before encoding.

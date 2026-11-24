@@ -336,6 +336,27 @@ summary = "Keyframe build is near linear after D3 (3.06 s at 100k); caching or i
 draws_on = ["mere:engine-split D161"]
 plans = ["engine-binding"]
 
+[decisions."engine-binding D5"]
+title = "A delta names its engine revisions in fields, landed after constructors (Mark, 2026-11-24)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-19_engine_binding_plan.md"
+summary = "Deltas and resumes name engine revisions in optional fields, landed after constructors and the consumers' move onto them."
+draws_on = ["mere:engine-split D181", "mere:engine-split D189"]
+plans = ["engine-binding"]
+
+[decisions."engine-binding D6"]
+title = "Host builds keep a node's instance slot within an epoch (Mark, 2026-11-24)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-19_engine_binding_plan.md"
+summary = "MereHost keeps a node's instance slot within an epoch, so a one-node edit is a one-node delta; D201's bound is re-measured on those deltas."
+draws_on = ["mere:engine-split D205"]
+plans = ["engine-binding"]
+
+[decisions."engine-binding D7"]
+title = "Retained deltas live per session and application in the resident's shared state (Mark, 2026-11-24)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-19_engine_binding_plan.md"
+summary = "The resident retains deltas per session and application in MereShared, across reconnects, and serves resumes from them."
+draws_on = ["mere:engine-split D201"]
+plans = ["engine-binding"]
+
 [decisions."graph-behaviors D1"]
 title = "Command packs live in the host toolkit's mod registry (Mark, 2026-11-23)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-10-28_graph_behaviors_plan.md"

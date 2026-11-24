@@ -11,7 +11,8 @@ use sceno::{
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    BackdropId, FoldId, RegionId, RelationId, Revision, SceneEpoch, SceneSnapshot, SnapshotError,
+    BackdropId, EngineRevision, FoldId, RegionId, RelationId, Revision, SceneEpoch, SceneSnapshot,
+    SnapshotError,
 };
 
 /// One idempotent transition within a scene epoch.
@@ -21,6 +22,31 @@ pub struct SceneDiff {
     pub base: Revision,
     pub revision: Revision,
     pub operations: Vec<SceneOp>,
+}
+
+impl SceneDiff {
+    /// A diff from `base` to `revision` within `epoch`. Build diffs here rather
+    /// than by struct literal: the engine revisions join as fields next
+    /// (engine binding D5), and a literal would have to name them.
+    pub fn new(
+        epoch: SceneEpoch,
+        base: Revision,
+        revision: Revision,
+        operations: Vec<SceneOp>,
+    ) -> Self {
+        Self {
+            epoch,
+            base,
+            revision,
+            operations,
+        }
+    }
+
+    /// This diff, naming the engine revisions of its base and target. Until
+    /// those fields land (engine binding D5) it names neither.
+    pub fn with_engine(self, _base: EngineRevision, _target: EngineRevision) -> Self {
+        self
+    }
 }
 
 /// Stable-slot scene changes. Additions append at the named index; tombstones

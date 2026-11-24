@@ -101,6 +101,18 @@ evidence actions become stale. The scene envelope and its intent routing remain 
 
   Links: draws on mere:engine-split D161 · plans engine-binding E3 · summary Keyframe build is near linear after D3 (3.06 s at 100k); caching or incremental snapshots wait on a ruling made from these numbers.
 
+- **D5. A delta names its engine revisions in fields, landed after constructors (Mark, 2026-11-24):** E3 needs every delta to name the engine revisions of its base and target and a resume to name the one the client holds. The E3 lane built them as optional fields on `SceneDiff` (`base_engine`, `engine_revision`) and `ResumeRequest` (`engine_revision`), absent from the wire when unset as on `SceneSnapshot` (`mere:engine-split D189`), but every struct literal must then name them, and distillery builds a `SceneDiff` in its library (`crates/distillery/src/chronicle.rs:783`), which the host workspace compiles. "Fields; fix consumers forward (Recommended)": (i) a Graphshell commit adding only the constructors (`SceneDiff::new`/`with_engine`, `ResumeRequest::new`/`with_engine`), with no fields yet; (ii) distillery, knot (knot-composition and its tests), mer3ly and Turnstone move their literals onto the constructors, each on a branch in its own worktree; (iii) the fields and the rest of E3. Against a `SceneOp` naming both engine revisions, checked before anything applies, which breaks no literal but which an old reader refuses rather than ignores; and the identities only inside D181's envelope, which holds E3 until that schema is ruled. Outcome: *New.*
+
+  Links: draws on mere:engine-split D181, mere:engine-split D189 · plans engine-binding E3 · summary Deltas and resumes name engine revisions in optional fields, landed after constructors and the consumers' move onto them.
+
+- **D6. Host builds keep a node's instance slot within an epoch (Mark, 2026-11-24):** `MereHost` built the newest node first, so a one-node edit moved every older node up one slot and its delta was 37% of a keyframe (544 KB of 1.50 MB at 1k nodes, 55.6 of 151 MB at 100k), leaving the byte cap binding at two deltas (Findings, 2026-11-24). "Slot-stable builds (Recommended)": `MereHost` keeps a node's instance within an epoch: new nodes append, removed ones tombstone, and visual order goes through `item_order`, which touches `instance_targets` and intent routing; then real one-node deltas are re-measured at 1k, 10k and 100k, reporting whether D201's 64 count or the byte cap binds. Against keeping the newest-first builds, which leaves recovery almost always a keyframe, and a new epoch at every structural edit, which always is one. Outcome: *New.*
+
+  Links: draws on mere:engine-split D205 · plans engine-binding E3 · summary MereHost keeps a node's instance slot within an epoch, so a one-node edit is a one-node delta; D201's bound is re-measured on those deltas.
+
+- **D7. Retained deltas live per session and application in the resident's shared state (Mark, 2026-11-24):** the resident builds the attached session's scene per application (`MereEndpoint::snapshot` runs `host.through(app, ..)`), so retained deltas belong to one application's builds, and its `resume` answers only `Current` or a whole snapshot. "Per session and app in MereShared (Recommended)": retention lives per (session, application) in `MereShared`, survives reconnects, and the resident's resume serves `Diffs` from it. Against retention inside `MereHost` keyed by `via`, and per connection in `MereEndpoint`, lost on reconnect. Outcome: *New.*
+
+  Links: draws on mere:engine-split D201 · plans engine-binding E3 · summary The resident retains deltas per session and application in MereShared, across reconnects, and serves resumes from them.
+
 ## Open questions
 
 - **A shape Graphshell already writes.** The table plan's T1 round-trips a fields list through a
@@ -144,6 +156,10 @@ evidence actions become stale. The scene envelope and its intent routing remain 
 
 ## Progress
 
+- 2026-11-24: D5's first step: `SceneDiff::new` and `with_engine` and `ResumeRequest::new` and
+  `with_engine`, with no fields yet, so consumers can move their struct literals onto them before
+  the fields land; `with_engine` names nothing until then. The resume types moved into
+  `chirograph`'s `resume.rs`, its `lib.rs` being at the line ceiling.
 - 2026-11-24: D3 built (branch `perf/keyframe-build`). `sceno::SourceInterner` indexes a scene's sources;
   `MereHost::build_snapshot`, `scene_out`, `scenomise`'s matrix, facet and solve intern through it. With
   `mere:37b06156d`, the keyframe build is 871 ms at 30k and 3.06 s at 100k (from 47.7 s and 607 s). A digest of the
