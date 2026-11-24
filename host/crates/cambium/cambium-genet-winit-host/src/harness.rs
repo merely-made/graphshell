@@ -39,6 +39,8 @@ use crate::{
 };
 use cambium_rootstock::meristem_bounds::RootView;
 
+mod cover;
+
 /// A windowless host for deterministic tests. See the module docs.
 pub struct Harness<State: 'static, Logic, V>
 where
@@ -554,6 +556,13 @@ where
     /// its consequence. Without the scroll, a click on an element a scrolling
     /// pane clips lands on whatever paints there; an element taller than its
     /// pane is clicked where it shows, not at its hidden centre.
+    ///
+    /// # Panics
+    ///
+    /// When the element shows but something else is topmost at its centre,
+    /// through the hit test the click routes by. A covered target is present,
+    /// so it is not a `false` miss: `assert!(!h.click_on(..))` would then pass
+    /// on a control that exists. The message names both elements and the point.
     pub fn click_on(&mut self, selector: &Selector) -> bool {
         let Some(target) = self.resolve_target(selector) else {
             return false;
@@ -586,9 +595,21 @@ where
         let Some((x, y, width, height)) = self.visible_rect(node) else {
             return false;
         };
-        self.click_at(x + width / 2.0, y + height / 2.0);
+        let (x, y) = (x + width / 2.0, y + height / 2.0);
+        self.assert_uncovered(selector, node, x, y);
+        self.click_at(x, y);
         self.relayout();
         true
+    }
+
+    /// Panic unless the topmost hit at `(x, y)` is `target` or inside it.
+    fn assert_uncovered(&self, selector: &Selector, target: NodeId, x: f32, y: f32) {
+        let hit = self.host.hit_at(x, y);
+        let dom = self.runner().dom();
+        let dom = dom.borrow();
+        if let Some(message) = cover::covered(&*dom, target, hit) {
+            panic!("click_on({selector:?}) at ({x:.1}, {y:.1}): {message}");
+        }
     }
 
     /// The part of `node` a reader can see: its painted rect cut by every
