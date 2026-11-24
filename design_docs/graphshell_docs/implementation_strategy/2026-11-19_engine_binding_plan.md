@@ -92,6 +92,15 @@ evidence actions become stale. The scene envelope and its intent routing remain 
 
 ## Findings
 
+- 2026-11-24, `graphshell-rdf-trail` against `mere:engine-split D195` to `D200` (P7's trail, not this plan's scope,
+  recorded here because no Graphshell plan names the crate): `55988ecb` carried no tests, so D199's "its round-trip
+  tests stay" had nothing to keep; the rework adds them (`tests/round_trip.rs`). A session already exists as a launch
+  number: `MereHost::with_launch` (`host/crates/graphshell/graphshell-host/src/mere_host.rs:791`) installs the persona's
+  `session_count` (`host/ports/mere-resident/src/persona_settings_store.rs`) into Mere's `Graph::current_session`, which
+  stamps `last_session_visited`; D200 says neither repository has a session and declined launch to exit. D202 keeps
+  both: the idle-gap browsing session sits beside the launch number, its gap a persona setting
+  (`browsing_idle_gap_minutes`, 30) installed by `MereHost::with_browsing_idle_gap_ms`. No code evicts a traversal,
+  so D196's eviction exists only as `EdgeMetrics` outliving a shortened list.
 - 2026-11-23, Mere `ac883e75c`: no host path puts a blank node in the Resource stratum. The
   projection mints named nodes only and skips a term whose IRI does not parse
   (`crates/graph/engine/src/projection.rs:62,180,245`, `crates/graph/graph-kernel/src/rdf.rs:61,179`),

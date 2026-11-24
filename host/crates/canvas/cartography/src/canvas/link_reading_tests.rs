@@ -489,10 +489,12 @@ fn portable_link_reads_bound_held_work_and_materialize_substantial_history() {
 #[test]
 fn summary_free_read_keeps_traversal_members_without_copying_event_history() {
     let mut payload = EdgePayload::new();
-    payload.push_traversal(kernel::graph::edge_data::Traversal {
-        timestamp_ms: 9,
-        trigger: kernel::graph::edge_taxonomy::NavigationTrigger::LinkClick,
-    });
+    payload.push_traversal(kernel::graph::edge_data::Traversal::at(
+        9,
+        kernel::graph::edge_taxonomy::NavigationTrigger::LinkClick,
+        "urn:test:recorder",
+        uuid::Uuid::from_u128(0x5e55),
+    ));
 
     let (members, summaries) = legacy_data(&payload, false);
     assert!(summaries.is_empty());

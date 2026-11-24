@@ -225,6 +225,10 @@ pub struct MereHost<B> {
     /// The launch number navigations stamp on their nodes; `0` until the
     /// boot owner installs one. A replacement session takes it too.
     launch: u64,
+    /// The browsing idle gap traversals use (mere:engine-split D202); the
+    /// graph's 30-minute default until the boot owner installs the persona's.
+    /// A replacement session takes it too.
+    browsing_idle_gap_ms: Option<u64>,
     projection_session: ProjectionSession,
     /// Whether the graph projection shows the session item (§7 item 31).
     session_item: bool,
@@ -348,6 +352,7 @@ impl<B: Backend + Clone> MereHost<B> {
             reopened,
             observing: false,
             launch: 0,
+            browsing_idle_gap_ms: None,
             projection_session: ProjectionSession(LOCAL_SESSION.to_string()),
             session_item: false,
             resident_publication: false,
@@ -553,6 +558,9 @@ impl<B: Backend + Clone> MereHost<B> {
             None => self.sessions.begin(self.author(), Some(graph)),
         };
         next.set_current_session(self.launch);
+        if let Some(idle_gap_ms) = self.browsing_idle_gap_ms {
+            next.set_browsing_idle_gap_ms(idle_gap_ms);
+        }
         self.retired
             .push(std::mem::replace(&mut self.graph_session, next));
         // One registry serves one graph.
@@ -791,6 +799,16 @@ impl<B: Backend> MereHost<B> {
     pub fn with_launch(mut self, launch: u64) -> Self {
         self.launch = launch;
         self.graph_session.set_current_session(launch);
+        self
+    }
+
+    /// This host, ending a browsing session after `idle_gap_ms` without a
+    /// recorded traversal: the persona's setting, read with its launch count
+    /// (`mere_resident::persona_settings_store::record_launch_settings`).
+    /// Sessions this host begins later take it too.
+    pub fn with_browsing_idle_gap_ms(mut self, idle_gap_ms: u64) -> Self {
+        self.browsing_idle_gap_ms = Some(idle_gap_ms);
+        self.graph_session.set_browsing_idle_gap_ms(idle_gap_ms);
         self
     }
 
@@ -2316,6 +2334,22 @@ mod tests {
             navigate(&mut next, second, "https://launch.test/b/again");
             assert_eq!(stamp(&next, second), Some(6));
         });
+    }
+
+    #[test]
+    fn browsing_idle_gap_reaches_this_and_later_sessions() {
+        let mut host = MereHost::empty(
+            MemoryBackend::new(),
+            selected_persona(),
+            fixture_handlers(),
+            access_context(),
+        );
+        let default = host.graph().browsing_idle_gap_ms();
+        let mut host = host.with_browsing_idle_gap_ms(60_000);
+        assert_ne!(default, 60_000, "the control starts elsewhere");
+        assert_eq!(host.graph().browsing_idle_gap_ms(), 60_000);
+        host.begin_session(Graph::new());
+        assert_eq!(host.graph().browsing_idle_gap_ms(), 60_000);
     }
 
     #[test]

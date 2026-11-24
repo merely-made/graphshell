@@ -1,11 +1,14 @@
 // Copyright 2026 Mark Alan Boykin
 // SPDX-License-Identifier: MPL-2.0
 
-//! Graphshell's browsing-trail RDF exchange. The named graph is the original
-//! workspace's scope. Surface UUIDs and visit positions identify occurrences,
-//! while an address only identifies the page an occurrence visited.
-//! Event identifiers are scoped to the exported trail. Reopening retains the
-//! scope and the event order, including events with identical payloads.
+//! Graphshell's browsing-trail RDF exchange (mere:engine-split D182, D195 to
+//! D199). The trail graph, named for the original workspace's scope, holds the
+//! Surfaces, navigation memory and frame membership. Traversal events and each
+//! edge's aggregate metrics live apart from it in the workspace's history graph.
+//! Surface UUIDs identify occurrences, while an address only identifies the
+//! page an occurrence visited. An event is named by the UUID minted when it was
+//! recorded and names the agent that recorded it, so reopening keeps events
+//! with identical payloads apart.
 
 use std::collections::{BTreeMap, HashMap};
 
@@ -16,11 +19,14 @@ use oxrdf::vocab::rdf;
 use oxrdf::{Literal, NamedNode, Quad, Term};
 use uuid::Uuid;
 
+mod history;
 mod navigation;
 
 const NS: &str = "urn:graphshell:vocabulary:browsing-trail:1:";
 const DERIVED_FROM: &str = "http://www.w3.org/ns/prov#wasDerivedFrom";
+const ATTRIBUTED_TO: &str = "http://www.w3.org/ns/prov#wasAttributedTo";
 const SCOPE: &str = "urn:graphshell:browsing-trail:";
+const HISTORY: &str = "urn:graphshell:browsing-history:";
 
 /// Imported origin scope is kept independently of the new local session ID.
 /// The scope records the source named by the file, without authenticating it.
@@ -36,6 +42,7 @@ pub fn export(graph: &Graph, origin: Uuid) -> Result<String> {
     let scope = named(format!("{SCOPE}{origin}"));
     let mut out = Writer {
         scope: scope.clone(),
+        history: named(format!("{HISTORY}{origin}")),
         quads: Vec::new(),
     };
     out.write(&scope, rdf::TYPE.into_owned(), vocab("BrowsingTrail"));
@@ -51,27 +58,7 @@ pub fn export(graph: &Graph, origin: Uuid) -> Result<String> {
         );
     }
     navigation::write(snapshot.navigation.snapshot(), &mut out)?;
-    let mut traversals = BTreeMap::<_, Vec<&mere::model::edge_data::Traversal>>::new();
-    for (_, from, to, payload) in graph.surface_relation_buckets() {
-        if let Some(data) = &payload.traversal {
-            let from = graph.get_node(from).ok_or("missing source surface")?.id;
-            let to = graph.get_node(to).ok_or("missing target surface")?.id;
-            traversals
-                .entry((from, to))
-                .or_default()
-                .extend(&data.traversals);
-        }
-    }
-    let events = traversals
-        .into_iter()
-        .flat_map(|((from, to), events)| events.into_iter().map(move |event| (from, to, event)));
-    for (index, (from, to, event)) in events.enumerate() {
-        let row = out.row("traversal", index, "Traversal");
-        out.set(&row, "fromSurface", surface(from));
-        out.set(&row, "toSurface", surface(to));
-        out.set(&row, "timestampMs", unsigned(event.timestamp_ms));
-        out.set(&row, "trigger", enum_term(event.trigger)?);
-    }
+    history::write(graph, &mut out)?;
     let mut frames = std::collections::BTreeSet::new();
     for relation in graph.arrangement_edges() {
         if relation.sub_kind == ArrangementSubKind::FrameMember {
@@ -140,23 +127,7 @@ pub fn reopen(text: &str) -> Result<ReopenedTrail> {
         )
         .ok_or("frame membership could not be restored")?;
     }
-    for row in source.rows("traversal", "Traversal")? {
-        let (from, to) = source.endpoints(&graph, row)?;
-        let trigger = source.enumeration(row, "trigger")?;
-        let timestamp_ms = Some(source.uint(row, "timestampMs")?);
-        let outcome = apply::apply_graph_delta(
-            &mut graph,
-            apply::GraphDelta::AppendTraversal {
-                from,
-                to,
-                trigger,
-                timestamp_ms,
-            },
-        );
-        if !matches!(outcome, apply::GraphDeltaResult::TraversalAppended(true)) {
-            return Err(format!("traversal endpoints refused on {row}"));
-        }
-    }
+    let graph = history::read(&source, graph)?;
 
     Ok(ReopenedTrail { origin, graph })
 }
@@ -174,14 +145,19 @@ fn surface(id: Uuid) -> NamedNode {
 }
 
 fn surface_id(node: &NamedNode) -> Result<Uuid> {
+    uuid_of(node, "surface")
+}
+
+/// The UUID a canonical `urn:uuid:` IRI names, for a Surface or an event.
+fn uuid_of(node: &NamedNode, what: &str) -> Result<Uuid> {
     let id = Uuid::parse_str(
         node.as_str()
             .strip_prefix("urn:uuid:")
-            .ok_or("invalid surface identity")?,
+            .ok_or_else(|| format!("invalid {what} identity"))?,
     )
     .map_err(|err| err.to_string())?;
     if surface(id) != *node {
-        return Err(format!("noncanonical surface identity {node}"));
+        return Err(format!("noncanonical {what} identity {node}"));
     }
     Ok(id)
 }
@@ -197,17 +173,37 @@ fn enum_term(value: impl serde::Serialize) -> Result<NamedNode> {
 
 struct Writer {
     scope: NamedNode,
+    history: NamedNode,
     quads: Vec<Quad>,
 }
 
 impl Writer {
     fn write(&mut self, subject: &NamedNode, predicate: NamedNode, object: impl Into<Term>) {
-        self.quads.push(Quad::new(
-            subject.clone(),
-            predicate,
-            object,
-            self.scope.clone(),
-        ));
+        let graph = self.scope.clone();
+        self.write_in(graph, subject, predicate, object);
+    }
+
+    fn write_in(
+        &mut self,
+        graph: NamedNode,
+        subject: &NamedNode,
+        predicate: NamedNode,
+        object: impl Into<Term>,
+    ) {
+        self.quads
+            .push(Quad::new(subject.clone(), predicate, object, graph));
+    }
+
+    /// A statement in the workspace's history graph.
+    fn history_set(&mut self, subject: &NamedNode, predicate: NamedNode, object: impl Into<Term>) {
+        let graph = self.history.clone();
+        self.write_in(graph, subject, predicate, object);
+    }
+
+    fn history_kind(&mut self, subject: &NamedNode, class: &str) {
+        self.history_set(subject, rdf::TYPE.into_owned(), vocab(class));
+        let history = self.history.clone();
+        self.history_set(subject, named(DERIVED_FROM), history);
     }
 
     fn set(&mut self, subject: &NamedNode, predicate: &str, object: impl Into<Term>) {
@@ -232,24 +228,41 @@ impl Writer {
 
 struct Reader {
     scope: NamedNode,
+    history: NamedNode,
     records: BTreeMap<NamedNode, HashMap<NamedNode, Vec<Term>>>,
+    /// The named graph each subject was read from.
+    graphs: HashMap<NamedNode, NamedNode>,
 }
 
 impl Reader {
     fn new(quads: impl IntoIterator<Item = Quad>) -> Result<Self> {
         let mut records: BTreeMap<NamedNode, HashMap<NamedNode, Vec<Term>>> = BTreeMap::new();
-        let mut scope = None;
+        let mut graphs: HashMap<NamedNode, NamedNode> = HashMap::new();
+        let (mut scope, mut history) = (None, None);
         for quad in quads {
             let oxrdf::GraphName::NamedNode(graph) = quad.graph_name else {
-                return Err("the trail must be in its source named graph".into());
+                return Err("the trail must be in its source named graphs".into());
             };
-            if scope.as_ref().is_some_and(|existing| existing != &graph) {
+            let slot = if graph.as_str().starts_with(SCOPE) {
+                &mut scope
+            } else if graph.as_str().starts_with(HISTORY) {
+                &mut history
+            } else {
+                return Err(format!("unexpected named graph {graph}"));
+            };
+            if slot.as_ref().is_some_and(|existing| existing != &graph) {
                 return Err("a browsing trail file must contain one source graph".into());
             }
-            scope = Some(graph);
+            *slot = Some(graph.clone());
             let oxrdf::NamedOrBlankNode::NamedNode(subject) = quad.subject else {
                 return Err("trail records require named identities".into());
             };
+            if graphs
+                .insert(subject.clone(), graph.clone())
+                .is_some_and(|seen| seen != graph)
+            {
+                return Err(format!("{subject} is described in two graphs"));
+            }
             records
                 .entry(subject)
                 .or_default()
@@ -258,13 +271,30 @@ impl Reader {
                 .push(quad.object);
         }
         let scope = scope.ok_or("empty browsing trail")?;
-        let source = Self { scope, records };
+        let origin = scope.as_str().strip_prefix(SCOPE).unwrap_or_default();
+        let expected = named(format!("{HISTORY}{origin}"));
+        if history.as_ref().is_some_and(|history| history != &expected) {
+            return Err(format!("the history graph is not {expected}"));
+        }
+        let source = Self {
+            scope,
+            history: expected,
+            records,
+            graphs,
+        };
         for node in source.records.keys().filter(|node| *node != &source.scope) {
-            if source.one(node, DERIVED_FROM)? != &Term::from(source.scope.clone()) {
+            let graph = &source.graphs[node];
+            if source.one(node, DERIVED_FROM)? != &Term::from(graph.clone()) {
                 return Err(format!("{node} has inconsistent source provenance"));
             }
         }
         Ok(source)
+    }
+
+    /// Subjects of `class` described in the history graph.
+    fn history_typed<'a>(&'a self, class: &str) -> impl Iterator<Item = &'a NamedNode> {
+        self.typed(class)
+            .filter(|node| self.graphs.get(*node) == Some(&self.history))
     }
 
     fn values(&self, node: &NamedNode, property: &str) -> &[Term] {

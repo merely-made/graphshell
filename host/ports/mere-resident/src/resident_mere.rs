@@ -129,14 +129,22 @@ use crate::domain_registry::{
     RegistryError, Unregistered,
 };
 
+/// What the boot owner reads from the persona's settings once per process.
+#[derive(Clone, Copy)]
+struct PersonaLaunch {
+    launch: u64,
+    browsing_idle_gap_ms: u64,
+}
+
 struct Routes {
     coop_custody: Option<Arc<dyn dramatis_resident::custody_host::ResidentCustody>>,
     coop_relays: Vec<transport::p2panda_transport::RelayUrl>,
     shared_root: PathBuf,
     persona: PersonaId,
-    /// This process's launch of `persona`, counted when the first mere is
-    /// served and installed on every host the routes open.
-    launch: OnceCell<u64>,
+    /// This process's launch of `persona` and its browsing idle gap, read
+    /// when the first mere is served and installed on every host the routes
+    /// open.
+    launch: OnceCell<PersonaLaunch>,
     catalog: WeakAppEndpointCatalog,
     grants: AppRouteGrants,
     /// The installed registrations: authority by domain (cycle breaks P1b).
@@ -420,15 +428,23 @@ impl MereRoutes {
         self
     }
 
-    /// The persona's launch number for this process: counted in the
-    /// persona's settings once, on first use, and held for every mere served.
-    async fn launch(&self) -> Result<u64, String> {
+    /// The persona's launch number for this process and its browsing idle
+    /// gap: counted and read in the persona's settings once, on first use, and
+    /// held for every mere served.
+    async fn launch(&self) -> Result<PersonaLaunch, String> {
         let launch = self.inner.launch.get_or_try_init(|| async {
             let root = DirectoryBackend::open(&self.inner.shared_root)
                 .map_err(|error| error.to_string())?;
-            crate::persona_settings_store::record_launch(&JsonSlots::new(root), self.inner.persona)
-                .await
-                .map_err(|error| error.to_string())
+            let settings = crate::persona_settings_store::record_launch_settings(
+                &JsonSlots::new(root),
+                self.inner.persona,
+            )
+            .await
+            .map_err(|error| error.to_string())?;
+            Ok::<_, String>(PersonaLaunch {
+                launch: settings.session_count,
+                browsing_idle_gap_ms: settings.browsing_idle_gap_ms(),
+            })
         });
         launch.await.copied()
     }
@@ -471,7 +487,10 @@ impl MereRoutes {
         if served.contains_key(&domain) {
             return Ok(route);
         }
-        let launch = self.launch().await?;
+        let PersonaLaunch {
+            launch,
+            browsing_idle_gap_ms,
+        } = self.launch().await?;
         let backend = open_mere_backend(&self.inner.shared_root, self.inner.persona, mere.id)
             .map_err(|error| error.to_string())?;
         let shared = Arc::new(MereShared {
@@ -494,6 +513,7 @@ impl MereRoutes {
             backend,
             persona: self.inner.persona,
             launch,
+            browsing_idle_gap_ms,
             hosts: Mutex::new(HashMap::new()),
             coop: Default::default(),
             lifecycle: AtomicU64::new(1),
@@ -830,6 +850,8 @@ struct MereShared {
     persona: PersonaId,
     /// The launch every host of this mere stamps on the nodes it navigates.
     launch: u64,
+    /// The persona's browsing idle gap every host of this mere installs.
+    browsing_idle_gap_ms: u64,
     hosts: Mutex<HashMap<SessionId, SharedHost>>,
     coop: coop::Activities,
     /// The sessions projection's revision: it moves with every lifecycle step.
@@ -933,6 +955,7 @@ impl MereShared {
         .map_err(|error| error.to_string())?
         .with_projection_session(ProjectionSession(MERE_GRAPH.to_string()))
         .with_launch(self.launch)
+        .with_browsing_idle_gap_ms(self.browsing_idle_gap_ms)
         .with_session_item();
         let host = match &self.admission_validator {
             Some(validator) => host.with_graph_admission_validator(validator.clone()),

@@ -36,7 +36,7 @@ pub const PERSONA_UI_FILENAME: &str = "ui.json";
 
 /// Per-persona UI configuration. Each field is optional / defaulted so an absent or older
 /// file still parses and falls back to the host's defaults.
-#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct PersonaSettings {
     /// scope=persona; movement=persona-synced opt-in; mutability=live;
     /// security=ordinary. The context menu's command ids, in order — the user's curated menu
@@ -67,6 +67,39 @@ pub struct PersonaSettings {
     /// (Alembic B5 — by-sessions eviction.)
     #[serde(default)]
     pub session_count: u64,
+    /// scope=persona; movement=persona-synced opt-in; mutability=restart-required;
+    /// security=ordinary. Minutes without a recorded traversal that end a browsing session
+    /// (mere:engine-split D200, D202), apart from the launch counter above. Absent / older file
+    /// falls back to 30. Read with the launch count and installed into every host the persona's
+    /// boot owner opens with `MereHost::with_browsing_idle_gap_ms`.
+    #[serde(default = "default_browsing_idle_gap_minutes")]
+    pub browsing_idle_gap_minutes: u64,
+}
+
+/// The browsing idle gap a persona starts with (D200): 30 minutes.
+pub const DEFAULT_BROWSING_IDLE_GAP_MINUTES: u64 = 30;
+
+fn default_browsing_idle_gap_minutes() -> u64 {
+    DEFAULT_BROWSING_IDLE_GAP_MINUTES
+}
+
+impl Default for PersonaSettings {
+    fn default() -> Self {
+        Self {
+            menu_actions: None,
+            command_usage: Default::default(),
+            eviction_policy: Default::default(),
+            session_count: 0,
+            browsing_idle_gap_minutes: DEFAULT_BROWSING_IDLE_GAP_MINUTES,
+        }
+    }
+}
+
+impl PersonaSettings {
+    /// The browsing idle gap in milliseconds, as the graph takes it.
+    pub fn browsing_idle_gap_ms(&self) -> u64 {
+        self.browsing_idle_gap_minutes.saturating_mul(60_000)
+    }
 }
 
 /// The `<data_root>/personas/<id>/settings/` directory for `persona`. Pure.
@@ -101,13 +134,22 @@ pub async fn record_launch<B: Backend>(
     slots: &JsonSlots<B>,
     persona: PersonaId,
 ) -> Result<u64, StoreError> {
+    Ok(record_launch_settings(slots, persona).await?.session_count)
+}
+
+/// [`record_launch`], returning the settings it stored, so the boot owner reads the launch
+/// count and the browsing idle gap in one pass.
+pub async fn record_launch_settings<B: Backend>(
+    slots: &JsonSlots<B>,
+    persona: PersonaId,
+) -> Result<PersonaSettings, StoreError> {
     let key = persona_settings_key(persona);
     let mut settings: PersonaSettings = slots.load(&key).await?.unwrap_or_default();
     settings.session_count = settings.session_count.saturating_add(1);
     let bytes = serde_json::to_vec_pretty(&settings)
         .map_err(|error| StoreError::Codec(error.to_string()))?;
     slots.backend().put(&key, &bytes).await?;
-    Ok(settings.session_count)
+    Ok(settings)
 }
 
 /// Load this persona's UI settings, or `None` when the file does not exist yet (a fresh
@@ -196,6 +238,7 @@ mod tests {
                 .collect(),
             eviction_policy: EvictionPolicy::KeepDays(90),
             session_count: 7,
+            browsing_idle_gap_minutes: 45,
         };
         save_persona_settings(&root, fixture_persona(), &original).unwrap();
         let restored = load_persona_settings(&root, fixture_persona())
@@ -209,6 +252,24 @@ mod tests {
         );
         assert_eq!(restored.session_count, 7, "the launch counter persists");
         let _ = fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn browsing_idle_gap_defaults_to_thirty_minutes_and_rides_the_launch_read() {
+        let older: PersonaSettings = serde_json::from_str(r#"{"session_count": 3}"#).unwrap();
+        assert_eq!(older.browsing_idle_gap_minutes, 30);
+        assert_eq!(older.browsing_idle_gap_ms(), 30 * 60 * 1000);
+        pollster::block_on(async {
+            let slots = JsonSlots::new(muniment::MemoryBackend::new());
+            let key = persona_settings_key(fixture_persona());
+            let edited = PersonaSettings {
+                browsing_idle_gap_minutes: 5,
+                ..PersonaSettings::default()
+            };
+            slots.save(&key, &edited).await.unwrap();
+            let read = record_launch_settings(&slots, fixture_persona()).await.unwrap();
+            assert_eq!((read.session_count, read.browsing_idle_gap_ms()), (1, 300_000));
+        });
     }
 
     #[test]
