@@ -3,7 +3,7 @@
 **Status:** 2026-11-24: in progress. Cut from GB6 P1 of `2026-10-28_graph_behaviors_plan.md`, whose
 D1 to D6 place packs in the host toolkit's mod registry, run them through `lua-command` and set
 their admission levels. D1 to D12 here settle the manifest, grants, context, first host, the
-edges of admission, reloading, and Turnstone's targets and pack manager. CP1 and CP2 are met; CP3 is next.
+edges of admission, reloading, and Turnstone's targets and pack manager. CP1, CP2 and CP3 are met; CP4 is next.
 
 **For:** Lua command packs: commands that install at runtime from a manifest, show in an app's
 palette without a Rust enum variant, read a read-only context, and return action requests the host
@@ -224,6 +224,16 @@ D11, D12, `graph-behaviors D6`). Desktop only; the wasm32 build compiles without
    `Action` per command for rollback, which uses hest's new `CommandSet::unregister`. A pack's
    limits are the runner's, not the manifest's, and its heap ceiling is `script-didge`'s 16 MiB.
    `command-packs` 13 tests, `script-didge` 70 and `document-host` 57 pass.
+5. CP3, 2026-11-24. `ModRegistry` gains `install_lua_pack(root, level)`, `unload_lua_pack(id)`,
+   `reload_lua_pack(id)` and `reload_all_lua_packs()`, failing with `PackLifecycleError`
+   (`Refused`, `NoRuntime`, `UnknownPack`, `IdChanged`, `Activation`, `Unload`); unload forgets the
+   pack so it can be installed again. `LuaPackRuntime::replace` swaps an old version for a new one,
+   and the runner does it under one lock pair, so a conflict changes nothing (D9). A conformant
+   admission reads every source into `AdmittedPack::sources` and the runner runs that text; a
+   dev-mode pack's map is empty and its files are read at each run (D10). A conformant reload
+   refuses a leftover undeclared file, so removing a command means removing its `.lua` too.
+   Reloading a pack that is not Active re-admits without activating. `command-packs` 22 tests
+   (13 new) and `document-host` 57 pass.
 
 ## Progress
 
@@ -232,4 +242,5 @@ D11, D12, `graph-behaviors D6`). Desktop only; the wasm32 build compiles without
 - 2026-11-24: D8 ruled; CP2 started.
 - 2026-11-24: D9 and D10 ruled; CP3 started.
 - 2026-11-24: D11 and D12 ruled for CP4.
+- 2026-11-24: CP3 met (Findings 5; graphshell `ca77d265`).
 - 2026-11-24: CP2 met (Findings 4; graphshell `6a1b2f54`, Inker `40a2d10`).
