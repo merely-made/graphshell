@@ -256,6 +256,21 @@ area = "The stack"
 summary = "The command pack runner is its own crate beside document-host, so only hosts that run packs link the Lua VM."
 plans = ["command-packs"]
 
+[decisions."command-packs D9"]
+title = "A pack reloads when asked (Mark, 2026-11-24)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-24_command_packs_plan.md"
+area = "The stack"
+summary = "A command pack is reloaded only when the host or the user asks."
+plans = ["command-packs"]
+
+[decisions."command-packs D10"]
+title = "A conformant pack runs the sources it was admitted with (Mark, 2026-11-24)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-24_command_packs_plan.md"
+area = "The stack"
+summary = "A conformant pack keeps the sources it was admitted with until reloaded; a dev-mode pack reads its files live."
+amends = ["graph-behaviors D3"]
+plans = ["command-packs"]
+
 [decisions."compositor-placement D1"]
 title = "Both motions (Mark, 2026-11-20)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-20_compositor_placement_plan.md"

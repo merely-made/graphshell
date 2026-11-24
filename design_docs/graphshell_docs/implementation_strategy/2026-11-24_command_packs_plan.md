@@ -2,8 +2,8 @@
 
 **Status:** 2026-11-24: in progress. Cut from GB6 P1 of `2026-10-28_graph_behaviors_plan.md`, whose
 D1 to D6 place packs in the host toolkit's mod registry, run them through `lua-command` and set
-their admission levels. D1 to D7 here settle the manifest, grants, context, first host and the
-edges of admission. CP1 and CP2 are met; CP3 is next.
+their admission levels. D1 to D10 here settle the manifest, grants, context, first host, the
+edges of admission and reloading. CP1 and CP2 are met; CP3 is next.
 
 **For:** Lua command packs: commands that install at runtime from a manifest, show in an app's
 palette without a Rust enum variant, read a read-only context, and return action requests the host
@@ -149,6 +149,24 @@ from the registry, and its pack manager shows each pack's level (D5, `graph-beha
 
   Links: area The stack · plans command-packs CP2 · summary The command pack runner is its own crate beside document-host, so only hosts that run packs link the Lua VM.
 
+- **D9. A pack reloads when asked (Mark, 2026-11-24):** Evidence: CP2's runner reads a command's
+  source at every run, so only a manifest change (commands, grants, labels) needs a reload; a
+  failed reload keeps the last good version. Offered: an explicit reload of one pack or all, which
+  hosts expose as a palette command and in the pack manager (recommended); watching pack folders;
+  both, watching dev-mode packs only. Answer: "An explicit reload (Recommended)". What follows: no
+  file watcher. Outcome: new.
+
+  Links: area The stack · plans command-packs CP3 · summary A command pack is reloaded only when the host or the user asks.
+
+- **D10. A conformant pack runs the sources it was admitted with (Mark, 2026-11-24):** Evidence:
+  CP2 reads the source at each run, so an edited script ran without being checked again, even in a
+  conformant pack. Offered: conformant packs pinned at admission, dev-mode packs live
+  (recommended); both live; both pinned. Answer: "Pin conformant, live dev mode (Recommended)".
+  What follows: a conformant pack's edit takes effect after a reload re-admits it; a dev-mode pack
+  still reads its file at each run. Outcome: refines `graph-behaviors D3`.
+
+  Links: area The stack · amends graph-behaviors D3 · plans command-packs CP3 · summary A conformant pack keeps the sources it was admitted with until reloaded; a dev-mode pack reads its files live.
+
 ## Open questions
 
 - The install dialog's wording for an open-ended class grant (D3).
@@ -192,4 +210,5 @@ from the registry, and its pack manager shows each pack's level (D5, `graph-beha
 - 2026-11-24: cut from GB6 P1; D1 to D5 ruled.
 - 2026-11-24: CP1 met (Findings 2); D6 and D7 ruled.
 - 2026-11-24: D8 ruled; CP2 started.
+- 2026-11-24: D9 and D10 ruled; CP3 started.
 - 2026-11-24: CP2 met (Findings 4; graphshell `6a1b2f54`, Inker `40a2d10`).
