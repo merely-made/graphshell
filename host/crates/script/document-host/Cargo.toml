@@ -29,6 +29,8 @@ pulley = ["wasmtime/pulley"]
 # metadata from normal dependencies only). The crate itself is not used.
 graphshell-endpoint = { workspace = true }
 servitor = { workspace = true }
+# `EffectClass`, the grant vocabulary of a Lua command pack (command packs CP1).
+hest = { workspace = true }
 # wasmtime 45 (default features: component-model + async always-on). Async exports
 # are invoked via call_async on a fiber so a future sync `fetch` import can suspend
 # a turn without blocking (plan §11.7-7).

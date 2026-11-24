@@ -1,0 +1,24 @@
+abi = 1
+mod_id = "notes-pack"
+display_name = "Notes pack"
+mod_type = "lua"
+# Helper modules the command sources require.
+files = ["lib/util.lua"]
+
+[grants]
+classes = ["Curation"]
+commands = ["identity:webfinger"]
+
+[[contributes]]
+kind = "command"
+id = "notes-pack:tidy"
+label = "Tidy the selection"
+effect = "Curation"
+source = "tidy.lua"
+
+[[contributes]]
+kind = "command"
+id = "notes-pack:publish"
+label = "Publish the note"
+effect = "ExternalEffect"
+source = "publish.lua"

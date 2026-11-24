@@ -12,6 +12,7 @@ use super::super::free_fns::{
     NativeModRuntime, WasmModRuntime, discover_mod_manifests, read_wasm_mod_from_path,
     resolve_mod_load_order,
 };
+use super::super::lua_pack::{self, AdmissionLevel, AdmittedPack, PackRefusal};
 use super::super::types::*;
 use super::ModRegistry;
 use super::parse_disabled_mod_ids_from_env;
@@ -63,6 +64,7 @@ impl ModRegistry {
             extension_records: HashMap::new(),
             wasm_runtime: None,
             native_runtime: None,
+            lua_packs: HashMap::new(),
         }
     }
 
@@ -154,6 +156,46 @@ impl ModRegistry {
         Ok(mod_id)
     }
 
+    /// Admit the Lua pack at `root` at `level` and register it, status
+    /// Discovered. Conformant is all or nothing; dev mode registers what loads
+    /// and keeps what conformant would refuse on the record (graph-behaviors
+    /// D3 to D5). Never grants anything beyond the manifest's `[grants]`.
+    ///
+    /// # Errors
+    ///
+    /// The first refusal, or `DuplicateModId` when another mod holds the id.
+    pub fn admit_lua_pack(
+        &mut self,
+        root: impl AsRef<Path>,
+        level: AdmissionLevel,
+    ) -> Result<String, PackRefusal> {
+        let pack = lua_pack::admit(root.as_ref(), level)?;
+        let mod_id = pack.manifest.mod_id.clone();
+        if self.manifests.contains_key(&mod_id) {
+            return Err(PackRefusal::DuplicateModId { mod_id });
+        }
+        let status = if self.disabled_mod_ids.contains(&mod_id) {
+            ModStatus::Unloaded
+        } else {
+            ModStatus::Discovered
+        };
+        self.manifests.insert(mod_id.clone(), pack.manifest.clone());
+        self.status.insert(mod_id.clone(), status);
+        self.lua_packs.insert(mod_id.clone(), pack);
+        self.load_order.clear();
+        Ok(mod_id)
+    }
+
+    /// The admitted pack for `mod_id`: its root, level and diagnostics.
+    pub fn lua_pack(&self, mod_id: &str) -> Option<&AdmittedPack> {
+        self.lua_packs.get(mod_id)
+    }
+
+    /// The level `mod_id` was admitted at, if it is a Lua pack.
+    pub fn admission_level(&self, mod_id: &str) -> Option<AdmissionLevel> {
+        self.lua_packs.get(mod_id).map(|pack| pack.level)
+    }
+
     /// Load all mods in dependency order.
     /// Emits lifecycle diagnostics for each mod.
     ///
@@ -171,6 +213,12 @@ impl ModRegistry {
                         .map_err(ModActivationError::failed)?;
                     Ok(Vec::new())
                 },
+                // Registration and run are CP2; until then a pack is admitted
+                // and recorded, not active.
+                ModType::Lua => Err(ModActivationError::failed(format!(
+                    "lua pack '{}' cannot activate before command registration",
+                    manifest.mod_id
+                ))),
                 ModType::Wasm => {
                     let source = wasm_source.ok_or_else(|| {
                         ModActivationError::failed(format!(

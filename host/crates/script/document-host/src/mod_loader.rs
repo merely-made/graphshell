@@ -51,8 +51,9 @@
 pub mod loader;
 
 pub use loader::{
+    AdmissionLevel, AdmittedPack, LUA_PACK_ABI, LUA_PACK_MANIFEST, PackRefusal,
     Contribution, ContributionKind, ModActivationError, ModCapability, ModDependencyError,
-    ModExtensionRecord, ModLoadPathError, ModManifest, ModRegistry, ModStatus, ModType,
+    Grants, ModExtensionRecord, ModLoadPathError, ModManifest, ModRegistry, ModStatus, ModType,
     ModUnloadError, NativeModRegistration, NativeModRuntime, WasmModRuntime, WasmModSource,
     discover_mod_manifests, discover_native_mods, discover_wasm_mods_in_dir,
     resolve_mod_load_order, runtime_has_capability,

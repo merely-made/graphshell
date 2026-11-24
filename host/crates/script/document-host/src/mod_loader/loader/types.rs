@@ -6,12 +6,18 @@
 
 use std::path::PathBuf;
 
+use hest::EffectClass;
+use serde::{Deserialize, Serialize};
+
 use super::contributes::Contribution;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ModType {
     Native,
     Wasm,
+    /// A Lua command pack (command packs D1): commands only, admitted by
+    /// [`super::lua_pack`].
+    Lua,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -31,6 +37,16 @@ pub enum ModCapability {
     Identity,
     Clipboard,
     Exec,
+}
+
+/// What a pack may have run: whole effect classes, named host command ids,
+/// or both (command packs D2). A class grant covers later commands in it (D3).
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Grants {
+    #[serde(default)]
+    pub classes: Vec<EffectClass>,
+    #[serde(default)]
+    pub commands: Vec<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -53,6 +69,9 @@ pub struct ModManifest {
     /// page whose origin matches one of these globs (exact host or `*.suffix`).
     /// Defaults empty; set by the manifest reader, not [`ModManifest::new`].
     pub document_script_origins: Vec<String>,
+    /// Effect classes and host command ids a Lua pack may have run. Empty for
+    /// every other mod type.
+    pub grants: Grants,
 }
 
 impl ModManifest {
@@ -73,6 +92,7 @@ impl ModManifest {
             contributes: Vec::new(),
             capabilities,
             document_script_origins: Vec::new(),
+            grants: Grants::default(),
         }
     }
 

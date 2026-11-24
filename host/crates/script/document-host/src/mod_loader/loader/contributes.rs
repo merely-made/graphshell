@@ -7,6 +7,7 @@
 //! What a mod adds to the GUI: declared in its manifest before it runs, and
 //! checked against the records it returns when it activates.
 
+use hest::EffectClass;
 use inker::PresentationDeclaration;
 use inker::presentation::Presents;
 use serde::{Deserialize, Serialize};
@@ -19,6 +20,7 @@ pub enum ContributionKind {
     PaneAdapter,
     Pane,
     Servitor,
+    Command,
 }
 
 /// One contribution, named by kind and id. A presentation carries inker's
@@ -31,6 +33,14 @@ pub enum Contribution {
     PaneAdapter { id: String },
     Pane { id: String },
     Servitor { id: String },
+    /// A pack command: a palette entry run from a Lua `source` file inside
+    /// the pack, with the effect class the pack declares for it.
+    Command {
+        id: String,
+        label: String,
+        effect: EffectClass,
+        source: String,
+    },
 }
 
 impl Contribution {
@@ -40,13 +50,17 @@ impl Contribution {
             Self::PaneAdapter { .. } => ContributionKind::PaneAdapter,
             Self::Pane { .. } => ContributionKind::Pane,
             Self::Servitor { .. } => ContributionKind::Servitor,
+            Self::Command { .. } => ContributionKind::Command,
         }
     }
 
     pub fn id(&self) -> &str {
         match self {
             Self::Presentation(declaration) => &declaration.id,
-            Self::PaneAdapter { id } | Self::Pane { id } | Self::Servitor { id } => id,
+            Self::PaneAdapter { id }
+            | Self::Pane { id }
+            | Self::Servitor { id }
+            | Self::Command { id, .. } => id,
         }
     }
 }

@@ -7,6 +7,9 @@
 pub mod contributes;
 pub use contributes::{Contribution, ContributionKind};
 
+pub mod lua_pack;
+pub use lua_pack::{AdmissionLevel, AdmittedPack, LUA_PACK_ABI, LUA_PACK_MANIFEST, PackRefusal};
+
 pub mod types;
 pub use types::*;
 
@@ -18,5 +21,7 @@ pub use self::registry::*;
 
 #[cfg(test)]
 mod contributes_tests;
+#[cfg(test)]
+mod lua_pack_tests;
 #[cfg(test)]
 mod tests;

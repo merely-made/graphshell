@@ -8,6 +8,7 @@ use std::collections::{HashMap, HashSet};
 use std::sync::OnceLock;
 
 use super::free_fns::{NativeModRuntime, WasmModRuntime};
+use super::lua_pack::AdmittedPack;
 use super::types::*;
 
 mod registry_default;
@@ -34,6 +35,8 @@ pub struct ModRegistry {
     /// Host-injected native runtime. `None` builds skip native
     /// activation (manifests still parse). Slice 68b.
     native_runtime: Option<std::sync::Arc<dyn NativeModRuntime>>,
+    /// Admitted Lua packs, with the level each was admitted at.
+    lua_packs: HashMap<String, AdmittedPack>,
 }
 
 static ACTIVE_CAPABILITIES: OnceLock<HashSet<String>> = OnceLock::new();
