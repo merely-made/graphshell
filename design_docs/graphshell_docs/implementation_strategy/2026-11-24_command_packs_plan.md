@@ -2,8 +2,8 @@
 
 **Status:** 2026-11-24: in progress. Cut from GB6 P1 of `2026-10-28_graph_behaviors_plan.md`, whose
 D1 to D6 place packs in the host toolkit's mod registry, run them through `lua-command` and set
-their admission levels. D1 to D10 here settle the manifest, grants, context, first host, the
-edges of admission and reloading. CP1 and CP2 are met; CP3 is next.
+their admission levels. D1 to D12 here settle the manifest, grants, context, first host, the
+edges of admission, reloading, and Turnstone's targets and pack manager. CP1 and CP2 are met; CP3 is next.
 
 **For:** Lua command packs: commands that install at runtime from a manifest, show in an app's
 palette without a Rust enum variant, read a read-only context, and return action requests the host
@@ -64,7 +64,8 @@ activation leaves the last good version active.
 ### CP4. Turnstone
 
 Turnstone's viewer command palette (`ports/graphshell/src/viewer_commands.rs`) lists pack commands
-from the registry, and its pack manager shows each pack's level (D5, `graph-behaviors D6`).
+from the registry, and its pack manager, a Packs page in settings, shows each pack's level (D5,
+D11, D12, `graph-behaviors D6`). Desktop only; the wasm32 build compiles without packs.
 
 - Done when: a headed receipt installs a fixture pack, runs a command from the palette, shows a
   refused request with its reason, and reloads the pack to changed behaviour without a restart.
@@ -167,6 +168,25 @@ from the registry, and its pack manager shows each pack's level (D5, `graph-beha
 
   Links: area The stack · amends graph-behaviors D3 · plans command-packs CP3 · summary A conformant pack keeps the sources it was admitted with until reloaded; a dev-mode pack reads its files live.
 
+- **D11. Packs run in native Turnstone first (Mark, 2026-11-24):** Evidence: Turnstone's viewer
+  builds its palette from a hest `CommandSet` (`ports/graphshell/src/viewer_commands.rs:86`) and
+  dispatches through the synchronous `command_invocation::invoke`, which a pack's invocations can
+  feed; `document-host` links wasmtime and builds only natively, while the port also builds for
+  wasm32. Offered: native first, the browser build compiling without packs behind a cfg
+  (recommended); split admission and the runner from wasmtime and wire both now. Answer: "Native
+  first (Recommended)". What follows: a wasm32 path is later work. Outcome: new.
+
+  Links: area The stack · plans command-packs CP4 · summary Command packs run in desktop Turnstone first; the browser build compiles without them.
+
+- **D12. Turnstone's pack manager is a settings page (Mark, 2026-11-24):** Evidence:
+  `graph-behaviors D6` shows a pack's level where packs are managed, not in the palette; Turnstone
+  had no pack manager. Offered: a pane listing packs, opened from the palette (recommended); a
+  palette section; a settings page. Answer: "Settings page". What follows: a Packs page in
+  Turnstone's settings lists each pack's name, level, commands, grants and last failed reload, with
+  install, reload, unload and level actions. Outcome: new.
+
+  Links: area The stack · plans command-packs CP4 · summary Turnstone manages command packs on a Packs page in its settings.
+
 ## Open questions
 
 - The install dialog's wording for an open-ended class grant (D3).
@@ -211,4 +231,5 @@ from the registry, and its pack manager shows each pack's level (D5, `graph-beha
 - 2026-11-24: CP1 met (Findings 2); D6 and D7 ruled.
 - 2026-11-24: D8 ruled; CP2 started.
 - 2026-11-24: D9 and D10 ruled; CP3 started.
+- 2026-11-24: D11 and D12 ruled for CP4.
 - 2026-11-24: CP2 met (Findings 4; graphshell `6a1b2f54`, Inker `40a2d10`).

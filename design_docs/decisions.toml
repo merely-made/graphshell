@@ -271,6 +271,20 @@ summary = "A conformant pack keeps the sources it was admitted with until reload
 amends = ["graph-behaviors D3"]
 plans = ["command-packs"]
 
+[decisions."command-packs D11"]
+title = "Packs run in native Turnstone first (Mark, 2026-11-24)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-24_command_packs_plan.md"
+area = "The stack"
+summary = "Command packs run in desktop Turnstone first; the browser build compiles without them."
+plans = ["command-packs"]
+
+[decisions."command-packs D12"]
+title = "Turnstone's pack manager is a settings page (Mark, 2026-11-24)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-24_command_packs_plan.md"
+area = "The stack"
+summary = "Turnstone manages command packs on a Packs page in its settings."
+plans = ["command-packs"]
+
 [decisions."compositor-placement D1"]
 title = "Both motions (Mark, 2026-11-20)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-20_compositor_placement_plan.md"
