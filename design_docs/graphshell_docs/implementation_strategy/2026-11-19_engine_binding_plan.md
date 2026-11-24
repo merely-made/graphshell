@@ -54,6 +54,7 @@ The host's side of P8's third probe.
 - Done when: the Resource digest reported with a view is identical before and after an arrangement
   edit made in Graphshell, and differs after an edit to a Resource statement.
 - Needs: the digest's measurement on the edit path.
+- Rulings: D1.
 
 ### E5. The inspector shows a validation finding
 Graphshell's part of the shared milestone
@@ -69,6 +70,12 @@ block evidence from a `PinnedView`, validates that capture's graph, and holds th
 report and engine revision. Before opening evidence, the caller reads its authoritative session
 head and supplies it to Graphshell's revision check. Historical reports stay readable when their
 evidence actions become stale. The scene envelope and its intent routing remain in E1 and E2.
+
+## Decisions
+
+- **D1. The host reports the Resource digest through an accessor, not in the snapshot (Mark, 2026-11-23):** Mere exposes `PinnedView::resource_digest` (`mere:engine-split D192`, D194), computed lazily once per pin at about 3 s for 100k nodes (D191), and no Graphshell host code reports it yet. "Host accessor (Recommended)": `MereHost` returns the digest with its algorithm id and version on request, the asker paying the lazy cost once per pin, and snapshots stay as cheap as they are; against an optional snapshot field filled only when the pin has already computed it, whose presence would depend on who asked first, and a digest in every snapshot, which breaks D161's 100 ms edit target. Outcome: *New.*
+
+  Links: draws on mere:engine-split D161, mere:engine-split D191, mere:engine-split D192 · plans E4 · summary MereHost reports the Resource digest through an accessor on request; snapshots do not carry it.
 
 ## Open questions
 

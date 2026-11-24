@@ -235,6 +235,12 @@ title = "The window root keeps its native ID across activations (Mark, 2026-11-2
 source = "design_docs/graphshell_docs/implementation_strategy/2026-10-28_diagnostics_and_accessibility_plan.md"
 summary = "The window root keeps one native ID for the window's life; every other native ID still renews on each activation."
 
+[decisions."engine-binding D1"]
+title = "The host reports the Resource digest through an accessor, not in the snapshot (Mark, 2026-11-23)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-19_engine_binding_plan.md"
+summary = "MereHost reports the Resource digest through an accessor on request; snapshots do not carry it."
+draws_on = ["mere:engine-split D161", "mere:engine-split D191", "mere:engine-split D192"]
+
 [decisions."graph-behaviors D1"]
 title = "Command packs live in the host toolkit's mod registry (Mark, 2026-11-23)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-10-28_graph_behaviors_plan.md"
