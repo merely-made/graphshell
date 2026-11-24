@@ -2,7 +2,7 @@
 
 **Status:** 2026-11-24: in progress. Cut from GB6 P1 of `2026-10-28_graph_behaviors_plan.md`, whose
 D1 to D6 place packs in the host toolkit's mod registry, run them through `lua-command` and set
-their admission levels. D1 to D12 here settle the manifest, grants, context, first host, the
+their admission levels. D1 to D15 here settle the manifest, grants, context, first host, the
 edges of admission, reloading, and Turnstone's targets and pack manager. CP1, CP2 and CP3 are met; CP4 is next.
 
 **For:** Lua command packs: commands that install at runtime from a manifest, show in an app's
@@ -63,9 +63,11 @@ activation leaves the last good version active.
 
 ### CP4. Turnstone
 
-Turnstone's viewer command palette (`ports/graphshell/src/viewer_commands.rs`) lists pack commands
-from the registry, and its pack manager, a Packs page in settings, shows each pack's level (D5,
-D11, D12, `graph-behaviors D6`). Desktop only; the wasm32 build compiles without packs.
+Desktop Turnstone's palettes, its action catalog (`src/app/palette.rs`) and the retained viewer
+(`ports/graphshell/src/viewer_commands.rs`), each list the registry's pack commands for their
+target (D13, D14), and a Command packs section beside engine packs in settings shows each pack's
+level (D5, D11, D12, D15, `graph-behaviors D6`). Desktop only; the wasm32 build compiles without
+packs.
 
 - Done when: a headed receipt installs a fixture pack, runs a command from the palette, shows a
   refused request with its reason, and reloads the pack to changed behaviour without a restart.
@@ -187,6 +189,37 @@ D11, D12, `graph-behaviors D6`). Desktop only; the wasm32 build compiles without
 
   Links: area The stack · plans command-packs CP4 · summary Turnstone manages command packs on a Packs page in its settings.
 
+- **D13. One registry, each palette a target (Mark, 2026-11-24):** Evidence: D5 cited the viewer
+  port's `viewer_commands.rs`, but that is the retained viewer's palette, which also builds for
+  wasm32; desktop Turnstone composes its own action catalog (`src/app/palette.rs`), read by the
+  `>` lane, the snapshot and the automation runner. Offered: the desktop catalog (recommended); the
+  viewer port's palette; both. Answer: "Why can't they be the same registry scoped to different
+  targets?". What follows: the host toolkit's registry holds every pack, and each palette (the
+  desktop catalog, the retained viewer, later the browser build) reads the commands scoped to it;
+  which commands those are was put back as D14. Outcome: refines D5.
+
+  Links: area The stack · amends command-packs D5 · plans command-packs CP4 · summary Every palette reads command packs from one registry, scoped to that palette as a target.
+
+- **D14. A command names its targets, all by default (Mark, 2026-11-24):** Evidence: D13; the
+  wasm32 build has no Lua runtime (D11), so it shows none. Offered: an optional `targets` list per
+  command in `mod.toml`, every target when absent (recommended); what each surface offers; a
+  per-target toggle in the Packs section; the manifest's default with a user override. Answer:
+  "The manifest, all by default (Recommended)". What follows: one optional field in CP1's schema;
+  each palette asks the registry for its target's commands. Outcome: refines D13.
+
+  Links: area The stack · amends command-packs D13 · plans command-packs CP1, command-packs CP4 · summary A pack command lists the palettes it appears on, or appears on all of them.
+
+- **D15. Command packs sit beside engine packs in Turnstone's settings (Mark, 2026-11-24):**
+  Evidence: D12; Turnstone's settings pane takes rows from a provider, Cambium choosing controls by
+  `SettingControl`, and engine packs already have settings with capability and scope edits
+  (`src/engine_pack/settings.rs`). Offered: a Command packs section beside engine packs in the
+  same pane (recommended); one merged Packs page; a page of its own. Answer: "A section beside
+  engine packs (Recommended)". What follows: the section lists each pack's name, level, commands,
+  grants and last failed reload, with install, reload, unload and level actions. Outcome: refines
+  D12.
+
+  Links: area The stack · amends command-packs D12 · plans command-packs CP4 · summary Turnstone's settings show command packs in a section beside engine packs.
+
 ## Open questions
 
 - The install dialog's wording for an open-ended class grant (D3).
@@ -242,5 +275,6 @@ D11, D12, `graph-behaviors D6`). Desktop only; the wasm32 build compiles without
 - 2026-11-24: D8 ruled; CP2 started.
 - 2026-11-24: D9 and D10 ruled; CP3 started.
 - 2026-11-24: D11 and D12 ruled for CP4.
+- 2026-11-24: D13 to D15 ruled; CP4 started.
 - 2026-11-24: CP3 met (Findings 5; graphshell `ca77d265`).
 - 2026-11-24: CP2 met (Findings 4; graphshell `6a1b2f54`, Inker `40a2d10`).

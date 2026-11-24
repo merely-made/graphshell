@@ -285,6 +285,30 @@ area = "The stack"
 summary = "Turnstone manages command packs on a Packs page in its settings."
 plans = ["command-packs"]
 
+[decisions."command-packs D13"]
+title = "One registry, each palette a target (Mark, 2026-11-24)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-24_command_packs_plan.md"
+area = "The stack"
+summary = "Every palette reads command packs from one registry, scoped to that palette as a target."
+amends = ["command-packs D5"]
+plans = ["command-packs"]
+
+[decisions."command-packs D14"]
+title = "A command names its targets, all by default (Mark, 2026-11-24)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-24_command_packs_plan.md"
+area = "The stack"
+summary = "A pack command lists the palettes it appears on, or appears on all of them."
+amends = ["command-packs D13"]
+plans = ["command-packs"]
+
+[decisions."command-packs D15"]
+title = "Command packs sit beside engine packs in Turnstone's settings (Mark, 2026-11-24)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-24_command_packs_plan.md"
+area = "The stack"
+summary = "Turnstone's settings show command packs in a section beside engine packs."
+amends = ["command-packs D12"]
+plans = ["command-packs"]
+
 [decisions."compositor-placement D1"]
 title = "Both motions (Mark, 2026-11-20)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-20_compositor_placement_plan.md"
