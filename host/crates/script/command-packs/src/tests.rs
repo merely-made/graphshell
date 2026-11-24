@@ -13,7 +13,7 @@ use std::sync::{Arc, Mutex};
 
 use document_host::mod_loader::loader::lua_pack;
 use document_host::mod_loader::{
-    AdmissionLevel, LuaPackRuntime, ModExtensionRecord, ModRegistry, ModStatus,
+    AdmissionLevel, LuaPackRuntime, ModExtensionRecord, ModRegistry, ModStatus, PackLifecycleError,
 };
 use hest::EffectClass;
 use hest::menu::{Command, CommandSet};
@@ -40,10 +40,15 @@ fn host() -> Arc<Mutex<CommandSet>> {
 /// Write pack `p`: `grants` is the grants table body, each command is
 /// (name, effect, lua source).
 fn write_pack(root: &Path, grants: &str, commands: &[(&str, &str, &str)]) {
-    let mut manifest = format!("abi = 1\nmod_id = \"p\"\nmod_type = \"lua\"\n[grants]\n{grants}\n");
+    write_pack_as(root, "p", grants, commands);
+}
+
+fn write_pack_as(root: &Path, pack: &str, grants: &str, commands: &[(&str, &str, &str)]) {
+    let mut manifest =
+        format!("abi = 1\nmod_id = \"{pack}\"\nmod_type = \"lua\"\n[grants]\n{grants}\n");
     for (name, effect, lua) in commands {
         manifest.push_str(&format!(
-            "[[contributes]]\nkind = \"command\"\nid = \"p:{name}\"\nlabel = \"{name}\"\n\
+            "[[contributes]]\nkind = \"command\"\nid = \"{pack}:{name}\"\nlabel = \"{name}\"\n\
              effect = \"{effect}\"\nsource = \"{name}.lua\"\n"
         ));
         fs::write(root.join(format!("{name}.lua")), lua).unwrap();
@@ -286,4 +291,253 @@ fn load_all_without_a_runtime_fails_a_pack() {
     registry.resolve_dependencies().unwrap();
     registry.load_all();
     assert_eq!(registry.get_status(&id), Some(ModStatus::Failed));
+}
+
+// Lifecycle (command packs CP3): install, unload and reload in a running registry.
+
+const NOTE: &str = "command(\"host:note\", \"\")";
+
+struct Live {
+    commands: Arc<Mutex<CommandSet>>,
+    runner: Arc<PackRunner>,
+    registry: ModRegistry,
+}
+
+fn live() -> Live {
+    let commands = host();
+    let runner = Arc::new(PackRunner::new(commands.clone(), SCHEMA));
+    let registry = ModRegistry::new().with_lua_runtime(runner.clone());
+    Live {
+        commands,
+        runner,
+        registry,
+    }
+}
+
+fn registered(live: &Live, id: &str) -> bool {
+    live.commands.lock().unwrap().get(id).is_some()
+}
+
+fn argument(live: &Live, id: &str) -> Vec<u8> {
+    live.runner.run(id, &ctx()).unwrap().remove(0).arguments
+}
+
+fn say(text: &str) -> String {
+    format!("command(\"host:note\", \"{text}\")")
+}
+
+#[test]
+fn install_registers_a_pack_in_a_running_registry() {
+    let dir = tempfile::tempdir().unwrap();
+    write_pack(dir.path(), CURATION, &[("go", "Curation", NOTE)]);
+    let mut l = live();
+    let id = l
+        .registry
+        .install_lua_pack(dir.path(), AdmissionLevel::Conformant)
+        .unwrap();
+    assert_eq!(l.registry.get_status(&id), Some(ModStatus::Active));
+    assert!(registered(&l, "p:go"));
+    assert_eq!(
+        l.registry.extension_records_for(&id).unwrap(),
+        &[ModExtensionRecord::Action {
+            action_id: "p:go".into()
+        }]
+    );
+    // A second install of the same id is refused and changes nothing.
+    assert!(
+        l.registry
+            .install_lua_pack(dir.path(), AdmissionLevel::Conformant)
+            .is_err()
+    );
+    assert_eq!(l.runner.run("p:go", &ctx()).unwrap().len(), 1);
+}
+
+#[test]
+fn an_install_the_host_cannot_register_leaves_nothing() {
+    let dir = tempfile::tempdir().unwrap();
+    write_pack(dir.path(), CURATION, &[("go", "Curation", NOTE)]);
+    let mut l = live();
+    let held = Command::new("p:go", "Go", "host", EffectClass::Curation);
+    l.commands.lock().unwrap().register(held);
+    let error = l
+        .registry
+        .install_lua_pack(dir.path(), AdmissionLevel::Conformant)
+        .unwrap_err();
+    assert!(
+        matches!(error, PackLifecycleError::Activation { .. }),
+        "{error}"
+    );
+    assert!(l.registry.get_status("p").is_none());
+    assert!(l.registry.lua_pack("p").is_none());
+}
+
+#[test]
+fn a_reload_changes_a_commands_behaviour_without_a_restart() {
+    let dir = tempfile::tempdir().unwrap();
+    write_pack(dir.path(), CURATION, &[("go", "Curation", NOTE)]);
+    let mut l = live();
+    let id = l
+        .registry
+        .install_lua_pack(dir.path(), AdmissionLevel::Conformant)
+        .unwrap();
+    assert!(!registered(&l, "p:more"));
+    // The edit adds a command, widens the grants and changes what go asks for.
+    let grants = "classes = [\"Curation\", \"DomainTruth\"]";
+    let save = "command(\"host:save\", \"\")";
+    write_pack(
+        dir.path(),
+        grants,
+        &[("go", "Curation", save), ("more", "Curation", NOTE)],
+    );
+    // Nothing watches the disk: the old pack still runs as it did.
+    assert_eq!(l.runner.run("p:go", &ctx()).unwrap()[0].id, "host:note");
+    assert!(!registered(&l, "p:more"));
+    l.registry.reload_lua_pack(&id).unwrap();
+    assert_eq!(l.runner.run("p:go", &ctx()).unwrap()[0].id, "host:save");
+    assert!(registered(&l, "p:more"));
+    assert_eq!(l.registry.get_status(&id), Some(ModStatus::Active));
+    assert_eq!(l.registry.extension_records_for(&id).unwrap().len(), 2);
+    // A command the new version dropped leaves the host.
+    fs::remove_file(dir.path().join("more.lua")).unwrap();
+    write_pack(dir.path(), grants, &[("go", "Curation", save)]);
+    l.registry.reload_lua_pack(&id).unwrap();
+    assert!(!registered(&l, "p:more"));
+    assert!(matches!(
+        l.runner.run("p:more", &ctx()),
+        Err(Refusal::UnknownCommand { .. })
+    ));
+}
+
+#[test]
+fn a_conformant_pack_keeps_its_admitted_sources_until_reloaded() {
+    let dir = tempfile::tempdir().unwrap();
+    write_pack(dir.path(), CURATION, &[("go", "Curation", &say("one"))]);
+    let mut l = live();
+    let id = l
+        .registry
+        .install_lua_pack(dir.path(), AdmissionLevel::Conformant)
+        .unwrap();
+    assert_eq!(argument(&l, "p:go"), b"one".to_vec());
+    fs::write(dir.path().join("go.lua"), say("two")).unwrap();
+    assert_eq!(argument(&l, "p:go"), b"one".to_vec());
+    l.registry.reload_lua_pack(&id).unwrap();
+    assert_eq!(argument(&l, "p:go"), b"two".to_vec());
+}
+
+#[test]
+fn a_dev_mode_pack_reads_its_file_at_each_run() {
+    let dir = tempfile::tempdir().unwrap();
+    write_pack(dir.path(), CURATION, &[("go", "Curation", &say("one"))]);
+    let mut l = live();
+    l.registry
+        .install_lua_pack(dir.path(), AdmissionLevel::DevMode)
+        .unwrap();
+    assert!(l.registry.lua_pack("p").unwrap().sources.is_empty());
+    assert_eq!(argument(&l, "p:go"), b"one".to_vec());
+    fs::write(dir.path().join("go.lua"), say("two")).unwrap();
+    assert_eq!(argument(&l, "p:go"), b"two".to_vec());
+}
+
+#[test]
+fn an_unload_removes_the_packs_commands_and_entries() {
+    let dir = tempfile::tempdir().unwrap();
+    write_pack(
+        dir.path(),
+        CURATION,
+        &[("a", "Curation", NOTE), ("b", "Curation", NOTE)],
+    );
+    let mut l = live();
+    let id = l
+        .registry
+        .install_lua_pack(dir.path(), AdmissionLevel::Conformant)
+        .unwrap();
+    l.registry.unload_lua_pack(&id).unwrap();
+    for name in ["p:a", "p:b"] {
+        assert!(!registered(&l, name));
+        assert!(matches!(
+            l.runner.run(name, &ctx()),
+            Err(Refusal::UnknownCommand { .. })
+        ));
+    }
+    assert!(registered(&l, "host:note"));
+    assert!(l.registry.get_status(&id).is_none());
+    assert!(matches!(
+        l.registry.unload_lua_pack(&id),
+        Err(PackLifecycleError::UnknownPack(_))
+    ));
+    // The same pack installs again.
+    l.registry
+        .install_lua_pack(dir.path(), AdmissionLevel::Conformant)
+        .unwrap();
+    assert!(registered(&l, "p:a"));
+}
+
+#[test]
+fn a_reload_that_fails_admission_keeps_the_last_good_version() {
+    let dir = tempfile::tempdir().unwrap();
+    write_pack(dir.path(), CURATION, &[("go", "Curation", &say("one"))]);
+    let mut l = live();
+    let id = l
+        .registry
+        .install_lua_pack(dir.path(), AdmissionLevel::Conformant)
+        .unwrap();
+    let before = l.commands.lock().unwrap().clone();
+    // The edit leaves a stray file the manifest does not declare.
+    write_pack(dir.path(), CURATION, &[("go", "Curation", &say("two"))]);
+    fs::write(dir.path().join("stray.lua"), "").unwrap();
+    let error = l.registry.reload_lua_pack(&id).unwrap_err();
+    assert!(matches!(error, PackLifecycleError::Refused(_)), "{error}");
+    assert!(error.to_string().contains("stray.lua"), "{error}");
+    assert_eq!(*l.commands.lock().unwrap(), before);
+    assert_eq!(l.registry.get_status(&id), Some(ModStatus::Active));
+    assert_eq!(argument(&l, "p:go"), b"one".to_vec());
+}
+
+#[test]
+fn a_reload_that_fails_activation_keeps_the_last_good_version() {
+    let dir = tempfile::tempdir().unwrap();
+    write_pack(dir.path(), CURATION, &[("go", "Curation", &say("one"))]);
+    let mut l = live();
+    let id = l
+        .registry
+        .install_lua_pack(dir.path(), AdmissionLevel::Conformant)
+        .unwrap();
+    // The host holds an id the new version wants.
+    let held = Command::new("p:new", "New", "host", EffectClass::Curation);
+    l.commands.lock().unwrap().register(held);
+    let before = l.commands.lock().unwrap().clone();
+    write_pack(
+        dir.path(),
+        CURATION,
+        &[("go", "Curation", &say("two")), ("new", "Curation", NOTE)],
+    );
+    let error = l.registry.reload_lua_pack(&id).unwrap_err();
+    assert!(
+        matches!(&error, PackLifecycleError::Activation { reason, .. } if reason.contains("p:new"))
+    );
+    assert_eq!(*l.commands.lock().unwrap(), before);
+    assert_eq!(argument(&l, "p:go"), b"one".to_vec());
+    assert_eq!(l.registry.get_manifest(&id).unwrap().contributes.len(), 1);
+}
+
+#[test]
+fn reload_all_reloads_each_pack_and_reports_each_failure() {
+    let (da, db) = (tempfile::tempdir().unwrap(), tempfile::tempdir().unwrap());
+    write_pack_as(da.path(), "a", CURATION, &[("go", "Curation", &say("a1"))]);
+    write_pack_as(db.path(), "b", CURATION, &[("go", "Curation", &say("b1"))]);
+    let mut l = live();
+    for dir in [&da, &db] {
+        l.registry
+            .install_lua_pack(dir.path(), AdmissionLevel::Conformant)
+            .unwrap();
+    }
+    write_pack_as(da.path(), "a", CURATION, &[("go", "Curation", &say("a2"))]);
+    fs::write(db.path().join("mod.toml"), "not toml [").unwrap();
+    let results = l.registry.reload_all_lua_packs();
+    let ids: Vec<&str> = results.iter().map(|(id, _)| id.as_str()).collect();
+    assert_eq!(ids, ["a", "b"]);
+    assert!(results[0].1.is_ok());
+    assert!(matches!(results[1].1, Err(PackLifecycleError::Refused(_))));
+    assert_eq!(argument(&l, "a:go"), b"a2".to_vec());
+    assert_eq!(argument(&l, "b:go"), b"b1".to_vec());
 }

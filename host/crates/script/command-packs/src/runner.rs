@@ -76,6 +76,8 @@ struct Entry {
     pack: String,
     root: PathBuf,
     source: String,
+    /// The text admitted with a conformant pack (D10); `None` reads live.
+    pinned: Option<String>,
     grants: Grants,
 }
 
@@ -108,9 +110,38 @@ impl PackRunner {
         self
     }
 
+    /// Register `pack`'s commands after removing `old_ids`, under one lock
+    /// pair. A conflict leaves everything as it was.
+    fn replace_locked(
+        &self,
+        old_ids: &[String],
+        pack: &AdmittedPack,
+    ) -> Result<Vec<String>, String> {
+        let mut commands = lock(&self.commands);
+        let mut entries = lock(&self.entries);
+        let fresh = pack_commands(pack);
+        for (command, _) in &fresh {
+            if commands.get(&command.id).is_some() && !old_ids.contains(&command.id) {
+                return Err(format!("command {} is already registered", command.id));
+            }
+        }
+        for id in old_ids {
+            commands.unregister(id);
+            entries.remove(id);
+        }
+        let mut done = Vec::new();
+        for (command, entry) in fresh {
+            done.push(command.id.clone());
+            entries.insert(command.id.clone(), entry);
+            commands.register(command);
+        }
+        Ok(done)
+    }
+
     /// Run the pack command `command_id` over `context`.
     ///
-    /// The script's source is read at each run. Each invocation is checked
+    /// A conformant pack runs the sources it was admitted with until it is
+    /// reloaded; a dev-mode pack's source is read at each run (D10). Each invocation is checked
     /// against the pack's grants by its id, or by the effect class the host
     /// declared for it, never one the script names.
     ///
@@ -127,12 +158,15 @@ impl PackRunner {
             id: command_id.to_string(),
         })?;
         let id = command_id.to_string();
-        let source = std::fs::read_to_string(entry.root.join(&entry.source)).map_err(|error| {
-            Refusal::SourceUnreadable {
-                id: id.clone(),
-                why: error.to_string(),
-            }
-        })?;
+        let source = match entry.pinned.clone() {
+            Some(text) => text,
+            None => std::fs::read_to_string(entry.root.join(&entry.source)).map_err(|error| {
+                Refusal::SourceUnreadable {
+                    id: id.clone(),
+                    why: error.to_string(),
+                }
+            })?,
+        };
         let offered = lock(&self.commands).clone();
         let invocations = collect_invocations_with_context(
             &source,
@@ -163,42 +197,43 @@ impl PackRunner {
     }
 }
 
+/// The commands `pack` contributes, each with its run entry.
+fn pack_commands(pack: &AdmittedPack) -> Vec<(Command, Entry)> {
+    let mod_id = &pack.manifest.mod_id;
+    let mut out = Vec::new();
+    for contribution in &pack.manifest.contributes {
+        let Contribution::Command {
+            id,
+            label,
+            effect,
+            source,
+        } = contribution
+        else {
+            continue;
+        };
+        let entry = Entry {
+            pack: mod_id.clone(),
+            root: pack.root.clone(),
+            source: source.clone(),
+            pinned: pack.sources.get(source).cloned(),
+            grants: pack.manifest.grants.clone(),
+        };
+        out.push((Command::new(id, label, mod_id, *effect), entry));
+    }
+    out
+}
+
 impl LuaPackRuntime for PackRunner {
     fn activate(&self, pack: &AdmittedPack) -> Result<Vec<String>, String> {
-        let mut commands = lock(&self.commands);
-        let mut entries = lock(&self.entries);
-        let mut done: Vec<String> = Vec::new();
-        for contribution in &pack.manifest.contributes {
-            let Contribution::Command {
-                id,
-                label,
-                effect,
-                source,
-            } = contribution
-            else {
-                continue;
-            };
-            if commands.get(id).is_some() {
-                for id in &done {
-                    commands.unregister(id);
-                    entries.remove(id);
-                }
-                return Err(format!("command {id} is already registered"));
-            }
-            let mod_id = &pack.manifest.mod_id;
-            commands.register(Command::new(id, label, mod_id, *effect));
-            entries.insert(
-                id.clone(),
-                Entry {
-                    pack: mod_id.clone(),
-                    root: pack.root.clone(),
-                    source: source.clone(),
-                    grants: pack.manifest.grants.clone(),
-                },
-            );
-            done.push(id.clone());
-        }
-        Ok(done)
+        self.replace_locked(&[], pack)
+    }
+
+    fn replace(&self, old: &AdmittedPack, new: &AdmittedPack) -> Result<Vec<String>, String> {
+        let old_ids: Vec<String> = pack_commands(old)
+            .into_iter()
+            .map(|(command, _)| command.id.clone())
+            .collect();
+        self.replace_locked(&old_ids, new)
     }
 
     fn unregister(&self, command_id: &str) -> Result<(), String> {

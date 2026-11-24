@@ -11,6 +11,7 @@ use super::free_fns::{LuaPackRuntime, NativeModRuntime, WasmModRuntime};
 use super::lua_pack::AdmittedPack;
 use super::types::*;
 
+mod lua_lifecycle;
 mod registry_default;
 mod registry_impl;
 

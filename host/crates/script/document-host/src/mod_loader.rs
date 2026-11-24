@@ -54,7 +54,8 @@ pub use loader::{
     AdmissionLevel, AdmittedPack, Contribution, ContributionKind, Grants, LUA_PACK_ABI,
     LUA_PACK_MANIFEST, LuaPackRuntime, ModActivationError, ModCapability, ModDependencyError,
     ModExtensionRecord, ModLoadPathError, ModManifest, ModRegistry, ModStatus, ModType,
-    ModUnloadError, NativeModRegistration, NativeModRuntime, PackRefusal, WasmModRuntime,
+    ModUnloadError, NativeModRegistration, NativeModRuntime, PackLifecycleError, PackRefusal,
+    WasmModRuntime,
     WasmModSource, discover_mod_manifests, discover_native_mods, discover_wasm_mods_in_dir,
     resolve_mod_load_order, runtime_has_capability,
 };

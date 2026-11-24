@@ -20,7 +20,7 @@
 //! Paths are compared as `Path` components and canonical forms, never as
 //! strings with a separator, so `a\b.lua` and `a/b.lua` are one file.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Component, Path, PathBuf};
 
 use serde::Deserialize;
@@ -156,7 +156,45 @@ pub struct AdmittedPack {
     /// What conformant admission would have refused. Always empty when
     /// `level` is `Conformant`.
     pub diagnostics: Vec<PackRefusal>,
+    /// Command source texts read at admission, by declared path (command
+    /// packs D10). Filled for `Conformant` only; a dev-mode pack reads live.
+    pub sources: BTreeMap<String, String>,
 }
+
+/// Why installing, unloading or reloading a pack failed (command packs CP3).
+/// A failed reload or install leaves the previous state in place.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum PackLifecycleError {
+    /// The pack was not admitted.
+    Refused(PackRefusal),
+    /// The registry has no `LuaPackRuntime`.
+    NoRuntime,
+    /// No Lua pack has this id.
+    UnknownPack(String),
+    /// A reload found a different `mod_id` at the pack's root.
+    IdChanged { was: String, now: String },
+    /// The runtime would not activate the pack.
+    Activation { mod_id: String, reason: String },
+    /// Removing the pack's commands failed; the pack is quarantined.
+    Unload(super::types::ModUnloadError),
+}
+
+impl std::fmt::Display for PackLifecycleError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Refused(refusal) => write!(f, "not admitted: {}", refusal.words()),
+            Self::NoRuntime => write!(f, "no LuaPackRuntime injected"),
+            Self::UnknownPack(id) => write!(f, "no lua pack {id}"),
+            Self::IdChanged { was, now } => {
+                write!(f, "pack {was} now declares mod_id {now}")
+            },
+            Self::Activation { mod_id, reason } => write!(f, "pack {mod_id}: {reason}"),
+            Self::Unload(error) => write!(f, "unload failed: {error:?}"),
+        }
+    }
+}
+
+impl std::error::Error for PackLifecycleError {}
 
 #[derive(Debug, Deserialize)]
 struct RawPack {
@@ -237,6 +275,24 @@ pub fn admit(root: &Path, level: AdmissionLevel) -> Result<AdmittedPack, PackRef
         });
     }
 
+    let mut sources = BTreeMap::new();
+    if level == AdmissionLevel::Conformant {
+        for contribution in &loaded {
+            let Contribution::Command { source, .. } = contribution else {
+                continue;
+            };
+            match std::fs::read_to_string(root.join(source)) {
+                Ok(text) => {
+                    sources.insert(source.clone(), text);
+                },
+                Err(error) => found.push(PackRefusal::Unreadable {
+                    path: source.clone(),
+                    why: error.to_string(),
+                }),
+            }
+        }
+    }
+
     let diagnostics = match level {
         AdmissionLevel::Conformant => {
             if let Some(first) = found.into_iter().next() {
@@ -262,6 +318,7 @@ pub fn admit(root: &Path, level: AdmissionLevel) -> Result<AdmittedPack, PackRef
         root: root.to_path_buf(),
         level,
         diagnostics,
+        sources,
     })
 }
 

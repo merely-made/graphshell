@@ -316,4 +316,22 @@ pub trait LuaPackRuntime: Send + Sync {
     ///
     /// A reason the command could not be removed.
     fn unregister(&self, command_id: &str) -> Result<(), String>;
+    /// Swap `old`'s commands for `new`'s (reload, D9). Returns the ids now
+    /// registered. On `Err` the runtime holds `old`'s commands, unchanged.
+    /// The default removes, activates and restores; a runtime that can swap
+    /// under one lock should override it.
+    ///
+    /// # Errors
+    ///
+    /// A reason `new` cannot register.
+    fn replace(&self, old: &AdmittedPack, new: &AdmittedPack) -> Result<Vec<String>, String> {
+        for contribution in &old.manifest.contributes {
+            if let super::contributes::Contribution::Command { id, .. } = contribution {
+                self.unregister(id)?;
+            }
+        }
+        self.activate(new).inspect_err(|_| {
+            let _ = self.activate(old);
+        })
+    }
 }

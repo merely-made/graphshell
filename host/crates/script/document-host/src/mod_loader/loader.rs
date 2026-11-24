@@ -8,7 +8,9 @@ pub mod contributes;
 pub use contributes::{Contribution, ContributionKind};
 
 pub mod lua_pack;
-pub use lua_pack::{AdmissionLevel, AdmittedPack, LUA_PACK_ABI, LUA_PACK_MANIFEST, PackRefusal};
+pub use lua_pack::{
+    AdmissionLevel, AdmittedPack, LUA_PACK_ABI, LUA_PACK_MANIFEST, PackLifecycleError, PackRefusal,
+};
 
 pub mod types;
 pub use types::*;
