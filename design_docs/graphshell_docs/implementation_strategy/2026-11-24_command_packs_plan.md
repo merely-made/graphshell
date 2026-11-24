@@ -192,4 +192,4 @@ from the registry, and its pack manager shows each pack's level (D5, `graph-beha
 - 2026-11-24: cut from GB6 P1; D1 to D5 ruled.
 - 2026-11-24: CP1 met (Findings 2); D6 and D7 ruled.
 - 2026-11-24: D8 ruled; CP2 started.
-- 2026-11-24: CP2 met (Findings 4; graphshell `f04ee91b`, Inker `40a2d10`).
+- 2026-11-24: CP2 met (Findings 4; graphshell `6a1b2f54`, Inker `40a2d10`).
