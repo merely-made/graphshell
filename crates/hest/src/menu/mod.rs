@@ -125,6 +125,13 @@ impl CommandSet {
         }
     }
 
+    /// Remove the command with `id`, returning it. Defaults naming it stay,
+    /// and [`Self::kept`] skips ids with no command.
+    pub fn unregister(&mut self, id: &str) -> Option<Command> {
+        let at = self.commands.iter().position(|command| command.id == id)?;
+        Some(self.commands.remove(at))
+    }
+
     /// The commands a person starts with, in order.
     pub fn with_defaults<I, S>(mut self, ids: I) -> Self
     where
@@ -249,6 +256,16 @@ impl CommandSet {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn unregister_removes_a_command_and_returns_it() {
+        let mut set = CommandSet::new().with_defaults(["a"]);
+        set.register(Command::new("a", "A", "x", EffectClass::Curation));
+        assert_eq!(set.unregister("a").map(|c| c.id), Some("a".to_string()));
+        assert!(set.get("a").is_none());
+        assert!(set.unregister("a").is_none());
+        assert!(set.kept(&CommandChoices::default()).is_empty());
+    }
 
     #[test]
     fn search_and_disabled_rows_preserve_the_hosts_effect_and_destructive_declarations() {

@@ -1,0 +1,29 @@
+# The Lua command-pack runner (command packs CP2, D8): registers an admitted
+# pack's commands into a host `CommandSet` and runs one through script-didge,
+# checking each returned invocation against the pack's grants. It sits beside
+# document-host so only a host that runs packs links the Lua VM.
+[package]
+name = "command-packs"
+version = "0.0.1"
+edition = "2021"
+
+rust-version = "1.97.1"
+license.workspace = true
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+# The registry, the admitted pack and the `LuaPackRuntime` seam this implements.
+document-host = { path = "../document-host" }
+hest = { workspace = true }
+script-didge = { workspace = true }
+# `ScriptValue`, the value the context crosses the boundary as.
+script-engine-api = { workspace = true }
+
+[dev-dependencies]
+tempfile = "3"
+
+[lints]
+workspace = true

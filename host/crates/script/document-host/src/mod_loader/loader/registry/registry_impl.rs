@@ -9,8 +9,8 @@ use std::path::Path;
 
 use super::super::contributes::{Contribution, verify_records};
 use super::super::free_fns::{
-    NativeModRuntime, WasmModRuntime, discover_mod_manifests, read_wasm_mod_from_path,
-    resolve_mod_load_order,
+    LuaPackRuntime, NativeModRuntime, WasmModRuntime, discover_mod_manifests,
+    read_wasm_mod_from_path, resolve_mod_load_order,
 };
 use super::super::lua_pack::{self, AdmissionLevel, AdmittedPack, PackRefusal};
 use super::super::types::*;
@@ -64,6 +64,7 @@ impl ModRegistry {
             extension_records: HashMap::new(),
             wasm_runtime: None,
             native_runtime: None,
+            lua_runtime: None,
             lua_packs: HashMap::new(),
         }
     }
@@ -82,6 +83,13 @@ impl ModRegistry {
     /// Slice 68b.
     pub fn with_native_runtime(mut self, runtime: std::sync::Arc<dyn NativeModRuntime>) -> Self {
         self.native_runtime = Some(runtime);
+        self
+    }
+
+    /// Builder-style setter for the host's Lua command-pack runner. Without
+    /// it, `load_all` fails an admitted Lua pack with a reason (command packs D6).
+    pub fn with_lua_runtime(mut self, runtime: std::sync::Arc<dyn LuaPackRuntime>) -> Self {
+        self.lua_runtime = Some(runtime);
         self
     }
 
@@ -206,6 +214,8 @@ impl ModRegistry {
     pub fn load_all(&mut self) -> Vec<String> {
         let wasm_runtime = self.wasm_runtime.clone();
         let native_runtime = self.native_runtime.clone();
+        let lua_runtime = self.lua_runtime.clone();
+        let lua_packs = self.lua_packs.clone();
         self.load_all_with_extensions(
             |manifest, wasm_source| match manifest.mod_type {
                 ModType::Native => {
@@ -213,12 +223,25 @@ impl ModRegistry {
                         .map_err(ModActivationError::failed)?;
                     Ok(Vec::new())
                 },
-                // Registration and run are CP2; until then a pack is admitted
-                // and recorded, not active.
-                ModType::Lua => Err(ModActivationError::failed(format!(
-                    "lua pack '{}' cannot activate before command registration",
-                    manifest.mod_id
-                ))),
+                ModType::Lua => {
+                    let Some(runtime) = lua_runtime.as_ref() else {
+                        return Err(ModActivationError::failed(format!(
+                            "no LuaPackRuntime injected; cannot register lua pack '{}'",
+                            manifest.mod_id
+                        )));
+                    };
+                    let pack = lua_packs.get(&manifest.mod_id).ok_or_else(|| {
+                        ModActivationError::failed(format!(
+                            "lua pack '{}' was not admitted",
+                            manifest.mod_id
+                        ))
+                    })?;
+                    let ids = runtime.activate(pack).map_err(ModActivationError::failed)?;
+                    Ok(ids
+                        .into_iter()
+                        .map(|action_id| ModExtensionRecord::Action { action_id })
+                        .collect())
+                },
                 ModType::Wasm => {
                     let source = wasm_source.ok_or_else(|| {
                         ModActivationError::failed(format!(
@@ -241,6 +264,11 @@ impl ModRegistry {
                 },
             },
             |record| match record {
+                // A pack's commands are the only Actions a registry rolls back.
+                ModExtensionRecord::Action { action_id } => match lua_runtime.as_ref() {
+                    Some(runtime) => runtime.unregister(&action_id),
+                    None => Ok(()),
+                },
                 ModExtensionRecord::WasmRuntime { mod_id } => {
                     if let Some(runtime) = wasm_runtime.as_ref() {
                         runtime.deactivate(&mod_id)
@@ -252,7 +280,6 @@ impl ModRegistry {
                 | ModExtensionRecord::PresentationContentType { .. }
                 | ModExtensionRecord::PresentationExtension { .. }
                 | ModExtensionRecord::PresentationReaches { .. }
-                | ModExtensionRecord::Action { .. }
                 | ModExtensionRecord::IndexProvider { .. }
                 | ModExtensionRecord::Lens { .. }
                 | ModExtensionRecord::Theme { .. } => Ok(()),

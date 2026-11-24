@@ -36,6 +36,7 @@ members = [
     "crates/platen/platen",
     "crates/script/app-host",
     "crates/script/authority-host",
+    "crates/script/command-packs",
     "crates/script/block-adapter",
     "crates/script/block-host",
     "crates/system/djinn-testkit",

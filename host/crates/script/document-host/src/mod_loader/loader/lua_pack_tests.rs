@@ -32,7 +32,8 @@ fn pack_with(edit: impl FnOnce(String) -> String) -> tempfile::TempDir {
     let dir = tempfile::tempdir().unwrap();
     copy_dir(&fixture(), dir.path());
     let path = dir.path().join(LUA_PACK_MANIFEST);
-    let text = fs::read_to_string(&path).unwrap();
+    // A checkout with autocrlf holds CRLF; the edits below match LF.
+    let text = fs::read_to_string(&path).unwrap().lines().collect::<Vec<_>>().join("\n") + "\n";
     fs::write(&path, edit(text)).unwrap();
     dir
 }

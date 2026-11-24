@@ -7,7 +7,7 @@
 use std::collections::{HashMap, HashSet};
 use std::sync::OnceLock;
 
-use super::free_fns::{NativeModRuntime, WasmModRuntime};
+use super::free_fns::{LuaPackRuntime, NativeModRuntime, WasmModRuntime};
 use super::lua_pack::AdmittedPack;
 use super::types::*;
 
@@ -35,6 +35,9 @@ pub struct ModRegistry {
     /// Host-injected native runtime. `None` builds skip native
     /// activation (manifests still parse). Slice 68b.
     native_runtime: Option<std::sync::Arc<dyn NativeModRuntime>>,
+    /// Host-injected Lua pack runner. `None` fails an admitted pack's
+    /// activation with a reason (command packs D6).
+    lua_runtime: Option<std::sync::Arc<dyn LuaPackRuntime>>,
     /// Admitted Lua packs, with the level each was admitted at.
     lua_packs: HashMap<String, AdmittedPack>,
 }

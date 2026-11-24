@@ -8,6 +8,7 @@ use std::collections::{HashMap, HashSet, VecDeque};
 use std::path::{Path, PathBuf};
 
 use super::contributes::Contribution;
+use super::lua_pack::AdmittedPack;
 use super::types::*;
 
 #[derive(Debug, Clone, serde::Deserialize)]
@@ -294,4 +295,25 @@ pub trait NativeModRuntime: Send + Sync {
     /// Activate a native mod by ID. The host's activation table
     /// looks up the mod_id and dispatches to the mod's `activate` fn.
     fn activate(&self, mod_id: &str) -> Result<(), String>;
+}
+
+/// DI seam for the Lua command-pack runner (command packs CP2, D6, D8). The
+/// runner lives in its own crate so this one links no Lua VM; a host that runs
+/// packs injects it with [`ModRegistry::with_lua_runtime`]. Without one,
+/// `load_all` fails an admitted pack with a reason, as it does for wasm.
+pub trait LuaPackRuntime: Send + Sync {
+    /// Register `pack`'s commands. Returns the ids registered, one rollback
+    /// record each.
+    ///
+    /// # Errors
+    ///
+    /// A reason the pack cannot register; the runtime has left nothing registered.
+    fn activate(&self, pack: &AdmittedPack) -> Result<Vec<String>, String>;
+    /// Remove one registered command by id. Called on rollback. An id the
+    /// runtime does not hold is `Ok`.
+    ///
+    /// # Errors
+    ///
+    /// A reason the command could not be removed.
+    fn unregister(&self, command_id: &str) -> Result<(), String>;
 }
