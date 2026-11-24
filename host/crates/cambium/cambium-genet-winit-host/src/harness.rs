@@ -510,7 +510,8 @@ where
 
     /// Resolve a selector and right-click it. `false` when nothing matched, so
     /// a test fails on the miss rather than on its consequence. The
-    /// [`click_on`](Self::click_on) of the secondary button.
+    /// [`click_on`](Self::click_on) of the secondary button, and like it
+    /// panics when the centre it would press is covered by another element.
     pub fn right_click_on(&mut self, selector: &Selector) -> bool {
         let Some(taproot::SemanticTarget::Dom(node)) = self.resolve_target(selector) else {
             return false;
@@ -518,7 +519,9 @@ where
         let Some((x, y, width, height)) = self.painted_rect(node) else {
             return false;
         };
-        self.right_click_at(x + width / 2.0, y + height / 2.0);
+        let (x, y) = (x + width / 2.0, y + height / 2.0);
+        self.assert_uncovered("right_click_on", selector, node, x, y);
+        self.right_click_at(x, y);
         true
     }
 
@@ -596,19 +599,19 @@ where
             return false;
         };
         let (x, y) = (x + width / 2.0, y + height / 2.0);
-        self.assert_uncovered(selector, node, x, y);
+        self.assert_uncovered("click_on", selector, node, x, y);
         self.click_at(x, y);
         self.relayout();
         true
     }
 
     /// Panic unless the topmost hit at `(x, y)` is `target` or inside it.
-    fn assert_uncovered(&self, selector: &Selector, target: NodeId, x: f32, y: f32) {
+    fn assert_uncovered(&self, verb: &str, selector: &Selector, target: NodeId, x: f32, y: f32) {
         let hit = self.host.hit_at(x, y);
         let dom = self.runner().dom();
         let dom = dom.borrow();
         if let Some(message) = cover::covered(&*dom, target, hit) {
-            panic!("click_on({selector:?}) at ({x:.1}, {y:.1}): {message}");
+            panic!("{verb}({selector:?}) at ({x:.1}, {y:.1}): {message}");
         }
     }
 
