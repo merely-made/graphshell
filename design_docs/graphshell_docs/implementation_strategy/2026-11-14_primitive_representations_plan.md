@@ -625,6 +625,10 @@ face.
 
   *Applies D29.*
 
+- **D47. The served-snapshot ladder test is D30's fifth pin move (Mark, 2026-11-23):** `served_snapshot_selects_rungs_from_the_ladder_at_declared_zoom` (graphshell-host, behind the `mere-host` feature, so a plain test run filters it out) expected the fixture's receipt node to earn a Card at zoom 1.0; since `dd2d3732` (D30) that node, tagged receipt, public and synthetic, rightly draws as a glyph, and D41's four moves missed it. "Fix the test (Recommended)": the test first pins the untagged receipt node as a glyph, then tags the oldest and newest fixture nodes `document` and keeps its recency checks; against retagging the shared fixture and adding receipts to the document profile. Outcome: applies D30.
+
+  Links: draws on primitive-representations D30, primitive-representations D41 · summary The served-snapshot ladder test pins a non-document node as a glyph and checks recency on document-tagged nodes.
+
 ## Findings
 
 - 2026-11-14 (at `b957d819`): `RelationForm` is defined at

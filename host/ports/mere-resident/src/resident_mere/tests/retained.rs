@@ -314,7 +314,10 @@ async fn nothing_is_kept_in_plaintext_when_no_custody_is_configured() {
         let refused = app.invoke(graph_intent(&graph, intent.0, intent.1)).unwrap();
         assert!(matches!(refused, IntentResult::Rejected { .. }), "{refused:?}");
     }
-    assert!(!plaintext_in(fixture._root.path(), "never in plaintext"));
+    // Close the stores first: Windows refuses a read of a redb file still open.
+    let Fixture { _root, reservoir, catalog, grants, routes, .. } = fixture;
+    drop((app, reservoir, catalog, grants, routes));
+    assert!(!plaintext_in(_root.path(), "never in plaintext"));
 }
 
 /// The custodian answers "locked" when a persona has no staged sealing key.

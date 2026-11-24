@@ -741,6 +741,12 @@ title = "Registry marks accept measured and assigned (Mark, 2026-11-15)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
 summary = "Every mark resolved from the registry accepts a measured or an assigned extent."
 
+[decisions."primitive-representations D47"]
+title = "The served-snapshot ladder test is D30's fifth pin move (Mark, 2026-11-23)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
+summary = "The served-snapshot ladder test pins a non-document node as a glyph and checks recency on document-tagged nodes."
+draws_on = ["primitive-representations D30", "primitive-representations D41"]
+
 [decisions."resident-split D1"]
 title = "Device conditions go to mesh-host (Mark, 2026-11-05)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-05_resident_split_plan.md"

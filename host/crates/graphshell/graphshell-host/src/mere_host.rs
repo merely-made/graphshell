@@ -1775,6 +1775,28 @@ mod tests {
             "the fixture must spread visit times or the ladder has nothing to select on"
         );
 
+        // D30: a node that is not a document has no Card rung, however recent.
+        let request = host.local_request();
+        let snapshot = host.snapshot(request).expect("snapshot");
+        assert_eq!(
+            served_rung(&snapshot, host.graph(), FIXTURE_RECEIPT_ADDRESS),
+            Representation::Glyph,
+            "a recent node that is not a document draws as a glyph"
+        );
+
+        // Both ends are documents, so recency alone splits them.
+        host.mutate_product_graph(|graph| {
+            for key in [oldest, newest] {
+                apply_graph_delta(
+                    graph,
+                    GraphDelta::InsertNodeTag {
+                        key,
+                        tag: "document".into(),
+                    },
+                );
+            }
+        })
+        .unwrap();
         let request = host.local_request();
         let snapshot = host.snapshot(request).expect("snapshot");
 
@@ -1786,7 +1808,7 @@ mod tests {
         assert_eq!(
             served_rung(&snapshot, host.graph(), FIXTURE_RECEIPT_ADDRESS),
             Representation::Card,
-            "a recent node measured at the served footprint earns a card at zoom 1.0"
+            "a recent document measured at the served footprint earns a card at zoom 1.0"
         );
 
         // The offer's score and the snapshot come from one layout, so they
