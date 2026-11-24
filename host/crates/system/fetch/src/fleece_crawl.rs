@@ -42,6 +42,7 @@ fn lower_crawler_result(
             content_disposition: response.content_disposition,
             body: String::from_utf8_lossy(&response.bytes).into_owned(),
             bytes: response.bytes,
+            http_response: None,
         }),
         404 | 410 => Err(CrawlFetchError::NotFound {
             received_bytes: response.bytes.len(),

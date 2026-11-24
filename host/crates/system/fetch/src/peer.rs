@@ -91,6 +91,7 @@ pub(super) async fn load(
             body,
             content_type: Some("text/html".into()),
             content_disposition: None,
+            http_response: None,
         },
         assets,
     ))

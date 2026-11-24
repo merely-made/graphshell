@@ -13,6 +13,7 @@ async fn http_redirect_reports_final_url_and_complete_body_before_return() {
         .mock("GET", "/start")
         .with_status(302)
         .with_header("location", "/final")
+        .with_header("referrer-policy", "unsafe-url")
         .expect(1)
         .create_async()
         .await;
@@ -20,6 +21,12 @@ async fn http_redirect_reports_final_url_and_complete_body_before_return() {
         .mock("GET", "/final")
         .with_status(200)
         .with_header("content-type", "text/html; charset=utf-8")
+        .with_header("referrer-policy", "same-origin")
+        .with_header("content-security-policy", "frame-src 'self'")
+        .with_header("content-security-policy", "object-src 'none'")
+        .with_header("content-security-policy-report-only", "frame-src 'none'")
+        .with_header("www-authenticate", "Basic realm=\"fixture\"")
+        .with_header("set-cookie", "fixture=excluded")
         .with_body("redirected page")
         .expect(1)
         .create_async()
@@ -45,6 +52,21 @@ async fn http_redirect_reports_final_url_and_complete_body_before_return() {
     .expect("redirected HTTP page fetch");
 
     assert_eq!(fetched.bytes, b"redirected page");
+    let http_response = fetched.http_response.expect("terminal HTTP metadata");
+    assert_eq!(http_response.final_url(), format!("{}/final", server.url()));
+    let policy = http_response.policy_headers();
+    assert_eq!(policy.len(), 3);
+    assert!(policy.iter().any(
+        |(name, value)| name.eq_ignore_ascii_case("referrer-policy") && value == "same-origin"
+    ));
+    assert_eq!(
+        policy
+            .iter()
+            .filter(|(name, _)| name.eq_ignore_ascii_case("content-security-policy"))
+            .map(|(_, value)| value.as_str())
+            .collect::<Vec<_>>(),
+        ["frame-src 'self'", "object-src 'none'"]
+    );
     assert_eq!(
         reported,
         vec![(

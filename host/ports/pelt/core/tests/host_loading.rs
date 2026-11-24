@@ -16,6 +16,7 @@ use inker::{
     SessionModifiers, SessionNavigationCommand, SessionPointerButton, SessionRegistry,
     SessionScrollKey, SessionSpawnRequest, SurfaceEngineRegistry,
 };
+use page_load::HttpDocumentResponse;
 use pelt_core::{
     FetchFailure, FetchOutcome, FetchRequestId, Fetched, LoadPhase, PageProgress, PeltClock,
     PeltController, PeltControllerConfig, PeltDocumentState, PeltLoadCommand, PeltLoadMode,
@@ -196,13 +197,75 @@ fn the_engine_only_ever_receives_held_bodies() {
         !controller.can_go_back(),
         "the first load replaces the opening entry"
     );
+    let spawns = spawns.lock().unwrap();
+    assert!(spawns.iter().all(|request| request.http_response.is_none()));
     assert!(
-        spawns
-            .lock()
-            .unwrap()
-            .iter()
-            .all(|request| request.body.is_some()),
+        spawns.iter().all(|request| request.body.is_some()),
         "no spawn asks the engine to fetch"
+    );
+}
+
+#[test]
+fn http_document_waits_for_policy_before_opening() {
+    let spawns = Spawns::default();
+    let mut controller = opened(&spawns);
+    controller.set_body_replacer(replace_body);
+    let requested = "https://example.test/start";
+    let final_url = "https://example.test/nested/page";
+    let body = "<iframe src=child></iframe>";
+    controller.command(SessionNavigationCommand::Address(requested.to_owned()));
+    let request = only_fetch(&mut controller, requested);
+    let progress = PageProgress {
+        request,
+        url: requested.to_owned(),
+        response_url: final_url.to_owned(),
+        content_type: Some("text/html".to_owned()),
+        bytes: body.as_bytes().to_vec(),
+    };
+
+    let early = controller.accept_progress(progress, 2);
+    assert_eq!(early, Default::default());
+    assert_eq!(controller.address(), START);
+    assert!(matches!(
+        controller.document_state(),
+        PeltDocumentState::Fetching { .. }
+    ));
+    assert!(matches!(
+        controller.load_phase(),
+        Some(LoadPhase::Streaming { received_bytes, .. }) if *received_bytes == body.len()
+    ));
+    assert_eq!(spawns.lock().unwrap().len(), 2);
+
+    let mut fetched = Fetched::text(Some("text/html".to_owned()), body);
+    fetched.http_response = Some(HttpDocumentResponse::new(
+        final_url,
+        [("referrer-policy".to_owned(), "no-referrer".to_owned())],
+    ));
+    let settled = controller.accept_outcome(
+        FetchOutcome {
+            request,
+            url: requested.to_owned(),
+            result: Ok(fetched),
+        },
+        3,
+    );
+
+    assert!(settled.navigated && settled.redraw);
+    assert_eq!(controller.frame(10, 10), format!("{requested}|{body}"));
+    assert_eq!(controller.address(), requested);
+    assert!(controller.request().http_response.is_none());
+    let (_, loaded) = controller.loaded_document().expect("terminal document");
+    assert_eq!(loaded.acquired_at_ms, 2);
+    let spawns = spawns.lock().unwrap();
+    assert_eq!(spawns.len(), 3);
+    let response = spawns[2]
+        .http_response
+        .as_ref()
+        .expect("HTTP document policy");
+    assert_eq!(response.final_url(), final_url);
+    assert_eq!(
+        response.policy_headers(),
+        [("referrer-policy".to_owned(), "no-referrer".to_owned())]
     );
 }
 
@@ -389,6 +452,7 @@ fn conversations_downloads_and_failures_leave_the_page_intact() {
         content_disposition: None,
         bytes: vec![0x50, 0x4b],
         body: String::new(),
+        http_response: None,
     };
     let download = controller.accept_outcome(
         FetchOutcome {

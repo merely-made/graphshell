@@ -981,12 +981,19 @@ impl<F: 'static> PeltController<F> {
         else {
             return host_effect;
         };
+        let await_http_response = url::Url::parse(&progress.response_url)
+            .is_ok_and(|url| matches!(url.scheme(), "http" | "https"));
         let url = progress.url.clone();
         if self
             .load
             .accept_progress(progress, admitted_at_ms)
             .is_none()
         {
+            return host_effect;
+        }
+        // Keep acquisition progress, but wait for the terminal HTTP policy
+        // before the document engine can parse or run script.
+        if await_http_response {
             return host_effect;
         }
         let document = self
@@ -1035,7 +1042,10 @@ impl<F: 'static> PeltController<F> {
                     .fetched(&url)
                     .cloned()
                     .expect("a settled document is retained");
-                if pending.live && self.replace_live_body(&url, &document.body) {
+                if pending.live
+                    && document.http_response.is_none()
+                    && self.replace_live_body(&url, &document.body)
+                {
                     host_effect.handled = true;
                     host_effect.redraw = true;
                     return host_effect;
@@ -1135,6 +1145,7 @@ impl<F: 'static> PeltController<F> {
     ) {
         entry.body = None;
         entry.content_type = None;
+        entry.http_response = None;
         let request = page_load::next_fetch_request_id();
         if let Some(superseded) = self.load.begin(request) {
             self.load_commands.push(PeltLoadCommand::Cancel {
@@ -1164,7 +1175,11 @@ impl<F: 'static> PeltController<F> {
         pending: &PendingLoad,
         document: &LoadedDocument,
     ) -> Result<(), String> {
-        let mut request = pending.entry.clone().with_body(document.body.clone());
+        let mut request = pending
+            .entry
+            .clone()
+            .with_body(document.body.clone())
+            .with_http_response(document.http_response.clone());
         request.content_type = document.content_type.clone();
         let (engine_id, route) = match &pending.engine {
             Some(engine_id) => (engine_id.clone(), None),

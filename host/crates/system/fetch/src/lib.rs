@@ -32,6 +32,8 @@ use std::sync::{Arc, OnceLock};
 use std::time::Duration;
 
 use netfetcher::{CookieRecord, CookieStore, InMemoryCookieJar, SameSiteContext};
+use page::do_fetch_ua_with_context;
+use page_load::HttpDocumentResponse;
 use zeroize::Zeroizing;
 
 /// Host-supplied durable trust storage for Gemini-style TLS.
@@ -403,15 +405,6 @@ async fn read_capped(
 pub const CRAWLER_USER_AGENT: &str =
     "Mozilla/5.0 (compatible; merebot/0.1; +https://mere.computer/bot)";
 
-async fn do_fetch_ua_with_context(
-    url: &str,
-    max_bytes: usize,
-    user_agent: Option<&str>,
-    cx: &netfetcher::FetchContext,
-) -> Result<Fetched, String> {
-    do_fetch_ua_with_context_observed(url, max_bytes, user_agent, cx, |_, _, _| {}).await
-}
-
 /// HTTP page fetch with an optional complete-response observer. The callback
 /// runs only after the capped body has been read successfully, and receives
 /// netfetcher's actual final response URL rather than the requested address.
@@ -451,7 +444,7 @@ where
         .iter()
         .find(|(k, _)| k.eq_ignore_ascii_case("content-disposition"))
         .map(|(_, v)| v.clone());
-    let final_url = response.url_list.last().cloned();
+    let final_url = response.url_list.last();
     let bytes = read_capped(response.body, max_bytes).await?;
     let body = String::from_utf8_lossy(&bytes).into_owned();
     let fetched = Fetched {
@@ -459,9 +452,11 @@ where
         content_disposition,
         bytes,
         body,
+        http_response: final_url
+            .map(|url| HttpDocumentResponse::new(url.as_str(), response.headers)),
     };
     if !page_load::is_download_response(&fetched)
-        && let Some(final_url) = final_url.as_ref()
+        && let Some(final_url) = final_url
     {
         on_complete(final_url, fetched.content_type.as_deref(), &fetched.bytes);
     }

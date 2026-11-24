@@ -6,6 +6,15 @@
 
 use super::*;
 
+pub(super) async fn do_fetch_ua_with_context(
+    url: &str,
+    max_bytes: usize,
+    user_agent: Option<&str>,
+    cx: &netfetcher::FetchContext,
+) -> Result<Fetched, String> {
+    do_fetch_ua_with_context_observed(url, max_bytes, user_agent, cx, |_, _, _| {}).await
+}
+
 /// Fetch a page at the default page body cap ([`PAGE_BODY_CAP`]). The page-load and
 /// crawl paths use this; the script `net.fetch` path calls [`fetch_page_capped`] with
 /// a tighter ceiling. `pub(crate)` so the content actor reuses the routing.

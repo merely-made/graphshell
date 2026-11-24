@@ -126,6 +126,7 @@ pub(super) fn smolweb_submission_answer(
                 content_disposition: None,
                 bytes,
                 body,
+                http_response: None,
             }))
         },
         errand::Status::Redirect => {
