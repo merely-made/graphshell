@@ -78,11 +78,11 @@ evidence actions become stale. The scene envelope and its intent routing remain 
 
 - **D1. The host reports the Resource digest through an accessor, not in the snapshot (Mark, 2026-11-23):** Mere exposes `PinnedView::resource_digest` (`mere:engine-split D192`, D194), computed lazily once per pin at about 3 s for 100k nodes (D191), and no Graphshell host code reports it yet. "Host accessor (Recommended)": `MereHost` returns the digest with its algorithm id and version on request, the asker paying the lazy cost once per pin, and snapshots stay as cheap as they are; against an optional snapshot field filled only when the pin has already computed it, whose presence would depend on who asked first, and a digest in every snapshot, which breaks D161's 100 ms edit target. Outcome: *New.*
 
-  Links: draws on mere:engine-split D161, mere:engine-split D191, mere:engine-split D192 · plans E4 · summary MereHost reports the Resource digest through an accessor on request; snapshots do not carry it.
+  Links: draws on mere:engine-split D161, mere:engine-split D191, mere:engine-split D192 · plans engine-binding E4 · summary MereHost reports the Resource digest through an accessor on request; snapshots do not carry it.
 
 - **D2. The digest accessor is sync, borrows Mere's type and errors without a pin (Mark, 2026-11-23):** `MereHost::pinned()` is public; the accessor adds a named entry point, behaviour without a pin and the host's error. "Take the combination (Recommended)": `pinned_resource_digest(&self) -> Result<&ResourceDigest, MereHostError>`, sync like every pin method, borrowing `pandect::ResourceDigest`, with `MereHostError::NotPinned` and `MereHostError::ResourceDigest(SortedNQuadsError)` and `dep:mere` under the `mere-host` feature; against `Ok(None)` with a cloned digest and a copied-out quad, and an owned `scenotime::ResourceDigest` ahead of D181's envelope schema. Outcome: applies D1.
 
-  Links: draws on engine-binding D1, mere:engine-split D192 · plans E4 · summary pinned_resource_digest is sync, borrows Mere's ResourceDigest, and errors with NotPinned or the wrapped SortedNQuadsError.
+  Links: draws on engine-binding D1, mere:engine-split D192 · plans engine-binding E4 · summary pinned_resource_digest is sync, borrows Mere's ResourceDigest, and errors with NotPinned or the wrapped SortedNQuadsError.
 
 ## Open questions
 

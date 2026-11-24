@@ -240,12 +240,14 @@ title = "The host reports the Resource digest through an accessor, not in the sn
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-19_engine_binding_plan.md"
 summary = "MereHost reports the Resource digest through an accessor on request; snapshots do not carry it."
 draws_on = ["mere:engine-split D161", "mere:engine-split D191", "mere:engine-split D192"]
+plans = ["engine-binding"]
 
 [decisions."engine-binding D2"]
 title = "The digest accessor is sync, borrows Mere's type and errors without a pin (Mark, 2026-11-23)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-19_engine_binding_plan.md"
 summary = "pinned_resource_digest is sync, borrows Mere's ResourceDigest, and errors with NotPinned or the wrapped SortedNQuadsError."
 draws_on = ["engine-binding D1", "mere:engine-split D192"]
+plans = ["engine-binding"]
 
 [decisions."graph-behaviors D1"]
 title = "Command packs live in the host toolkit's mod registry (Mark, 2026-11-23)"
