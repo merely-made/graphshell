@@ -3,7 +3,7 @@
 **Status:** 2026-11-24: in progress. Cut from GB6 P1 of `2026-10-28_graph_behaviors_plan.md`, whose
 D1 to D6 place packs in the host toolkit's mod registry, run them through `lua-command` and set
 their admission levels. D1 to D7 here settle the manifest, grants, context, first host and the
-edges of admission. CP1 is met; CP2 is next.
+edges of admission. CP1 and CP2 are met; CP3 is next.
 
 **For:** Lua command packs: commands that install at runtime from a manifest, show in an app's
 palette without a Rust enum variant, read a read-only context, and return action requests the host
@@ -176,9 +176,20 @@ from the registry, and its pack manager shows each pack's level (D5, `graph-beha
    binds no globals, so a script cannot read a context; the effect class of each invocation comes
    from the host's `CommandSet`, never the script (`crates/script/didge/src/command.rs`, Inker
    `2ba0e45`). CP2 needs a variant that binds the context.
+4. CP2, 2026-11-24. Inker `40a2d10` adds `collect_invocations_with_context`, which converts a
+   `ScriptValue` into a `context` global in each call's own state, so a script's writes never reach
+   the host. `host/crates/script/command-packs`: `PackRunner` (`run(command_id, &CommandContext)`,
+   `PackLimits`), `CommandContext` (version 1: selection, focus, arguments, `extensions`) and
+   `Refusal` (`UnknownCommand`, `SourceUnreadable`, `Script`, `NotGranted`). The class checked is
+   the host's declaration, and an id the host no longer offers is refused. The registry starts Lua
+   packs through an injected `LuaPackRuntime` (`ModRegistry::with_lua_runtime`) and records an
+   `Action` per command for rollback, which uses hest's new `CommandSet::unregister`. A pack's
+   limits are the runner's, not the manifest's, and its heap ceiling is `script-didge`'s 16 MiB.
+   `command-packs` 13 tests, `script-didge` 70 and `document-host` 57 pass.
 
 ## Progress
 
 - 2026-11-24: cut from GB6 P1; D1 to D5 ruled.
 - 2026-11-24: CP1 met (Findings 2); D6 and D7 ruled.
 - 2026-11-24: D8 ruled; CP2 started.
+- 2026-11-24: CP2 met (Findings 4; graphshell `f04ee91b`, Inker `40a2d10`).
