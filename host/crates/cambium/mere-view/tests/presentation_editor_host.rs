@@ -42,6 +42,7 @@ impl Host {
     }
     fn sync(&mut self) {
         self.editor.set_snapshot(Snapshot {
+            read_only: false,
             available: true,
             editing: self.workspace.editing(),
             dirty: self.workspace.dirty(),

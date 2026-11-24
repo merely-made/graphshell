@@ -44,6 +44,7 @@ impl Host {
 
     fn sync_editor(&mut self) {
         self.editor.set_snapshot(Snapshot {
+            read_only: false,
             editing: self.session.editing(),
             dirty: self.session.dirty(),
             busy: self.session.busy(),
