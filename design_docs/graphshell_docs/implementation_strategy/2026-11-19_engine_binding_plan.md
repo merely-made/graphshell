@@ -84,6 +84,23 @@ evidence actions become stale. The scene envelope and its intent routing remain 
 
   Links: draws on engine-binding D1, mere:engine-split D192 · plans engine-binding E4 · summary pinned_resource_digest is sync, borrows Mere's ResourceDigest, and errors with NotPinned or the wrapped SortedNQuadsError.
 
+- **D3. Scenes intern sources through one indexed interner in sceno (Mark, 2026-11-24):** E3's retention evidence found the keyframe build superlinear (445 s at 100k nodes). `Scene::intern_source` searches the source table linearly, and `MereHost::build_snapshot` interned one source per node; `cartography`'s `scene_out`, `scenomise`'s matrix and facet did the same, and `scenomise::solve` carried its own local index (table plan T4). "Indexed interner in sceno (Recommended)": an additive `sceno::SourceInterner`, first-seen indices in constant time, which every one of those builders now uses, the local copies removed; against keeping `mere_host`'s local map. Interning took 34.9 s of a 30k keyframe before and 66 ms after; with Mere's `resource_tag_labels` walking a resource's own edges (`mere:37b06156d`) as well, the 100k keyframe went from 607 s to 3.06 s, its output byte-identical. Outcome: *New.*
+
+  Links: draws on mere:engine-split D161 · plans engine-binding E3 · summary Scenes intern their sources through sceno's SourceInterner, so a keyframe build is linear in its sources.
+
+- **D4. Structural keyframe work waits on measurement (Mark, 2026-11-24):** with both fixes in, what remains is linear per-node work and one `served_layout` per keyframe. "Measure first, then decide (Recommended)": measure 1k to 100k and report before any structural change; against caching `served_layout` per revision now, and stopping at the two fixes. Measured on the E4 chain graph, release, debug off, keyframe build in ms (base: Graphshell `8c68680a` with Mere `42a64883e`; fixed: D3 with Mere `37b06156d`):
+
+  | Nodes | `served_layout` base | fixed | keyframe base | fixed |
+  |---|---|---|---|---|
+  | 1k | 5.6 | 5.1 | 30 to 35 | 18 to 25 |
+  | 10k | 526 | 71 | 1985 to 2290 | 260 to 268 |
+  | 30k | 9582 | 245 | 47712 | 871 |
+  | 100k | 169496 | 830 | 606700 | 3019 to 3113 |
+
+  Outcome: *New.*
+
+  Links: draws on mere:engine-split D161 · plans engine-binding E3 · summary Keyframe build is near linear after D3 (3.06 s at 100k); caching or incremental snapshots wait on a ruling made from these numbers.
+
 ## Open questions
 
 - **A shape Graphshell already writes.** The table plan's T1 round-trips a fields list through a
@@ -92,6 +109,12 @@ evidence actions become stale. The scene envelope and its intent routing remain 
 
 ## Findings
 
+- 2026-11-24, D3: two quadratic patterns remain in `scenomise::solve`, both scaling with how many holds a score
+  carries. `Score::hold_for` finds a hold by linear search (`crates/sceno/src/score.rs:162`) and is called per item
+  (`host/crates/cambium/scenes/scenomise/src/solve.rs:114`, and `report_holds`'s honored holds at :215), items times
+  holds; and `report_holds` finds each unmet hold by searching the scene's sources (:227), holds times sources. The
+  served spiral carries no holds, so neither shows in the keyframe numbers. Numbers, probe and digests:
+  `Code/testing/engine-split/kf_perf/numbers.tsv`.
 - 2026-11-24, `graphshell-rdf-trail` against `mere:engine-split D195` to `D200` (P7's trail, not this plan's scope,
   recorded here because no Graphshell plan names the crate): `55988ecb` carried no tests, so D199's "its round-trip
   tests stay" had nothing to keep; the rework adds them (`tests/round_trip.rs`). A session already exists as a launch
@@ -121,6 +144,11 @@ evidence actions become stale. The scene envelope and its intent routing remain 
 
 ## Progress
 
+- 2026-11-24: D3 built (branch `perf/keyframe-build`). `sceno::SourceInterner` indexes a scene's sources;
+  `MereHost::build_snapshot`, `scene_out`, `scenomise`'s matrix, facet and solve intern through it. With
+  `mere:37b06156d`, the keyframe build is 871 ms at 30k and 3.06 s at 100k (from 47.7 s and 607 s). A digest of the
+  snapshot, its resources and instance targets matches the unfixed build at 1k, 10k, 30k and 100k, and a one-item
+  perturbation changes it; sceno's interner test checks it index for index against `intern_source`.
 - 2026-11-23: E4 built (branch `e4/digest-accessor`). `MereHost::pinned_resource_digest` returns
   the shown pin's `pandect::ResourceDigest` (`mere-resource-sorted-nquads-blake3` v1), sync and
   borrowed from the pin, with `MereHostError::NotPinned` and `MereHostError::ResourceDigest` (D2).

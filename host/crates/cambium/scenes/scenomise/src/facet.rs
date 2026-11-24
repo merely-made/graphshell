@@ -15,8 +15,8 @@
 //! keep pointing at the same things.
 
 use sceno::{
-    Footprint, InstanceId, ProjectedItem, Rect, Representation, Scene, Size2, SourceRef, Space,
-    SpaceId, StandIn, Transform2, Vec2, fold::FoldRule,
+    Footprint, InstanceId, ProjectedItem, Rect, Representation, Scene, Size2, SourceInterner,
+    SourceRef, Space, SpaceId, StandIn, Transform2, Vec2, fold::FoldRule,
 };
 use scenograph::ValidationIssue;
 use scenograph::swatch::{AxisScale, Facet};
@@ -120,8 +120,14 @@ pub fn compose_facet(
     };
 
     let mut out = Scene::new();
-    let heading = |out: &mut Scene, id: String, at: Vec2, size: Size2, kind: &str| {
-        let source = out.intern_source(SourceRef::new(FACET_AXIS_ADAPTER, id));
+    let mut interner = SourceInterner::for_scene(&out);
+    let heading = |out: &mut Scene,
+                   interner: &mut SourceInterner,
+                   id: String,
+                   at: Vec2,
+                   size: Size2,
+                   kind: &str| {
+        let source = interner.intern(out, SourceRef::new(FACET_AXIS_ADAPTER, id));
         out.items.push(ProjectedItem {
             source,
             space: Scene::WORLD,
@@ -139,6 +145,7 @@ pub fn compose_facet(
         let at = origin(0, column);
         heading(
             &mut out,
+            &mut interner,
             format!("columns:{column}"),
             Vec2::new(at.x, 0.0),
             Size2::new(layout.cell.w, layout.heading),
@@ -150,6 +157,7 @@ pub fn compose_facet(
             let at = origin(row, 0);
             heading(
                 &mut out,
+                &mut interner,
                 format!("rows:{row}"),
                 Vec2::new(0.0, at.y),
                 Size2::new(layout.heading, layout.cell.h),
@@ -168,7 +176,10 @@ pub fn compose_facet(
             at.x + (layout.cell.w - b.size.w * f) / 2.0 - b.origin.x * f,
             at.y + (layout.cell.h - b.size.h * f) / 2.0 - b.origin.y * f,
         );
-        let frame_source = out.intern_source(SourceRef::new(FACET_CELL_ADAPTER, &cell.swatch.id));
+        let frame_source = interner.intern(
+            &mut out,
+            SourceRef::new(FACET_CELL_ADAPTER, &cell.swatch.id),
+        );
         out.items.push(ProjectedItem {
             source: frame_source,
             space: Scene::WORLD,
@@ -194,7 +205,7 @@ pub fn compose_facet(
             },
             Some(format!("cell: {}", cell.swatch.id)),
         );
-        merge(&mut out, scene, cell_space);
+        merge(&mut out, &mut interner, scene, cell_space);
     }
     out.generation = generation;
     let rows_extent = layout.heading + rows as f32 * (layout.cell.h + layout.gap) - layout.gap;
@@ -206,11 +217,11 @@ pub fn compose_facet(
 
 /// Copy `cell` into `out` under `parent`, renumbering its sources, spaces and
 /// instances.
-fn merge(out: &mut Scene, cell: &Scene, parent: SpaceId) {
+fn merge(out: &mut Scene, interner: &mut SourceInterner, cell: &Scene, parent: SpaceId) {
     let sources: Vec<_> = cell
         .sources
         .iter()
-        .map(|source| out.intern_source(source.clone()))
+        .map(|source| interner.intern(out, source.clone()))
         .collect();
     let space_base = out.spaces.len() as u32;
     let space = |id: SpaceId| SpaceId(space_base + id.0);

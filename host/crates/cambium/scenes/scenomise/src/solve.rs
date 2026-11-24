@@ -103,12 +103,7 @@ pub(crate) fn solve_configured(
 
     // Sources interned through an index: a linear search per item made a
     // 10,000-row table spend most of a second here (table plan, T4).
-    let mut interned: std::collections::HashMap<sceno::SourceRef, sceno::SourceIx> = scene
-        .sources
-        .iter()
-        .enumerate()
-        .map(|(index, source)| (source.clone(), sceno::SourceIx(index as u32)))
-        .collect();
+    let mut interner = sceno::SourceInterner::for_scene(&scene);
     let mut bounds: Option<Rect> = None;
     for (rank, (_, item)) in order.into_iter().enumerate() {
         // An authored hold outranks the arrangement, in every family. Without
@@ -134,10 +129,7 @@ pub(crate) fn solve_configured(
                 },
             },
         };
-        let source = *interned.entry(item.source.clone()).or_insert_with(|| {
-            scene.sources.push(item.source.clone());
-            sceno::SourceIx((scene.sources.len() - 1) as u32)
-        });
+        let source = interner.intern(&mut scene, item.source.clone());
         let instance = ProjectedItem {
             source,
             space: Scene::WORLD,

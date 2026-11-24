@@ -40,7 +40,7 @@ use pandect::{
 };
 use sceno::{
     Arrangement, Footprint, InstanceId, LinkKey, LinkStratum, ProjectedItem, Rect, Representation,
-    RoutedRelation, Scene, Score, Size2, SourceRef, Transform2, Vec2,
+    RoutedRelation, Scene, Score, Size2, SourceInterner, SourceRef, Transform2, Vec2,
 };
 use scenograph::SourceBinding;
 use scenograph::link::{LinkSource, LinkSourceRevision};
@@ -1186,6 +1186,7 @@ impl<B: Backend> MereHost<B> {
             .map(|item| (item.source.id.as_str(), &item.representation))
             .collect();
         let mut scene = Scene::new();
+        let mut interner = SourceInterner::for_scene(&scene);
         let mut presentation = PresentationManifest::default();
         let mut resources = BTreeMap::new();
         let mut instance_targets = Vec::with_capacity(layout.positions.len());
@@ -1217,7 +1218,8 @@ impl<B: Backend> MereHost<B> {
             max_x = max_x.max(position.x);
             max_y = max_y.max(position.y);
             let id = self.graph_session.id().as_uuid().to_string();
-            let source = scene.intern_source(SourceRef::new(wire::SESSION_ITEM_SOURCE, &id));
+            let source =
+                interner.intern(&mut scene, SourceRef::new(wire::SESSION_ITEM_SOURCE, &id));
             scene.items.push(ProjectedItem {
                 source,
                 space: Scene::WORLD,
@@ -1293,7 +1295,10 @@ impl<B: Backend> MereHost<B> {
             max_x = max_x.max(position.x);
             max_y = max_y.max(position.y);
 
-            let source = scene.intern_source(SourceRef::new("mere.graph", node.id.to_string()));
+            let source = interner.intern(
+                &mut scene,
+                SourceRef::new("mere.graph", node.id.to_string()),
+            );
             scene.items.push(ProjectedItem {
                 source,
                 space: Scene::WORLD,

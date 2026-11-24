@@ -404,13 +404,14 @@ impl Matrix {
         let footprint = Footprint::Rect {
             size: Size2::new(MATRIX_CELL_SIZE - 8.0, MATRIX_CELL_SIZE - 8.0),
         };
-        let push = |scene: &mut Scene,
-                    source: &SourceRef,
-                    at: (usize, usize),
-                    kind: &str,
-                    layer: i16,
-                    channels: Vec<(String, f32)>| {
-            let source = scene.intern_source(source.clone());
+        let mut interner = sceno::SourceInterner::for_scene(&scene);
+        let mut push = |scene: &mut Scene,
+                        source: &SourceRef,
+                        at: (usize, usize),
+                        kind: &str,
+                        layer: i16,
+                        channels: Vec<(String, f32)>| {
+            let source = interner.intern(scene, source.clone());
             scene.items.push(ProjectedItem {
                 source,
                 space: Scene::WORLD,

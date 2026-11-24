@@ -103,9 +103,12 @@ pub fn scene_from_projection(
         }
     }
 
+    let mut interner = sceno::SourceInterner::for_scene(&scene);
     for positioned in &projection.nodes {
-        let source =
-            scene.intern_source(SourceRef::new(MERE_GRAPH_ADAPTER, id_of(positioned.node)));
+        let source = interner.intern(
+            &mut scene,
+            SourceRef::new(MERE_GRAPH_ADAPTER, id_of(positioned.node)),
+        );
         let footprint = match extent_of(positioned.node) {
             Some((w, h)) => Footprint::Rect {
                 size: Size2::new(w, h),

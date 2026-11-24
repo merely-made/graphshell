@@ -300,6 +300,20 @@ summary = "pinned_resource_digest is sync, borrows Mere's ResourceDigest, and er
 draws_on = ["engine-binding D1", "mere:engine-split D192"]
 plans = ["engine-binding"]
 
+[decisions."engine-binding D3"]
+title = "Scenes intern sources through one indexed interner in sceno (Mark, 2026-11-24)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-19_engine_binding_plan.md"
+summary = "Scenes intern their sources through sceno's SourceInterner, so a keyframe build is linear in its sources."
+draws_on = ["mere:engine-split D161"]
+plans = ["engine-binding"]
+
+[decisions."engine-binding D4"]
+title = "Structural keyframe work waits on measurement (Mark, 2026-11-24)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-19_engine_binding_plan.md"
+summary = "Keyframe build is near linear after D3 (3.06 s at 100k); caching or incremental snapshots wait on a ruling made from these numbers."
+draws_on = ["mere:engine-split D161"]
+plans = ["engine-binding"]
+
 [decisions."graph-behaviors D1"]
 title = "Command packs live in the host toolkit's mod registry (Mark, 2026-11-23)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-10-28_graph_behaviors_plan.md"
