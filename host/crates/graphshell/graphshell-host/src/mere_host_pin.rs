@@ -11,7 +11,7 @@
 //! snapshot names the engine revision it was built from, and an intent is
 //! stale when that revision or the projection counter has moved since.
 use super::*;
-use pandect::{GraphRevision, PinnedView};
+use pandect::{GraphRevision, PinnedView, ResourceDigest};
 use scenotime::EngineRevision;
 
 /// The engine revision a scene was stamped with, and the projection counter
@@ -58,6 +58,21 @@ impl<B: Backend> MereHost<B> {
     /// The pin scenes are built from, if one is shown.
     pub fn pinned(&self) -> Option<&PinnedView> {
         self.pin.as_ref()
+    }
+
+    /// The shown pin's Resource digest, with its algorithm id and version
+    /// (engine binding D1, D2). The pin computes it on the first ask and keeps
+    /// it, so the asker pays once per pin (mere:engine-split D191); snapshots
+    /// never carry it.
+    ///
+    /// # Errors
+    ///
+    /// [`MereHostError::NotPinned`] while the live graph is shown, and
+    /// [`MereHostError::ResourceDigest`] when the pin's Resource stratum holds
+    /// a blank node.
+    pub fn pinned_resource_digest(&self) -> Result<&ResourceDigest, MereHostError> {
+        let pin = self.pin.as_ref().ok_or(MereHostError::NotPinned)?;
+        Ok(pin.resource_digest()?)
     }
 
     /// The graph scenes are built from: the pin's when one is shown.
@@ -158,3 +173,7 @@ mod tests;
 #[cfg(all(test, not(target_arch = "wasm32")))]
 #[path = "mere_host_arrangement_tests.rs"]
 mod arrangement_tests;
+
+#[cfg(test)]
+#[path = "mere_host_digest_tests.rs"]
+mod digest_tests;

@@ -1,7 +1,9 @@
 # Engine binding plan: a host view names the Mere revision it shows
 
-**Status:** 2026-11-20: The E5 finding panel and native kept-source binding are built. The
-general scene binding remains an open lane of `mere:engine-split P8`.
+**Status:** 2026-11-23: E1, E2 and E4 are built: a scene names its engine revision, a stale intent
+names the revision now current, and `MereHost` reports a pinned view's Resource digest on request
+(D1, D2). The E5 finding panel and native kept-source binding are built. E3 and the general scene
+binding remain open lanes of `mere:engine-split P8`.
 
 **For:** Graphshell's half of the engine-to-workspace contract
 (`mere/design_docs/mere_docs/technical_architecture/2026-11-16_engine_workspace_contract.md`). The
@@ -53,8 +55,9 @@ pin's session, cursor and digest beside the projection epoch and revision.
 The host's side of P8's third probe.
 - Done when: the Resource digest reported with a view is identical before and after an arrangement
   edit made in Graphshell, and differs after an edit to a Resource statement.
-- Needs: the digest's measurement on the edit path.
-- Rulings: D1.
+- Needs: Mere's `PinnedView::resource_digest` (landed, `mere:engine-split D190` to `D194`). The
+  digest stays off the edit path: a pin computes it on the first ask (`mere:engine-split D191`).
+- Rulings: D1, D2.
 
 ### E5. The inspector shows a validation finding
 Graphshell's part of the shared milestone
@@ -77,6 +80,10 @@ evidence actions become stale. The scene envelope and its intent routing remain 
 
   Links: draws on mere:engine-split D161, mere:engine-split D191, mere:engine-split D192 · plans E4 · summary MereHost reports the Resource digest through an accessor on request; snapshots do not carry it.
 
+- **D2. The digest accessor is sync, borrows Mere's type and errors without a pin (Mark, 2026-11-23):** `MereHost::pinned()` is public; the accessor adds a named entry point, behaviour without a pin and the host's error. "Take the combination (Recommended)": `pinned_resource_digest(&self) -> Result<&ResourceDigest, MereHostError>`, sync like every pin method, borrowing `pandect::ResourceDigest`, with `MereHostError::NotPinned` and `MereHostError::ResourceDigest(SortedNQuadsError)` and `dep:mere` under the `mere-host` feature; against `Ok(None)` with a cloned digest and a copied-out quad, and an owned `scenotime::ResourceDigest` ahead of D181's envelope schema. Outcome: applies D1.
+
+  Links: draws on engine-binding D1, mere:engine-split D192 · plans E4 · summary pinned_resource_digest is sync, borrows Mere's ResourceDigest, and errors with NotPinned or the wrapped SortedNQuadsError.
+
 ## Open questions
 
 - **A shape Graphshell already writes.** The table plan's T1 round-trips a fields list through a
@@ -85,6 +92,18 @@ evidence actions become stale. The scene envelope and its intent routing remain 
 
 ## Findings
 
+- 2026-11-23, Mere `ac883e75c`: no host path puts a blank node in the Resource stratum. The
+  projection mints named nodes only and skips a term whose IRI does not parse
+  (`crates/graph/engine/src/projection.rs:62,180,245`, `crates/graph/graph-kernel/src/rdf.rs:61,179`),
+  and ingest skolemizes blank subjects and objects (`crates/graph/engine/src/acquire/ingest.rs:211`,
+  `acquire/ingest/contribution.rs:68,343`). E4's refusal test therefore checks Mere's real
+  `SortedNQuadsError` becoming `MereHostError::ResourceDigest`, not a refusing pin.
+- 2026-11-23: `mere-host` is documented as native and wasm alike, but graphshell-host declared its
+  optional `mere` in the native-only table. D2's `dep:mere` moved it to the all-target table, as
+  pandect already is; `mere-host` already pulled `mere` through pandect on every target, and the other
+  features that name `dep:mere` (`mere-query`, `pinned-shacl`) gate their code to native. No gate
+  builds `mere-host` for wasm32.
+
 - 2026-11-19, Graphshell `9b24775c`: no source file names `PinnedView`. In
   `host/crates/graphshell/graphshell-host/src/mere_host.rs` a scene's generation and revision are
   stamped from `self.projection_revision` (1416-1419), and the stale check compares
@@ -92,6 +111,15 @@ evidence actions become stale. The scene envelope and its intent routing remain 
   records the same at an earlier commit.
 
 ## Progress
+
+- 2026-11-23: E4 built (branch `e4/digest-accessor`). `MereHost::pinned_resource_digest` returns
+  the shown pin's `pandect::ResourceDigest` (`mere-resource-sorted-nquads-blake3` v1), sync and
+  borrowed from the pin, with `MereHostError::NotPinned` and `MereHostError::ResourceDigest` (D2).
+  `mere_host_digest_tests.rs`: pins taken before and after a FrameMember arrangement edit report the
+  same digest while the journal cursor, journal digest and whole projection moved (the positive
+  control); a pin after a Resource statement edit reports a different one; equality asserted across
+  a Resource edit fails (`should_panic`); the host hands back the digest the pin keeps; the live view
+  has none; Mere's blank-node refusal becomes the host's error with its quad.
 
 - 2026-11-22: E2's stale reply names the engine revision (`mere:engine-split D193`).
   `IntentResult::Stale` carries an optional `current_engine_revision`, absent on the wire when

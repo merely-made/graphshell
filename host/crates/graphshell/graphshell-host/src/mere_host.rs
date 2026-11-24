@@ -114,6 +114,11 @@ pub enum MereHostError {
     OwnershipUnproven,
     Live(pandect::live_graph::LiveEditError),
     Settings(crate::resident_host::ResidentSettingsError),
+    /// The live graph is shown; a Resource digest is a pin's (engine binding D2).
+    NotPinned,
+    /// The pin's Resource stratum holds a blank node, which the digest refuses
+    /// (mere:engine-split D190).
+    ResourceDigest(mere::formats::canon::SortedNQuadsError),
 }
 
 impl std::fmt::Display for MereHostError {
@@ -134,6 +139,8 @@ impl std::fmt::Display for MereHostError {
             ),
             Self::Live(error) => write!(formatter, "{error}"),
             Self::Settings(error) => write!(formatter, "{error}"),
+            Self::NotPinned => write!(formatter, "no pinned view is shown"),
+            Self::ResourceDigest(error) => write!(formatter, "Resource digest: {error}"),
         }
     }
 }
@@ -155,6 +162,12 @@ impl From<SessionError> for MereHostError {
 impl From<pandect::live_graph::LiveEditError> for MereHostError {
     fn from(value: pandect::live_graph::LiveEditError) -> Self {
         Self::Live(value)
+    }
+}
+
+impl From<mere::formats::canon::SortedNQuadsError> for MereHostError {
+    fn from(value: mere::formats::canon::SortedNQuadsError) -> Self {
+        Self::ResourceDigest(value)
     }
 }
 

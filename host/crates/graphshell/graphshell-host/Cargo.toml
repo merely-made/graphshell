@@ -103,6 +103,7 @@ mere-host = [
     "dep:incipit",
     "incipit/view",
     "dep:kernel",
+    "dep:mere",
     "dep:mere-overmap",
     "dep:muniment",
     "dep:pandect",
@@ -174,6 +175,9 @@ pollster = { version = "1", optional = true }
 # `native`'s session store, and the session `mere-host` serves in the browser
 # too, so it is not in the native-only table.
 pandect = { workspace = true, optional = true }
+# The engine (default features off): `mere-host` names the Resource digest's
+# refusal, in the browser too, so it is not in the native-only table.
+mere = { workspace = true, optional = true }
 # The owner policy file (`policy_projection`), Dramatis's.
 sporran = { workspace = true, optional = true }
 mere-overmap = { workspace = true, optional = true }
@@ -183,7 +187,6 @@ scenograph = { workspace = true, optional = true }
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 # An invitation's network id and session (`invitation`).
 blake3 = { workspace = true, optional = true }
-mere = { workspace = true, optional = true }
 mere-shacl = { workspace = true, optional = true }
 oxrdf = { version = "0.3", optional = true }
 tokio = { version = "1", features = ["io-util", "macros", "net", "rt-multi-thread", "sync", "time"], optional = true }
