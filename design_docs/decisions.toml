@@ -198,6 +198,42 @@ title = "The dialog fork publishes as `cambium-dialog` (Mark, 2026-11-21)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-05_cambium_publish_plan.md"
 summary = "cambium-desktop's patched light-file-dialog publishes as cambium-dialog."
 
+[decisions."command-packs D1"]
+title = "A pack declares its commands in the existing `mod.toml` (Mark, 2026-11-24)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-24_command_packs_plan.md"
+area = "The stack"
+summary = "A Lua command pack is a mod: lua mod type, command contributions, the existing mod.toml."
+plans = ["command-packs"]
+
+[decisions."command-packs D2"]
+title = "Grants are classes or named commands, a ceiling and a floor (Mark, 2026-11-24)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-24_command_packs_plan.md"
+area = "The stack"
+summary = "A pack may be granted whole effect classes or single host commands; nothing outside them runs."
+plans = ["command-packs"]
+
+[decisions."command-packs D3"]
+title = "A command added later to a granted class rides the grant (Mark, 2026-11-24)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-24_command_packs_plan.md"
+area = "The stack"
+summary = "A class grant covers whatever the host files under that class, now or later, and the install dialog says so."
+amends = ["command-packs D2"]
+plans = ["command-packs"]
+
+[decisions."command-packs D4"]
+title = "The context is selection and focus, versioned (Mark, 2026-11-24)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-24_command_packs_plan.md"
+area = "The stack"
+summary = "A pack command reads the selection, the focused view and its arguments, under a versioned schema."
+plans = ["command-packs"]
+
+[decisions."command-packs D5"]
+title = "Turnstone proves it first (Mark, 2026-11-24)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-24_command_packs_plan.md"
+area = "The stack"
+summary = "Command packs land first in Turnstone's viewer palette, proved by a headed receipt."
+plans = ["command-packs"]
+
 [decisions."compositor-placement D1"]
 title = "Both motions (Mark, 2026-11-20)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-20_compositor_placement_plan.md"

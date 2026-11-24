@@ -54,7 +54,9 @@ Evidence that matters is a test in the repository or a line in Findings.
   components for portable untrusted mods. Rhai is retired; an old `rhai` fence is refused with a
   message naming the Lua form (`inker:lua-evaluator D1`, D27; Mark: "Decide now: Lua replaces
   Rhai"). A new capability never rides an existing preselected grant, which would silently widen
-  installed packs; authoring earned its own ring (`:62-80,417-435`).
+  installed packs; authoring earned its own ring (`:62-80,417-435`). The one exception is a grant
+  the user took as open-ended: a command pack's class grant covers commands the host files under
+  that class later (`command-packs D3`).
 - Non-goals (`:467-478`): operative edges or edge-kind variants, a general scheduler (the cascade
   runner is a bounded drain loop; depth machinery waits for evidence), spatial influence through
   petitions, universal undo.
@@ -165,7 +167,8 @@ thresholds.
 
 ### GB6. The runtime mod authoring loop (host open)
 Five phases, none started, none of the plan's objects existing (`install_mod`, `CommandModManifest`,
-`ModProject`, `meerkat.mod.*`). P1 Lua command packs (Rhai in the source): dynamic command entries from a manifest, a
+`ModProject`, `meerkat.mod.*`). P1 Lua command packs (Rhai in the source; now its own plan,
+`2026-11-24_command_packs_plan.md`): dynamic command entries from a manifest, a
 `CommandContext` snapshot, an action-request return type, install, reload, unload and run commands,
 palette and menu exposure; the diagnostic names (`meerkat.mod.*`) need replacing. P2 Wasm mod
 projects: a `ModProject` store, a component build and check command, attach, run and reload through
@@ -299,6 +302,8 @@ on a live moot, the mere-native meadowcap structural-cap layer, and "broader con
 - 2026-10-28: cut from the two sources named in Status; nothing new landed.
 - 2026-11-23: Rhai retired (`inker:lua-evaluator` L6). The lane constraint, GB6 and the host
   question read Lua; the command lane is `script-didge`'s `lua-command`.
+- 2026-11-24: GB6 P1 cut into `2026-11-24_command_packs_plan.md` (command-packs D1 to D5); the lane
+  constraint names open-ended class grants.
 - 2026-11-23: D1 to D6 ruled for GB6 P1: packs live in the host's `mod_loader`, run through
   `lua-command`, and are admitted conformant unless the user picks dev mode, which loosens
   admission and never grants; the pack manager shows the level.
