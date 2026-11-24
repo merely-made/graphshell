@@ -1,9 +1,9 @@
 # Command packs plan
 
-**Status:** 2026-11-24: plan. Cut from GB6 P1 of `2026-10-28_graph_behaviors_plan.md`, whose D1 to D6
-place packs in the host toolkit's mod registry, run them through `lua-command` and set their
-admission levels. D1 to D5 here settle the manifest, grants, context and first host. Nothing is
-built.
+**Status:** 2026-11-24: in progress. Cut from GB6 P1 of `2026-10-28_graph_behaviors_plan.md`, whose
+D1 to D6 place packs in the host toolkit's mod registry, run them through `lua-command` and set
+their admission levels. D1 to D7 here settle the manifest, grants, context, first host and the
+edges of admission. CP1 is met; CP2 is next.
 
 **For:** Lua command packs: commands that install at runtime from a manifest, show in an app's
 palette without a Rust enum variant, read a read-only context, and return action requests the host
@@ -122,6 +122,23 @@ from the registry, and its pack manager shows each pack's level (D5, `graph-beha
 
   Links: area The stack · plans command-packs CP4 · summary Command packs land first in Turnstone's viewer palette, proved by a headed receipt.
 
+- **D6. An admitted Lua pack is Failed until CP2 registers its commands (Mark, 2026-11-24):**
+  Evidence: CP1 admits a pack but cannot run it; `load_all` on one fails with "lua pack 'x' cannot
+  activate before command registration". Offered: Failed with that reason (recommended); a status
+  of its own between Discovered and Active; Active with no commands. Answer: "Failed with that
+  reason (Recommended)". What follows: CP2 replaces the failure with registration. Outcome: new.
+
+  Links: area The stack · plans command-packs CP1, command-packs CP2 · summary Until commands can register, an admitted Lua pack reports Failed with the reason.
+
+- **D7. Dev mode still needs a TOML manifest that names its ABI and type (Mark, 2026-11-24):**
+  Evidence: CP1's dev mode tolerates a wrong ABI, unknown keys, unqualified ids and undeclared
+  files, and refuses a missing manifest, malformed TOML, or a missing `abi` or `mod_type` at both
+  levels. Offered: refuse those at both levels (recommended); dev mode assumes the current ABI and
+  lua, with diagnostics. Answer: "Refuse at both levels (Recommended)". What follows: a pack must
+  say what it is, in TOML, whatever its level. Outcome: refines `graph-behaviors D5`.
+
+  Links: area The stack · amends graph-behaviors D5 · plans command-packs CP1 · summary Dev mode loosens admission but still refuses a manifest that is not TOML or does not name its ABI and type.
+
 ## Open questions
 
 - Where the runner lives: a module beside `mod_loader` in `document-host`, or a crate of its own
@@ -137,7 +154,18 @@ from the registry, and its pack manager shows each pack's level (D5, `graph-beha
    The registry's `ModExtensionRecord::Action` exists for rollback
    (`host/crates/script/document-host/src/mod_loader/loader/types.rs:93`). The host workspace already
    takes `script-didge` (`host/Cargo.toml:390`).
+2. CP1, 2026-11-24 (`host/crates/script/document-host/src/mod_loader/loader/lua_pack.rs`): a pack is
+   a directory with `mod.toml` (`abi = 1`, `mod_type = "lua"`, `files`, `[grants] classes/commands`,
+   `[[contributes]] kind = "command"` with `id`, `label`, `effect`, `source`); a command id is
+   `<mod_id>:<name>`. `lua_pack::admit(root, AdmissionLevel)` returns an `AdmittedPack` or one of
+   fourteen named `PackRefusal`s; conformant stops at the first in a fixed order, dev mode loads
+   what parses and lists the rest. Unknown keys are found by a key list checked against the parsed
+   TOML, since one set of structs serves both levels. Paths are compared by components and
+   canonical forms, so `..`, roots, drive prefixes and links out are refused on every platform.
+   `ModRegistry::admit_lua_pack` records the level. `document-host`: 57 lib tests (19 new) and 19
+   integration tests pass; clippy adds no warning.
 
 ## Progress
 
 - 2026-11-24: cut from GB6 P1; D1 to D5 ruled.
+- 2026-11-24: CP1 met (Findings 2); D6 and D7 ruled.

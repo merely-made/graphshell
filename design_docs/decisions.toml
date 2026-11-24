@@ -234,6 +234,21 @@ area = "The stack"
 summary = "Command packs land first in Turnstone's viewer palette, proved by a headed receipt."
 plans = ["command-packs"]
 
+[decisions."command-packs D6"]
+title = "An admitted Lua pack is Failed until CP2 registers its commands (Mark, 2026-11-24)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-24_command_packs_plan.md"
+area = "The stack"
+summary = "Until commands can register, an admitted Lua pack reports Failed with the reason."
+plans = ["command-packs"]
+
+[decisions."command-packs D7"]
+title = "Dev mode still needs a TOML manifest that names its ABI and type (Mark, 2026-11-24)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-24_command_packs_plan.md"
+area = "The stack"
+summary = "Dev mode loosens admission but still refuses a manifest that is not TOML or does not name its ABI and type."
+amends = ["graph-behaviors D5"]
+plans = ["command-packs"]
+
 [decisions."compositor-placement D1"]
 title = "Both motions (Mark, 2026-11-20)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-20_compositor_placement_plan.md"
