@@ -322,6 +322,10 @@ crate = "polyval@0.6.2"
 reason = "held by ghash 0.5.1; gone when its holders move to polyval 0.7.3 (ghash 0.5.1 in the graph, 0.6.0 newest)"
 
 [[bans.skip]]
+crate = "prettyplease@0.2.37"
+reason = "held by bindgen 0.73.2 under crabgrind 0.4.0 (libcrux-secrets, hpke-rs, p2mere-encryption), where the resolver keeps syn 2; bon-macros 3.10.3 (under ractor) takes 0.3.0, which needs syn 3; goes when crabgrind's bindgen resolves syn 3"
+
+[[bans.skip]]
 crate = "quick-xml@0.39.4"
 reason = "held by errand 0.4.0; moves when the holding crates (git) move to quick-xml 0.42.0"
 
@@ -458,6 +462,10 @@ reason = "held by dirs-sys 0.4.1; gone when its holders move to windows-sys 0.61
 [[bans.skip]]
 crate = "windows-sys@0.52.0"
 reason = "held by ring 0.17.14, winit 0.30.13; gone when its holders move to windows-sys 0.61.2 (ring 0.17.14 is its latest release; winit 0.30.13 is its latest release)"
+
+[[bans.skip]]
+crate = "windows-sys@0.59.0"
+reason = "held by dirs-sys 0.5.0 (latest) under directories 6.0.0 and wasmtime-internal-cache 51.0.0; goes when dirs-sys releases on windows-sys 0.61"
 
 [[bans.skip]]
 crate = "windows-targets@0.42.2"
