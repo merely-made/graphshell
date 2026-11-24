@@ -217,6 +217,10 @@ reason = "held by cipher 0.4.4; gone when its holders move to inout 0.2.6 (ciphe
 
 
 [[bans.skip]]
+crate = "itertools@0.12.1"
+reason = "held by bindgen 0.69.5 under turso_sdk_kit 0.8.4 (newest stable; 0.9.0-pre.6 is a prerelease), which cubecl-environment 0.12.0-pre.2 brings in; prost-derive 0.14.6 shares it; gone when turso's stable line moves bindgen past 0.69"
+
+[[bans.skip]]
 crate = "itertools@0.14.0"
 reason = "held by lalrpop 0.22.2, oxc_semantic 0.124.0, rav1e 0.8.1, wasmtime-internal-cranelift 45.0.3 +4 more; gone when its holders move to itertools 0.15.0 (lalrpop 0.22.2 in the graph, 0.23.2 newest; oxc_semantic 0.124.0 in the graph, 0.158.0 newest)"
 
@@ -406,6 +410,10 @@ reason = "held by multihash-derive-impl 0.1.3 under rust-unixfs; gone when its h
 [[bans.skip]]
 crate = "thiserror-impl@1.0.69"
 reason = "held by thiserror 1.0.69; gone when its holders move to thiserror-impl 2.0.21 (thiserror 1.0.69 in the graph, 2.0.21 newest)"
+
+[[bans.skip]]
+crate = "unicode-width@0.1.14"
+reason = "held by codespan-reporting 0.13.1 (newest; under naga 30.0.2) and miette 7.6.0 (newest; under turso_core 0.8.4); gone when both take unicode-width 0.2"
 
 [[bans.skip]]
 crate = "universal-hash@0.5.1"

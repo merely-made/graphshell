@@ -235,6 +235,51 @@ title = "The window root keeps its native ID across activations (Mark, 2026-11-2
 source = "design_docs/graphshell_docs/implementation_strategy/2026-10-28_diagnostics_and_accessibility_plan.md"
 summary = "The window root keeps one native ID for the window's life; every other native ID still renews on each activation."
 
+[decisions."graph-behaviors D1"]
+title = "Command packs live in the host toolkit's mod registry (Mark, 2026-11-23)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-10-28_graph_behaviors_plan.md"
+area = "The stack"
+summary = "Lua command packs install into the host toolkit's mod registry, and every app's palette reads them from there."
+plans = ["graph-behaviors"]
+
+[decisions."graph-behaviors D2"]
+title = "A pack command runs through `lua-command` (Mark, 2026-11-23)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-10-28_graph_behaviors_plan.md"
+area = "The stack"
+summary = "A command pack's Lua proposes invocations through lua-command; the host checks them against grants and decides."
+plans = ["graph-behaviors"]
+
+[decisions."graph-behaviors D3"]
+title = "A pack's admission is a guarantee the user chooses (Mark, 2026-11-23)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-10-28_graph_behaviors_plan.md"
+area = "The stack"
+summary = "A pack is admitted at a level the user picks, conformant or dev mode, and the host shows which level it holds."
+plans = ["graph-behaviors"]
+
+[decisions."graph-behaviors D4"]
+title = "A pack is conformant unless the user chooses dev mode (Mark, 2026-11-23)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-10-28_graph_behaviors_plan.md"
+area = "The stack"
+summary = "An installed pack is held to conformant admission unless the user switches it to dev mode."
+amends = ["graph-behaviors D3"]
+plans = ["graph-behaviors"]
+
+[decisions."graph-behaviors D5"]
+title = "Dev mode loosens admission, never grants (Mark, 2026-11-23)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-10-28_graph_behaviors_plan.md"
+area = "The stack"
+summary = "A dev-mode pack is admitted loosely but gets no capability the user has not granted."
+amends = ["graph-behaviors D3"]
+plans = ["graph-behaviors"]
+
+[decisions."graph-behaviors D6"]
+title = "The level shows in the pack manager (Mark, 2026-11-23)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-10-28_graph_behaviors_plan.md"
+area = "The stack"
+summary = "A pack's admission level is shown where packs are managed, not in the palette."
+amends = ["graph-behaviors D3"]
+plans = ["graph-behaviors"]
+
 [decisions."guest-runtime D1"]
 title = "The web build runs guests on the browser's own engine (Mark, 2026-11-21)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-21_guest_runtime_plan.md"

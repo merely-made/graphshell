@@ -199,9 +199,71 @@ on a live moot, the mere-native meadowcap structural-cap layer, and "broader con
 - From: tails
   `archive_docs/2026-10-28/2026-07-03_archived_plan_tails_plan.md:1184-1193`
 
+## Decisions
+
+- **D1. Command packs live in the host toolkit's mod registry (Mark, 2026-11-23):** Evidence:
+  Meerkat, P1's host, is gone; the host toolkit's `mod_loader` registry
+  (`host/crates/script/document-host`) has no production caller; Turnstone has its own
+  `engine_pack`. Offered: the host's `mod_loader`, palette entries drawn from it so every app on the
+  host gets packs (recommended); Turnstone first, lifted later; keep P1 as a record. Answer:
+  "Graphshell host mod_loader (Recommended)". What follows: P1 builds in the host toolkit, not in an
+  app; the open question's "where" half is answered. Outcome: new.
+
+  Links: area The stack · plans graph-behaviors GB6 · summary Lua command packs install into the host toolkit's mod registry, and every app's palette reads them from there.
+
+- **D2. A pack command runs through `lua-command` (Mark, 2026-11-23):** Evidence: `script-didge`'s
+  `collect_invocations` runs a chunk under fuel against a host-supplied `CommandSet` and returns
+  invocations without executing them; Isocosm's generators and Mesocosm's expression packs, on the
+  same Lua fork, return proposals the host validates (`inker:lua-evaluator` Findings 34). Offered:
+  reuse `lua-command` over a read-only `CommandContext`, each returned request checked against the
+  pack's grants and a refusal shown with its reason (recommended); a new lane with direct host
+  functions; replace the fence lane with packs. Answer: "Reuse lua-command (Recommended)". What
+  follows: the open question's "reuse, supersede or stay separate" half is answered; P1's
+  action-request return type is the invocation batch. Outcome: new.
+
+  Links: area The stack · plans graph-behaviors GB6 · summary A command pack's Lua proposes invocations through lua-command; the host checks them against grants and decides.
+
+- **D3. A pack's admission is a guarantee the user chooses (Mark, 2026-11-23):** Evidence: Mesocosm
+  admits a pack all or nothing (an ABI number, `deny_unknown_fields`, declared files only, qualified
+  unique ids, named refusals, fixtures pinning the exact proposal); Isocosm loads what parses and
+  skips duplicates with a diagnostic (`inker:lua-evaluator` Findings 34). Offered: Mesocosm's rules
+  (recommended); Isocosm's looser discovery; decide when P1 starts. Answer: "those both sound like
+  levels of guarantees which the user should be able to choose between ("trusted" or "conformant"
+  pack vs "untrusted" "debug" "dev mode" pack). sounds like we just need to communicate the
+  difference depending on what the user is dealing with, not make the choice for them (annoying!)".
+  What follows: both levels exist; a pack carries the level it was admitted at and the host says
+  which, rather than refusing for the user. Outcome: new.
+
+  Links: area The stack · plans graph-behaviors GB6 · summary A pack is admitted at a level the user picks, conformant or dev mode, and the host shows which level it holds.
+
+- **D4. A pack is conformant unless the user chooses dev mode (Mark, 2026-11-23):** Evidence: D3
+  leaves the level unset when a user installs without choosing. Offered: conformant, with dev mode
+  chosen per pack or folder and a strict refusal offering dev mode with its failures listed
+  (recommended); by origin, local projects in dev mode; ask at every install. Answer: "Conformant,
+  dev mode by choice (Recommended)". Outcome: refines D3.
+
+  Links: area The stack · amends graph-behaviors D3 · plans graph-behaviors GB6 · summary An installed pack is held to conformant admission unless the user switches it to dev mode.
+
+- **D5. Dev mode loosens admission, never grants (Mark, 2026-11-23):** Evidence: D3; the lane
+  constraint above says a new capability never rides an existing grant. Offered: admission only,
+  undeclared files tolerated, duplicates skipped with a diagnostic, what parses loaded, grants
+  unchanged (recommended); admission plus prompt-free grants for local projects; both behind a
+  banner. Answer: "Admission only (Recommended)". Outcome: refines D3.
+
+  Links: area The stack · amends graph-behaviors D3 · plans graph-behaviors GB6 · summary A dev-mode pack is admitted loosely but gets no capability the user has not granted.
+
+- **D6. The level shows in the pack manager (Mark, 2026-11-23):** Evidence: D3 asks that the
+  difference be communicated. Offered: a badge on the pack and its palette commands with the strict
+  failures listed (recommended); the pack manager only; a badge without diagnostics. Answer: "Pack
+  manager only". What follows: the palette carries no level marker; the pack manager shows each
+  pack's level. Outcome: refines D3.
+
+  Links: area The stack · amends graph-behaviors D3 · plans graph-behaviors GB6 · summary A pack's admission level is shown where packs are managed, not in the palette.
+
 ## Open questions
 
-- Where do the Lua command packs and the authoring pane live now that Meerkat is gone: retarget
+- Answered for command packs 2026-11-23 (D1, D2); the authoring pane's home and the mod plan's role
+  stay open. Where do the Lua command packs and the authoring pane live now that Meerkat is gone: retarget
   onto a living host (Turnstone or Cambium, with the registry's `mod_loader`), or keep the mod plan
   as a historical design record, the authoring-ergonomics source that this plan and the participant
   gate packs plan cite? And how does P1 relate to `script-didge`'s command lane
@@ -237,6 +299,9 @@ on a live moot, the mere-native meadowcap structural-cap layer, and "broader con
 - 2026-10-28: cut from the two sources named in Status; nothing new landed.
 - 2026-11-23: Rhai retired (`inker:lua-evaluator` L6). The lane constraint, GB6 and the host
   question read Lua; the command lane is `script-didge`'s `lua-command`.
+- 2026-11-23: D1 to D6 ruled for GB6 P1: packs live in the host's `mod_loader`, run through
+  `lua-command`, and are admitted conformant unless the user picks dev mode, which loosens
+  admission and never grants; the pack manager shows the level.
 
 ## Received from the backlog holder, 2026-10-28
 
