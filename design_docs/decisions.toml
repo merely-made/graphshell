@@ -249,6 +249,13 @@ summary = "Dev mode loosens admission but still refuses a manifest that is not T
 amends = ["graph-behaviors D5"]
 plans = ["command-packs"]
 
+[decisions."command-packs D8"]
+title = "The runner is a crate of its own (Mark, 2026-11-24)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-24_command_packs_plan.md"
+area = "The stack"
+summary = "The command pack runner is its own crate beside document-host, so only hosts that run packs link the Lua VM."
+plans = ["command-packs"]
+
 [decisions."compositor-placement D1"]
 title = "Both motions (Mark, 2026-11-20)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-20_compositor_placement_plan.md"

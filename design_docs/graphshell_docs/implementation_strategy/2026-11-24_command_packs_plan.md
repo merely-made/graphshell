@@ -139,10 +139,18 @@ from the registry, and its pack manager shows each pack's level (D5, `graph-beha
 
   Links: area The stack · amends graph-behaviors D5 · plans command-packs CP1 · summary Dev mode loosens admission but still refuses a manifest that is not TOML or does not name its ABI and type.
 
+- **D8. The runner is a crate of its own (Mark, 2026-11-24):** Evidence: `document-host`, home of the
+  registry and CP1's admission, carries wasmtime 51, genet-scripted-dom, servitor and hest but not
+  `script-didge`; in the host workspace only Scenograph takes `script-didge`, behind its optional
+  `scripts` feature. Offered: a `command-packs` crate under `host/crates/script/` on the registry,
+  hest and `script-didge` (recommended); a module beside `mod_loader`; the same behind a feature.
+  Answer: "A new crate under host/crates/script/ (Recommended)". What follows: the registry stays
+  engine-neutral and the Lua VM links only where packs run. Outcome: new.
+
+  Links: area The stack · plans command-packs CP2 · summary The command pack runner is its own crate beside document-host, so only hosts that run packs link the Lua VM.
+
 ## Open questions
 
-- Where the runner lives: a module beside `mod_loader` in `document-host`, or a crate of its own
-  under `host/crates/script/`. Decided when CP2 starts.
 - The install dialog's wording for an open-ended class grant (D3).
 
 ## Findings
@@ -164,8 +172,13 @@ from the registry, and its pack manager shows each pack's level (D5, `graph-beha
    canonical forms, so `..`, roots, drive prefixes and links out are refused on every platform.
    `ModRegistry::admit_lua_pack` records the level. `document-host`: 57 lib tests (19 new) and 19
    integration tests pass; clippy adds no warning.
+3. 2026-11-24, read: `script-didge`'s `collect_invocations(source, offered, schema, budget, limits)`
+   binds no globals, so a script cannot read a context; the effect class of each invocation comes
+   from the host's `CommandSet`, never the script (`crates/script/didge/src/command.rs`, Inker
+   `2ba0e45`). CP2 needs a variant that binds the context.
 
 ## Progress
 
 - 2026-11-24: cut from GB6 P1; D1 to D5 ruled.
 - 2026-11-24: CP1 met (Findings 2); D6 and D7 ruled.
+- 2026-11-24: D8 ruled; CP2 started.
