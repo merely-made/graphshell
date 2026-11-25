@@ -113,9 +113,15 @@ fn the_cargo_adapter_builds_a_fixture_project() {
     let project = dir.path().join("project");
     write_project(&project);
     let builder = CargoBuilder::new().with_target_dir(dir.path().join("out"));
-    let built = builder.build(&project).unwrap_or_else(|e| {
-        panic!("the fixture project did not build: {e}");
-    });
+    // No toolchain here is a skip, as build.rs warns for its guests (mod-projects D13).
+    let built = match builder.build(&project) {
+        Ok(built) => built,
+        Err(e @ (BuildError::ToolchainAbsent { .. } | BuildError::TargetMissing { .. })) => {
+            eprintln!("skipped: {e}");
+            return;
+        },
+        Err(e) => panic!("the fixture project did not build: {e}"),
+    };
     assert!(built.path.exists());
     assert!(built.path.starts_with(dir.path()), "built outside the temp dir");
     // It is a component the host can load.

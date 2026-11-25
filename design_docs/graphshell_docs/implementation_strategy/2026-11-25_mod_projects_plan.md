@@ -1,9 +1,9 @@
 # Mod projects plan
 
-**Status:** 2026-11-25: in progress; MP0 and MP1 met. Cut from GB6 P2 to P5 and their tails in
-`2026-10-28_graph_behaviors_plan.md`; P1 landed as `2026-11-24_command_packs_plan.md`. D1 to D11
+**Status:** 2026-11-25: in progress; MP0 to MP4 met. Cut from GB6 P2 to P5 and their tails in
+`2026-10-28_graph_behaviors_plan.md`; P1 landed as `2026-11-24_command_packs_plan.md`. D1 to D13
 settle building, admission, reload, `.cwasm`, the first host, fixtures, signing, network, the
-authoring loop, the parser and viewer worlds, and the browser table. MP2 is next.
+authoring loop, the parser and viewer worlds, and the browser table. MP5 is next.
 
 **For:** Wasm component mods a person (or any agent working in the same folder) can create, check,
 build, attach to a document, exercise against fixtures and reload without a restart, holding no
@@ -208,6 +208,24 @@ stated reason (D11).
 
   Links: area The stack · plans mod-projects MP8 · summary What each target can load is tabulated, and the browser build refuses the rest with a reason.
 
+- **D12. Reload readies the new instance before dropping the old (Mark, 2026-11-25):** Evidence:
+  taken literally, D3's detach then attach cannot keep the old instance when the new one fails,
+  because `attach` consumes the document; MP3 checks the new component, instantiates it, moves the
+  document into it and activates it, handing the document back if activation traps, and only then
+  drops the old instance; a guest's `activate` cannot change the document. Offered: keep the swap
+  order (recommended); literal detach then attach, rebuilding the old instance on failure. Answer:
+  "Keep the swap order (Recommended)". Outcome: refines D3.
+
+  Links: area The stack · amends mod-projects D3 · plans mod-projects MP3 · summary A reload makes the new instance ready on the same document before the old one goes.
+
+- **D13. The build adapter's test skips without a toolchain (Mark, 2026-11-25):** Evidence: MP2's
+  adapter test failed on a machine without cargo or the wasm32-wasip2 target, while
+  `document-host/build.rs` only warns when the target is missing. Offered: skip with a stated
+  reason (recommended); fail loudly. Answer: "Skip with a stated reason (Recommended)". What
+  follows: the absence-reporting test still runs everywhere. Outcome: new.
+
+  Links: area The stack · plans mod-projects MP2 · summary The cargo adapter's build test skips, saying why, where the toolchain is absent.
+
 ## Open questions
 
 - MP7's world shapes: the parser's block and diagnostic types, and the viewer's scene or lens
@@ -245,8 +263,28 @@ stated reason (D11).
    same bytes, so a `.cwasm` without a matching record is refused first; plain `attach` refuses a
    `.cwasm` and `attach_pinned` takes the record. `ModManifest` has no version field, so `admit`
    takes one. `document-host` tests pass (58 lib and every integration group); `command-packs` 23.
+4. MP2, 2026-11-25 (graphshell `6aa6b6a8`): `check(path, &Grant, &World) -> CheckReport` lists
+   imports, exports, ungranted and unknown imports and missing exports; `World::document_core()`
+   and `World::requiring(export)`. `ComponentBuilder` with `CargoBuilder` (`with_cargo`,
+   `with_target_dir`) runs `cargo build --target wasm32-wasip2 --release`, failing with
+   `BuildError::{ToolchainAbsent, TargetMissing, BadProject, Failed, NoArtifact}`; the runtime's
+   `check` and `build_project` write `last_check` and `last_build`.
+5. MP3, 2026-11-25 (graphshell `5e94508a`): `DocumentScript::reload` runs check, instantiates the new
+   component, moves the document and revision into it and activates it, and drops the old instance
+   only after (D12); `ReloadError::{Check, Refused, Instantiate, Activate}`. A fixture is TOML: a
+   `[document] tree` outline (two spaces a level, `#text` with a JSON string), `[[turn]] kind` and
+   `payload`, and `[expect] dom` and `log` (`<n> <kind>: <outcome>`); `run_fixture` returns
+   `Pass` or `Mismatch` with line diffs, and a trap ends the run and is written to `last_trap`.
+6. MP4, 2026-11-25 (graphshell `50f855f2`): `NetFetcher` takes a URL, so a request can carry
+   credentials only as userinfo; the host refuses such a URL before the backend runs
+   (`url_carries_credentials`), and the trait's doc gives the embedder the duty of no cookie jar,
+   auth header or session. `validate_origin` (on `psl` 2, already in the graph through netfetcher)
+   refuses `*`, wildcards not leading with `*.`, single labels, wildcards on a public suffix
+   (`*.com`, `*.co.uk`, `*.github.io`) and origins with a scheme, port, path or `@`; admission
+   refuses a bad origin as `WasmRefusal::BadOrigin`.
 
 ## Progress
 
 - 2026-11-25: cut from GB6 P2 to P5 and their tails; D1 to D11 ruled.
 - 2026-11-25: MP0 and MP1 met (Findings 2, 3).
+- 2026-11-25: MP2 to MP4 met (Findings 4 to 6); D12 and D13 ruled.

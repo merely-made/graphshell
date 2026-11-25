@@ -758,6 +758,21 @@ area = "The stack"
 summary = "What each target can load is tabulated, and the browser build refuses the rest with a reason."
 plans = ["mod-projects"]
 
+[decisions."mod-projects D12"]
+title = "Reload readies the new instance before dropping the old (Mark, 2026-11-25)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "A reload makes the new instance ready on the same document before the old one goes."
+amends = ["mod-projects D3"]
+plans = ["mod-projects"]
+
+[decisions."mod-projects D13"]
+title = "The build adapter's test skips without a toolchain (Mark, 2026-11-25)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "The cargo adapter's build test skips, saying why, where the toolchain is absent."
+plans = ["mod-projects"]
+
 [decisions."primitive-representations D1"]
 title = "The brief's scope (Mark, 2026-11-13)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
