@@ -39,6 +39,19 @@ impl From<&A11yTarget> for NodeTarget {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct SemanticNodeIdentity(pub(crate) A11yProvenance);
 
+impl SemanticNodeIdentity {
+    /// Whether a kept envelope still stands for this publication (table plan
+    /// D77): the same live owner, document and mount, and live contributors.
+    pub fn is_live_in(&self, owner: &A11yOwner, dom: &WindowDom<'_>) -> bool {
+        let provenance = &self.0;
+        owner.is_live()
+            && provenance.owner == *owner
+            && provenance.document == dom.dom().document()
+            && provenance.mount == dom.document()
+            && provenance.contributors_live()
+    }
+}
+
 #[derive(Clone, Debug)]
 pub(crate) struct A11yProvenance {
     owner: A11yOwner,

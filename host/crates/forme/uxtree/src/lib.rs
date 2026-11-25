@@ -246,7 +246,8 @@ fn project_block(block: &Block, path: &str, nodes: &mut Vec<(NodeId, Node)>) -> 
         Block::Heading { level, spans } => {
             let mut n = Node::new(Role::Heading);
             n.set_label(inline_text(spans));
-            n.set_level(*level as usize);
+            // AccessKit levels are zero-based: an h1 is level 0.
+            n.set_level((*level as usize).saturating_sub(1));
             attach_link_children(spans, path, "heading-link", nodes, &mut n);
             n
         },

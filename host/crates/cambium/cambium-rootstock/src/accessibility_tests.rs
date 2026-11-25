@@ -11,6 +11,7 @@ mod activation_tests;
 mod outcome_tests;
 mod publication_tests;
 mod republish_tests;
+mod retained_tests;
 
 use std::cell::RefCell;
 use std::rc::Rc;

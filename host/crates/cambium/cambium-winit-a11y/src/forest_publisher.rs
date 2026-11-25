@@ -178,6 +178,22 @@ pub(super) fn submit_root(bridge: &mut AccessKitBridge, tree: TreeUpdate) -> Res
     submit_native(bridge, None, initial, vec![tree]).map(|_| ())
 }
 
+/// Hand the bridge only the changed nodes; it keeps and patches the whole
+/// tree for a late reader (table plan D72). `whole` is the retained tree
+/// `partial` was patched into, published in full when the bridge refuses.
+pub(super) fn submit_partial(
+    bridge: &mut AccessKitBridge,
+    whole: &TreeUpdate,
+    partial: TreeUpdate,
+) -> Result<(), String> {
+    debug_assert!(partial.tree.is_none() && partial.focus == whole.focus);
+    match bridge.update_partial(partial) {
+        Ok(_) => Ok(()),
+        // A refused partial leaves the bridge's tree as it was.
+        Err(_) => submit_root(bridge, whole.clone()),
+    }
+}
+
 fn submit_native(
     bridge: &mut AccessKitBridge,
     epoch: Option<u64>,

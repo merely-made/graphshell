@@ -538,15 +538,15 @@ fn gpu_content_origin_tests_semantic_child_sits_on_the_padded_producer_pixels() 
         &mut registry,
         None,
     );
-    let patch = &projection
+    let patch = projection
         .tree
         .nodes
         .iter()
         .find(|(_, n)| n.label() == Some("Patch"))
         .unwrap()
-        .1;
+        .0;
     assert_eq!(
-        patch.bounds(),
+        projection.absolute_bounds(patch),
         Some(accesskit::Rect::new(33.0, 33.0, 36.0, 35.0))
     );
 }

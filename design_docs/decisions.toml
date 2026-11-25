@@ -1349,6 +1349,16 @@ title = "Genet projects grid roles and grid properties (Mark, 2026-11-22)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
 summary = "Genet's accessibility projection carries grid roles and the row, column and sort properties a virtualized table needs."
 
+[decisions."table-projection D79"]
+title = "Graphshell's own producers write zero-based heading levels (Mark, 2026-11-24)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "Every AccessKit heading level in Graphshell is zero-based; the web mirror converts to ARIA's one-based aria-level."
+
+[decisions."table-projection D80"]
+title = "Find the unlogged frame time before the next gate cut (Mark, 2026-11-24)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "The next scroll-gate step names the roughly 8 ms of each slow frame outside the logged stages before any cut."
+
 [decisions."uxtree-spine D1"]
 title = "The spine is federated (Mark, 2026-11-11)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-11_uxtree_spine_plan.md"

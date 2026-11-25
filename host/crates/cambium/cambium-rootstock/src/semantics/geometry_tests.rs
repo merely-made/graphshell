@@ -47,6 +47,14 @@ fn batch_producer_geometry_preserves_content_edges_translation_and_hidden_ancest
     let mut producers = ProducerRegistry::new();
     producers.register(7, GeometryOnly, &[]).unwrap();
     let projected = project_semantics(&dom, &layout, &LeafRegistry::new(), &producers, None);
+    let bounds = projected
+        .absolute_bounds(accesskit::NodeId(dom.opaque_id(slot)))
+        .unwrap();
+    let fragment = layout.fragments().get(slot).unwrap();
+    assert_eq!(
+        (bounds.x0, bounds.y0),
+        (f64::from(fragment.x - 3.0), f64::from(fragment.y - 2.0))
+    );
     let access = &projected
         .tree
         .nodes
@@ -54,21 +62,8 @@ fn batch_producer_geometry_preserves_content_edges_translation_and_hidden_ancest
         .find(|(id, _)| id.0 == dom.opaque_id(slot))
         .unwrap()
         .1;
-    let bounds = access.bounds().unwrap();
-    let fragment = layout.fragments().get(slot).unwrap();
     assert_eq!(
-        (bounds.x0, bounds.y0),
-        (f64::from(fragment.x - 3.0), f64::from(fragment.y - 2.0))
-    );
-    let child = &projected
-        .tree
-        .nodes
-        .iter()
-        .find(|(id, _)| *id == access.children()[0])
-        .unwrap()
-        .1;
-    assert_eq!(
-        child.bounds(),
+        projected.absolute_bounds(access.children()[0]),
         Some(Rect::new(
             bounds.x0 + 11.0,
             bounds.y0 + 10.0,

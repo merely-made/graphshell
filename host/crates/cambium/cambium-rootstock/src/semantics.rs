@@ -8,7 +8,7 @@
 //! AccessKit remains the existing contributor vocabulary. This copied read is
 //! not a presentation revision, target lease or operation-outcome authority.
 use crate::a11y_provenance::NodeTarget;
-use crate::owned_layout::custom_leaf_key;
+use crate::document_projection::PaintedFacts;
 #[cfg(test)]
 use crate::owned_layout::flat_nodes;
 use crate::{
@@ -21,7 +21,10 @@ use layout_dom_api::LayoutDom;
 use sceno::SourceRef;
 use std::collections::{HashMap, HashSet};
 mod publication;
+pub(crate) mod relative;
+pub(crate) mod retained;
 pub use publication::{PublicationIssue, SemanticEnvelope, SemanticPublication};
+pub use retained::{ComposedSemantics, SemanticChanges};
 
 /// A producer contribution refused by this composition read. These identify
 /// ambiguous declarations, not producer generations or operation outcomes.
@@ -126,8 +129,21 @@ fn compose_semantics<D: LayoutDom<NodeId = NodeId>>(
     focus: Option<u64>,
     retained_list: Option<(&crate::ProducerLabelRevision, Option<&str>)>,
 ) -> SemanticProjection {
-    let mut result =
-        SemanticProjection::from_document(crate::document_projection(dom, layout, focus));
+    let facts = PaintedFacts::collect(dom, layout, focus);
+    let document = crate::document_projection::document_projection_with(dom, layout, focus, &facts);
+    compose_from(document, &facts, leaves, producers, retained_list)
+}
+
+/// Compose a host-adjusted DOM observation with leaf and producer semantics
+/// over the same walk, then place every node relative to its parent (D71).
+pub(crate) fn compose_from(
+    document: DocumentA11yProjection,
+    facts: &PaintedFacts<'_>,
+    leaves: &LeafRegistry<u64>,
+    producers: &ProducerRegistry,
+    retained_list: Option<(&crate::ProducerLabelRevision, Option<&str>)>,
+) -> SemanticProjection {
+    let mut result = SemanticProjection::from_document(document);
     let indices: HashMap<_, _> = result
         .tree
         .nodes
@@ -136,22 +152,15 @@ fn compose_semantics<D: LayoutDom<NodeId = NodeId>>(
         .map(|(i, (id, _))| (*id, i))
         .collect();
     let mut reserved_ids = indices.keys().copied().collect();
-    let mut nodes = Vec::new();
     let mut slot_counts = HashMap::<u64, usize>::new();
-    layout.walk_painted_geometry(dom, |node, geometry| {
-        let key = custom_leaf_key(dom, node);
-        if let Some(key) = key {
+    for walked in &facts.order {
+        if let Some(key) = walked.key {
             *slot_counts.entry(key).or_default() += 1;
         }
-        let origin = geometry
-            .content_rect
-            .filter(|_| geometry.placement_visible)
-            .map(|(x, y, _, _)| (f64::from(x), f64::from(y)))
-            .filter(|(x, y)| x.is_finite() && y.is_finite());
-        nodes.push((node, key, origin));
-    });
-    for (node, key, content_origin) in nodes {
-        let id = A11yNodeId(dom.opaque_id(node));
+    }
+    for walked in &facts.order {
+        let (node, key, content_origin) = (walked.node, walked.key, walked.content_origin);
+        let id = A11yNodeId(walked.opaque);
         let Some(&index) = indices.get(&id) else {
             continue;
         };
@@ -255,6 +264,7 @@ fn compose_semantics<D: LayoutDom<NodeId = NodeId>>(
     }
     result.dom_targets.retain(|id, _| visible.contains(id));
     result.produced_targets.retain(|id, _| visible.contains(id));
+    relative::make_relative(&mut result.tree);
     result
 }
 

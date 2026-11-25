@@ -527,13 +527,34 @@ macro_rules! e1a_sessions_against {
             #[test]
             fn b_bounds_are_its_layout_offset_by_its_pane() {
                 let mut host = Host::new();
-                let own = project(host.b.as_mut().unwrap().as_mut(), None)
-                    .update
+                let update = project(host.b.as_mut().unwrap().as_mut(), None).update;
+                // Bounds sit at the node's origin; sum the parent-relative
+                // translates (table plan D71) for B's own layout position.
+                let mut at = update
                     .nodes
-                    .into_iter()
+                    .iter()
                     .find(|(_, node)| node.label().as_deref() == Some("B count 0"))
+                    .map(|(id, _)| *id);
+                let rect = at
+                    .and_then(|id| update.nodes.iter().find(|(n, _)| *n == id))
                     .and_then(|(_, node)| node.bounds())
                     .expect("B's button has a laid-out box");
+                let (mut dx, mut dy) = (0.0, 0.0);
+                while let Some((id, node)) =
+                    at.and_then(|id| update.nodes.iter().find(|(n, _)| *n == id))
+                {
+                    if let Some(transform) = node.transform() {
+                        let [_, _, _, _, x, y] = transform.as_coeffs();
+                        dx += x;
+                        dy += y;
+                    }
+                    at = update
+                        .nodes
+                        .iter()
+                        .find(|(_, parent)| parent.children().contains(id))
+                        .map(|(parent, _)| *parent);
+                }
+                let own = Rect::new(rect.x0 + dx, rect.y0 + dy, rect.x1 + dx, rect.y1 + dy);
                 let (tree, _) = open(&mut host);
                 let expected = Rect::new(
                     own.x0 + B_ORIGIN.0,

@@ -850,6 +850,31 @@ Left from the headed pages (T4):
 
   *New.*
 
+- **D79. Graphshell's own producers write zero-based heading levels (Mark, 2026-11-24):**
+  "Move uxtree and outline to zero-based". Genet's heading levels became zero-based under
+  AccessKit's documented contract, while uxtree (`forme/uxtree/src/lib.rs`) and mere-view's
+  outline (`gloss.rs`) still wrote an h1 as level 1, so one tree carried both conventions.
+  The web mirror read the zero-based level straight into `aria-level`, publishing an h2 as
+  level 1 (its `states_lower_to_their_aria_attributes` test failed on Graphshell main).
+  Both producers now subtract one, and the mirror adds one when it writes `aria-level`. A
+  separate follow-up and leaving them one-based were the options not taken.
+
+  Links: summary Every AccessKit heading level in Graphshell is zero-based; the web mirror converts to ARIA's one-based aria-level.
+
+  *Applies* the Genet ruling "Follow AccessKit's documented contract" to Graphshell's own producers.
+
+- **D80. Find the unlogged frame time before the next gate cut (Mark, 2026-11-24):** "Find
+  the unlogged 8 ms first". With the partial publish in, accessibility is about 3 ms of the
+  slowest scroll frames, which average 24 to 25 ms. Style, layout, accessibility, emit and
+  raster sum to about 16 ms, leaving about 8 ms the per-frame log does not name. The next
+  step adds the frame's remaining stages (acquire, compose, present, frame hook) to that
+  log and reads what fills the gap; measurement only. The selector tree and box tree
+  (D60, D61) and emit and raster were the options not taken first.
+
+  Links: summary The next scroll-gate step names the roughly 8 ms of each slow frame outside the logged stages before any cut.
+
+  *New.*
+
 ## Findings
 
 - 2026-11-15: adding a slot to a recipe type breaks every repository that builds one as a
@@ -1225,3 +1250,12 @@ Left from the headed pages (T4):
   an attribute Rootstock reads itself (`data-cambium-text-value`, `data-key`, `id` and
   the like) never appears in the session's change set, so such a batch publishes whole
   (`testing/graphshell/frame-cost/a11y-host-baseline-b7ef/`, `a11y-host-probe-b7ef/`).
+- 2026-11-24: the partial accessibility publish (D59 to D78) against its own parent
+  af622d92, release, 10,000 rows, calm machine (no rustc, under 30% CPU), two alternating
+  pairs. Publish p95 over scrolled frames 6.10 and 6.73 ms before, 3.01 and 3.17 after,
+  142 of 418 frames publishing. Scroll p95 23.0 and 26.0 ms before, 23.1 and 24.3 after;
+  the slowest 5% averaged 24.8 and 27.3 ms before, 24.1 and 25.2 after. Sort p95 117 and
+  102 ms before, 119 and 135 after: the second pair's lane sorts were slower on all ten,
+  unexplained, a follow-up (is the refused patch attempt costing a rebuild's worth?).
+  Idle p95 unchanged near 5.2 ms. The gate still fails both (`testing/graphshell/
+  frame-cost/ab-base-{1,2}`, `ab-lane-{1,2}`).

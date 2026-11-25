@@ -139,7 +139,7 @@ fn heading_carries_level_and_label() {
         .find(|n| n.role() == Role::Heading)
         .expect("heading node");
     assert_eq!(heading.label(), Some("Section"));
-    assert_eq!(heading.level(), Some(2));
+    assert_eq!(heading.level(), Some(1));
 }
 
 #[test]

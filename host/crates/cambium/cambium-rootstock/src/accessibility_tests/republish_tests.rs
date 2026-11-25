@@ -241,7 +241,7 @@ fn each_input_the_projection_reads_republishes() {
     assert!(!published(&mut host, &probe));
 }
 
-struct Flag;
+pub(super) struct Flag;
 impl sprigging::Leaf for Flag {
     fn measure(&mut self, _: sprigging::SizeHint, _: sprigging::SizeHint) -> sprigging::Size {
         sprigging::Size {
@@ -255,7 +255,7 @@ impl sprigging::Leaf for Flag {
     }
 }
 
-struct Blank;
+pub(super) struct Blank;
 impl crate::TextureProducer for Blank {
     fn render(&mut self, _: &crate::ProducerContext<'_>) -> Option<crate::ProducedTexture> {
         None
@@ -347,9 +347,10 @@ fn the_grid_tree_is_current_after_a_scroll_and_a_sort() {
         probe.syncs.get() > before
     };
     assert!(frame(&mut host));
-    // Genet lowers `row` and `gridcell`; `grid` and `columnheader` are a gap
-    // in its role vocabulary (table plan findings, T4).
-    assert!(probe.has("Row") && probe.has("Cell") && probe.has("Name"));
+    // Genet lowers the grid roles (table plan D78).
+    for role in ["Grid", "ColumnHeader", "Row", "GridCell", "Name"] {
+        assert!(probe.has(role), "{role}: {:?}", probe.texts);
+    }
     assert!(probe.has("r0c0") && probe.has("r5c1"), "{:?}", probe.texts);
     assert!(!frame(&mut host), "an unchanged grid is not republished");
 
@@ -376,5 +377,5 @@ fn the_grid_tree_is_current_after_a_scroll_and_a_sort() {
         "{:?}",
         probe.texts
     );
-    assert!(probe.has("Row") && probe.has("Cell") && probe.has("r989c0r989c1"));
+    assert!(probe.has("Row") && probe.has("GridCell") && probe.has("r989c0r989c1"));
 }

@@ -5,6 +5,9 @@
 // SPDX-License-Identifier: MPL-2.0
 
 use super::*;
+#[path = "accessibility/retained.rs"]
+mod retained;
+pub(crate) use retained::RetainedPublication;
 
 impl<State, Logic, V, T> Host<State, Logic, V, T>
 where
@@ -207,7 +210,13 @@ where
         self.s.a11y_published_inputs = None;
         let layout_scale = self.layout_scale();
         let started = crate::Instant::now();
-        let requests = {
+        let requests = if self.retains_a11y(inputs.is_some()) {
+            self.sync_a11y_composed(layout_scale)
+        } else {
+            self.s.a11y_retained = None;
+            if let Some(layout) = self.s.layout.as_mut() {
+                layout.end_a11y_journal();
+            }
             let runner = self
                 .s
                 .runner

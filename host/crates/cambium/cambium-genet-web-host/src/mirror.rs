@@ -47,18 +47,33 @@ pub fn plan(projection: &SemanticProjection, scale: f32) -> Vec<MirrorNode> {
     else {
         return Vec::new();
     };
-    lower_children(
-        &nodes,
-        root,
-        [0.0, 0.0],
-        scale,
-        &projection.produced_targets,
-    )
+    let place = Place {
+        space: translation(root),
+        origin: [0.0, 0.0],
+    };
+    lower_children(&nodes, root, place, scale, &projection.produced_targets)
 }
+
+/// Where a parent puts its children: `space` is the parent's coordinate
+/// origin, summed from the parent-relative translates (table plan D71);
+/// `origin` is the nearest mirrored box's corner, which rects are relative to.
+#[derive(Clone, Copy)]
+struct Place {
+    space: [f64; 2],
+    origin: [f64; 2],
+}
+
+fn translation(node: &Node) -> [f64; 2] {
+    node.transform().map_or([0.0, 0.0], |transform| {
+        let [_, _, _, _, x, y] = transform.as_coeffs();
+        [x, y]
+    })
+}
+
 fn lower_children(
     nodes: &HashMap<NodeId, &Node>,
     parent: &Node,
-    origin: [f64; 2],
+    place: Place,
     scale: f32,
     actions: &HashMap<NodeId, cambium_rootstock::ProducedAction>,
 ) -> Vec<MirrorNode> {
@@ -67,17 +82,20 @@ fn lower_children(
         .iter()
         .filter_map(|id| nodes.get(id).map(|node| (*id, *node)))
         .filter(|(_, node)| !node.is_hidden())
-        .map(|(id, node)| lower(nodes, id, node, origin, scale, actions))
+        .map(|(id, node)| lower(nodes, id, node, place, scale, actions))
         .collect()
 }
 fn lower(
     nodes: &HashMap<NodeId, &Node>,
     id: NodeId,
     node: &Node,
-    origin: [f64; 2],
+    place: Place,
     scale: f32,
     actions: &HashMap<NodeId, cambium_rootstock::ProducedAction>,
 ) -> MirrorNode {
+    let offset = translation(node);
+    let space = [place.space[0] + offset[0], place.space[1] + offset[1]];
+    let origin = place.origin;
     let role = aria_role(node.role());
     let mut attrs = Vec::new();
     if let Some(role) = role {
@@ -103,16 +121,21 @@ fn lower(
     }
     attrs.extend(states(node));
     let (rect, child_origin) = node.bounds().map_or((None, origin), |bounds| {
+        let (x0, y0) = (bounds.x0 + space[0], bounds.y0 + space[1]);
         (
             Some([
-                ((bounds.x0 - origin[0]) * f64::from(scale)) as f32,
-                ((bounds.y0 - origin[1]) * f64::from(scale)) as f32,
+                ((x0 - origin[0]) * f64::from(scale)) as f32,
+                ((y0 - origin[1]) * f64::from(scale)) as f32,
                 ((bounds.x1 - bounds.x0) * f64::from(scale)) as f32,
                 ((bounds.y1 - bounds.y0) * f64::from(scale)) as f32,
             ]),
-            [bounds.x0, bounds.y0],
+            [x0, y0],
         )
     });
+    let place = Place {
+        space,
+        origin: child_origin,
+    };
     MirrorNode {
         id: id.0,
         attrs,
@@ -120,7 +143,7 @@ fn lower(
         rect,
         focusable: node.supports_action(Action::Focus),
         action: actions.get(&id).cloned(),
-        children: lower_children(nodes, node, child_origin, scale, actions),
+        children: lower_children(nodes, node, place, scale, actions),
     }
 }
 
@@ -188,7 +211,8 @@ fn states(node: &Node) -> Vec<(&'static str, String)> {
     };
     let flag = |value: bool| value.then(|| "true".to_owned());
     if node.role() == Role::Heading {
-        push("aria-level", node.level().map(|v| v.to_string()));
+        // AccessKit levels are zero-based; aria-level is one-based.
+        push("aria-level", node.level().map(|v| (v + 1).to_string()));
     }
     push("aria-disabled", flag(node.is_disabled()));
     push("aria-selected", node.is_selected().map(|v| v.to_string()));

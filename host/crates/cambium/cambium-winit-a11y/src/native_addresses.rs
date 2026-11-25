@@ -34,6 +34,36 @@ impl<I> NativeAddresses<I> {
     pub fn has_native_id(&self, node: NodeId) -> bool {
         self.0.values().any(|entry| entry.native == node)
     }
+
+    pub fn remove(&mut self, source: TreeAddress) {
+        self.0.remove(&source);
+    }
+
+    pub fn insert(&mut self, source: TreeAddress, native: NodeId, identity: I) {
+        self.0.insert(source, Entry { native, identity });
+    }
+
+    /// Every source address with its native id.
+    pub fn iter(&self) -> impl Iterator<Item = (TreeAddress, NodeId)> + '_ {
+        self.0.iter().map(|(source, entry)| (*source, entry.native))
+    }
+
+    /// The identity a source address is bound under.
+    #[cfg(test)]
+    pub fn identity(&self, source: TreeAddress) -> Option<&I> {
+        self.0.get(&source).map(|entry| &entry.identity)
+    }
+}
+
+impl<I: PartialEq> NativeAddresses<I> {
+    /// The native id `source` keeps under `identity`, as `bind` retains it,
+    /// or a fresh one; `true` when kept.
+    pub fn lookup(&self, source: TreeAddress, identity: &I) -> (NodeId, bool) {
+        self.0
+            .get(&source)
+            .filter(|entry| entry.identity == *identity)
+            .map_or_else(|| (allocate_id(), false), |entry| (entry.native, true))
+    }
 }
 
 impl<I: PartialEq> NativeAddresses<I> {

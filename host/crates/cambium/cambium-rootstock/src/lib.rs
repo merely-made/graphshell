@@ -58,8 +58,8 @@ pub use a11y_publication::{
     A11yPublicationSkip, A11yPublicationSnapshot, A11ySync,
 };
 pub use semantics::{
-    ProducerSemanticIssue, PublicationIssue, SemanticEnvelope, SemanticProjection,
-    SemanticPublication, project_semantics, project_semantics_retaining_list,
+    ComposedSemantics, ProducerSemanticIssue, PublicationIssue, SemanticChanges, SemanticEnvelope,
+    SemanticProjection, SemanticPublication, project_semantics, project_semantics_retaining_list,
 };
 
 mod files;
@@ -86,9 +86,8 @@ pub use producer::{
     ProducerChildLifetime, ProducerChildToken, ProducerContext, ProducerError, ProducerFrameInfo,
     ProducerFramePurpose, ProducerFrameStats, ProducerGpuRemapError, ProducerImageIdentity,
     ProducerLabelRevision, ProducerNode, ProducerRegistrationError, ProducerRegistry,
-    ProducerSemanticGeometry,
-    ProducerRenderFailure, ProducerRole, ProducerSemantics, ProducerSource, ResolvedAppearance,
-    SourceAlpha, SourceEncoding, TextureProducer,
+    ProducerRenderFailure, ProducerRole, ProducerSemanticGeometry, ProducerSemantics,
+    ProducerSource, ResolvedAppearance, SourceAlpha, SourceEncoding, TextureProducer,
 };
 pub use scene_producer::SceneProducer;
 
@@ -447,6 +446,30 @@ pub trait Accessibility {
         focus: Option<u64>,
         layout_scale: f64,
     ) -> A11ySync;
+
+    /// Whether this adapter publishes Rootstock's retained composition through
+    /// [`Self::sync_composed`]; Rootstock keeps a session only for one (D76).
+    fn consumes_changes(&self) -> bool {
+        false
+    }
+
+    /// Publish Rootstock's composed tree: in full when `composed.changes` is
+    /// `None` or `composed.base` is not the last tree this adapter accepted.
+    fn sync_composed(
+        &mut self,
+        _owner: &A11yOwner,
+        _dom: &WindowDom<'_>,
+        _composed: ComposedSemantics<'_>,
+        _layout_scale: f64,
+    ) -> A11ySync {
+        A11ySync {
+            requests: Vec::new(),
+            publication: A11yPublication::refused(
+                self.adapter_state(),
+                A11yPublicationRefusal::InvalidTree,
+            ),
+        }
+    }
 }
 
 mod document_projection;

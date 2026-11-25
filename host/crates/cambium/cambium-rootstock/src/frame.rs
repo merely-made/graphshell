@@ -590,4 +590,4 @@ mod layout;
 
 #[path = "frame/accessibility.rs"]
 mod accessibility;
-pub(crate) use accessibility::A11yInputs;
+pub(crate) use accessibility::{A11yInputs, RetainedPublication};

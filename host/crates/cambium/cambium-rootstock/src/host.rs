@@ -454,6 +454,7 @@ where
     /// What the last tree the adapter accepted was read from; `None` until one
     /// is, or while a contributor is registered.
     pub(crate) a11y_published_inputs: Option<crate::frame::A11yInputs>,
+    pub(crate) a11y_retained: Option<crate::frame::RetainedPublication>,
     pub(crate) a11y_wake: Arc<AtomicBool>,
     /// The platform's file chooser, which answers a view's file request.
     pub files: Option<Box<dyn crate::FileChooser>>,

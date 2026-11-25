@@ -18,7 +18,8 @@
 //! by `px` at the top of each frame and records each frame's UI time, and
 //! `sort-next <column>` sorts at the top of one frame and records the time
 //! until that frame is drawn. `TABLE_STALL_MS` adds a sleep to every timed
-//! frame: the positive control that shows the gate can fail.
+//! frame: the positive control that shows the gate can fail. `TABLE_FRAME_LOG`
+//! logs every scrolled frame's stages, not one in a hundred.
 //!
 //! The reading's other parameters (T5) have verbs too, each one undo step on
 //! the recipe: `filter <field> <op> [value]` adds a condition, `filter-clear`
@@ -375,17 +376,19 @@ fn main() {
                 let mut timings = frame_timings.borrow_mut();
                 if scrolling && let Some(total) = total {
                     timings.scroll_frames.push(total);
-                    if timings.scroll_frames.len() % 100 == 50 {
+                    let every = std::env::var_os("TABLE_FRAME_LOG").is_some();
+                    if every || timings.scroll_frames.len() % 100 == 50 {
                         if let Some(profile) = ctx.frame_profile {
                             eprintln!(
-                                "[table] scroll frame: total {} us, style {} us, layout {} us, a11y {} us, emit {} us, raster {} us, mutations {}",
+                                "[table] scroll frame: total {} us, style {} us, layout {} us, a11y {} us, emit {} us, raster {} us, mutations {}, retained {}",
                                 profile.total_us,
                                 profile.style_resolve_us,
                                 profile.layout_with_text_us,
                                 profile.a11y_publish_us,
                                 profile.emit_scene_us,
                                 profile.raster_us,
-                                profile.layout_mutations
+                                profile.layout_mutations,
+                                profile.layout_retained
                             );
                         }
                     }

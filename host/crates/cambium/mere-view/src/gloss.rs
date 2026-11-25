@@ -295,7 +295,8 @@ fn project_outline_block(
             let acc_id = node_id_for_path(&path);
             let mut acc_node = Node::new(Role::Heading);
             acc_node.set_label(inline_text(spans));
-            acc_node.set_level(*level as usize);
+            // AccessKit levels are zero-based: an h1 is level 0.
+            acc_node.set_level((*level as usize).saturating_sub(1));
             nodes.push((acc_id, acc_node));
             child_ids.push(acc_id);
         },
@@ -356,9 +357,9 @@ mod tests {
             .map(|(_, n)| (n.label().unwrap_or("").to_string(), n.level()))
             .collect();
         assert_eq!(headings.len(), 3);
-        assert!(headings.contains(&("Introduction".to_string(), Some(1))));
-        assert!(headings.contains(&("Background".to_string(), Some(2))));
-        assert!(headings.contains(&("Architecture".to_string(), Some(1))));
+        assert!(headings.contains(&("Introduction".to_string(), Some(0))));
+        assert!(headings.contains(&("Background".to_string(), Some(1))));
+        assert!(headings.contains(&("Architecture".to_string(), Some(0))));
     }
 
     #[test]
@@ -409,9 +410,9 @@ mod tests {
         assert_eq!(
             headings,
             vec![
-                ("Wrapped first".to_string(), Some(3)),
-                ("Plain second".to_string(), Some(1)),
-                ("Wrapped third".to_string(), Some(2)),
+                ("Wrapped first".to_string(), Some(2)),
+                ("Plain second".to_string(), Some(0)),
+                ("Wrapped third".to_string(), Some(1)),
             ]
         );
     }

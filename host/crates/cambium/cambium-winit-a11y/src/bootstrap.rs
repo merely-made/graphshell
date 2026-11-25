@@ -30,9 +30,7 @@ impl A11yHost {
         let Some(window) = self.window.clone() else {
             return;
         };
-        self.requests.clear();
-        self.envelopes.clear();
-        self.namespace.clear();
+        self.clear_publication();
         match crate::forest_publisher::install_native(
             &mut self.bridge,
             window.as_ref(),

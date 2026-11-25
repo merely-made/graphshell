@@ -88,6 +88,7 @@ impl OwnedLayout {
             content_extent_us,
             generation: 1,
             input_lifetime: std::sync::Arc::new(()),
+            a11y_journal: None,
         }
     }
 
@@ -130,6 +131,7 @@ impl OwnedLayout {
                 .unwrap_or(false);
         if retained {
             self.layout_with_text_us = elapsed_us(phase.elapsed());
+            self.journal_batch(mutations);
             self.publish_geometry(dom);
         } else {
             let attempted_us = elapsed_us(phase.elapsed());
@@ -174,6 +176,7 @@ impl OwnedLayout {
         self.layout_with_text_us = elapsed_us(phase.elapsed());
         self.styles = styles;
         self.fragments = fragments;
+        self.journal_full_layout();
         self.publish_geometry(dom);
     }
 

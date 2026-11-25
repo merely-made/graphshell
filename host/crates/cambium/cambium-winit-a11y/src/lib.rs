@@ -50,6 +50,7 @@ mod publication;
 #[cfg(test)]
 mod publication_tests;
 mod remap;
+mod retained_sync;
 mod synchronization;
 
 pub use forest_publisher::ForestPublisher;
@@ -92,6 +93,20 @@ impl Accessibility for A11yHost {
     ) -> A11ySync {
         self.sync_inner(owner, dom, layout, leaves, producers, focus, layout_scale)
     }
+
+    fn consumes_changes(&self) -> bool {
+        true
+    }
+
+    fn sync_composed(
+        &mut self,
+        owner: &cambium_rootstock::A11yOwner,
+        dom: &cambium_rootstock::WindowDom<'_>,
+        composed: cambium_rootstock::ComposedSemantics<'_>,
+        layout_scale: f64,
+    ) -> A11ySync {
+        self.sync_composed_inner(owner, dom, composed, layout_scale)
+    }
 }
 
 /// Owns the OS AccessKit adapter and the per-frame tree lifecycle for a
@@ -115,6 +130,8 @@ pub struct A11yHost {
     requests: HashMap<A11yNodeId, A11yRequest>,
     envelopes: HashMap<A11yNodeId, cambium_rootstock::SemanticEnvelope>,
     namespace: publication::NativeIds,
+    /// The whole native tree last submitted through the retained path.
+    native: Option<retained_sync::NativeTree>,
 }
 
 impl A11yHost {
@@ -129,6 +146,7 @@ impl A11yHost {
             requests: HashMap::new(),
             envelopes: HashMap::new(),
             namespace: publication::NativeIds::default(),
+            native: None,
         }
     }
 
@@ -288,7 +306,8 @@ pub fn scale_tree_to_window<D: LayoutDom<NodeId = NodeId>>(
 ) {
     let root = A11yNodeId(dom.opaque_id(dom.document()));
     if let Some((_, node)) = tree.nodes.iter_mut().find(|(id, _)| *id == root) {
-        node.set_transform(Affine::scale(layout_scale));
+        // The root's own parent-relative translate is in layout pixels too.
+        synchronization::scale_root(node, layout_scale);
     }
 }
 
@@ -302,6 +321,34 @@ mod dpi_tests {
 
     use super::*;
     use accesskit::{ActionRequest, Node, Rect, Role, TreeId, TreeInfo};
+
+    /// A node's bounds in layout coordinates, summed through the
+    /// parent-relative translates (table plan D71).
+    fn absolute_bounds(tree: &TreeUpdate, id: A11yNodeId) -> Option<Rect> {
+        let parent = |child: A11yNodeId| {
+            tree.nodes
+                .iter()
+                .find(|(_, node)| node.children().contains(&child))
+                .map(|(id, _)| *id)
+        };
+        let node = |id: A11yNodeId| tree.nodes.iter().find(|(n, _)| *n == id).map(|(_, n)| n);
+        let bounds = node(id)?.bounds()?;
+        let (mut x, mut y, mut at) = (0.0, 0.0, Some(id));
+        while let Some(current) = at.and_then(node) {
+            if let Some(transform) = current.transform() {
+                let [_, _, _, _, dx, dy] = transform.as_coeffs();
+                x += dx;
+                y += dy;
+            }
+            at = at.and_then(parent);
+        }
+        Some(Rect::new(
+            bounds.x0 + x,
+            bounds.y0 + y,
+            bounds.x1 + x,
+            bounds.y1 + y,
+        ))
+    }
     use cambium_rootstock::{ProducerRole, ProducerSemantics};
     use layout_dom_api::{LocalName, Namespace, NodeKind};
 
@@ -601,7 +648,7 @@ mod dpi_tests {
         assert_eq!(first.role(), Role::ListItem);
         assert_eq!(first.label(), Some("Card 0"));
         assert_eq!(
-            first.bounds(),
+            absolute_bounds(&tree, board.children()[0]),
             Some(Rect {
                 x0: 46.0,
                 y0: 136.0,
@@ -625,7 +672,10 @@ mod dpi_tests {
         assert_eq!(pin.label(), Some("Pin"));
         assert_eq!(pin.description(), Some("Hold this card"));
         assert!(pin.supports_action(Action::Click));
-        assert_eq!(pin.bounds(), first.bounds());
+        assert_eq!(
+            absolute_bounds(&tree, pin_id),
+            absolute_bounds(&tree, board.children()[0])
+        );
 
         // A reader's click on it maps to the drawn node's action and reaches
         // the producer, which carries it out; the card itself is no button.
@@ -683,7 +733,7 @@ mod dpi_tests {
                 .find(|(id, _)| id.0 == semantic.id.get())
                 .unwrap();
             if let Some(bounds) = semantic.bounds {
-                let native = native.bounds().unwrap();
+                let native = absolute_bounds(&tree, A11yNodeId(semantic.id.get())).unwrap();
                 assert_eq!(
                     (native.x0, native.y0, native.width(), native.height()),
                     (

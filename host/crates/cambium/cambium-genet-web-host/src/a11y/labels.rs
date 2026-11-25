@@ -124,7 +124,7 @@ fn capture_list(
     }
     let children: HashSet<_> = slot.children.iter().map(|child| child.id).collect();
     Some(PublishedList {
-        bounds: node.bounds()?,
+        bounds: projection.absolute_bounds(accesskit::NodeId(id))?,
         content_rect: revision.content_rect(layout, dom)?,
         name: node.label().map(str::to_owned),
         document_nodes: live.difference(&children).copied().collect(),
@@ -306,7 +306,7 @@ impl DomAccessibility {
             .nodes
             .iter()
             .find(|(id, _)| id.0 == current.slot_id())?;
-        let bounds = slot.bounds()?;
+        let bounds = projection.absolute_bounds(accesskit::NodeId(current.slot_id()))?;
         if (geometry.is_none() && bounds != list.bounds)
             || ![bounds.x0, bounds.y0, bounds.x1, bounds.y1]
                 .iter()

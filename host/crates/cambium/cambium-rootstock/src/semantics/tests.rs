@@ -372,8 +372,8 @@ fn content_origin_tests_padded_bounds_follow_content_and_both_scroll_planes() {
         .filter(|(_, n)| matches!(n.label(), Some("Card" | "Pin")))
         .collect();
     assert_eq!(children.len(), 2);
-    for (_, node) in children {
-        assert_eq!(node.bounds(), Some(expected));
+    for (id, _) in children {
+        assert_eq!(projection.absolute_bounds(*id), Some(expected));
     }
     assert_eq!(projection.produced_targets.len(), 1);
     let local = layout

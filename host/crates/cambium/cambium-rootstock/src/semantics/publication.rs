@@ -11,12 +11,15 @@ use crate::{LeafRegistry, ProducerRegistry};
 use accesskit::NodeId as A11yNodeId;
 use layout_dom_api::{LayoutDom, LocalName, Namespace};
 use sceno::SourceRef;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use uxtree::envelope::{Address, Envelope};
 
 /// Metadata for one native publication. Addresses are semantic source IDs until
 /// the native publisher remaps them; only its finalized envelopes are published.
 pub type SemanticEnvelope = Envelope<crate::A11yOwner, SemanticNodeIdentity, SourceRef>;
+
+/// DOM attributes an envelope's authored key is read from, first one wins.
+pub(crate) const AUTHORED_KEY_ATTRIBUTES: [&str; 3] = ["data-key", "data-tabkey", "id"];
 
 /// Complete source envelopes plus operation routes, frozen in one read.
 /// The requests are typed input-delivery records, not another metadata model.
@@ -69,17 +72,47 @@ impl SemanticProjection {
         leaves: &LeafRegistry<u64>,
         producers: &ProducerRegistry,
     ) -> Result<SemanticPublication, PublicationIssue> {
+        self.envelopes_for(owner, dom, leaves, producers, None)
+    }
+
+    /// [`Self::publication_envelopes`] for `ids` only, with the routes of
+    /// those that are action targets. Membership is still read from the
+    /// window's own traversal.
+    pub fn publication_envelopes_for(
+        &self,
+        owner: &crate::A11yOwner,
+        dom: &crate::WindowDom<'_>,
+        leaves: &LeafRegistry<u64>,
+        producers: &ProducerRegistry,
+        ids: &HashSet<A11yNodeId>,
+    ) -> Result<SemanticPublication, PublicationIssue> {
+        self.envelopes_for(owner, dom, leaves, producers, Some(ids))
+    }
+
+    fn envelopes_for(
+        &self,
+        owner: &crate::A11yOwner,
+        dom: &crate::WindowDom<'_>,
+        leaves: &LeafRegistry<u64>,
+        producers: &ProducerRegistry,
+        ids: Option<&HashSet<A11yNodeId>>,
+    ) -> Result<SemanticPublication, PublicationIssue> {
         if !owner.is_live() {
             return Err(PublicationIssue::OwnerEnded);
         }
+        let wanted = |id: &A11yNodeId| ids.is_none_or(|ids| ids.contains(id));
+        let slots: HashSet<_> = self.producer_slots.values().copied().collect();
         let mut dom_nodes = HashMap::new();
         let mut members = HashMap::new();
         for member in dom.members() {
-            dom_nodes.insert(A11yNodeId(dom.opaque_id(member.node())), member);
-            members.insert(member.node(), member);
+            let id = A11yNodeId(dom.opaque_id(member.node()));
+            if wanted(&id) || slots.contains(&member.node()) {
+                dom_nodes.insert(id, member);
+                members.insert(member.node(), member);
+            }
         }
         let mut envelopes = HashMap::new();
-        for (id, _) in &self.tree.nodes {
+        for (id, _) in self.tree.nodes.iter().filter(|(id, _)| wanted(id)) {
             let target = self
                 .produced_nodes
                 .get(id)
@@ -100,13 +133,11 @@ impl SemanticProjection {
             .copied()
             .ok_or(PublicationIssue::UnknownNode(*id))?;
             let dom_key = if let NodeTarget::Node(node) = &target {
-                ["data-key", "data-tabkey", "id"]
-                    .into_iter()
-                    .find_map(|name| {
-                        dom.attribute(*node, &Namespace::default(), &LocalName::from(name))
-                            .filter(|key| !key.is_empty())
-                            .map(str::to_owned)
-                    })
+                AUTHORED_KEY_ATTRIBUTES.into_iter().find_map(|name| {
+                    dom.attribute(*node, &Namespace::default(), &LocalName::from(name))
+                        .filter(|key| !key.is_empty())
+                        .map(str::to_owned)
+                })
             } else {
                 None
             };
@@ -125,9 +156,8 @@ impl SemanticProjection {
             if let Some(action) = self.produced_targets.get(id) {
                 envelope.action_ids.push(action.id.clone());
             } else {
-                envelope.authored_key = dom_key.or_else(|| {
-                    envelope.domain_ref.as_ref().map(|source| source.id.clone())
-                });
+                envelope.authored_key = dom_key
+                    .or_else(|| envelope.domain_ref.as_ref().map(|source| source.id.clone()));
             }
             if envelopes.insert(*id, envelope).is_some() {
                 return Err(PublicationIssue::DuplicateNode(*id));
@@ -137,18 +167,24 @@ impl SemanticProjection {
         for (id, mut request) in self
             .dom_targets
             .iter()
+            .filter(|(id, _)| wanted(id))
             .map(|(id, node)| {
                 (
                     *id,
                     crate::A11yRequest::node(crate::A11yAction::Focus, *node),
                 )
             })
-            .chain(self.produced_targets.iter().map(|(id, target)| {
-                (
-                    *id,
-                    crate::A11yRequest::produced(crate::A11yAction::Focus, target.clone()),
-                )
-            }))
+            .chain(
+                self.produced_targets
+                    .iter()
+                    .filter(|(id, _)| wanted(id))
+                    .map(|(id, target)| {
+                        (
+                            *id,
+                            crate::A11yRequest::produced(crate::A11yAction::Focus, target.clone()),
+                        )
+                    }),
+            )
         {
             let envelope = envelopes
                 .get(&id)

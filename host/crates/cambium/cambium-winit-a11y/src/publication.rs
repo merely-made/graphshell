@@ -40,6 +40,42 @@ impl NativeIds {
         self.entries.clear();
     }
 
+    pub fn get(&self, source: NodeId) -> Option<NodeId> {
+        self.entries.get((TreeId::ROOT, source))
+    }
+
+    /// Every bound source id with its native id.
+    pub fn sources(&self) -> impl Iterator<Item = (NodeId, NodeId)> + '_ {
+        self.entries
+            .iter()
+            .map(|((_, source), native)| (source, native))
+    }
+
+    pub fn lookup(&self, source: NodeId, identity: &SemanticNodeIdentity) -> (NodeId, bool) {
+        self.entries.lookup((TreeId::ROOT, source), identity)
+    }
+
+    pub fn insert(&mut self, source: NodeId, native: NodeId, identity: SemanticNodeIdentity) {
+        self.entries
+            .insert((TreeId::ROOT, source), native, identity);
+    }
+
+    pub fn remove(&mut self, source: NodeId) {
+        self.entries.remove((TreeId::ROOT, source));
+    }
+
+    /// Source id, native id and identity of every entry, for comparison.
+    #[cfg(test)]
+    pub fn snapshot(&self) -> HashMap<NodeId, (NodeId, SemanticNodeIdentity)> {
+        self.entries
+            .iter()
+            .map(|((_, source), native)| {
+                let identity = self.entries.identity((TreeId::ROOT, source)).unwrap();
+                (source, (native, identity.clone()))
+            })
+            .collect()
+    }
+
     /// A candidate only. The installed namespace advances after install/update.
     /// On failure neither current entries nor routing is modified by preparation.
     pub fn prepare(

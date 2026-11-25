@@ -95,11 +95,7 @@ impl Accessibility for Adapter {
             .unwrap();
         let field = field(dom);
         let bounds = projected
-            .tree
-            .nodes
-            .iter()
-            .find(|(id, _)| id.0 == field.raw())
-            .and_then(|(_, node)| node.bounds())
+            .absolute_bounds(accesskit::NodeId(field.raw()))
             .expect("real projected field geometry");
         self.0.borrow_mut().projections.push((scale, bounds.x0));
         A11ySync {

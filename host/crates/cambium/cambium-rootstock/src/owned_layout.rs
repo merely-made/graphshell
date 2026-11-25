@@ -21,6 +21,8 @@ use paint_list_api::{
     ColorF, CommonPlacement, DeviceIntSize, LayoutPoint, LayoutRect, LayoutSize, PaintCmd, RectItem,
 };
 
+mod a11y_journal;
+pub(crate) use a11y_journal::A11yJournal;
 #[cfg(test)]
 mod graph_label_tests;
 #[cfg(test)]
@@ -113,6 +115,7 @@ pub struct OwnedLayout {
     content_extent_us: u64,
     generation: u64,
     input_lifetime: std::sync::Arc<()>,
+    a11y_journal: Option<A11yJournal>,
 }
 
 impl OwnedLayout {

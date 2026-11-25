@@ -25,9 +25,7 @@ impl A11yHost {
         actions: impl IntoIterator<Item = A11yActionRequest>,
     ) -> Vec<A11yRequest> {
         if !owner.is_live() {
-            self.requests.clear();
-            self.envelopes.clear();
-            self.namespace.clear();
+            self.clear_publication();
             return Vec::new();
         }
         actions
