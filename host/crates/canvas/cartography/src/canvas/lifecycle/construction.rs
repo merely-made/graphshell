@@ -251,6 +251,7 @@ impl Canvas {
             mosaic: Default::default(),
             territory_field: false,
             graph_grammar: false,
+            identity_arrangement: None,
             grammar_categories: None,
             withdraw_policy: None,
             category_colors: Vec::new(),

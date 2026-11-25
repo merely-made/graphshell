@@ -513,6 +513,12 @@ pub struct Canvas {
     territory_field: bool,
     /// Whether nodes and links are presented by the graph grammar (`grammar_view.rs`).
     graph_grammar: bool,
+    /// The read-through Identity arrangement the fallback underlay projects,
+    /// with the node set (structural key, count) it was built for.
+    identity_arrangement: Option<(
+        (kernel::graph::GraphInputKey, usize),
+        Arc<incipit::forme::Arrangement>,
+    )>,
     /// The grammar's category index per node, with the graph keys it was built for.
     grammar_categories: Option<(
         (kernel::graph::GraphInputKey, kernel::graph::GraphInputKey),

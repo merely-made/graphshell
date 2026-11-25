@@ -228,21 +228,21 @@ impl Arrangement {
     /// Add a `MemberIntent` for `member`, attached to the root.
     pub fn add_member_intent(&mut self, member: GraphMemberId) -> ArrangementNodeId {
         let id = self.insert(ArrangementNodeKind::MemberIntent { member }, None);
-        self.attach(id, self.root);
+        self.attach_fresh(id, self.root);
         id
     }
 
     /// Add a `TileIntent` (optionally bound to a member), attached to the root.
     pub fn add_tile_intent(&mut self, member: Option<GraphMemberId>) -> ArrangementNodeId {
         let id = self.insert(ArrangementNodeKind::TileIntent { member }, None);
-        self.attach(id, self.root);
+        self.attach_fresh(id, self.root);
         id
     }
 
     /// Add a `Group`, attached to the root.
     pub fn add_group(&mut self, label: Option<String>) -> ArrangementNodeId {
         let id = self.insert(ArrangementNodeKind::Group, label);
-        self.attach(id, self.root);
+        self.attach_fresh(id, self.root);
         id
     }
 
@@ -253,6 +253,17 @@ impl Arrangement {
         self.edges
             .retain(|e| !(e.from == child && e.kind == ArrangementEdgeKind::MemberOf));
         self.relate(child, parent, ArrangementEdgeKind::MemberOf);
+    }
+
+    /// [`Self::attach`] for a node just inserted: it has no edges yet, so
+    /// there is nothing to drop or deduplicate, and building an arrangement of
+    /// N members stays linear rather than scanning every edge per member.
+    fn attach_fresh(&mut self, child: ArrangementNodeId, parent: ArrangementNodeId) {
+        self.edges.push(ArrangementEdge {
+            from: child,
+            to: parent,
+            kind: ArrangementEdgeKind::MemberOf,
+        });
     }
 
     /// Add a relation edge (idempotent for the exact triple).

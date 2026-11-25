@@ -4,6 +4,7 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 // SPDX-License-Identifier: MPL-2.0
 
+use std::sync::Arc;
 use std::time::Duration;
 
 use super::super::elapsed::FrameElapsed;
@@ -183,8 +184,11 @@ impl Canvas {
         // arrangement (the spine's "two projections of one arrangement"); a scoped
         // arrangement is exactly the shape a stored/compare arrangement would take.
         let arrangement = (!tiered).then(|| match (&self.scope, folds.is_empty()) {
-            (None, true) => identity_arrangement(&self.graph),
-            _ => crate::canvas::underlay::arrangement_of_keys(&self.graph, &visible_keys),
+            (None, true) => self.cached_identity_arrangement(),
+            _ => Arc::new(crate::canvas::underlay::arrangement_of_keys(
+                &self.graph,
+                &visible_keys,
+            )),
         });
         observer.mark(1);
         let mut underlay = match &arrangement {
@@ -494,5 +498,21 @@ impl Canvas {
             || wash_pending;
         observer.mark(9);
         (scene, needs_redraw)
+    }
+}
+
+impl Canvas {
+    /// The Identity arrangement of every graph node, rebuilt only when the
+    /// node set changes rather than each frame.
+    fn cached_identity_arrangement(&mut self) -> Arc<incipit::forme::Arrangement> {
+        let key = (self.graph.structural_input_key(), self.graph.node_count());
+        if let Some((held, arrangement)) = &self.identity_arrangement
+            && *held == key
+        {
+            return Arc::clone(arrangement);
+        }
+        let arrangement = Arc::new(identity_arrangement(&self.graph));
+        self.identity_arrangement = Some((key, Arc::clone(&arrangement)));
+        arrangement
     }
 }

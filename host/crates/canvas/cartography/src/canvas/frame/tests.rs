@@ -194,3 +194,22 @@ fn game_of_life_backdrop_keeps_redrawing_until_cleared() {
         "clearing the ambient backdrop lets the canvas park again"
     );
 }
+
+/// The fallback underlay's Identity arrangement is built once per node set,
+/// not once per frame, and rebuilt when a node joins.
+#[test]
+fn the_identity_arrangement_is_kept_until_the_node_set_changes() {
+    let (graph, _) = graph_with_one_node("https://ex.test/");
+    let mut canvas = Canvas::with_graph(graph);
+    canvas.resize(400, 300);
+    canvas.frame(400, 300);
+    let first = canvas.identity_arrangement.clone().expect("built").1;
+    canvas.frame(400, 300);
+    let again = canvas.identity_arrangement.clone().expect("kept").1;
+    assert!(std::sync::Arc::ptr_eq(&first, &again));
+    canvas.add_node_at((10.0, 10.0), "https://two.test/");
+    canvas.frame(400, 300);
+    let grown = canvas.identity_arrangement.clone().expect("rebuilt").1;
+    assert!(!std::sync::Arc::ptr_eq(&first, &grown));
+    assert_eq!(grown.referenced_members().len(), 2);
+}
