@@ -245,6 +245,7 @@ impl Canvas {
             orbit_drag: None,
             drag: None,
             pinned_nodes: HashSet::new(),
+            node_tier: super::super::node_tier::NodeTier::new(),
             grammar: Default::default(),
             strategy_regions: Vec::new(),
             mosaic: Default::default(),

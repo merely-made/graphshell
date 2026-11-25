@@ -247,6 +247,10 @@ pub mod composition;
 mod dynamics_inspection;
 mod dynamics_record;
 pub mod node_billboard;
+mod node_tier;
+pub use node_tier::{DEFAULT_MAX_DOM_GNODES, DOM_MIN_SIDE_PX, NodeTierStats};
+#[cfg(feature = "gpu")]
+pub use node_tier::{GpuNodeDevice, GpuNodeTarget, gpu_node_device_for};
 mod node_presentation;
 mod projection_marks;
 pub mod relationship_topology;
@@ -496,6 +500,8 @@ pub struct Canvas {
     /// This is local view curation, never graph truth. Pointer pulls may update
     /// a held node, but only an explicit release returns it to the solver.
     pinned_nodes: HashSet<NodeKey>,
+    /// The GPU node tier and its bounded gnode pool (`node_tier.rs`).
+    node_tier: node_tier::NodeTier,
     /// The graph grammar's attention and seed (`attention.rs`): view-local,
     /// never graph truth.
     grammar: attention::GrammarState,

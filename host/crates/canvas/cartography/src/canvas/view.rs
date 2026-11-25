@@ -294,6 +294,19 @@ impl Canvas {
         if self.render_gnodes_as_dom {
             return None;
         }
+        // Under the node tier a node without a gnode is drawn by the GPU from
+        // the same billboard, so that rect is the painted body.
+        if self.gpu_node_tier_active() && !self.gnode_of.contains_key(&key) {
+            if !self.node_visible_in_canvas(key) {
+                return None;
+            }
+            let rect = self.node_billboard(key)?.screen_rect();
+            let on_screen = rect.max.x > 0.0
+                && rect.max.y > 0.0
+                && rect.min.x < self.view_w as f32
+                && rect.min.y < self.view_h as f32;
+            return on_screen.then_some((rect.min.x, rect.min.y, rect.max.x, rect.max.y));
+        }
         let gnode = *self.gnode_of.get(&key)?;
         let body = self.node_billboard(key)?;
         let zoom = body.zoom;

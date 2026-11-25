@@ -71,7 +71,7 @@ image-decode = ["genet-livery?/image-decode"]
 signals = ["dep:fieldbook", "dep:portolan", "dep:libm"]
 # The canvas's and the board's repulsion staged on the host's GPU
 # (`Canvas::set_physics_device`; physics catalog plan, P5c). Opt-in per consumer.
-gpu = ["canvas", "physics-engine", "seiche/gpu"]
+gpu = ["canvas", "physics-engine", "seiche/gpu", "dep:wgpu"]
 # The Meaning channel's sentence model on the host's own device
 # (`canvas::meaning_device`; dynamics grammar plan, G2, "Burn on the host
 # device, off-path"). Native hosts only: the wasm web build leaves it off and
@@ -157,6 +157,8 @@ serde_json = { version = "1", optional = true }
 tincture = { workspace = true, optional = true }
 tracing = { workspace = true, optional = true }
 uuid = { version = "1", optional = true }
+# The node tier's render pipeline on the host's device (`canvas::gpu_nodes`).
+wgpu = { workspace = true, optional = true }
 
 [dev-dependencies]
 serde_json = "1.0"

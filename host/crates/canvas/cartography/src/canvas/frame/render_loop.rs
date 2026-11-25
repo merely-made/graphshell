@@ -29,6 +29,8 @@ impl Canvas {
             .as_ref()
             .map_or(Duration::from_secs_f32(seiche::TICK_DT), |elapsed| elapsed.presentation);
 
+        self.sync_node_document_mode();
+        let tiered = self.gpu_node_tier_active();
         self.apply_forme_region();
         self.sync_attention();
         self.tend_link_suggestions();
@@ -113,11 +115,16 @@ impl Canvas {
 
         // Reproject the underlay from the view positions (a
         // node with no body falls back to its committed position in the producer).
-        let positions: HashMap<NodeKey, PortablePoint> = self
-            .view
-            .positions()
-            .map(|(k, p)| (k, PortablePoint::new(p.x, p.y)))
-            .collect();
+        // Under the node tier only the gnode set and fold members need a CPU
+        // position map; the GPU reads the rest from its own buffer.
+        let mut positions: HashMap<NodeKey, PortablePoint> = if tiered {
+            HashMap::new()
+        } else {
+            self.view
+                .positions()
+                .map(|(k, p)| (k, PortablePoint::new(p.x, p.y)))
+                .collect()
+        };
         // On-screen nodes (cull against the world-space viewport) become DOM
         // children; the rest demote to underlay rects, so no node double-draws.
         let mut on_screen: HashSet<NodeKey> = self
@@ -143,12 +150,28 @@ impl Canvas {
                 && !folded_members.contains(&key)
         };
         on_screen.retain(|key| node_visible(*key));
-        let visible_keys: Vec<NodeKey> = self
-            .graph
-            .nodes()
-            .map(|(key, _)| key)
-            .filter(|key| node_visible(*key))
-            .collect();
+        // The tier draws nodes and links itself: the underlay keeps no per-node
+        // or per-link paint, so it needs no arrangement of the visible set.
+        let visible_keys: Vec<NodeKey> = if tiered {
+            Vec::new()
+        } else {
+            self.graph
+                .nodes()
+                .map(|(key, _)| key)
+                .filter(|key| node_visible(*key))
+                .collect()
+        };
+        let tier_choice = tiered.then(|| self.tier_choose(&on_screen, w, h));
+        let chosen_set: Option<HashSet<NodeKey>> = tier_choice
+            .as_ref()
+            .map(|choice| choice.chosen.iter().copied().collect());
+        if let Some(chosen) = &chosen_set {
+            for key in chosen.iter().chain(fold_members.iter()) {
+                if let Some(p) = self.view.position_of(*key) {
+                    positions.insert(*key, PortablePoint::new(p.x, p.y));
+                }
+            }
+        }
 
         // The graph grammar, when the host presents by it: who is loud, who is
         // labelled, each node's category.
@@ -160,6 +183,7 @@ impl Canvas {
         // arrangement (the spine's "two projections of one arrangement"); a scoped
         // arrangement is exactly the shape a stored/compare arrangement would take.
         let arrangement = match (&self.scope, folds.is_empty()) {
+            _ if tiered => crate::canvas::underlay::arrangement_of_keys(&self.graph, &visible_keys),
             (None, true) => identity_arrangement(&self.graph),
             _ => crate::canvas::underlay::arrangement_of_keys(&self.graph, &visible_keys),
         };
@@ -191,12 +215,14 @@ impl Canvas {
             self.hidden_field_ids(),
         ));
         underlay.splice_world_underlay(self.forme_overlay());
-        underlay.splice_world_overlays(link_overlay_from_segments(
-            self.rendered_link_segments(),
-            &self.selected_links,
-            |key| node_visible(key) && !fold_members.contains(&key),
-            |from, to| super::super::grammar_view::link_tone(grammar.as_ref(), from, to),
-        ));
+        if !tiered {
+            underlay.splice_world_overlays(link_overlay_from_segments(
+                self.rendered_link_segments(),
+                &self.selected_links,
+                |key| node_visible(key) && !fold_members.contains(&key),
+                |from, to| super::super::grammar_view::link_tone(grammar.as_ref(), from, to),
+            ));
+        }
         underlay.splice_world_overlays(self.fold_overlay(&folds, &positions));
         // Community rings: a halo per node in its community's colour, spliced into the same
         // world-space transform. (Graph signals — community to a ring.)
@@ -227,74 +253,61 @@ impl Canvas {
         // the in-scene gnode layer is dropped below, so skip the per-gnode transform/class
         // updates: an empty set makes the loop a no-op, the costliest part of the frame on
         // a big graph. (Phase 2 — perf / cleaning.)
-        let gnodes: Vec<(NodeKey, DomNodeId)> = if self.render_gnodes_as_dom {
-            Vec::new()
-        } else {
-            self.gnode_of.iter().map(|(&k, &g)| (k, g)).collect()
-        };
-        let mut gnode_updates = Vec::with_capacity(gnodes.len());
-        for (key, gnode) in gnodes {
-            // Scope lens: hide a non-scoped node's DOM child (the underlay already
-            // excludes it), so a scoped canvas shows only its subset. (Curated canvas.)
-            if !node_visible(key) {
-                gnode_updates.push((gnode, "display: none;".to_string(), None));
-                continue;
-            }
-            let pos = positions.get(&key).copied().unwrap_or_default();
-            let Some(body) = self.node_billboard_at(key, pos) else {
-                gnode_updates.push((gnode, "display: none;".to_string(), None));
-                continue;
-            };
-            let bounds = body.screen_rect();
-            let mut style = format!(
-                "transform: translate({}px, {}px) scale({}); z-index: {}; width: {}px; height: {}px; border-radius: {}px;",
-                bounds.min.x,
-                bounds.min.y,
-                body.zoom,
-                body.depth as i32,
-                body.local_side,
-                body.local_side,
-                body.corner_radius,
-            );
-            if let Some(frame) = &grammar {
-                style.push_str(&self.grammar_fill(key, frame));
-            }
-            // Selection wins (orange); otherwise color by activation state —
-            // green open, red closed, blue idle (the default for an unset node).
-            let state_class = if self.selected.contains(&key) {
-                "gnode-selected"
-            } else {
-                match self.node_states.get(&key) {
-                    Some(NodeState::Open) => "gnode-open",
-                    Some(NodeState::Closed) => "gnode-closed",
-                    _ => "gnode-idle",
+        let mut gnode_updates: Vec<(DomNodeId, String, Option<String>)> = Vec::new();
+        let mut caption_updates: Vec<(DomNodeId, String)> = Vec::new();
+        let mut tier_cmds: Vec<PaintCmd> = Vec::new();
+        if let (Some(choice), Some(chosen)) = (&tier_choice, &chosen_set) {
+            // Bounded pool: write the chosen nodes' elements, hide the ones
+            // that lost their holder (once), leave the rest as they were.
+            tier_cmds = self.tier_render_pass(w, h, chosen, choice.hovered, &node_visible);
+            self.tier_seat(&choice.chosen);
+            let held: HashSet<usize> = self.node_tier.assigner.holders().map(|(_, s)| s).collect();
+            for (slot, element) in self.node_tier.dom.iter_mut().enumerate() {
+                if !held.contains(&slot) && !element.hidden {
+                    gnode_updates.push((element.gnode, "display: none;".to_string(), None));
+                    element.hidden = true;
                 }
+            }
+            for &key in &choice.chosen {
+                let Some(slot) = self.node_tier.assigner.slot(key) else { continue };
+                let pos = positions.get(&key).copied().unwrap_or_default();
+                let element = &self.node_tier.dom[slot];
+                let Some((style, class)) = self.gnode_presentation(key, pos, &grammar) else {
+                    if !element.hidden {
+                        gnode_updates.push((element.gnode, "display: none;".to_string(), None));
+                        self.node_tier.dom[slot].hidden = true;
+                    }
+                    continue;
+                };
+                gnode_updates.push((element.gnode, style, Some(class)));
+                let label = self.graph.node_display_label(key);
+                let element = &mut self.node_tier.dom[slot];
+                element.hidden = false;
+                if element.label != label {
+                    caption_updates.push((element.caption, label.clone()));
+                    element.label = label;
+                }
+            }
+        } else {
+            let gnodes: Vec<(NodeKey, DomNodeId)> = if self.render_gnodes_as_dom {
+                Vec::new()
+            } else {
+                self.gnode_of.iter().map(|(&k, &g)| (k, g)).collect()
             };
-            // Shape rides as a second class so it merges with the color class:
-            // rounded and circle are border-radius, diamond and hexagon a clip;
-            // square is the default (no shape class).
-            let shape_class = match body.silhouette {
-                NodeShape::RoundedSquare if grammar.is_none() => " gnode-rounded",
-                NodeShape::Circle if grammar.is_none() => " gnode-circle",
-                NodeShape::Diamond => " gnode-diamond",
-                NodeShape::Hexagon => " gnode-hexagon",
-                _ => "",
-            };
-            // The representation rung changes how the same measured footprint
-            // is realized, not how much space it occupies. Glyph suppresses
-            // the caption and rounds the body; Card retains the ordinary Canvas
-            // face; LivePane receives a framed focus treatment. It remains a
-            // face request here, not a claim that interactive content has been
-            // embedded. The open representation tail falls back to Card.
-            // (Projection proofs — P3b renderer consumption.)
-            let representation_class = self.node_representation_class(key);
-            let class = match &grammar {
-                Some(frame) => {
-                    format!("{}{shape_class}{representation_class}", self.grammar_class(key, frame))
-                },
-                None => format!("{state_class}{shape_class}{representation_class}"),
-            };
-            gnode_updates.push((gnode, style, Some(class)));
+            gnode_updates.reserve(gnodes.len());
+            for (key, gnode) in gnodes {
+                // Scope lens: hide a non-scoped node's DOM child (the underlay already
+                // excludes it), so a scoped canvas shows only its subset. (Curated canvas.)
+                if !node_visible(key) {
+                    gnode_updates.push((gnode, "display: none;".to_string(), None));
+                    continue;
+                }
+                let pos = positions.get(&key).copied().unwrap_or_default();
+                match self.gnode_presentation(key, pos, &grammar) {
+                    Some((style, class)) => gnode_updates.push((gnode, style, Some(class))),
+                    None => gnode_updates.push((gnode, "display: none;".to_string(), None)),
+                }
+            }
         }
         // Each fold's "+N", over the node layer it belongs to: none when the
         // host draws the gnodes itself (it reads `fold_badges` instead).
@@ -321,6 +334,9 @@ impl Canvas {
                     set_class(dom, *gnode, class);
                 }
             }
+            for (caption, label) in &caption_updates {
+                dom.set_text_content(*caption, label);
+            }
             place_fold_badges(dom, stage_node, &mut badge_nodes, &badges);
         });
         self.fold_badge_nodes = badge_nodes;
@@ -334,12 +350,13 @@ impl Canvas {
 
         // Face layer: either a palette-decoded derived vector or a resolved favicon over each
         // on-screen tile, above the colored body and below the marquee.
-        let (face_cmds, face_images) = self.face_layer(&on_screen, &positions);
+        let dom_keys = chosen_set.as_ref().unwrap_or(&on_screen);
+        let (face_cmds, face_images) = self.face_layer(dom_keys, &positions);
         observer.mark(6);
 
         // P3 fake height: a stem from each raised node's ground anchor up to its
         // floating gnode. (Isometric camera P3.)
-        let stem_cmds = self.height_stem_cmds(&on_screen, &positions);
+        let stem_cmds = self.height_stem_cmds(dom_keys, &positions);
 
         // A screen-space layer for the marquee rubber-band, when active.
         let marquee_cmds = self
@@ -408,6 +425,10 @@ impl Canvas {
             layers.push(CompositeLayer::commands_only(&fluid_cmds));
         }
         layers.push(CompositeLayer::commands_only(&underlay_commands));
+        // The node tier's texture: bodies and links, under the gnode set.
+        if !tier_cmds.is_empty() {
+            layers.push(CompositeLayer::commands_only(&tier_cmds));
+        }
         // The on-screen gnode + face layers, unless the host renders these gnodes as
         // chrome DOM elements instead (canvas-as-element); then only edges + demoted
         // dots remain as the underlay. (Canvas-as-element — Phase 2.)

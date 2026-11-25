@@ -463,5 +463,7 @@ fn scene_body_half(collider: &NodeCollider) -> f32 {
 #[path = "frame/tests.rs"]
 mod tests;
 
+#[path = "frame/gnode.rs"]
+mod gnode;
 #[path = "frame/render_loop.rs"]
 mod render_loop;

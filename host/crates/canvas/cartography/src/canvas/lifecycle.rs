@@ -187,15 +187,7 @@ impl Canvas {
         if self.physics_forces_are_graph_bound() {
             self.rebuild_law_forces();
         }
-        let (node_dom, gnode_of, stage_node) = build_pool_dom(&self.graph);
-        self.node_document = genet_livery::LiveryDocument::new(
-            node_dom,
-            genet_livery::StyleSet::cambium(&crate::canvas::build::NODE_SHEET),
-            genet_livery::Device::screen(1.0, 1.0),
-        );
-        self.gnode_of = gnode_of;
-        self.stage_node = stage_node;
-        self.fold_badge_nodes.clear();
+        self.rebuild_node_document();
         self.resync_view_to_graph();
         if memberships_retired {
             self.sync_arrangement_roles();
