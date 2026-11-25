@@ -12,6 +12,7 @@ categories = ["command-line-utilities", "authentication"]
 
 [features]
 default = ["personal-sync", "cxf"]
+saved-views = ["mere-overmap/saved-views", "dep:mere-ontology"]
 cxf = ["personal-sync", "dramatis-resident/cxf"]
 # Castellan's host in this process (custody isolation plan, H2): only for
 # the test suites and receipt hosts that predate the custodian. A production
@@ -85,7 +86,13 @@ name = "c1-receipt-host"
 path = "src/bin/c1_receipt_host.rs"
 required-features = ["custody-receipt-host"]
 
+[[bin]]
+name = "mere-reservoir-view"
+path = "src/bin/mere_reservoir_view.rs"
+required-features = ["saved-views"]
+
 [dependencies]
+mere-ontology = { workspace = true, optional = true }
 murm-sync.workspace = true
 dramatis-resident.workspace = true
 site-model.workspace = true

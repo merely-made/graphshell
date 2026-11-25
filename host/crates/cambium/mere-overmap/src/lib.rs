@@ -29,6 +29,9 @@
 
 pub mod wire;
 
+#[cfg(all(feature = "saved-views", not(target_arch = "wasm32")))]
+pub mod saved_views;
+
 #[cfg(feature = "view")]
 pub mod route;
 #[cfg(feature = "view")]

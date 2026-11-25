@@ -347,7 +347,7 @@ pub fn declined(result: &IntentResult) -> Option<String> {
 }
 
 /// The items whose source is `adapter`'s, in order.
-fn items<'a>(
+pub(crate) fn items<'a>(
     snapshot: &'a ProjectionSnapshot,
     adapter: &'a str,
 ) -> impl Iterator<Item = (InstanceId, &'a SourceRef)> + 'a {

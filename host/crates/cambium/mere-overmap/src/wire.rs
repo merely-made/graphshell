@@ -88,6 +88,8 @@ pub const MERE_SESSIONS: &str = "djinn.mere/v1/sessions";
 pub const MERE_GRAPH: &str = "djinn.mere/v1/graph";
 /// The scene source kind of the sessions projection's cards.
 pub const SESSIONS_SOURCE: &str = "mere.sessions";
+/// The owner-derived persona/domain identity on the explicit session catalog card.
+pub const MERE_ID_LABEL: &str = "Mere ID";
 /// Mint a new, empty session.
 pub const MINT_SESSION_INTENT: &str = "mere.sessions.mint";
 /// Attach this connection to another session.

@@ -174,6 +174,19 @@ async fn cards(
     Ok(())
 }
 
+/// Inspect only the session catalog before an explicit request to switch sessions.
+#[cfg(feature = "saved-views")]
+pub(crate) async fn catalog(
+    source: &mut impl MaterializationSource,
+) -> Result<(ProjectionSnapshot, HashMap<ContentHash, Vec<u8>>), String> {
+    let descriptor = source.open_descriptor().await?;
+    let request = request(&descriptor, wire::MERE_SESSIONS, true)?.unwrap();
+    let sessions = snapshot(source, request).await?;
+    let mut material = HashMap::new();
+    cards(source, &sessions, &mut material).await?;
+    Ok((sessions, material))
+}
+
 /// Read fresh projections and validate every fetched resource before decoding.
 /// Only Complete fetches graph cards and the scoped graph envelope; projection
 /// reads still fetch sessions/archive cards and any advertised pending merge.

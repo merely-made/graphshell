@@ -1208,10 +1208,16 @@ impl MereEndpoint {
         let mut cards = Vec::with_capacity(manifests.len() + 1);
         let mere = PortableCardV1 {
             title: self.shared.domain.clone(),
-            values: vec![CardValueV1 {
-                label: "Sessions".to_string(),
-                value: manifests.len().to_string(),
-            }],
+            values: vec![
+                CardValueV1 {
+                    label: "Sessions".to_string(),
+                    value: manifests.len().to_string(),
+                },
+                CardValueV1 {
+                    label: session_item::MERE_ID_LABEL.to_string(),
+                    value: self.shared.mere.to_string(),
+                },
+            ],
             badges: Vec::new(),
             media: Vec::new(),
         };

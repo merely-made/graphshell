@@ -17,6 +17,20 @@ The independent custodian owns the vault and wallet. This package supplies the
 graph projections, door wiring, concrete platform dialogs and the lifetime of
 the services it composes. Its normal graph contains no custody implementation.
 
+## Named linked-data views
+
+Apps can use the `saved-views` feature of `mere-overmap` to share a named question and the named RDF statements the owner chose for it. `SavedViewsClient::share` checks the session revision and commits the definition, source IDs, original revisions and vocabulary selections together. On each run the caller reads the current disclosure for each source under the saved lens. Changing a source revision retires its older lens projections. Withdrawing a source removes its current statements from every lens.
+
+Build the native command from `host/` with `cargo build -p mere-resident --features saved-views --bin mere-reservoir-view`. Give the application `mere-reservoir-view` an owner grant for the explicit domain it will read. With a running resident, use its configured local endpoint and substitute the domain, session and lens directory you selected.
+
+```sh
+mere-reservoir-view rehearsal-notes current list
+mere-reservoir-view rehearsal-notes "$session" open "Rehearsal note targets"
+mere-reservoir-view rehearsal-notes "$session" run "Rehearsal note targets" /path/to/lens-directory
+```
+
+The list includes the attached session UUID. Open prints the portable definition. Run prints its rows grouped by source ID and original revision. A null revision means that this lens currently has no disclosure for that source. The ordinary explicit domain route can create the first empty live session in a served domain. An app that already holds its selected connection can borrow that connection with `SavedViewsClient::borrow_held`, which verifies its attached session before reading the graph.
+
 ## Run
 
 The default build links no Reticulum-licensed code. Features
