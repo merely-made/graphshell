@@ -12,7 +12,8 @@
 //! store migration. The design, grant and revocation shape are in the domain
 //! contract's "The blob door route" section.
 //!
-//! Calls are one intent, `blob.call`, carrying a JSON [`BlobRequest`]. The
+//! Calls are one intent, `blob.call`, carrying a [`BlobRequest`] as canonical
+//! CBOR through cbor-core, strictly decoded (engine split D228). The
 //! intent answers `Accepted` or `Rejected`; what the call returned is read from
 //! the route's snapshot, a [`BlobLedger`], by call number. Bytes out are the
 //! carrier's resource chunks addressed by BLAKE3 hash, which is the blob's own
@@ -35,7 +36,7 @@ use crate::projection::AppBrokerClient;
 pub const BLOB_CUSTODY_ROUTE: &str = "blob-custody-v1";
 /// The one intent the route accepts.
 pub const BLOB_CALL_INTENT: &str = "blob.call";
-/// The most bytes one `put-part` carries (a JSON byte array inside a 1 MiB frame).
+/// The most bytes one `put-part` carries (an array of byte values in the call).
 pub const MAX_PART_BYTES: usize = 64 * 1024;
 /// The most one staged upload may declare.
 pub const MAX_UPLOAD_BYTES: u64 = 256 * 1024 * 1024;
@@ -59,6 +60,27 @@ pub struct ChunkInterval {
 pub struct BlobRequest {
     pub call: u64,
     pub op: BlobOp,
+}
+
+impl BlobRequest {
+    /// The intent payload: one canonical CBOR item.
+    ///
+    /// # Errors
+    ///
+    /// When the request does not serialize.
+    pub fn encode(&self) -> Result<Vec<u8>, chirograph::wire::WireError> {
+        chirograph::wire::encode(self)
+    }
+
+    /// Read a payload back. Non-canonical CBOR, trailing bytes and any other
+    /// encoding are refused.
+    ///
+    /// # Errors
+    ///
+    /// When the payload is not exactly one canonical item holding a request.
+    pub fn decode(payload: &[u8]) -> Result<Self, chirograph::wire::WireError> {
+        chirograph::wire::decode(payload)
+    }
 }
 
 /// What a call asks. `scope`, `peer` and `hash` are lowercase hex of 32 bytes;
@@ -321,7 +343,8 @@ impl BlobDoorClient {
     pub async fn call(&mut self, op: BlobOp) -> Result<BlobOutcome, BlobDoorError> {
         let call = self.next_call;
         self.next_call += 1;
-        let payload = serde_json::to_vec(&BlobRequest { call, op })
+        let payload = BlobRequest { call, op }
+            .encode()
             .map_err(|error| BlobDoorError::Unexpected(error.to_string()))?;
         let body = self
             .client
@@ -706,11 +729,35 @@ mod tests {
                 subject: hex(b"x"),
             },
         };
-        let json = serde_json::to_value(&request).unwrap();
-        assert_eq!(json["call"], 7);
-        assert_eq!(json["op"]["op"], "release");
-        assert_eq!(serde_json::from_value::<BlobRequest>(json).unwrap(), request);
+        let payload = request.encode().unwrap();
+        let item = cbor_core::Value::decode(&payload).unwrap();
+        assert_eq!(item["call"].to_u64().unwrap(), 7);
+        assert_eq!(item["op"]["op"].as_str().unwrap(), "release");
+        assert_eq!(BlobRequest::decode(&payload).unwrap(), request);
         let unknown = serde_json::json!({"call": 1, "op": {"op": "delete-everything"}});
-        assert!(serde_json::from_value::<BlobRequest>(unknown).is_err());
+        assert!(BlobRequest::decode(&chirograph::wire::encode(&unknown).unwrap()).is_err());
+    }
+
+    #[test]
+    fn a_request_is_read_only_as_canonical_cbor() {
+        let request = BlobRequest {
+            call: 3,
+            op: BlobOp::PutPart {
+                offset: 0,
+                bytes: vec![0, 1, 255],
+            },
+        };
+        let payload = request.encode().unwrap();
+        // Positive control: the canonical bytes read back.
+        assert_eq!(BlobRequest::decode(&payload).unwrap(), request);
+        // Keys sort shortest first, so `call` is last: 3 in two bytes is not canonical.
+        assert_eq!(payload.last(), Some(&0x03));
+        let mut loose = payload[..payload.len() - 1].to_vec();
+        loose.extend_from_slice(&[0x18, 0x03]);
+        assert!(BlobRequest::decode(&loose).is_err());
+        let mut trailing = payload.clone();
+        trailing.push(0);
+        assert!(BlobRequest::decode(&trailing).is_err());
+        assert!(BlobRequest::decode(&serde_json::to_vec(&request).unwrap()).is_err());
     }
 }

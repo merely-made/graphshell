@@ -72,7 +72,7 @@ fn invoke(
         observed_epoch: SceneEpoch(1),
         observed_revision: Revision(1),
         intent: BLOB_CALL_INTENT.into(),
-        payload: serde_json::to_vec(&BlobRequest { call, op }).unwrap(),
+        payload: BlobRequest { call, op }.encode().unwrap(),
     })?;
     // Read the outcome the way a client does: from the snapshot's ledger.
     let snapshot = endpoint.snapshot(BlobEndpoint::request())?;
@@ -268,6 +268,32 @@ async fn a_scope_belongs_to_its_first_binder_and_the_record_survives_a_restart()
     assert!(bind(&mut *other, SCOPE, 1).is_err());
     let mut knot = open(&restarted, "knot-editor").unwrap();
     assert_eq!(bind(&mut *knot, SCOPE, 1).unwrap(), BlobOutcome::Count { count: 0 });
+}
+
+/// A call is canonical CBOR only (D228): the same request as JSON is refused
+/// before it runs, and the CBOR one, sent next, is accepted.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn a_call_is_read_only_as_canonical_cbor() {
+    let temp = tempfile::tempdir().unwrap();
+    let door = BlobDoor::new(custody(temp.path()).await);
+    let mut app = open(&door, "knot-editor").unwrap();
+    let request = BlobRequest {
+        call: 1,
+        op: BlobOp::BindScope { scope: hex32(&SCOPE) },
+    };
+    let call = |payload| IntentInvocation {
+        session: BlobEndpoint::session(),
+        target: InstanceId(0),
+        observed_epoch: SceneEpoch(1),
+        observed_revision: Revision(1),
+        intent: BLOB_CALL_INTENT.into(),
+        payload,
+    };
+    let json = app.invoke(call(serde_json::to_vec(&request).unwrap())).unwrap();
+    assert!(matches!(json, IntentResult::Rejected { ref reason } if reason.contains("malformed")), "{json:?}");
+    assert_eq!(door.custody.scope_owner(BlobScope::new(SCOPE)), None);
+    assert_eq!(app.invoke(call(request.encode().unwrap())).unwrap(), IntentResult::Accepted);
+    assert_eq!(door.custody.scope_owner(BlobScope::new(SCOPE)).as_deref(), Some("knot-editor"));
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]

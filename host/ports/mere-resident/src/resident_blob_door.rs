@@ -776,7 +776,7 @@ impl ResidentEndpoint for BlobEndpoint {
                 reason: format!("the blob custody route has one intent, {BLOB_CALL_INTENT}"),
             });
         }
-        let request: BlobRequest = match serde_json::from_slice(&intent.payload) {
+        let request = match BlobRequest::decode(&intent.payload) {
             Ok(request) => request,
             Err(error) => {
                 return Ok(IntentResult::Rejected {
