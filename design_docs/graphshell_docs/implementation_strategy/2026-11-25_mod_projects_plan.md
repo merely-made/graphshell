@@ -1,9 +1,9 @@
 # Mod projects plan
 
-**Status:** 2026-11-25: plan. Cut from GB6 P2 to P5 and their tails in
+**Status:** 2026-11-25: in progress; MP0 and MP1 met. Cut from GB6 P2 to P5 and their tails in
 `2026-10-28_graph_behaviors_plan.md`; P1 landed as `2026-11-24_command_packs_plan.md`. D1 to D11
 settle building, admission, reload, `.cwasm`, the first host, fixtures, signing, network, the
-authoring loop, the parser and viewer worlds, and the browser table. Nothing is built.
+authoring loop, the parser and viewer worlds, and the browser table. MP2 is next.
 
 **For:** Wasm component mods a person (or any agent working in the same folder) can create, check,
 build, attach to a document, exercise against fixtures and reload without a restart, holding no
@@ -228,7 +228,25 @@ stated reason (D11).
    exactly or by `*.suffix`. No `ModProject`, `RunSession`, fixture runner, signing or key store
    exists. The WIT is materialised from graphshell-endpoint's `wit/world.wit`, whose worlds include
    `document-core` and `block-guest` and no `parser` or `viewer`.
+2. MP0, 2026-11-25 (graphshell `24399d06`): `DocumentScriptRuntime::new(allowed)` is the user's
+   grant, empty by default; `grant_for` links `mere:script/net` only when the manifest declares
+   `Network` and `allowed` holds it, `log` and `document` stay intrinsic, and the other
+   capabilities gate no import yet. An undeclared import fails instantiation naming it; a declared
+   but ungranted one is refused earlier, by policy, naming the same import. Two lifecycle tests now
+   declare and grant `Network`, since the fixture guest imports `net`.
+3. MP1, 2026-11-25 (graphshell `8a12d45d`, `wasm_admission.rs`): `admit_wasm` and
+   `DocumentScriptRuntime::admit(manifest, version, path, level, readmit)`; conformant pins a
+   BLAKE3 hash (`blake3:<hex>`) and refuses a changed component (`ComponentChanged`) until
+   re-admitted, and activation refuses it too; dev mode pins nothing and records no grants.
+   `InstallRecord` (id, version, level, source and build hashes, declared, granted, provided, last
+   check, build and trap) is JSON; it lives in the runtime's memory, not on disk, and the registry is
+   not wired to it yet. `build_cwasm` precompiles only a conformant, still-matching component and
+   records the `.cwasm` hash; `load_component` hashes the bytes it read before deserializing those
+   same bytes, so a `.cwasm` without a matching record is refused first; plain `attach` refuses a
+   `.cwasm` and `attach_pinned` takes the record. `ModManifest` has no version field, so `admit`
+   takes one. `document-host` tests pass (58 lib and every integration group); `command-packs` 23.
 
 ## Progress
 
 - 2026-11-25: cut from GB6 P2 to P5 and their tails; D1 to D11 ruled.
+- 2026-11-25: MP0 and MP1 met (Findings 2, 3).
