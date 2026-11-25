@@ -34,8 +34,8 @@ function sessionImports(host) {
     chunk(address, offset, length) {
       return host.chunk(this.handle, address, offset, length);
     }
-    resume(epoch, revision) {
-      return host.resume(this.handle, epoch, revision);
+    resume(request) {
+      return host.resume(this.handle, request);
     }
     intent(call) {
       return host.intent(this.handle, call);

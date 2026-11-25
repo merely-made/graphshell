@@ -202,9 +202,9 @@ fn a_chunk_reply_round_trips_through_the_carrier_envelope() {
             ResourceChunkResponse::slice(&whole, 0, 4),
         ))),
     };
-    let json = serde_json::to_string(&response).unwrap();
+    let json = crate::wire::encode(&response).unwrap();
     assert_eq!(
-        serde_json::from_str::<CarrierResponse>(&json).unwrap(),
+        crate::wire::decode::<CarrierResponse>(&json).unwrap(),
         response
     );
     let request = CarrierRequest {
@@ -216,9 +216,9 @@ fn a_chunk_reply_round_trips_through_the_carrier_envelope() {
             length: 4,
         }),
     };
-    let json = serde_json::to_string(&request).unwrap();
+    let json = crate::wire::encode(&request).unwrap();
     assert_eq!(
-        serde_json::from_str::<CarrierRequest>(&json).unwrap(),
+        crate::wire::decode::<CarrierRequest>(&json).unwrap(),
         request
     );
 }

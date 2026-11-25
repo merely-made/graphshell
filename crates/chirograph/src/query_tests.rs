@@ -20,8 +20,8 @@ fn a_request_and_a_page_round_trip_through_the_carrier_envelope() {
         id: 9,
         body: CarrierRequestBody::Query(QueryRequest::first(session(), "SELECT * { ?s ?p ?o }")),
     };
-    let wire = serde_json::to_vec(&request).unwrap();
-    assert_eq!(serde_json::from_slice::<CarrierRequest>(&wire).unwrap(), request);
+    let wire = crate::wire::encode(&request).unwrap();
+    assert_eq!(crate::wire::decode::<CarrierRequest>(&wire).unwrap(), request);
     let CarrierRequestBody::Query(query) = &request.body else {
         unreachable!()
     };
@@ -30,8 +30,8 @@ fn a_request_and_a_page_round_trip_through_the_carrier_envelope() {
         id: 9,
         body: Ok(CarrierResponseBody::Query(Box::new(page))),
     };
-    let wire = serde_json::to_vec(&reply).unwrap();
-    assert_eq!(serde_json::from_slice::<CarrierResponse>(&wire).unwrap(), reply);
+    let wire = crate::wire::encode(&reply).unwrap();
+    assert_eq!(crate::wire::decode::<CarrierResponse>(&wire).unwrap(), reply);
 }
 
 #[test]
@@ -139,7 +139,7 @@ fn the_query_wire_form_is_pinned() {
             max_bytes: 4096,
         }),
     };
-    // ContentHash travels as its 32 bytes.
+    // Written as diagnostic notation; ContentHash travels as its 32 bytes.
     let hash = format!("[{}]", vec!["7"; 32].join(","));
     let wire = format!(
         concat!(
@@ -148,8 +148,9 @@ fn the_query_wire_form_is_pinned() {
         ),
         hash
     );
-    assert_eq!(serde_json::to_string(&request).unwrap(), wire);
-    assert_eq!(serde_json::from_str::<CarrierRequest>(&wire).unwrap(), request);
+    let item = pinned(&wire);
+    assert_eq!(crate::wire::encode(&request).unwrap(), item);
+    assert_eq!(crate::wire::decode::<CarrierRequest>(&item).unwrap(), request);
 
     let page = QueryResponse {
         session: session(),
@@ -170,6 +171,12 @@ fn the_query_wire_form_is_pinned() {
         ),
         hash
     );
-    assert_eq!(serde_json::to_string(&reply).unwrap(), wire);
-    assert_eq!(serde_json::from_str::<CarrierResponse>(&wire).unwrap(), reply);
+    let item = pinned(&wire);
+    assert_eq!(crate::wire::encode(&reply).unwrap(), item);
+    assert_eq!(crate::wire::decode::<CarrierResponse>(&item).unwrap(), reply);
+}
+
+/// Diagnostic notation, as the canonical item it denotes.
+fn pinned(diagnostic: &str) -> Vec<u8> {
+    diagnostic.parse::<cbor_core::Value>().unwrap().encode()
 }

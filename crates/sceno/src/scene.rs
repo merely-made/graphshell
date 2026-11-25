@@ -27,6 +27,7 @@ use crate::geometry::{Rect, Transform2};
 /// stable identity for the object, in the source's own scheme. The engine
 /// never interprets `id`; it only carries it back in intents.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct SourceRef {
     pub adapter: String,
     pub id: String,
@@ -62,6 +63,7 @@ pub struct InstanceId(pub u32);
 /// visible. Their source still records provenance, while `kind` is the open
 /// host-recognized face used to realize them.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Backdrop {
     pub source: SourceIx,
     pub space: SpaceId,
@@ -80,6 +82,7 @@ pub struct Backdrop {
 /// groups, a geographic projection's ground plane, and a nested map are all
 /// spaces; dragging a group is one transform edit here, not N item edits.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Space {
     /// `None` only for the world space (index 0).
     pub parent: Option<SpaceId>,
@@ -111,6 +114,7 @@ pub enum Representation {
 
 /// Everything a saved representation may say, the retired rung included.
 #[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
 enum RepresentationWire {
     Glyph,
     Card,
@@ -137,6 +141,7 @@ impl From<RepresentationWire> for Representation {
 
 /// One placed instance.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ProjectedItem {
     pub source: SourceIx,
     pub space: SpaceId,
@@ -174,6 +179,7 @@ pub struct ProjectedItem {
 /// a filled rectangle. Placed forms have no stroke: their outcomes are carried
 /// in the scene's relation constraint reports.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct RoutedRelation {
     #[serde(default, skip_serializing_if = "crate::RelationForm::is_stroke")]
     pub form: crate::RelationForm,
@@ -213,6 +219,7 @@ fn unmarked(marks: &crate::LinkMarks) -> bool {
 /// the scene face of the hulls lane (group + region compose with a space
 /// for the draggable-hull gesture).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Region {
     pub members: Vec<InstanceId>,
     /// The region's own space (a hull group's frame lives here).

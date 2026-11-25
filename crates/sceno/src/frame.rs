@@ -107,6 +107,7 @@ impl Frame {
 /// its transform seeds a nested Space. Current placement and bounds use
 /// that Space's live transform, including later group movement.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct SceneFrame {
     pub spec: Frame,
     pub space: crate::SpaceId,

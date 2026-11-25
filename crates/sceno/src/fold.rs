@@ -43,6 +43,7 @@ pub enum FoldDirection {
 
 /// What a reader draws in the fold's place.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub enum StandIn {
     /// One of the members stays drawn, carrying the "+N" of the others (the
     /// site's root with its badge).
@@ -58,6 +59,7 @@ pub enum StandIn {
 
 /// How the host chose the members. Recorded, never re-run here.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub enum FoldRule {
     /// The members are what someone selected.
     Selection,
@@ -73,6 +75,7 @@ pub enum FoldRule {
 /// Relations crossing a fold's boundary, bundled by the instance outside,
 /// their direction and their family.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct BoundaryBundle {
     pub outside: InstanceId,
     pub direction: FoldDirection,
@@ -83,6 +86,7 @@ pub struct BoundaryBundle {
 
 /// Optional boundary accounting a host computed when it folded.
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct FoldBoundary {
     /// Relations with both ends inside the fold.
     pub internal_relations: u32,
@@ -91,6 +95,7 @@ pub struct FoldBoundary {
 
 /// One fold over scene instances.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Fold {
     /// At least two distinct live instances, in the host's order.
     pub members: Vec<InstanceId>,

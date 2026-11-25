@@ -19,6 +19,7 @@ pub enum LinkStratum {
 /// Canonical source endpoints within one stratum. Resource endpoints use
 /// canonical IRIs; Surface endpoints use stable source identities.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct LinkKey {
     pub stratum: LinkStratum,
     pub first: String,
@@ -56,6 +57,7 @@ impl LinkKey {
 /// Marks relative to the routed appearance's from-to orientation. Several
 /// assertions can contribute marks to one resting stroke.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct LinkMarks {
     pub forward: bool,
     pub reverse: bool,

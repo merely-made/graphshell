@@ -14,6 +14,7 @@ use serde::{Deserialize, Serialize};
 
 /// A 2D point or displacement, in the units of whatever space carries it.
 #[derive(Debug, Clone, Copy, PartialEq, Default, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Vec2 {
     pub x: f32,
     pub y: f32,
@@ -29,6 +30,7 @@ impl Vec2 {
 
 /// A 2D extent (non-negative by convention; not enforced).
 #[derive(Debug, Clone, Copy, PartialEq, Default, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Size2 {
     pub w: f32,
     pub h: f32,
@@ -42,6 +44,7 @@ impl Size2 {
 
 /// An axis-aligned rectangle: origin is the min corner.
 #[derive(Debug, Clone, Copy, PartialEq, Default, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Rect {
     pub origin: Vec2,
     pub size: Size2,
@@ -70,6 +73,7 @@ impl Rect {
 /// shapes similar under transform; non-uniform scale is a representation
 /// concern, not a placement one.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Transform2 {
     pub translate: Vec2,
     pub scale: f32,

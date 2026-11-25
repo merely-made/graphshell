@@ -4,8 +4,8 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 // SPDX-License-Identifier: MPL-2.0
 
-//! The remote session against a scripted board endpoint speaking NDJSON
-//! lines. The board answers as the real serve loop does: the response, then
+//! The remote session against a scripted board endpoint speaking wire
+//! items. The board answers as the real serve loop does: the response, then
 //! whatever bells are queued, before the next read.
 
 use std::collections::VecDeque;
@@ -161,8 +161,8 @@ impl Board {
         });
     }
 
-    fn answer(&mut self, line: &str) -> Vec<String> {
-        let request: CarrierRequest = serde_json::from_str(line).expect("a request line");
+    fn answer(&mut self, item: &[u8]) -> Vec<Vec<u8>> {
+        let request: CarrierRequest = chirograph::wire::decode(item).expect("a request item");
         let body = match request.body {
             CarrierRequestBody::Discover => {
                 self.log.push("discover");
@@ -217,19 +217,19 @@ impl Board {
                 message: format!("unsupported {other:?}"),
             }),
         };
-        let mut lines = vec![
-            serde_json::to_string(&CarrierOutput::Response(CarrierResponse {
+        let mut items = vec![
+            chirograph::wire::encode(&CarrierOutput::Response(CarrierResponse {
                 id: request.id,
                 body,
             }))
             .unwrap(),
         ];
-        lines.extend(
+        items.extend(
             self.notices
                 .drain(..)
-                .map(|notice| serde_json::to_string(&CarrierOutput::Notice(notice)).unwrap()),
+                .map(|notice| chirograph::wire::encode(&CarrierOutput::Notice(notice)).unwrap()),
         );
-        lines
+        items
     }
 
     fn count(&self, verb: &str) -> usize {
@@ -237,16 +237,16 @@ impl Board {
     }
 }
 
-/// Carry every queued line to the board and every answer back until quiet.
+/// Carry every queued item to the board and every answer back until quiet.
 fn pump(remote: &mut RemoteSession, board: &mut Board) {
     for _ in 0..64 {
         let outgoing = remote.take_outgoing();
         if outgoing.is_empty() {
             return;
         }
-        for line in outgoing {
-            for answer in board.answer(&line) {
-                remote.on_line(&answer);
+        for item in outgoing {
+            for answer in board.answer(&item) {
+                remote.on_item(&answer);
             }
         }
     }
@@ -295,7 +295,7 @@ fn send_diffs(remote: &mut RemoteSession, board: &mut Board, diffs: Vec<Projecti
         revision: scene.revision,
     });
     board.resume_reply = Some(ResumeReply::Diffs(diffs));
-    remote.on_line(&serde_json::to_string(&notice).unwrap());
+    remote.on_item(&chirograph::wire::encode(&notice).unwrap());
     pump(remote, board);
 }
 
@@ -523,7 +523,7 @@ fn a_same_revision_resume_snapshot_advances_the_snapshot_generation() {
         epoch: SceneEpoch(1),
         revision: Revision(2),
     });
-    remote.on_line(&serde_json::to_string(&notice).unwrap());
+    remote.on_item(&chirograph::wire::encode(&notice).unwrap());
     pump(&mut remote, &mut board);
 
     assert_eq!(remote.revision(), Some(1));
@@ -680,8 +680,8 @@ fn transport_termination_clears_wire_work_and_keeps_the_scene_disconnected() {
         1,
         "the request is queued for the old channel"
     );
-    remote.on_line(
-        &serde_json::to_string(&CarrierOutput::Notice(CarrierNotice {
+    remote.on_item(
+        &chirograph::wire::encode(&CarrierOutput::Notice(CarrierNotice {
             session: session.clone(),
             epoch: SceneEpoch(1),
             revision: Revision(2),
@@ -789,11 +789,11 @@ fn a_nudge_reports_the_hosts_revision_or_its_failure() {
 }
 
 #[test]
-fn an_unreadable_line_fails_the_operation_in_flight() {
+fn an_unreadable_item_fails_the_operation_in_flight() {
     let mut remote = RemoteSession::new(profile());
     remote.joined();
     remote.take_outgoing();
-    remote.on_line("{not json");
+    remote.on_item(b"{not cbor");
     assert!(remote.status().starts_with("error:"), "{}", remote.status());
     assert!(remote.form.status.starts_with("Failed · remote:"));
     assert_eq!(remote.pending(), None);
@@ -959,8 +959,8 @@ fn a_refused_draft_leaves_the_adapters_pending_as_it_was() {
 
 /// A query endpoint, as graphshell-host's `QueryEndpoint` answers: no
 /// projections, and pages of one granted query's rows.
-fn query_answer(line: &str, granted: &str, rows: &[chirograph::QueryRow]) -> String {
-    let request: CarrierRequest = serde_json::from_str(line).expect("a request line");
+fn query_answer(item: &[u8], granted: &str, rows: &[chirograph::QueryRow]) -> Vec<u8> {
+    let request: CarrierRequest = chirograph::wire::decode(item).expect("a request item");
     let body = match request.body {
         CarrierRequestBody::Discover => Ok(CarrierResponseBody::Descriptor(EndpointDescriptor {
             label: "Mere query".into(),
@@ -979,7 +979,7 @@ fn query_answer(line: &str, granted: &str, rows: &[chirograph::QueryRow]) -> Str
             message: "query is not enabled by this invitation".into(),
         }),
     };
-    serde_json::to_string(&CarrierOutput::Response(CarrierResponse {
+    chirograph::wire::encode(&CarrierOutput::Response(CarrierResponse {
         id: request.id,
         body,
     }))
@@ -999,9 +999,10 @@ fn a_querying_session_discovers_then_reads_every_page_instead_of_mounting() {
         if outgoing.is_empty() {
             break;
         }
-        for line in outgoing {
-            pages += usize::from(line.contains("\"query\""));
-            remote.on_line(&query_answer(&line, "SELECT ?s {}", &rows));
+        for item in outgoing {
+            let request: CarrierRequest = chirograph::wire::decode(&item).unwrap();
+            pages += usize::from(matches!(request.body, CarrierRequestBody::Query(_)));
+            remote.on_item(&query_answer(&item, "SELECT ?s {}", &rows));
         }
     }
     let read = remote.query_read().expect("a querying session");
@@ -1017,8 +1018,8 @@ fn a_query_the_endpoint_refuses_fails_the_session_visibly() {
     let mut remote = RemoteSession::querying(profile(), "SELECT * { ?s ?p ?o }");
     remote.joined();
     for _ in 0..8 {
-        for line in remote.take_outgoing() {
-            remote.on_line(&query_answer(&line, "SELECT ?s {}", &[]));
+        for item in remote.take_outgoing() {
+            remote.on_item(&query_answer(&item, "SELECT ?s {}", &[]));
         }
     }
     assert!(!remote.query_read().unwrap().done);

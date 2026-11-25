@@ -43,8 +43,8 @@ mod tests {
             let wire = IntentEffect::from(effect);
             assert_eq!(EffectClass::from(wire), effect);
             assert_eq!(
-                serde_json::to_string(&wire).unwrap(),
-                serde_json::to_string(&effect).unwrap()
+                crate::wire::encode(&wire).unwrap(),
+                crate::wire::encode(&effect).unwrap()
             );
         }
     }

@@ -16,6 +16,7 @@ pub enum CacheRetention {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct CachePolicy {
     pub retention: CacheRetention,
     pub expires_at_ms: Option<u64>,

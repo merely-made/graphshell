@@ -189,11 +189,11 @@ fn the_byte_cap_evicts_before_the_count_bound() {
 
 #[test]
 fn a_request_names_its_engine_revision_only_when_set() {
-    let wire = serde_json::to_string(&request(2, None)).unwrap();
-    assert!(!wire.contains("engine"));
+    let wire = crate::wire::encode(&request(2, None)).unwrap();
+    assert!(!format!("{:?}", cbor_core::Value::decode(&wire).unwrap()).contains("engine"));
     let named = request(2, Some(engine(2)));
     let back: ResumeRequest =
-        serde_json::from_str(&serde_json::to_string(&named).unwrap()).unwrap();
+        crate::wire::decode(&crate::wire::encode(&named).unwrap()).unwrap();
     assert_eq!(back, named);
 }
 

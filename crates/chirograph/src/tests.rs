@@ -333,13 +333,13 @@ fn a_revision_notice_is_distinct_from_a_keyed_response() {
         epoch: SceneEpoch(1),
         revision: Revision(7),
     };
-    let wire = serde_json::to_string(&CarrierOutput::Notice(notice.clone())).unwrap();
+    let wire = crate::wire::encode(&CarrierOutput::Notice(notice.clone())).unwrap();
     assert_eq!(
-        serde_json::from_str::<CarrierOutput>(&wire).unwrap(),
+        crate::wire::decode::<CarrierOutput>(&wire).unwrap(),
         CarrierOutput::Notice(notice)
     );
-    assert!(!wire.contains("\"id\""));
-    assert!(!wire.contains("scene"));
+    assert!(!diag(&wire).contains("\"id\""));
+    assert!(!diag(&wire).contains("scene"));
 }
 
 #[test]
@@ -354,14 +354,15 @@ fn an_open_negotiates_capabilities_and_carries_no_principal() {
         id: 1,
         body: CarrierRequestBody::Open(Box::new(open.clone())),
     };
-    let wire = serde_json::to_string(&request).unwrap();
+    let wire = crate::wire::encode(&request).unwrap();
     assert_eq!(
-        serde_json::from_str::<CarrierRequest>(&wire).unwrap(),
+        crate::wire::decode::<CarrierRequest>(&wire).unwrap(),
         request
     );
     assert!(
-        !wire.contains("subject") && !wire.contains("grant"),
-        "no principal travels in the application protocol: {wire}"
+        !diag(&wire).contains("subject") && !diag(&wire).contains("grant"),
+        "no principal travels in the application protocol: {}",
+        diag(&wire)
     );
 }
 
@@ -381,14 +382,15 @@ fn an_accepted_session_asserts_no_endpoint_key() {
             expires_at_ms: Some(1_000),
         }))),
     };
-    let wire = serde_json::to_string(&response).unwrap();
+    let wire = crate::wire::encode(&response).unwrap();
     assert_eq!(
-        serde_json::from_str::<CarrierResponse>(&wire).unwrap(),
+        crate::wire::decode::<CarrierResponse>(&wire).unwrap(),
         response
     );
     assert!(
-        !wire.contains("endpoint_subject"),
-        "the endpoint does not assert its own key: {wire}"
+        !diag(&wire).contains("endpoint_subject"),
+        "the endpoint does not assert its own key: {}",
+        diag(&wire)
     );
 }
 
@@ -424,9 +426,9 @@ fn resynchronize_is_resume_not_snapshot() {
         resync,
     ] {
         let request = CarrierRequest { id: 0, body: verb };
-        let wire = serde_json::to_string(&request).unwrap();
+        let wire = crate::wire::encode(&request).unwrap();
         assert_eq!(
-            serde_json::from_str::<CarrierRequest>(&wire).unwrap(),
+            crate::wire::decode::<CarrierRequest>(&wire).unwrap(),
             request
         );
     }
@@ -440,9 +442,9 @@ fn request_serializes_a_product_free_score() {
         session: ProjectionSession("local:fixture".into()),
         score: Score::new(Arrangement::Spiral(Spiral::default())),
     };
-    let json = serde_json::to_string(&request).unwrap();
+    let json = crate::wire::encode(&request).unwrap();
     assert_eq!(
-        serde_json::from_str::<ProjectionRequest>(&json).unwrap(),
+        crate::wire::decode::<ProjectionRequest>(&json).unwrap(),
         request
     );
     assert!(std::any::type_name::<Score>().starts_with("sceno::"));
@@ -457,10 +459,10 @@ fn snapshot_keeps_presentation_beside_the_scene() {
         presentation: PresentationManifest::default(),
         cache_policy: CachePolicy::default(),
     };
-    let json = serde_json::to_string(&snapshot).unwrap();
-    assert!(json.contains("presentation"));
+    let json = crate::wire::encode(&snapshot).unwrap();
+    assert!(diag(&json).contains("presentation"));
     assert_eq!(
-        serde_json::from_str::<ProjectionSnapshot>(&json).unwrap(),
+        crate::wire::decode::<ProjectionSnapshot>(&json).unwrap(),
         snapshot
     );
 }
@@ -492,8 +494,8 @@ fn diff_replay_round_trips_as_a_carrier_neutral_message() {
         presentation: Vec::new(),
         status: Some(SessionStatus::Live),
     }]);
-    let json = serde_json::to_string(&reply).unwrap();
-    assert_eq!(serde_json::from_str::<ResumeReply>(&json).unwrap(), reply);
+    let json = crate::wire::encode(&reply).unwrap();
+    assert_eq!(crate::wire::decode::<ResumeReply>(&json).unwrap(), reply);
 }
 
 #[test]
@@ -502,9 +504,9 @@ fn discovery_and_requests_share_one_framed_vocabulary() {
         id: 7,
         body: CarrierRequestBody::Discover,
     };
-    let json = serde_json::to_string(&request).unwrap();
+    let json = crate::wire::encode(&request).unwrap();
     assert_eq!(
-        serde_json::from_str::<CarrierRequest>(&json).unwrap(),
+        crate::wire::decode::<CarrierRequest>(&json).unwrap(),
         request
     );
 
@@ -523,9 +525,9 @@ fn discovery_and_requests_share_one_framed_vocabulary() {
         id: 7,
         body: Ok(CarrierResponseBody::Descriptor(descriptor)),
     };
-    let json = serde_json::to_string(&response).unwrap();
+    let json = crate::wire::encode(&response).unwrap();
     assert_eq!(
-        serde_json::from_str::<CarrierResponse>(&json).unwrap(),
+        crate::wire::decode::<CarrierResponse>(&json).unwrap(),
         response
     );
 }
@@ -566,11 +568,13 @@ fn the_stale_constructor_names_the_scene_now_current() {
 #[test]
 fn a_stale_reply_carries_the_engine_revision_only_when_named() {
     let bare = IntentResult::stale(SceneEpoch(3), Revision(41));
-    let text = serde_json::to_string(&bare).unwrap();
-    assert!(!text.contains("current_engine_revision"), "{text}");
-    // A reply written before D193 still reads.
-    let old = r#"{"Stale":{"current_epoch":3,"current_revision":41}}"#;
-    assert_eq!(serde_json::from_str::<IntentResult>(old).unwrap(), bare);
+    let text = crate::wire::encode(&bare).unwrap();
+    assert!(!diag(&text).contains("current_engine_revision"));
+    // A reply that names no engine revision, written out by hand, still reads.
+    let old: cbor_core::Value = r#"{"Stale": {"current_epoch": 3, "current_revision": 41}}"#
+        .parse()
+        .unwrap();
+    assert_eq!(crate::wire::decode::<IntentResult>(&old.encode()).unwrap(), bare);
 
     let engine = EngineRevision {
         session: "s".into(),
@@ -578,7 +582,12 @@ fn a_stale_reply_carries_the_engine_revision_only_when_named() {
         digest: "d".into(),
     };
     let named = IntentResult::stale_at_engine(SceneEpoch(3), Revision(41), Some(engine));
-    let text = serde_json::to_string(&named).unwrap();
-    assert!(text.contains("current_engine_revision"), "{text}");
-    assert_eq!(serde_json::from_str::<IntentResult>(&text).unwrap(), named);
+    let text = crate::wire::encode(&named).unwrap();
+    assert!(diag(&text).contains("current_engine_revision"));
+    assert_eq!(crate::wire::decode::<IntentResult>(&text).unwrap(), named);
+}
+
+/// An item's diagnostic notation, for asserting what does or does not travel.
+fn diag(item: &[u8]) -> String {
+    format!("{:?}", cbor_core::Value::decode(item).unwrap())
 }

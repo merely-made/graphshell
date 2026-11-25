@@ -15,6 +15,7 @@ use crate::{BackdropId, FoldId, RegionId, RelationId, Revision, SceneEpoch};
 /// Stable scene tables. `None` is a tombstone, never an invitation to reuse the
 /// index during this epoch.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct SceneTables {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub frame: Option<sceno::SceneFrame>,
@@ -57,6 +58,7 @@ pub struct SceneTables {
 /// A complete resynchronization snapshot. Tombstones remain serialized so a
 /// reconnect within the same epoch cannot reinterpret an old index.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct SceneSnapshot {
     pub epoch: SceneEpoch,
     pub revision: Revision,
@@ -74,6 +76,7 @@ pub struct SceneSnapshot {
 /// of the journal prefix at that cursor (engine split D148). The session is
 /// the engine's session id in text form; scenotime does not interpret it.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct EngineRevision {
     pub session: String,
     pub cursor: u64,

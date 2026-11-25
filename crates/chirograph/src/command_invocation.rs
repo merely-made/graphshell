@@ -125,8 +125,8 @@ mod tests {
             Revision(9),
         )
         .unwrap();
-        let encoded = serde_json::to_vec(&CarrierRequestBody::Intent(wire.clone())).unwrap();
-        let CarrierRequestBody::Intent(received) = serde_json::from_slice(&encoded).unwrap() else {
+        let encoded = crate::wire::encode(&CarrierRequestBody::Intent(wire.clone())).unwrap();
+        let CarrierRequestBody::Intent(received) = crate::wire::decode(&encoded).unwrap() else {
             panic!("intent request")
         };
         assert_eq!(received, wire);

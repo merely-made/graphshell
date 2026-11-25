@@ -172,7 +172,7 @@ interface actions {
 /// with script-witgen; an N1 channel carries these calls for every provider,
 /// native or component (D19).
 interface projection-session {
-    /// One chirograph value: a version byte, then CBOR.
+    /// One chirograph value: a version byte, then canonical CBOR.
     type payload = list<u8>;
 
     variant failure {
@@ -195,15 +195,16 @@ interface projection-session {
     }
 
     resource session {
-        /// `ProjectionAsk` in, `ProjectionSnapshot` out.
+        /// `ProjectionAsk` in, a keyframe envelope out.
         snapshot: func(ask: payload) -> result<payload, failure>;
         /// `ContentHash` in, `ResourceResponse` out.
         fetch: func(address: payload) -> result<payload, failure>;
         /// One slice of a resource; asking for the next acknowledges this one.
         /// `ResourceChunkResponse` out.
         chunk: func(address: payload, offset: u64, length: u32) -> result<payload, failure>;
-        /// `ResumeReply` out.
-        resume: func(epoch: u64, revision: u64) -> result<payload, failure>;
+        /// `ResumeRequest` in; `ResumeReply` out, its keyframe and diffs in
+        /// envelopes (engine split D218, D219).
+        resume: func(request: payload) -> result<payload, failure>;
         /// `IntentCall` in, `IntentResult` out.
         intent: func(call: payload) -> result<payload, failure>;
         /// Going away, but keep the session resumable.

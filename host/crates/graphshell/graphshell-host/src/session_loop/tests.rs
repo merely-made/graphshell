@@ -17,7 +17,6 @@ use personae::delegation::Issue;
 use personae::{IdentityProvider, InMemoryProvider};
 use sceno::InstanceId;
 use std::sync::atomic::{AtomicU64, Ordering};
-use tokio::io::{AsyncBufReadExt, BufReader as TokioBufReader};
 
 const NOW_MS: u64 = 50;
 const EXPIRY_MS: u64 = 100;
@@ -155,17 +154,15 @@ fn revoked() -> RevocationLedger {
     ledger
 }
 
-fn request(id: u64, body: CarrierRequestBody) -> String {
-    let mut line = serde_json::to_string(&carrier_request(id, body)).unwrap();
-    line.push('\n');
-    line
+fn request(id: u64, body: CarrierRequestBody) -> Vec<u8> {
+    chirograph::wire::encode(&carrier_request(id, body)).unwrap()
 }
 
 fn carrier_request(id: u64, body: CarrierRequestBody) -> CarrierRequest {
     CarrierRequest { id, body }
 }
 
-fn open_request(id: u64) -> String {
+fn open_request(id: u64) -> Vec<u8> {
     request(
         id,
         CarrierRequestBody::Open(Box::new(SessionOpen {
@@ -175,7 +172,7 @@ fn open_request(id: u64) -> String {
     )
 }
 
-fn intent_request(id: u64) -> String {
+fn intent_request(id: u64) -> Vec<u8> {
     let authority = authority();
     request(
         id,
@@ -193,20 +190,18 @@ fn intent_request(id: u64) -> String {
 /// Drive the loop against `script` under `clock`, returning what the peer
 /// read back and how the loop ended.
 async fn run_with(
-    script: &str,
+    script: &[u8],
     ledger: RevocationLedger,
     clock: impl Fn() -> u64,
 ) -> (Vec<CarrierResponse>, SessionSummary) {
     let (mut peer, server) = tokio::io::duplex(64 * 1024);
-    let script = script.to_string();
+    let script = script.to_vec();
     let peer_task = tokio::spawn(async move {
-        peer.write_all(script.as_bytes()).await.unwrap();
-        let mut lines = TokioBufReader::new(peer).lines();
+        peer.write_all(&script).await.unwrap();
+        let mut items = crate::wire::ItemReader::new(peer);
         let mut out = Vec::new();
-        while let Some(line) = lines.next_line().await.unwrap() {
-            if !line.trim().is_empty() {
-                out.push(serde_json::from_str::<CarrierResponse>(&line).unwrap());
-            }
+        while let Some(item) = items.next::<CarrierResponse>().await.unwrap() {
+            out.push(item.unwrap());
         }
         out
     });
@@ -227,7 +222,7 @@ async fn run_with(
     (peer_task.await.unwrap(), summary)
 }
 
-async fn run(script: &str, ledger: RevocationLedger) -> (Vec<CarrierResponse>, SessionSummary) {
+async fn run(script: &[u8], ledger: RevocationLedger) -> (Vec<CarrierResponse>, SessionSummary) {
     run_with(script, ledger, || NOW_MS).await
 }
 
@@ -235,11 +230,7 @@ async fn run(script: &str, ledger: RevocationLedger) -> (Vec<CarrierResponse>, S
 /// handshake proved the peer before a byte of this reached us.
 #[tokio::test]
 async fn open_is_answered_because_this_carrier_authenticated_its_peer() {
-    let script = format!(
-        "{}{}",
-        open_request(1),
-        request(2, CarrierRequestBody::Close)
-    );
+    let script = [open_request(1), request(2, CarrierRequestBody::Close)].concat();
     let (responses, summary) = run(&script, RevocationLedger::default()).await;
     match &responses[0].body {
         Ok(CarrierResponseBody::Opened(opened)) => {
@@ -268,11 +259,7 @@ async fn suspend_is_answered_because_this_session_can_reconnect() {
 
 #[tokio::test]
 async fn close_is_terminal_and_nothing_after_it_is_served() {
-    let script = format!(
-        "{}{}",
-        request(4, CarrierRequestBody::Close),
-        open_request(5)
-    );
+    let script = [request(4, CarrierRequestBody::Close), open_request(5)].concat();
     let (responses, summary) = run(&script, RevocationLedger::default()).await;
     assert_eq!(responses.len(), 1, "the request after Close is not served");
     assert_eq!(responses[0].body, Ok(CarrierResponseBody::Closed));
@@ -316,7 +303,7 @@ async fn a_revoked_grant_refuses_a_literal_intent_before_dispatch() {
 /// its grant stops at the next thing it asks for.
 #[tokio::test]
 async fn expiry_mid_session_stops_the_next_request() {
-    let script = format!("{}{}", open_request(7), open_request(8));
+    let script = [open_request(7), open_request(8)].concat();
     let calls = AtomicU64::new(0);
     let (responses, summary) = run_with(&script, RevocationLedger::default(), || {
         if calls.fetch_add(1, Ordering::SeqCst) == 0 {

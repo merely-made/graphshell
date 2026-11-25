@@ -20,6 +20,7 @@ use crate::geometry::{Rect, Size2, Vec2};
 /// anchor point). `Point` is the degenerate footprint (position-only, the
 /// pre-P2 world); solvers treat it as zero-extent.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub enum Footprint {
     /// No extent — a bare position.
     Point,

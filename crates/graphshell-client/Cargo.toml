@@ -17,8 +17,8 @@ serde_json.workspace = true
 tokio = { version = "1", features = ["io-util"], optional = true }
 
 [features]
-# The native stream-to-lines pump (`pump`): an admitted Tokio stream as NDJSON
-# lines for the line-driven sessions (transport agnosticism note, T3). Off by
+# The native stream-to-items pump (`pump`): an admitted Tokio stream as CBOR
+# Sequence items for the item-driven sessions (transport agnosticism note, T3). Off by
 # default, so the client keeps no runtime and stays wasm-clean.
 pump = ["dep:tokio"]
 

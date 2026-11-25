@@ -8,7 +8,7 @@
 
 use chirograph::{
     Carrier, CarrierError, CarrierNotice, CarrierRequestBody, CarrierResponseBody,
-    EndpointDescriptor, IntentResult, ProjectionSession, ProjectionSnapshot, ResourceChunkResponse,
+    EndpointDescriptor, IntentResult, Keyframe, ProjectionSession, ResourceChunkResponse,
     ResourceResponse, ResumeReply, Revision, SceneEpoch, SessionOpened, SessionStatus,
 };
 
@@ -56,7 +56,7 @@ pub trait SessionCalls {
         offset: u64,
         length: u32,
     ) -> Result<Vec<u8>, Fault>;
-    fn resume(&mut self, s: &Self::Session, epoch: u64, revision: u64) -> Result<Vec<u8>, Fault>;
+    fn resume(&mut self, s: &Self::Session, request: Vec<u8>) -> Result<Vec<u8>, Fault>;
     fn intent(&mut self, s: &Self::Session, call: Vec<u8>) -> Result<Vec<u8>, Fault>;
     fn suspend(&mut self, s: &Self::Session) -> Result<(), Fault>;
     fn take_notice(&mut self, s: &Self::Session) -> Result<Option<Notice>, Fault>;
@@ -164,7 +164,7 @@ impl<C: SessionCalls> Carrier for WitCarrier<C> {
                     version: request.version,
                     score: request.score,
                 })?;
-                let snapshot: ProjectionSnapshot = decode(&self.call(|c, s| c.snapshot(s, ask))?)?;
+                let Keyframe(snapshot) = decode(&self.call(|c, s| c.snapshot(s, ask))?)?;
                 self.same(&snapshot.session)?;
                 A::Snapshot(Box::new(snapshot))
             },
@@ -183,8 +183,8 @@ impl<C: SessionCalls> Carrier for WitCarrier<C> {
             },
             Q::Resume(request) => {
                 self.same(&request.session)?;
-                let (epoch, revision) = (request.epoch.0, request.revision.0);
-                let bytes = self.call(|c, s| c.resume(s, epoch, revision))?;
+                let request = encode(&request)?;
+                let bytes = self.call(|c, s| c.resume(s, request))?;
                 A::Resume(decode::<ResumeReply>(&bytes)?)
             },
             Q::Intent(intent) => {

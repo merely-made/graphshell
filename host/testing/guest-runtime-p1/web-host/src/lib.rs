@@ -115,9 +115,9 @@ impl FixtureHost {
             .map_err(failure)
     }
 
-    pub fn resume(&mut self, session: Vec<u8>, epoch: u64, revision: u64) -> Result<Vec<u8>, JsValue> {
+    pub fn resume(&mut self, session: Vec<u8>, request: Vec<u8>) -> Result<Vec<u8>, JsValue> {
         self.server
-            .session_resume(&Session(session), epoch, revision)
+            .session_resume(&Session(session), request)
             .map_err(failure)
     }
 

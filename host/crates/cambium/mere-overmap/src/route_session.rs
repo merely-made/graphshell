@@ -50,7 +50,7 @@ pub struct MereRouteSession {
     tasks: VecDeque<Task>,
     current: Option<Task>,
     cards: HashMap<ContentHash, Vec<u8>>,
-    outbox: Vec<String>,
+    outbox: Vec<Vec<u8>>,
     model: MereViewModel,
     notice: Option<String>,
     closed: bool,
@@ -76,16 +76,16 @@ impl MereRouteSession {
 }
 
 /// The panel over a native admitted stream: `graphshell_client::pump`
-/// carries its lines (transport agnosticism note, T3), as a browser's data
+/// carries its wire items (transport agnosticism note, T3), as a browser's data
 /// channel does. A failure is the panel's own (`fail`), so the pump goes on
 /// only while the panel is open.
-impl graphshell_client::LineDriven for MereRouteSession {
-    fn take_outgoing(&mut self) -> Vec<String> {
+impl graphshell_client::ItemDriven for MereRouteSession {
+    fn take_outgoing(&mut self) -> Vec<Vec<u8>> {
         MereRouteSession::take_outgoing(self)
     }
 
-    fn on_line(&mut self, line: &str) -> Result<(), String> {
-        MereRouteSession::on_line(self, line);
+    fn on_item(&mut self, item: &[u8]) -> Result<(), String> {
+        MereRouteSession::on_item(self, item);
         if !self.closed {
             return Ok(());
         }

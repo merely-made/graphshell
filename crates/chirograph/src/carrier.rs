@@ -105,7 +105,8 @@ pub struct CarrierRequest {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum CarrierResponseBody {
     Descriptor(EndpointDescriptor),
-    Snapshot(Box<ProjectionSnapshot>),
+    /// A keyframe envelope on the wire (D219).
+    Snapshot(#[serde(with = "crate::envelope::keyframe")] Box<ProjectionSnapshot>),
     Resource(ResourceResponse),
     ResourceChunk(Box<ResourceChunkResponse>),
     Resume(ResumeReply),
@@ -140,12 +141,58 @@ pub struct CarrierNotice {
     pub revision: Revision,
 }
 
-/// One line emitted by a carrier endpoint.
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+/// One item emitted by a carrier endpoint: a response, or a notice. Written
+/// untagged; the two are told apart by their fields.
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum CarrierOutput {
     Response(CarrierResponse),
     Notice(CarrierNotice),
+}
+
+/// Read field by field rather than as serde's untagged enum, which buffers
+/// the item and loses whether the format is binary: a keyframe inside must
+/// be read as its envelope on the CBOR wire (D210).
+impl<'de> Deserialize<'de> for CarrierOutput {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[derive(Deserialize)]
+        #[serde(deny_unknown_fields)]
+        struct Fields {
+            #[serde(default)]
+            id: Option<u64>,
+            #[serde(default)]
+            body: Option<Result<CarrierResponseBody, CarrierFailure>>,
+            #[serde(default)]
+            session: Option<ProjectionSession>,
+            #[serde(default)]
+            epoch: Option<SceneEpoch>,
+            #[serde(default)]
+            revision: Option<Revision>,
+        }
+        match Fields::deserialize(deserializer)? {
+            Fields {
+                id: Some(id),
+                body: Some(body),
+                session: None,
+                epoch: None,
+                revision: None,
+            } => Ok(Self::Response(CarrierResponse { id, body })),
+            Fields {
+                id: None,
+                body: None,
+                session: Some(session),
+                epoch: Some(epoch),
+                revision: Some(revision),
+            } => Ok(Self::Notice(CarrierNotice {
+                session,
+                epoch,
+                revision,
+            })),
+            _ => Err(serde::de::Error::custom(
+                "a carrier output is a response or a notice",
+            )),
+        }
+    }
 }
 
 /// Why a carrier did not return an answer.

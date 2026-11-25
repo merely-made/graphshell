@@ -44,14 +44,12 @@
 
 use std::collections::VecDeque;
 
+use chirograph::wire::ItemAssembler;
 use chirograph::{
     Carrier, CarrierError, CarrierNotice, CarrierOutput, CarrierRequest, CarrierRequestBody,
     CarrierResponse, CarrierResponseBody,
 };
-use tokio::io::{
-    AsyncBufRead, AsyncBufReadExt, AsyncRead, AsyncWrite, AsyncWriteExt, BufReader, Lines,
-    ReadHalf, WriteHalf,
-};
+use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt, ReadHalf, WriteHalf};
 use tokio::runtime::{Handle, Runtime};
 
 /// The runtime a blocking carrier drives its stream on.
@@ -91,7 +89,7 @@ impl CarrierRuntime {
 pub struct NetworkCarrier<S> {
     runtime: CarrierRuntime,
     writer: WriteHalf<S>,
-    lines: Lines<BufReader<ReadHalf<S>>>,
+    incoming: Incoming<ReadHalf<S>>,
     notices: VecDeque<CarrierNotice>,
     next_id: u64,
     closed: bool,
@@ -104,7 +102,10 @@ impl<S: AsyncRead + AsyncWrite + Unpin> NetworkCarrier<S> {
         Self {
             runtime,
             writer,
-            lines: BufReader::new(reader).lines(),
+            incoming: Incoming {
+                reader,
+                items: ItemAssembler::default(),
+            },
             notices: VecDeque::new(),
             next_id: 1,
             closed: false,
@@ -116,10 +117,10 @@ async fn write_request<W>(writer: &mut W, request: &CarrierRequest) -> Result<()
 where
     W: AsyncWrite + Unpin,
 {
-    let line = chirograph::line::encode_terminated(request).map_err(|error| {
+    let item = chirograph::wire::encode(request).map_err(|error| {
         CarrierError::Disconnected(format!("could not encode carrier request: {error}"))
     })?;
-    writer.write_all(&line).await.map_err(|error| {
+    writer.write_all(&item).await.map_err(|error| {
         CarrierError::Disconnected(format!("could not send carrier request: {error}"))
     })?;
     writer.flush().await.map_err(|error| {
@@ -127,30 +128,41 @@ where
     })
 }
 
-async fn read_output<R>(lines: &mut Lines<R>) -> Result<CarrierOutput, CarrierError>
-where
-    R: AsyncBufRead + Unpin,
-{
+/// The read half and the items it has delivered in part.
+struct Incoming<R> {
+    reader: R,
+    items: ItemAssembler,
+}
+
+async fn next_item<R: AsyncRead + Unpin>(
+    incoming: &mut Incoming<R>,
+) -> std::io::Result<Option<Vec<u8>>> {
+    let mut chunk = vec![0u8; 64 * 1024];
     loop {
-        let line = lines.next_line().await.map_err(|error| {
-            CarrierError::Disconnected(format!("could not read carrier output: {error}"))
-        })?;
-        let Some(line) = line else {
-            return Err(CarrierError::Disconnected(
-                "endpoint closed without an output frame".into(),
-            ));
-        };
-        match chirograph::line::decode::<CarrierOutput>(&line) {
-            Ok(Some(output)) => return Ok(output),
-            // A blank line keeps a link warm; it is not a frame.
-            Ok(None) => continue,
-            Err(error) => {
-                return Err(CarrierError::Disconnected(format!(
-                    "invalid carrier output: {error}"
-                )));
-            },
+        if let Some(item) = incoming.items.next_item().map_err(chirograph::wire::invalid)? {
+            return Ok(Some(item));
         }
+        let read = incoming.reader.read(&mut chunk).await?;
+        if read == 0 {
+            incoming.items.finish().map_err(chirograph::wire::invalid)?;
+            return Ok(None);
+        }
+        incoming.items.push(&chunk[..read]);
     }
+}
+
+async fn read_output<R>(incoming: &mut Incoming<R>) -> Result<CarrierOutput, CarrierError>
+where
+    R: AsyncRead + Unpin,
+{
+    let item = next_item(incoming)
+        .await
+        .map_err(|error| {
+            CarrierError::Disconnected(format!("could not read carrier output: {error}"))
+        })?
+        .ok_or_else(|| CarrierError::Disconnected("endpoint closed without an output frame".into()))?;
+    chirograph::wire::decode::<CarrierOutput>(&item)
+        .map_err(|error| CarrierError::Disconnected(format!("invalid carrier output: {error}")))
 }
 
 impl<S: AsyncRead + AsyncWrite + Unpin> Carrier for NetworkCarrier<S> {
@@ -167,14 +179,14 @@ impl<S: AsyncRead + AsyncWrite + Unpin> Carrier for NetworkCarrier<S> {
         let Self {
             runtime,
             writer,
-            lines,
+            incoming,
             notices,
             ..
         } = self;
         runtime.block_on(async move {
             write_request(writer, &CarrierRequest { id, body }).await?;
             loop {
-                match read_output(lines).await? {
+                match read_output(incoming).await? {
                     // A revision bell that arrived while this request was in
                     // flight. Queue it and keep waiting for the answer.
                     CarrierOutput::Notice(notice) => notices.push_back(notice),
@@ -204,9 +216,11 @@ impl<S: AsyncRead + AsyncWrite + Unpin> Carrier for NetworkCarrier<S> {
                 "projection carrier is closed".into(),
             ));
         }
-        let Self { runtime, lines, .. } = self;
+        let Self {
+            runtime, incoming, ..
+        } = self;
         runtime.block_on(async move {
-            match read_output(lines).await? {
+            match read_output(incoming).await? {
                 CarrierOutput::Notice(notice) => Ok(notice),
                 CarrierOutput::Response(response) => Err(CarrierError::Disconnected(format!(
                     "endpoint sent unexpected response {} while Graphshell waited for a notice",
@@ -283,9 +297,8 @@ mod tests {
         let (client, mut server) = tokio::io::duplex(64 * 1024);
         runtime.spawn(async move {
             for frame in script {
-                let mut line = serde_json::to_vec(&frame).unwrap();
-                line.push(b'\n');
-                server.write_all(&line).await.unwrap();
+                let item = chirograph::wire::encode(&frame).unwrap();
+                server.write_all(&item).await.unwrap();
                 server.flush().await.unwrap();
             }
             // Held open so the carrier's reads block rather than hit EOF.
@@ -333,9 +346,8 @@ mod tests {
         let (client, mut server) = tokio::io::duplex(64 * 1024);
         runtime.spawn(async move {
             tokio::time::sleep(std::time::Duration::from_millis(30)).await;
-            let mut line = serde_json::to_vec(&CarrierOutput::Notice(notice())).unwrap();
-            line.push(b'\n');
-            server.write_all(&line).await.unwrap();
+            let item = chirograph::wire::encode(&CarrierOutput::Notice(notice())).unwrap();
+            server.write_all(&item).await.unwrap();
             server.flush().await.unwrap();
             std::future::pending::<()>().await;
         });

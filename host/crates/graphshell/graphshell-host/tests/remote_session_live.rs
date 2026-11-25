@@ -34,24 +34,21 @@ struct Host {
 }
 
 impl Host {
-    fn answer(&mut self, line: &str) -> Vec<String> {
-        let request: CarrierRequest = serde_json::from_str(line).expect("a request");
-        let verb = serde_json::to_value(&request.body).unwrap();
-        self.verbs.push(match verb {
-            serde_json::Value::String(name) => name,
-            serde_json::Value::Object(map) => map.keys().next().cloned().unwrap_or_default(),
-            other => other.to_string(),
-        });
+    fn answer(&mut self, item: &[u8]) -> Vec<Vec<u8>> {
+        let request: CarrierRequest = chirograph::wire::decode(item).expect("a request");
+        let verb = format!("{:?}", request.body);
+        self.verbs
+            .push(verb.split(|c: char| !c.is_alphanumeric()).next().unwrap_or_default().to_string());
         let mut resume = |endpoint: &mut LiveEndpoint, request| {
             ResumableProjectionSource::resume(endpoint, request).map_err(|error| error.to_string())
         };
         let response = dispatch_common(&mut self.endpoint, request, &mut resume)
             .expect("only common verbs are asked");
-        let mut lines = vec![serde_json::to_string(&CarrierOutput::Response(response)).unwrap()];
+        let mut items = vec![chirograph::wire::encode(&CarrierOutput::Response(response)).unwrap()];
         while let Some(notice) = self.endpoint.poll_notice().unwrap() {
-            lines.push(serde_json::to_string(&CarrierOutput::Notice(notice)).unwrap());
+            items.push(chirograph::wire::encode(&CarrierOutput::Notice(notice)).unwrap());
         }
-        lines
+        items
     }
 
     fn count(&self, verb: &str) -> usize {
@@ -65,9 +62,9 @@ fn pump(remote: &mut RemoteSession, host: &mut Host) {
         if outgoing.is_empty() {
             return;
         }
-        for line in outgoing {
-            for answer in host.answer(&line) {
-                remote.on_line(&answer);
+        for item in outgoing {
+            for answer in host.answer(&item) {
+                remote.on_item(&answer);
             }
         }
     }

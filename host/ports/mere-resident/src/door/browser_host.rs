@@ -454,26 +454,27 @@ mod tests {
             )
             .await
             .unwrap();
-            let snapshot =
-                match read_native_message_async::<_, BrowserHostMessage>(&mut browser_reader)
+            // What bridge.js reads, as JSON: the native host opened the
+            // keyframe's envelope before this hop (engine split D220).
+            let message =
+                read_native_message_async::<_, serde_json::Value>(&mut browser_reader)
                     .await
                     .unwrap()
-                    .unwrap()
-                {
-                    BrowserHostMessage::Response { response } => match response.body.unwrap() {
-                        CarrierResponseBody::Snapshot(snapshot) => snapshot,
-                        other => panic!("expected snapshot response, got {other:?}"),
-                    },
-                    other => panic!("expected carrier response, got {other:?}"),
-                };
-            let resource = snapshot
-                .presentation
-                .offers
+                    .unwrap();
+            let snapshot = &message["response"]["body"]["Ok"]["Snapshot"];
+            assert!(snapshot["scene"]["epoch"].is_u64(), "{message}");
+            assert!(snapshot["scene"]["revision"].is_u64());
+            assert!(snapshot["presentation"]["bindings"].is_array());
+            let session =
+                chirograph::ProjectionSession(snapshot["session"].as_str().unwrap().into());
+            let resource: chirograph::ContentHash = snapshot["presentation"]["offers"]
+                .as_object()
+                .unwrap()
                 .values()
-                .flatten()
-                .find(|offer| offer.semantics.label == "Personal graph sync")
-                .expect("admitted device scene includes personal sync")
-                .resource;
+                .flat_map(|offers| offers.as_array().unwrap())
+                .find(|offer| offer["semantics"]["label"] == "Personal graph sync")
+                .map(|offer| serde_json::from_value(offer["resource"].clone()).unwrap())
+                .expect("admitted device scene includes personal sync");
 
             write_native_message_async(
                 &mut browser_writer,
@@ -481,7 +482,7 @@ mod tests {
                     request: CarrierRequest {
                         id: 3,
                         body: CarrierRequestBody::Resource(ResourceRequest {
-                            session: snapshot.session.clone(),
+                            session: session.clone(),
                             resource,
                         }),
                     },

@@ -190,6 +190,7 @@ pub enum Hold {
 /// This record is also the unit a scene citation carries as its placement
 /// delta: one serialization of a pin, not two.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct HeldPlacement {
     /// Which source this holds. Not an item index: indices move.
     pub source: SourceRef,
@@ -207,6 +208,7 @@ pub struct HeldPlacement {
 /// a scene that knows which of its instances are pinned can stop a
 /// relaxation pass from quietly dragging one away.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct HonoredHold {
     /// Which placed instance received the hold.
     pub instance: crate::InstanceId,

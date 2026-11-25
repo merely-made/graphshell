@@ -146,7 +146,7 @@ ostiary = { workspace = true, optional = true }
 castellan-client = { workspace = true, optional = true }
 base64.workspace = true
 chirograph.workspace = true
-graphshell-client.workspace = true
+graphshell-client = { workspace = true, features = ["pump"] }
 graphshell-endpoint = { workspace = true, features = ["projection"] }
 sceno.workspace = true
 scenotime.workspace = true

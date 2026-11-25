@@ -3175,7 +3175,7 @@ mod tests {
     /// over the native line pump.
     #[tokio::test(flavor = "multi_thread")]
     async fn a_device_reads_a_mere_through_the_dialable_host_as_its_granted_application() {
-        use graphshell_client::pump::LinePump;
+        use graphshell_client::pump::ItemPump;
         use mere_overmap::route_session::MereRouteSession;
         use mere_overmap::wire::RemoteMereRequest;
         let dialler = RemoteDialler::new();
@@ -3196,7 +3196,7 @@ mod tests {
             .expect("the device is admitted");
         let profile =
             chirograph::CapabilityProfile::new([chirograph::PresentationCapability::PortableCard]);
-        let mut pump = LinePump::new(stream);
+        let mut pump = ItemPump::new(stream);
         let opened = pump.open(profile.clone()).await.expect("the route opens");
         let mut panel =
             MereRouteSession::from_descriptor(opened.descriptor, profile, "turnstone").unwrap();
@@ -3223,7 +3223,7 @@ mod tests {
     /// graph alone.
     #[tokio::test(flavor = "multi_thread")]
     async fn the_dialable_host_serves_only_what_the_grant_and_the_owner_name() {
-        use graphshell_client::pump::LinePump;
+        use graphshell_client::pump::ItemPump;
         use mere_overmap::wire::RemoteMereRequest;
         let dialler = RemoteDialler::new();
         let mut host = dialler.host();
@@ -3275,7 +3275,7 @@ mod tests {
             .await
             .expect("admitted");
         assert!(
-            LinePump::new(stream).open(profile.clone()).await.is_err(),
+            ItemPump::new(stream).open(profile.clone()).await.is_err(),
             "ambient needs the owner's opt-in"
         );
 
@@ -3304,7 +3304,7 @@ mod tests {
             .dial(&mut host, &ambient, grant)
             .await
             .expect("admitted");
-        let opened = LinePump::new(stream)
+        let opened = ItemPump::new(stream)
             .open(profile)
             .await
             .expect("the ambient route opens once opted in");
@@ -3523,7 +3523,7 @@ mod tests {
                 return;
             }
             for line in outgoing {
-                let request: chirograph::CarrierRequest = serde_json::from_str(&line).unwrap();
+                let request: chirograph::CarrierRequest = chirograph::wire::decode(&line).unwrap();
                 let mut response = graphshell_endpoint::dispatch_common(
                     endpoint,
                     request,
@@ -3564,7 +3564,7 @@ mod tests {
                         }
                     }
                 }
-                panel.on_line(&serde_json::to_string(&response).unwrap());
+                panel.on_item(&chirograph::wire::encode(&response).unwrap());
             }
         }
         panic!("common panel failed to settle its admitted carrier requests");
@@ -3985,7 +3985,7 @@ mod tests {
                 return;
             }
             for line in outgoing {
-                let request: chirograph::CarrierRequest = serde_json::from_str(&line).unwrap();
+                let request: chirograph::CarrierRequest = chirograph::wire::decode(&line).unwrap();
                 let forged = match &request.body {
                     chirograph::CarrierRequestBody::Resource(resource) => {
                         replaced.get(&resource.resource).cloned()
@@ -4077,7 +4077,7 @@ mod tests {
                         replaced.insert(card.resource, card);
                     }
                 }
-                panel.on_line(&serde_json::to_string(&response).unwrap());
+                panel.on_item(&chirograph::wire::encode(&response).unwrap());
             }
         }
         panic!("media fault {fault:?} did not settle");

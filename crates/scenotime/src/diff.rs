@@ -17,6 +17,7 @@ use crate::{
 
 /// One idempotent transition within a scene epoch.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct SceneDiff {
     pub epoch: SceneEpoch,
     pub base: Revision,
@@ -61,6 +62,7 @@ impl SceneDiff {
 /// Stable-slot scene changes. Additions append at the named index; tombstones
 /// remain allocated until a new epoch begins.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub enum SceneOp {
     AddSource {
         index: SourceIx,

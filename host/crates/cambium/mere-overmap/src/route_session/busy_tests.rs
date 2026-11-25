@@ -78,13 +78,13 @@ fn seed_partial_state(panel: &mut MereRouteSession) {
 fn send_response(panel: &mut MereRouteSession, body: CarrierResponseBody) {
     let outgoing = panel.take_outgoing();
     assert_eq!(outgoing.len(), 1);
-    let request: CarrierRequest = serde_json::from_str(&outgoing[0]).unwrap();
-    let line = chirograph::line::encode(&CarrierOutput::Response(CarrierResponse {
+    let request: CarrierRequest = chirograph::wire::decode(&outgoing[0]).unwrap();
+    let line = chirograph::wire::encode(&CarrierOutput::Response(CarrierResponse {
         id: request.id,
         body: Ok(body),
     }))
     .unwrap();
-    panel.on_line(&line);
+    panel.on_item(&line);
 }
 
 fn graph_snapshot(card_bytes: &[u8]) -> ProjectionSnapshot {
@@ -322,7 +322,7 @@ fn mount_required_card_route(
         }
         let outgoing = panel.take_outgoing();
         for line in outgoing {
-            let request: CarrierRequest = serde_json::from_str(&line).unwrap();
+            let request: CarrierRequest = chirograph::wire::decode(&line).unwrap();
             let body = match request.body {
                 chirograph::CarrierRequestBody::Snapshot(requested) => {
                     let name = requested.session.0.as_str();
@@ -348,12 +348,12 @@ fn mount_required_card_route(
                 },
                 other => panic!("unexpected carrier request: {other:?}"),
             };
-            let response = chirograph::line::encode(&CarrierOutput::Response(CarrierResponse {
+            let response = chirograph::wire::encode(&CarrierOutput::Response(CarrierResponse {
                 id: request.id,
                 body: Ok(body),
             }))
             .unwrap();
-            panel.on_line(&response);
+            panel.on_item(&response);
             if panel.closed {
                 break;
             }
@@ -483,7 +483,7 @@ fn mount_empty_route_with_merges(
     while !panel.outbox.is_empty() && !panel.closed {
         let outgoing = panel.take_outgoing();
         assert_eq!(outgoing.len(), 1);
-        let request: CarrierRequest = serde_json::from_str(&outgoing[0]).unwrap();
+        let request: CarrierRequest = chirograph::wire::decode(&outgoing[0]).unwrap();
         let body = match request.body {
             chirograph::CarrierRequestBody::Snapshot(snapshot)
                 if snapshot.session.0 == MERE_SESSIONS =>
@@ -506,12 +506,12 @@ fn mount_empty_route_with_merges(
             },
             other => panic!("unexpected carrier request: {other:?}"),
         };
-        let line = chirograph::line::encode(&CarrierOutput::Response(CarrierResponse {
+        let line = chirograph::wire::encode(&CarrierOutput::Response(CarrierResponse {
             id: request.id,
             body: Ok(body),
         }))
         .unwrap();
-        panel.on_line(&line);
+        panel.on_item(&line);
     }
     panel
 }

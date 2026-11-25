@@ -75,7 +75,7 @@ pub mod invitation;
 #[cfg(all(feature = "native", not(target_arch = "wasm32")))]
 pub mod lifecycle;
 #[cfg(all(feature = "native", not(target_arch = "wasm32")))]
-pub mod line;
+pub mod wire;
 /// A mounted remote scene as Pictograph's board (stack lift plan, P10).
 #[cfg(feature = "board")]
 pub mod board;

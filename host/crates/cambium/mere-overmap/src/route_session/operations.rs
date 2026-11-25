@@ -240,7 +240,7 @@ impl MereRouteSession {
             "open"
         }
     }
-    pub fn take_outgoing(&mut self) -> Vec<String> {
+    pub fn take_outgoing(&mut self) -> Vec<Vec<u8>> {
         std::mem::take(&mut self.outbox)
     }
     pub fn request(&mut self, request: MereViewRequest) -> Result<(), String> {
@@ -296,11 +296,11 @@ impl MereRouteSession {
         self.tasks.push_back(Task::Invoke(request));
         self.advance()
     }
-    pub fn on_line(&mut self, line: &str) {
+    pub fn on_item(&mut self, item: &[u8]) {
         if self.closed {
             return;
         }
-        match self.driver.on_line(line) {
+        match self.driver.on_item(item) {
             Ok(advance) => {
                 if let Err(reason) = self.accept(advance).and_then(|()| self.advance()) {
                     self.fail(reason);
@@ -445,7 +445,7 @@ impl MereRouteSession {
     }
     pub(super) fn accept(&mut self, advance: Advance) -> Result<(), String> {
         match advance {
-            Advance::Send(line) => self.outbox.push(line),
+            Advance::Send(item) => self.outbox.push(item),
             Advance::Noted => {
                 if self.current.is_none() && self.tasks.is_empty() {
                     if self.drain_notices()? {

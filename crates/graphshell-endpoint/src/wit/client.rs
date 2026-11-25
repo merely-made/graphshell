@@ -52,8 +52,8 @@ impl<T: Transport> SessionCalls for Calls<T> {
             .session_chunk(s, address, offset, length)
             .map_err(gone)??)
     }
-    fn resume(&mut self, s: &Session, epoch: u64, revision: u64) -> Result<Vec<u8>, Fault> {
-        Ok(self.0.session_resume(s, epoch, revision).map_err(gone)??)
+    fn resume(&mut self, s: &Session, request: Vec<u8>) -> Result<Vec<u8>, Fault> {
+        Ok(self.0.session_resume(s, request).map_err(gone)??)
     }
     fn intent(&mut self, s: &Session, call: Vec<u8>) -> Result<Vec<u8>, Fault> {
         Ok(self.0.session_intent(s, call).map_err(gone)??)

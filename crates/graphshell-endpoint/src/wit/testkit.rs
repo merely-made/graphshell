@@ -12,7 +12,7 @@ use std::collections::VecDeque;
 
 use chirograph::{
     CachePolicy, CapabilityProfile, Carrier, CarrierNotice, CarrierRequestBody, ContentHash,
-    EndpointDescriptor, IntentInvocation, IntentResult, PresentationCapability,
+    EndpointDescriptor, EngineRevision, IntentInvocation, IntentResult, PresentationCapability,
     PresentationManifest, ProjectionAck, ProjectionOffer, ProjectionRequest, ProjectionSession,
     ProjectionSnapshot, ProtocolVersion, ResourceChunkRequest, ResourceRequest, ResourceResponse,
     ResumeReply, ResumeRequest, Revision, SceneEpoch, SceneSnapshot, SessionOpen, SessionOpened,
@@ -97,14 +97,36 @@ impl PresentationSource for FixtureEndpoint {
     }
 }
 
+/// A request that names an engine revision is answered with a keyframe at
+/// that revision, so the transcript shows the identity crossed both ways.
 impl ResumableProjectionSource for FixtureEndpoint {
     type Error = String;
     fn resume(&mut self, request: ResumeRequest) -> Result<ResumeReply, String> {
-        Ok(ResumeReply::Current(ProjectionAck {
+        let Some(engine) = request.engine_revision else {
+            return Ok(ResumeReply::Current(ProjectionAck {
+                session: request.session,
+                epoch: request.epoch,
+                revision: request.revision,
+            }));
+        };
+        let snapshot = self.snapshot(ProjectionRequest {
+            version: ProtocolVersion::V1,
             session: request.session,
-            epoch: request.epoch,
-            revision: request.revision,
-        }))
+            score: score(),
+        })?;
+        Ok(ResumeReply::Snapshot(Box::new(ProjectionSnapshot {
+            scene: snapshot.scene.with_engine_revision(engine),
+            ..snapshot
+        })))
+    }
+}
+
+/// The engine revision the script's resume names.
+pub fn fixture_engine() -> EngineRevision {
+    EngineRevision {
+        session: "fixture-engine".into(),
+        cursor: 2,
+        digest: "v2:fixture".into(),
     }
 }
 
@@ -251,12 +273,9 @@ pub fn run(carrier: &mut impl Carrier) -> Transcript {
     ));
     t.push(("take-notice".into(), format!("{:?}", carrier.take_notice())));
     ask(&mut t, carrier, "intent.stale", intent(&id, 7, 8));
-    let resume = CarrierRequestBody::Resume(ResumeRequest {
-        engine_revision: None,
-        session: id.clone(),
-        epoch: SceneEpoch(1),
-        revision: Revision(2),
-    });
+    let resume = CarrierRequestBody::Resume(
+        ResumeRequest::new(id.clone(), SceneEpoch(1), Revision(2)).with_engine(Some(fixture_engine())),
+    );
     ask(&mut t, carrier, "resume", resume);
     // Over the cap on the consumer side: refused before it is sent.
     ask(
@@ -306,7 +325,8 @@ pub fn assert_outcomes(t: &Transcript) {
     assert!(get("wait-notice").contains("revision: Revision(2)"));
     assert_eq!(get("take-notice"), "None");
     assert!(get("intent.stale").contains("Stale"));
-    assert!(get("resume").starts_with("Ok(Resume(Current("));
+    assert!(get("resume").starts_with("Ok(Resume(Snapshot("), "{}", get("resume"));
+    assert!(get("resume").contains("v2:fixture"), "the engine revision crossed");
     assert!(get("intent.huge").contains("TooLarge"));
     assert_eq!(get("suspend"), "Ok(Suspended)");
     assert!(get("snapshot.other").contains("is not this carrier's"));

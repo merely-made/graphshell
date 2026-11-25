@@ -60,7 +60,7 @@ fn live_carrier_accepts_required_cards_and_unbound_optional_items() {
         }
         let outgoing = panel.take_outgoing();
         for line in outgoing {
-            let request: CarrierRequest = serde_json::from_str(&line).unwrap();
+            let request: CarrierRequest = chirograph::wire::decode(&line).unwrap();
             let name = match &request.body {
                 chirograph::CarrierRequestBody::Snapshot(snapshot) => snapshot.session.0.as_str(),
                 _ => panic!("unexpected request"),
@@ -70,12 +70,12 @@ fn live_carrier_accepts_required_cards_and_unbound_optional_items() {
             } else {
                 empty_snapshot(name)
             };
-            let response = chirograph::line::encode(&CarrierOutput::Response(CarrierResponse {
+            let response = chirograph::wire::encode(&CarrierOutput::Response(CarrierResponse {
                 id: request.id,
                 body: Ok(CarrierResponseBody::Snapshot(Box::new(snapshot))),
             }))
             .unwrap();
-            panel.on_line(&response);
+            panel.on_item(&response);
         }
     }
     assert!(
@@ -191,7 +191,7 @@ fn live_route_validates_session_media_before_fetching_it() {
             assert!(!panel.closed);
             let outgoing = panel.take_outgoing();
             assert_eq!(outgoing.len(), 1);
-            let request: CarrierRequest = serde_json::from_str(&outgoing[0]).unwrap();
+            let request: CarrierRequest = chirograph::wire::decode(&outgoing[0]).unwrap();
             assert!(matches!(
                 request.body,
                 chirograph::CarrierRequestBody::Resource(resource)

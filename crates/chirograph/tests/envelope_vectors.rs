@@ -115,12 +115,50 @@ fn the_keyframe_vector_holds() {
     let pinned = unhex(&std::fs::read_to_string(vectors().join("keyframe.hex")).unwrap());
     let header = Envelope::read(&pinned).unwrap();
     assert_eq!(header.kind, EnvelopeKind::Keyframe);
-    assert_eq!(header.identity.engine, engine(108));
+    assert_eq!(header.identity.engine, Some(engine(108)));
 }
 
 #[test]
 fn the_diff_vector_holds() {
     check("diff", &diff());
+}
+
+#[test]
+fn the_no_engine_keyframe_vector_holds() {
+    let mut unbound = keyframe();
+    unbound.scene.engine_revision = None;
+    check("keyframe-no-engine", &unbound);
+}
+
+fn schema() -> String {
+    std::fs::read_to_string(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("wire/projection.cddl"))
+        .unwrap()
+}
+
+fn validate(schema: &str, name: &str) -> Result<(), String> {
+    let bytes = unhex(&std::fs::read_to_string(vectors().join(format!("{name}.hex"))).unwrap());
+    cddl::validate_cbor_from_slice(schema, &bytes, None).map_err(|error| error.to_string())
+}
+
+#[test]
+fn the_vectors_conform_to_the_schema() {
+    let schema = schema();
+    for name in ["keyframe", "keyframe-no-engine", "diff"] {
+        validate(&schema, name).unwrap_or_else(|error| panic!("{name}: {error}"));
+    }
+    // Negative controls: the same vectors against a schema that renames one
+    // field, outside and inside the embedded payload.
+    for (from, to, name) in [
+        ("\"epoch\": u64,", "\"epochs\": u64,", "keyframe"),
+        ("\"generation\": u64,", "\"generation\": tstr,", "keyframe"),
+        ("\"SetGeneration\"", "\"SetGenerations\"", "diff"),
+    ] {
+        assert!(schema.contains(from), "{from}");
+        assert!(
+            validate(&schema.replacen(from, to, 1), name).is_err(),
+            "{name} conforms to a schema with {to}"
+        );
+    }
 }
 
 #[test]

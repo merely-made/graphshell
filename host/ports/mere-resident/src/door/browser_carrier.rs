@@ -13,7 +13,10 @@
 //!
 //! Native messaging is a JSON message transport, not a byte stream. This
 //! module therefore keeps its framing at the edge and uses a private duplex
-//! stream for the existing Notochord handshake and Graphshell session loop.
+//! stream for the existing Notochord handshake and Graphshell session loop,
+//! which speaks the CBOR Sequence wire. This hop is the projection wire's one
+//! JSON exception (engine split D220): the native host has already opened and
+//! verified each keyframe envelope, and the extension reads JSON.
 //! Application requests cannot enter that stream until the handshake accepts.
 
 use std::collections::{BTreeSet, VecDeque};
@@ -40,7 +43,7 @@ use dramatis::intents::SshUnlockPolicyIntentV1;
 use dramatis_resident::native::{NativeIdentityAction, NativeIdentityResult, NativeIdentityFailure};
 use graphshell_host::admission::{PROJECTION_PROTOCOL, open_network_bound_session};
 use graphshell_host::carrier::{ProjectionAcceptError, ProjectionRefusal, admit_accepted_session};
-use graphshell_host::line::{self, LineReader};
+use graphshell_host::wire::{self, ItemReader};
 use transport::{AcceptedSession, Alpn, IngressContext};
 
 /// Native messaging host name shared by the extension and installer.
@@ -484,7 +487,7 @@ pub async fn admit_local_session<P: IdentityProvider>(
 
 /// Browser-side end of an admitted private application stream.
 pub struct BrowserSessionClient {
-    reader: LineReader<tokio::io::ReadHalf<DuplexStream>>,
+    reader: ItemReader<tokio::io::ReadHalf<DuplexStream>>,
     writer: tokio::io::WriteHalf<DuplexStream>,
     notices: VecDeque<CarrierNotice>,
 }
@@ -493,7 +496,7 @@ impl BrowserSessionClient {
     fn new(stream: DuplexStream) -> Self {
         let (reader, writer) = tokio::io::split(stream);
         Self {
-            reader: LineReader::new(reader),
+            reader: ItemReader::new(reader),
             writer,
             notices: VecDeque::new(),
         }
@@ -503,7 +506,7 @@ impl BrowserSessionClient {
         &mut self,
         request: &CarrierRequest,
     ) -> Result<CarrierResponse, BrowserCarrierError> {
-        line::write(&mut self.writer, request).await?;
+        wire::write(&mut self.writer, request).await?;
         loop {
             match self.read_output().await? {
                 CarrierOutput::Notice(notice) => self.notices.push_back(notice),
@@ -525,7 +528,7 @@ impl BrowserSessionClient {
     }
 
     /// Take a queued notice, or briefly read the admitted stream for an
-    /// idle notice. `Lines::next_line` is cancel safe: when the bounded wait
+    /// idle notice. `ItemReader::next` is cancel safe: when the bounded wait
     /// expires, any partial frame stays buffered for a subsequent read.
     /// There is no outstanding request here, so a response is a protocol
     /// error rather than something this poll can silently discard.
@@ -558,11 +561,13 @@ impl BrowserSessionClient {
     }
 
     async fn read_output(&mut self) -> Result<CarrierOutput, BrowserCarrierError> {
-        Ok(self
-            .reader
+        self.reader
             .next::<CarrierOutput>()
             .await?
-            .ok_or(BrowserCarrierError::ApplicationEnded)??)
+            .ok_or(BrowserCarrierError::ApplicationEnded)?
+            .map_err(|error| {
+                BrowserCarrierError::UnexpectedApplicationOutput(format!("unreadable item: {error}"))
+            })
     }
 }
 
@@ -629,10 +634,9 @@ mod tests {
         let expected = notice.clone();
         let server = tokio::spawn(async move {
             let (reader, mut writer) = tokio::io::split(server_stream);
-            let mut lines = BufReader::new(reader).lines();
+            let mut items = ItemReader::new(reader);
             let request: CarrierRequest =
-                serde_json::from_str(&lines.next_line().await.unwrap().expect("one request"))
-                    .unwrap();
+                items.next().await.unwrap().expect("one request").unwrap();
             for output in [
                 CarrierOutput::Notice(notice),
                 CarrierOutput::Response(CarrierResponse {
@@ -640,9 +644,7 @@ mod tests {
                     body: Ok(chirograph::CarrierResponseBody::Closed),
                 }),
             ] {
-                let mut line = serde_json::to_vec(&output).unwrap();
-                line.push(b'\n');
-                writer.write_all(&line).await.unwrap();
+                wire::write(&mut writer, &output).await.unwrap();
             }
             writer.flush().await.unwrap();
         });
@@ -671,8 +673,7 @@ mod tests {
             epoch: chirograph::SceneEpoch(3),
             revision: chirograph::Revision(8),
         };
-        let mut frame = serde_json::to_vec(&CarrierOutput::Notice(notice.clone())).unwrap();
-        frame.push(b'\n');
+        let frame = chirograph::wire::encode(&CarrierOutput::Notice(notice.clone())).unwrap();
         let split = frame.len() / 2;
         server_stream.write_all(&frame[..split]).await.unwrap();
         assert_eq!(

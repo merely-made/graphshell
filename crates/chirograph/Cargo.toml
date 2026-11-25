@@ -21,6 +21,9 @@ serde_json.workspace = true
 sha2.workspace = true
 
 [dev-dependencies]
+# Validates the vectors against wire/projection.cddl (D222). Dev-only: it decodes
+# through ciborium internally, and production code uses only cbor-core.
+cddl = "0.10.7"
 
 [lints]
 workspace = true

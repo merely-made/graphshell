@@ -6,8 +6,8 @@
 
 //! Native local-process carrier for Graphshell endpoints.
 //!
-//! This crate supplies only newline-delimited JSON framing over a child
-//! process's standard streams. Authentication, discovery policy, and remote
+//! This crate supplies only the CBOR Sequence framing ([`chirograph::wire`])
+//! over a child process's standard streams. Authentication, discovery policy, and remote
 //! transport remain later carrier concerns.
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -15,11 +15,12 @@ mod native {
     use std::collections::VecDeque;
     use std::ffi::OsStr;
     use std::fmt::Display;
-    use std::io::{self, BufRead, BufReader, BufWriter, Read, Write};
+    use std::io::{self, BufWriter, Read, Write};
     use std::process::{Child, ChildStdin, ChildStdout, Command, Stdio};
     use std::sync::mpsc;
     use std::time::Duration;
 
+    use chirograph::wire::ItemReader;
     use chirograph::{
         CarrierError, CarrierFailure, CarrierNotice, CarrierOutput, CarrierRequest,
         CarrierRequestBody, CarrierResponse, CarrierResponseBody,
@@ -69,7 +70,7 @@ mod native {
     ///
     /// Input framing is read on a helper thread so a quiet client cannot
     /// prevent the endpoint from polling its native watcher. Only this
-    /// function writes stdout, preserving line-atomic response/notice frames.
+    /// function writes stdout, so response and notice items never interleave.
     pub fn serve_resumable_notifying<E, R, W>(
         endpoint: &mut E,
         reader: R,
@@ -93,8 +94,12 @@ mod native {
     {
         let (send, receive) = mpsc::sync_channel(1);
         std::thread::spawn(move || {
-            for line in BufReader::new(reader).lines() {
-                if send.send(line).is_err() {
+            let mut items = ItemReader::new(reader);
+            loop {
+                let item = items.next_item().transpose();
+                let last = !matches!(item, Some(Ok(_)));
+                let Some(item) = item else { return };
+                if send.send(item).is_err() || last {
                     return;
                 }
             }
@@ -104,11 +109,8 @@ mod native {
             |endpoint: &mut E, request| endpoint.resume(request).map_err(|error| error.to_string());
         loop {
             match receive.recv_timeout(poll_interval) {
-                Ok(Ok(line)) => {
-                    if line.trim().is_empty() {
-                        continue;
-                    }
-                    let request = match parse_request(&line) {
+                Ok(Ok(item)) => {
+                    let request = match parse_request(&item) {
                         Ok(request) => request,
                         Err(response) => {
                             write_response(&mut writer, &response)?;
@@ -156,14 +158,12 @@ mod native {
         W: Write,
         F: FnMut(&mut E, chirograph::ResumeRequest) -> Result<chirograph::ResumeReply, String>,
     {
-        let reader = BufReader::new(reader);
+        let mut items = ItemReader::new(reader);
         let mut writer = BufWriter::new(writer);
-        for line in reader.lines() {
-            let line = line?;
-            if line.trim().is_empty() {
-                continue;
-            }
-            let request = match parse_request(&line) {
+        // A malformed head ends the stream: a sequence cannot find its place
+        // again. A well-formed item that is not a request is answered.
+        while let Some(item) = items.next_item()? {
+            let request = match parse_request(&item) {
                 Ok(request) => request,
                 Err(response) => {
                     write_response(&mut writer, &response)?;
@@ -179,19 +179,14 @@ mod native {
         Ok(())
     }
 
-    fn parse_request(line: &str) -> Result<CarrierRequest, CarrierResponse> {
+    fn parse_request(item: &[u8]) -> Result<CarrierRequest, CarrierResponse> {
         let invalid = |reason: String| CarrierResponse {
             id: 0,
             body: Err(CarrierFailure {
                 message: format!("invalid carrier request: {reason}"),
             }),
         };
-        match chirograph::line::decode::<CarrierRequest>(line) {
-            Ok(Some(request)) => Ok(request),
-            // Callers skip blank lines before parsing; one here is malformed.
-            Ok(None) => Err(invalid("blank line".to_string())),
-            Err(error) => Err(invalid(error.to_string())),
-        }
+        chirograph::wire::decode::<CarrierRequest>(item).map_err(|error| invalid(error.to_string()))
     }
 
     /// Stdio's dispatch: the carrier-agnostic verbs come from
@@ -255,10 +250,10 @@ mod native {
         write_output(writer, &CarrierOutput::Notice(notice.clone()))
     }
 
-    /// One output as one line ([`chirograph::line`]), flushed.
+    /// One output as one item ([`chirograph::wire`]), flushed.
     fn write_output(writer: &mut impl Write, output: &CarrierOutput) -> io::Result<()> {
-        let line = chirograph::line::encode_terminated(output).map_err(io::Error::other)?;
-        writer.write_all(&line)?;
+        let item = chirograph::wire::encode(output).map_err(io::Error::other)?;
+        writer.write_all(&item)?;
         writer.flush()
     }
 
@@ -266,7 +261,7 @@ mod native {
     pub struct StdioCarrier {
         child: Child,
         input: Option<BufWriter<ChildStdin>>,
-        output: BufReader<ChildStdout>,
+        output: ItemReader<ChildStdout>,
         notices: VecDeque<CarrierNotice>,
         next_id: u64,
     }
@@ -293,7 +288,7 @@ mod native {
             Ok(Self {
                 child,
                 input: Some(BufWriter::new(input)),
-                output: BufReader::new(output),
+                output: ItemReader::new(output),
                 notices: VecDeque::new(),
                 next_id: 1,
             })
@@ -309,11 +304,11 @@ mod native {
             let input = self.input.as_mut().ok_or_else(|| {
                 CarrierError::Disconnected("endpoint input is closed".to_string())
             })?;
-            let line = chirograph::line::encode_terminated(&request).map_err(|error| {
+            let item = chirograph::wire::encode(&request).map_err(|error| {
                 CarrierError::Disconnected(format!("could not encode carrier request: {error}"))
             })?;
             input
-                .write_all(&line)
+                .write_all(&item)
                 .and_then(|()| input.flush())
                 .map_err(|error| {
                     CarrierError::Disconnected(format!("could not send carrier request: {error}"))
@@ -359,27 +354,18 @@ mod native {
         }
 
         fn read_output(&mut self) -> Result<CarrierOutput, CarrierError> {
-            loop {
-                let mut line = String::new();
-                self.output.read_line(&mut line).map_err(|error| {
+            let item = self
+                .output
+                .next_item()
+                .map_err(|error| {
                     CarrierError::Disconnected(format!("could not read carrier output: {error}"))
+                })?
+                .ok_or_else(|| {
+                    CarrierError::Disconnected("endpoint closed without an output frame".into())
                 })?;
-                if line.is_empty() {
-                    return Err(CarrierError::Disconnected(
-                        "endpoint closed without an output frame".into(),
-                    ));
-                }
-                match chirograph::line::decode::<CarrierOutput>(&line) {
-                    Ok(Some(output)) => return Ok(output),
-                    // A blank line keeps a link warm; it is not a frame.
-                    Ok(None) => continue,
-                    Err(error) => {
-                        return Err(CarrierError::Disconnected(format!(
-                            "invalid carrier output: {error}"
-                        )));
-                    },
-                }
-            }
+            chirograph::wire::decode::<CarrierOutput>(&item).map_err(|error| {
+                CarrierError::Disconnected(format!("invalid carrier output: {error}"))
+            })
         }
 
         pub fn shutdown(mut self) -> io::Result<()> {
@@ -553,23 +539,44 @@ mod native {
                 resources: BTreeMap::new(),
                 notice: None,
             };
-            let input: String = requests
+            let input: Vec<u8> = requests
                 .iter()
-                .map(|request| {
-                    format!(
-                        "{}
-",
-                        serde_json::to_string(request).unwrap()
-                    )
-                })
+                .flat_map(|request| chirograph::wire::encode(request).unwrap())
                 .collect();
             let mut output = Vec::new();
             serve_basic(&mut fixture, Cursor::new(input), &mut output).unwrap();
-            String::from_utf8(output)
-                .unwrap()
-                .lines()
-                .map(|line| serde_json::from_str(line).unwrap())
-                .collect()
+            items(&output)
+        }
+
+        /// Every item in `bytes`, decoded.
+        fn items<T: serde::de::DeserializeOwned>(bytes: &[u8]) -> Vec<T> {
+            let mut reader = chirograph::wire::ItemReader::new(bytes);
+            std::iter::from_fn(|| reader.next::<T>().unwrap().map(Result::unwrap)).collect()
+        }
+
+        #[test]
+        fn a_request_that_is_not_one_is_answered_and_the_stream_goes_on() {
+            let mut input = chirograph::wire::encode(&"not a request").unwrap();
+            input.extend(
+                chirograph::wire::encode(&CarrierRequest {
+                    id: 4,
+                    body: CarrierRequestBody::Discover,
+                })
+                .unwrap(),
+            );
+            let mut fixture = Fixture {
+                session: ProjectionSession("fixture:scene".into()),
+                resources: BTreeMap::new(),
+                notice: None,
+            };
+            let mut output = Vec::new();
+            serve_basic(&mut fixture, Cursor::new(input), &mut output).unwrap();
+            let responses: Vec<CarrierResponse> = items(&output);
+            assert!(responses[0].body.is_err(), "the stray item is refused");
+            assert_eq!(responses[1].id, 4, "and the next request is served");
+            // A malformed head cannot be stepped over.
+            let mut output = Vec::new();
+            assert!(serve_basic(&mut fixture, Cursor::new(vec![0x9f]), &mut output).is_err());
         }
 
         #[test]
@@ -652,18 +659,14 @@ mod native {
                     score: Score::new(Arrangement::Spiral(Spiral::default())),
                 }),
             };
-            let input = format!(
-                "{}\n{}\n",
-                serde_json::to_string(&discover).unwrap(),
-                serde_json::to_string(&snapshot).unwrap()
-            );
+            let input = [
+                chirograph::wire::encode(&discover).unwrap(),
+                chirograph::wire::encode(&snapshot).unwrap(),
+            ]
+            .concat();
             let mut output = Vec::new();
             serve_basic(&mut fixture, Cursor::new(input), &mut output).unwrap();
-            let responses: Vec<CarrierResponse> = String::from_utf8(output)
-                .unwrap()
-                .lines()
-                .map(|line| serde_json::from_str(line).unwrap())
-                .collect();
+            let responses: Vec<CarrierResponse> = items(&output);
             assert!(matches!(
                 responses[0].body,
                 Ok(CarrierResponseBody::Descriptor(_))
@@ -704,11 +707,7 @@ mod native {
             )
             .unwrap();
 
-            let frames: Vec<CarrierOutput> = String::from_utf8(output)
-                .unwrap()
-                .lines()
-                .map(|line| serde_json::from_str(line).unwrap())
-                .collect();
+            let frames: Vec<CarrierOutput> = items(&output);
             assert_eq!(frames, vec![CarrierOutput::Notice(notice)]);
         }
     }

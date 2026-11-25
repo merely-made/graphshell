@@ -11,8 +11,8 @@ use std::fmt::Display;
 use std::time::Duration;
 
 use chirograph::{
-    ContentHash, IntentInvocation, ProjectionRequest, ProjectionSession, ResourceChunkRequest,
-    ResourceRequest, ResumeRequest, Revision, SceneEpoch, SessionOpen, SessionOpened,
+    ContentHash, IntentInvocation, Keyframe, ProjectionRequest, ProjectionSession, ResourceChunkRequest,
+    ResourceRequest, ResumeRequest, SessionOpen, SessionOpened,
 };
 use script_wire::Serve;
 
@@ -177,7 +177,7 @@ where
                 score: ask.score,
             })
             .map_err(refused)?;
-        payload::encode(&snapshot)
+        payload::encode(&Keyframe(snapshot))
     }
 
     fn session_fetch(&mut self, this: &Session, address: Vec<u8>) -> Result<Vec<u8>, Failure> {
@@ -211,22 +211,16 @@ where
         payload::encode(&chunk)
     }
 
-    fn session_resume(
-        &mut self,
-        this: &Session,
-        epoch: u64,
-        revision: u64,
-    ) -> Result<Vec<u8>, Failure> {
+    fn session_resume(&mut self, this: &Session, request: Vec<u8>) -> Result<Vec<u8>, Failure> {
         let session = self.admit(this)?;
-        let reply = self
-            .endpoint
-            .resume(ResumeRequest {
-                engine_revision: None,
-                session,
-                epoch: SceneEpoch(epoch),
-                revision: Revision(revision),
-            })
-            .map_err(refused)?;
+        let request: ResumeRequest = payload::decode(&request)?;
+        if request.session != session {
+            return Err(Failure::Refused(format!(
+                "session {} is not this resource's",
+                request.session.0
+            )));
+        }
+        let reply = self.endpoint.resume(request).map_err(refused)?;
         payload::encode(&reply)
     }
 

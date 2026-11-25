@@ -130,16 +130,9 @@ impl ps::HostSession for Host {
             .session_chunk(&s, address, offset, length)
             .map_err(wire)
     }
-    fn resume(
-        &mut self,
-        s: Resource<SessionRep>,
-        epoch: u64,
-        revision: u64,
-    ) -> Result<Vec<u8>, ps::Failure> {
+    fn resume(&mut self, s: Resource<SessionRep>, request: Vec<u8>) -> Result<Vec<u8>, ps::Failure> {
         let s = self.session(&s);
-        self.server
-            .session_resume(&s, epoch, revision)
-            .map_err(wire)
+        self.server.session_resume(&s, request).map_err(wire)
     }
     fn intent(&mut self, s: Resource<SessionRep>, call: Vec<u8>) -> Result<Vec<u8>, ps::Failure> {
         let s = self.session(&s);

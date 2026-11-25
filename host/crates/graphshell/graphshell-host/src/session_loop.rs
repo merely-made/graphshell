@@ -7,8 +7,8 @@
 //! The Graphshell request/response loop over an admitted stream.
 //!
 //! [`crate::carrier`] gets a peer admitted; this is what happens next. The
-//! wire stays NDJSON ([`crate::line`]), the same lines the stdio carrier
-//! speaks, because the carriers differ in who they can prove and how long
+//! wire is the CBOR Sequence ([`crate::wire`]), the same items the stdio
+//! carrier speaks, because the carriers differ in who they can prove and how long
 //! they last, not in what a `Snapshot` request means. Converting Graphshell to length-prefixed frames
 //! merely to match Murm and Notochord would be alignment for its own sake.
 //!
@@ -48,7 +48,7 @@ use std::time::Duration;
 use tokio::io::{AsyncRead, AsyncWrite, AsyncWriteExt};
 
 use crate::lifecycle::{Lapse, SessionAuthority};
-use crate::line::{self, LineReader};
+use crate::wire::{self, ItemReader};
 
 /// Why a session loop stopped.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -172,7 +172,7 @@ where
     L: Fn(&E) -> bool,
 {
     let (reader, mut writer) = tokio::io::split(&mut session.stream);
-    let mut lines = LineReader::new(reader);
+    let mut items = ItemReader::new(reader);
     let mut answered = 0u64;
 
     let end = loop {
@@ -191,12 +191,12 @@ where
         }
 
         let read = match notices.as_ref() {
-            None => lines.next::<CarrierRequest>().await?,
-            // `LineReader::next` is cancel safe, so a timed-out read keeps
+            None => items.next::<CarrierRequest>().await?,
+            // `ItemReader::next` is cancel safe, so a timed-out read keeps
             // whatever it had buffered and the next call resumes the same
-            // line. A partial frame is never lost or re-read.
+            // item. A partial frame is never lost or re-read.
             Some((interval, _)) => {
-                match tokio::time::timeout(*interval, lines.next::<CarrierRequest>()).await {
+                match tokio::time::timeout(*interval, items.next::<CarrierRequest>()).await {
                     Ok(read) => read?,
                     Err(_elapsed) => continue,
                 }
@@ -212,7 +212,7 @@ where
         let request = match read {
             Ok(request) => request,
             Err(error) => {
-                write_line(
+                write_item(
                     &mut writer,
                     &failure(0, format!("invalid carrier request: {error}")),
                 )
@@ -238,7 +238,7 @@ where
             authority.lapse(&ledger, now_ms())
         };
         if let Some(lapse) = lapse {
-            write_line(&mut writer, &failure(id, lapse_message(lapse))).await?;
+            write_item(&mut writer, &failure(id, lapse_message(lapse))).await?;
             answered += 1;
             break SessionEnd::Lapsed(lapse);
         }
@@ -248,7 +248,7 @@ where
                 if !is_live(endpoint) {
                     break SessionEnd::Disconnected;
                 }
-                write_line(&mut writer, &response).await?;
+                write_item(&mut writer, &response).await?;
                 answered += 1;
                 continue;
             },
@@ -272,18 +272,18 @@ where
                 if !is_live(endpoint) {
                     break SessionEnd::Disconnected;
                 }
-                write_line(
+                write_item(
                     &mut writer,
                     &ok(id, CarrierResponseBody::Opened(Box::new(opened))),
                 )
                 .await?;
             },
             SessionPlaneVerb::Close => {
-                write_line(&mut writer, &ok(id, CarrierResponseBody::Closed)).await?;
+                write_item(&mut writer, &ok(id, CarrierResponseBody::Closed)).await?;
                 break SessionEnd::Closed;
             },
             SessionPlaneVerb::Suspend => {
-                write_line(&mut writer, &ok(id, CarrierResponseBody::Suspended)).await?;
+                write_item(&mut writer, &ok(id, CarrierResponseBody::Suspended)).await?;
                 break SessionEnd::Suspended;
             },
         }
@@ -314,11 +314,11 @@ fn lapse_message(lapse: Lapse) -> String {
     }
 }
 
-async fn write_line<W>(writer: &mut W, response: &CarrierResponse) -> Result<(), SessionLoopError>
+async fn write_item<W>(writer: &mut W, response: &CarrierResponse) -> Result<(), SessionLoopError>
 where
     W: AsyncWrite + Unpin,
 {
-    Ok(line::write(writer, response).await?)
+    Ok(wire::write(writer, response).await?)
 }
 
 /// Write one revision bell.
@@ -331,7 +331,7 @@ async fn write_notice<W>(writer: &mut W, notice: &CarrierNotice) -> Result<(), S
 where
     W: AsyncWrite + Unpin,
 {
-    Ok(line::write(writer, &CarrierOutput::Notice(notice.clone())).await?)
+    Ok(wire::write(writer, &CarrierOutput::Notice(notice.clone())).await?)
 }
 
 #[cfg(test)]

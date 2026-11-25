@@ -61,8 +61,8 @@ impl SessionCalls for Imports {
         s.chunk(&address, offset, length)
             .map_err(|f| native(f).into())
     }
-    fn resume(&mut self, s: &ps::Session, epoch: u64, revision: u64) -> Result<Vec<u8>, Fault> {
-        s.resume(epoch, revision).map_err(|f| native(f).into())
+    fn resume(&mut self, s: &ps::Session, request: Vec<u8>) -> Result<Vec<u8>, Fault> {
+        s.resume(&request).map_err(|f| native(f).into())
     }
     fn intent(&mut self, s: &ps::Session, call: Vec<u8>) -> Result<Vec<u8>, Fault> {
         s.intent(&call).map_err(|f| native(f).into())

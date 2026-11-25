@@ -15,7 +15,8 @@
 //! ## It still serializes, on purpose
 //!
 //! Every request and response round-trips through the same
-//! `serde_json` encoding the wire uses, and only the I/O is skipped. That
+//! [`chirograph::wire`] encoding the stream carriers use, keyframes and diffs
+//! sealed in their envelopes, and only the I/O is skipped. That
 //! costs a local call one encode and one decode, and buys the guarantee that
 //! the in-process path exercises the real wire format.
 //!
@@ -77,10 +78,10 @@ where
     // A message that will not round-trip is a defect in the message type, and
     // no in-process session survives it, so it reports as disconnection rather
     // than as something the endpoint decided.
-    let bytes = serde_json::to_vec(value).map_err(|error| {
+    let bytes = chirograph::wire::encode(value).map_err(|error| {
         CarrierError::Disconnected(format!("carrier could not encode a message: {error}"))
     })?;
-    serde_json::from_slice(&bytes).map_err(|error| {
+    chirograph::wire::decode(&bytes).map_err(|error| {
         CarrierError::Disconnected(format!("carrier could not decode a message: {error}"))
     })
 }

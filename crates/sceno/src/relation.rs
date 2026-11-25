@@ -42,6 +42,7 @@ impl RelationForm {
 
 /// A disclosed relation asking the arrangement to place two occurrences.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct RelationConstraint {
     pub id: String,
     pub from: InstanceId,
@@ -52,6 +53,7 @@ pub struct RelationConstraint {
 /// Every placed request is reported, including requests incompatible with pins
 /// or with other relations in the same reading.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct RelationConstraintReport {
     pub constraint: RelationConstraint,
     pub honored: bool,

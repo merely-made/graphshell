@@ -88,7 +88,7 @@ fn a_keyframe_and_a_diff_round_trip() {
     let sealed = seal(&delta).unwrap();
     let envelope = Envelope::read(&sealed).unwrap();
     assert_eq!(envelope.kind, EnvelopeKind::Diff);
-    assert_eq!(envelope.identity.engine, engine(42));
+    assert_eq!(envelope.identity.engine, Some(engine(42)));
     assert_eq!(envelope.identity.revision, Revision(8));
     assert_eq!(envelope.payload::<ProjectionDiff>().unwrap(), delta);
 }
@@ -160,19 +160,41 @@ fn an_unknown_version_is_refused() {
 }
 
 #[test]
-fn a_payload_without_an_engine_revision_is_not_sealed() {
-    assert!(seal(&keyframe()).is_ok(), "control");
+fn a_projection_without_an_engine_declares_none() {
     let mut unbound = keyframe();
     unbound.scene.engine_revision = None;
-    assert_eq!(
-        seal(&unbound),
-        Err(EnvelopeError::MissingIdentity("engine_revision"))
+    let sealed = seal(&unbound).unwrap();
+    let header = Envelope::read(&sealed).unwrap();
+    assert_eq!(header.identity.engine, None);
+    let envelope = Value::decode(&sealed).unwrap();
+    assert!(
+        envelope.get(ENGINE).unwrap().data_type().is_null(),
+        "the marker is written, not omitted"
     );
+    assert_eq!(header.payload::<ProjectionSnapshot>().unwrap(), unbound);
+    let mut delta = diff();
+    delta.scene.base_engine = None;
+    delta.scene.engine_revision = None;
+    assert_eq!(
+        open::<ProjectionDiff>(&seal(&delta).unwrap()).unwrap(),
+        delta
+    );
+}
+
+#[test]
+fn a_diff_naming_one_engine_revision_is_not_sealed() {
+    assert!(seal(&diff()).is_ok(), "control");
     let mut half = diff();
     half.scene.base_engine = None;
     assert_eq!(
         seal(&half),
         Err(EnvelopeError::MissingIdentity("base_engine"))
+    );
+    let mut other = diff();
+    other.scene.engine_revision = None;
+    assert_eq!(
+        seal(&other),
+        Err(EnvelopeError::MissingIdentity("engine_revision"))
     );
 }
 
@@ -202,21 +224,48 @@ fn a_header_without_its_identity_is_refused() {
 }
 
 #[test]
-fn a_payload_without_its_identity_is_refused_under_a_complete_header() {
-    let mut unbound = keyframe();
-    unbound.scene.engine_revision = None;
-    let unbound = payload_bytes(&unbound).unwrap();
+fn a_no_engine_header_over_an_engine_payload_is_refused() {
     assert!(
         open::<ProjectionSnapshot>(&forge(|_| {})).is_ok(),
         "control"
     );
     let forged = forge(|e| {
-        e.insert(PAYLOAD, Value::from(unbound));
+        e.insert(ENGINE, Value::null());
     });
     assert_eq!(
         open::<ProjectionSnapshot>(&forged),
-        Err(EnvelopeError::MissingIdentity("engine_revision"))
+        Err(EnvelopeError::IdentityMismatch)
     );
+}
+
+#[test]
+fn an_unknown_payload_field_is_refused() {
+    let honest = payload_bytes(&keyframe()).unwrap();
+    assert!(
+        open::<ProjectionSnapshot>(&forge(|e| {
+            e.insert(PAYLOAD, Value::from(honest.clone()));
+        }))
+        .is_ok(),
+        "control"
+    );
+    for path in [&[][..], &["scene"][..], &["scene", "tables"][..]] {
+        let mut payload = Value::decode_owned(&honest).unwrap();
+        let mut at = &mut payload;
+        for key in path {
+            at = at.get_mut(*key).unwrap();
+        }
+        at.insert("note", Value::from("unlisted"));
+        let forged = forge(|e| {
+            e.insert(PAYLOAD, Value::from(payload.encode()));
+        });
+        assert!(
+            matches!(
+                open::<ProjectionSnapshot>(&forged),
+                Err(EnvelopeError::Payload(ref e)) if e.contains("unknown field")
+            ),
+            "{path:?}"
+        );
+    }
 }
 
 #[test]

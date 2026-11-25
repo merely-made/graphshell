@@ -208,8 +208,8 @@ mod tests {
                 limits: RetainedPagesLimits::default(),
             }),
         };
-        let wire = serde_json::to_vec(&request).unwrap();
-        assert_eq!(serde_json::from_slice::<CarrierRequest>(&wire).unwrap(), request);
+        let wire = crate::wire::encode(&request).unwrap();
+        assert_eq!(crate::wire::decode::<CarrierRequest>(&wire).unwrap(), request);
         let reply = CarrierResponse {
             id: 7,
             body: Ok(CarrierResponseBody::RetainedPages(Box::new(
@@ -235,8 +235,8 @@ mod tests {
                 },
             ))),
         };
-        let wire = serde_json::to_vec(&reply).unwrap();
-        assert_eq!(serde_json::from_slice::<CarrierResponse>(&wire).unwrap(), reply);
+        let wire = crate::wire::encode(&reply).unwrap();
+        assert_eq!(crate::wire::decode::<CarrierResponse>(&wire).unwrap(), reply);
     }
 
     #[test]

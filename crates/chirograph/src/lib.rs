@@ -22,7 +22,6 @@ use serde::{Deserialize, Serialize};
 // module again; nothing but chirograph used it.
 mod command_effect;
 mod command_invocation;
-pub mod line;
 mod presentation;
 pub mod titulus;
 pub use titulus::{
@@ -41,7 +40,9 @@ pub use scenotime::{EngineRevision, Revision, SceneDiff, SceneEpoch, SceneSnapsh
 
 // The envelope keyframes and diffs cross carriers in (engine split D207-D210).
 pub mod envelope;
-pub use envelope::{Envelope, EnvelopeError, EnvelopeIdentity, EnvelopeKind, Enveloped};
+pub use envelope::{Envelope, EnvelopeError, EnvelopeIdentity, EnvelopeKind, Enveloped, Keyframe};
+// The CBOR Sequence inside every session stream.
+pub mod wire;
 
 // Portable projection captures, apart from the live wire they snapshot.
 mod capture;
@@ -52,6 +53,7 @@ pub use capture::{
 
 /// The first compatible Graphshell wire version.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ProtocolVersion {
     pub major: u16,
     pub minor: u16,
@@ -148,6 +150,7 @@ pub enum ActionIcon {
 
 /// An action carried into accessibility and permission surfaces.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct AdvertisedAction {
     pub intent: IntentReference,
     pub label: String,
@@ -200,6 +203,7 @@ pub enum BoundsRelationship {
 
 /// Semantics that remain usable when the richest resource cannot be decoded.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct PresentationSemantics {
     pub label: String,
     pub role: SemanticRole,
@@ -209,6 +213,7 @@ pub struct PresentationSemantics {
 
 /// Versioned payload encodings understood by the first Graphshell host.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub enum PresentationCodec {
     NativeGlyphV1,
     PortableCardV1,
@@ -219,6 +224,7 @@ pub enum PresentationCodec {
 /// One independently fetchable representation, ordered richest-first within
 /// a manifest entry.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct PresentationOffer {
     pub codec: PresentationCodec,
     pub resource: ContentHash,
@@ -230,6 +236,7 @@ pub struct PresentationOffer {
 /// Connects one scene instance to one presentation key without adding a
 /// Graphshell-owned reference to `sceno::ProjectedItem`.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct PresentationBinding {
     pub instance: InstanceId,
     pub key: PresentationKey,
@@ -237,6 +244,7 @@ pub struct PresentationBinding {
 
 /// Presentation metadata beside a scene. Resource bytes travel separately.
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct PresentationManifest {
     pub bindings: Vec<PresentationBinding>,
     pub offers: BTreeMap<PresentationKey, Vec<PresentationOffer>>,
@@ -256,6 +264,7 @@ impl PresentationManifest {
 
 /// A complete epoch-preserving scene snapshot plus its presentation sidecar.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ProjectionSnapshot {
     pub version: ProtocolVersion,
     pub session: ProjectionSession,
@@ -366,6 +375,7 @@ impl std::error::Error for LiveViewReferenceError {}
 
 /// Presentation and cache changes that accompany a Scenotime scene diff.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub enum PresentationChange {
     Bind(PresentationBinding),
     Unbind {
@@ -385,6 +395,7 @@ pub enum PresentationChange {
 
 /// One revision transition in a projection session.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ProjectionDiff {
     pub version: ProtocolVersion,
     pub session: ProjectionSession,

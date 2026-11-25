@@ -65,9 +65,12 @@ impl ResumeRequest {
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum ResumeReply {
+    /// Plain canonical CBOR: it carries no scene (D219).
     Current(ProjectionAck),
-    Diffs(Vec<ProjectionDiff>),
-    Snapshot(Box<ProjectionSnapshot>),
+    /// A sequence of diff envelopes, each bound alone.
+    Diffs(#[serde(with = "crate::envelope::diffs")] Vec<ProjectionDiff>),
+    /// A keyframe envelope.
+    Snapshot(#[serde(with = "crate::envelope::keyframe")] Box<ProjectionSnapshot>),
 }
 
 /// Answer a resume with nothing retained: current when the client holds the
@@ -93,8 +96,7 @@ pub fn keyframe_reply(request: &ResumeRequest, keyframe: ProjectionSnapshot) -> 
 pub const RETAINED_DELTAS: usize = 64;
 
 /// How a keyframe and a delta are counted against each other. The default is
-/// the NDJSON line each would travel as; a producer behind another encoding
-/// supplies its own.
+/// the envelope each travels in.
 #[derive(Clone, Copy, Debug)]
 pub struct WireSize {
     pub keyframe: fn(&ProjectionSnapshot) -> usize,
@@ -104,8 +106,8 @@ pub struct WireSize {
 impl Default for WireSize {
     fn default() -> Self {
         Self {
-            keyframe: |snapshot| crate::line::encoded_len(snapshot).unwrap_or(usize::MAX),
-            delta: |diff| crate::line::encoded_len(diff).unwrap_or(usize::MAX),
+            keyframe: |snapshot| crate::envelope::seal(snapshot).map_or(usize::MAX, |b| b.len()),
+            delta: |diff| crate::envelope::seal(diff).map_or(usize::MAX, |b| b.len()),
         }
     }
 }

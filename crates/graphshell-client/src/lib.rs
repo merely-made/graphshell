@@ -21,7 +21,7 @@ pub mod session;
 pub use accepted_labels::{AcceptedLabelChange, AcceptedLabelUpdate};
 pub use action_draft::{ActionDraft, ActionDraftSemantics, ActionDraftTarget};
 pub use core::{Outcome, Progress, RESUME_ATTEMPTS, SessionCore};
-pub use driver::{Advance, LineDriven, SessionDriver};
+pub use driver::{Advance, ItemDriven, SessionDriver};
 pub use fold::{FoldReading, read_folds};
 pub use remote::{ActionForm, RemoteOp, RemoteSession};
 pub use session::{

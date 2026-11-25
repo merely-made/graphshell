@@ -28,9 +28,9 @@
 //!
 //! ## What the host does
 //!
-//! The session never sends. Lines it wants written queue in an outbox the
-//! host drains ([`RemoteSession::take_outgoing`]) onto whatever carries them;
-//! lines that arrive go to [`RemoteSession::on_line`]. Observable steps queue
+//! The session never sends. Wire items it wants written queue in an outbox
+//! the host drains ([`RemoteSession::take_outgoing`]) onto whatever carries
+//! them; items that arrive go to [`RemoteSession::on_item`]. Observable steps queue
 //! as event lines ([`RemoteSession::take_events`]) for the host's receipts.
 //! Joining, rejoining and the transport itself stay the host's: it reports
 //! them through the lifecycle methods ([`RemoteSession::joined`],
@@ -212,7 +212,7 @@ pub fn card_labels(
         .unwrap_or_default()
 }
 
-/// One remote endpoint over a line transport the host owns. See the module
+/// One remote endpoint over a transport the host owns. See the module
 /// docs.
 pub struct RemoteSession {
     driver: SessionDriver,
@@ -237,7 +237,7 @@ pub struct RemoteSession {
     /// The action surface. Public so a host can carry its own form across
     /// when a session replaces another link.
     pub form: ActionForm,
-    outbox: VecDeque<String>,
+    outbox: VecDeque<Vec<u8>>,
     events: Vec<String>,
     query: Option<QueryRead>,
 }
@@ -428,8 +428,8 @@ impl RemoteSession {
 
     // ── The host's queues ───────────────────────────────────────────────────
 
-    /// Lines to write to the endpoint, in order.
-    pub fn take_outgoing(&mut self) -> Vec<String> {
+    /// Wire items to write to the endpoint, in order.
+    pub fn take_outgoing(&mut self) -> Vec<Vec<u8>> {
         self.outbox.drain(..).collect()
     }
 
@@ -550,9 +550,9 @@ impl RemoteSession {
 
     // ── The wire ────────────────────────────────────────────────────────────
 
-    /// One line from the endpoint.
-    pub fn on_line(&mut self, line: &str) {
-        let advance = self.driver.on_line(line);
+    /// One wire item from the endpoint.
+    pub fn on_item(&mut self, item: &[u8]) {
+        let advance = self.driver.on_item(item);
         self.carry(advance);
     }
 
@@ -590,7 +590,7 @@ impl RemoteSession {
         self.form.open_first_bounded(client, session, &self.profile);
     }
 
-    /// Submit the open draft. The answer lands through [`RemoteSession::on_line`].
+    /// Submit the open draft. The answer lands through [`RemoteSession::on_item`].
     pub fn submit_draft(&mut self) {
         let Some(target) = self.form.target.clone() else {
             self.form.status = "Failed · no remote action draft target is open".to_string();
@@ -636,7 +636,7 @@ impl RemoteSession {
     }
 
     /// Start an operation: hand the driver the core's progress and carry the
-    /// first step — a line out, or an answer already at hand. Whether it
+    /// first step — an item out, or an answer already at hand. Whether it
     /// started.
     fn begin(&mut self, op: RemoteOp, progress: Result<Progress<Outcome>, String>) -> bool {
         let advance = progress.and_then(|progress| self.driver.begin(progress));
@@ -661,7 +661,7 @@ impl RemoteSession {
 
     fn carry(&mut self, advance: Result<Advance, String>) {
         match advance {
-            Ok(Advance::Send(line)) => self.outbox.push_back(line),
+            Ok(Advance::Send(item)) => self.outbox.push_back(item),
             Ok(Advance::Done(outcome)) => self.finish(outcome),
             Ok(Advance::Noted) => self.drain_bells(),
             Err(error) => self.fail(error),

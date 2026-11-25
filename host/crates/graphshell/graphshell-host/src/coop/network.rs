@@ -152,7 +152,7 @@ pub fn host<B: pandect::graph_session::LegacyTransactionBackend + Clone + Send +
 
 pub struct Guest {
     pub invitation: Invitation,
-    pump: graphshell_client::pump::LinePump<<P2pandaTransport as Transport>::Stream>,
+    pump: graphshell_client::pump::ItemPump<<P2pandaTransport as Transport>::Stream>,
     runtime: tokio::runtime::Handle,
     next_id: u64,
     dirty: bool,
@@ -171,7 +171,7 @@ impl Guest {
             .map_err(|e| e.to_string())
     }
 
-    /// The native product worker drives the shared line pump on this runtime.
+    /// The native product worker drives the shared item pump on this runtime.
     /// Transport and host accept tasks remain asynchronous.
     pub fn connect(
         runtime: &tokio::runtime::Runtime,
@@ -202,7 +202,7 @@ impl Guest {
             .map_err(|_| "connection timed out")?
             .map_err(|e| e.to_string())?
             .map_err(|e| format!("admission refused: {e:?}"))?;
-        let mut pump = graphshell_client::pump::LinePump::new(stream);
+        let mut pump = graphshell_client::pump::ItemPump::new(stream);
         let opened = runtime
             .block_on(pump.open(CapabilityProfile::new([
                 PresentationCapability::PortableCard,
@@ -231,27 +231,26 @@ impl Guest {
         let runtime = self.runtime.clone();
         runtime.block_on(async {
             tokio::time::timeout(Duration::from_secs(15), async {
-                let line = chirograph::line::encode(&CarrierRequest { id, body })
+                let item = chirograph::wire::encode(&CarrierRequest { id, body })
                     .map_err(|e| e.to_string())?;
-                self.pump.send(&line).await.map_err(|e| e.to_string())?;
+                self.pump.send(&item).await.map_err(|e| e.to_string())?;
                 loop {
-                    let line = self
+                    let item = self
                         .pump
                         .recv()
                         .await
                         .map_err(|e| e.to_string())?
                         .ok_or("holder disconnected")?;
-                    match chirograph::line::decode::<CarrierOutput>(&line)
+                    match chirograph::wire::decode::<CarrierOutput>(&item)
                         .map_err(|e| e.to_string())?
                     {
-                        Some(CarrierOutput::Notice(_)) => self.dirty = true,
-                        Some(CarrierOutput::Response(response)) if response.id == id => {
+                        CarrierOutput::Notice(_) => self.dirty = true,
+                        CarrierOutput::Response(response) if response.id == id => {
                             return response.body.map_err(|failure| failure.message);
                         },
-                        Some(CarrierOutput::Response(_)) => {
+                        CarrierOutput::Response(_) => {
                             return Err("holder answered another request".into());
                         },
-                        None => {},
                     }
                 }
             })
@@ -264,22 +263,19 @@ impl Guest {
         let outcome = (|| {
             if !self.dirty {
                 let runtime = self.runtime.clone();
-                let line = runtime.block_on(async {
+                let item = runtime.block_on(async {
                     tokio::time::timeout(Duration::from_millis(100), self.pump.recv()).await
                 });
-                match line {
+                match item {
                     Err(_) => return Ok(()),
                     Ok(Err(error)) => return Err(error.to_string()),
                     Ok(Ok(None)) => return Err("holder disconnected".into()),
-                    Ok(Ok(Some(line))) => match chirograph::line::decode::<CarrierOutput>(&line)
+                    Ok(Ok(Some(item))) => match chirograph::wire::decode::<CarrierOutput>(&item)
                         .map_err(|e| e.to_string())?
                     {
-                        Some(CarrierOutput::Notice(notice))
-                            if notice.session == self.request.session =>
-                        {
+                        CarrierOutput::Notice(notice) if notice.session == self.request.session => {
                             self.dirty = true
                         },
-                        None => return Ok(()),
                         _ => return Err("unexpected idle session response".into()),
                     },
                 }

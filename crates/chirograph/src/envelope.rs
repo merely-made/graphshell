@@ -7,8 +7,9 @@
 //! The projection wire's envelope (engine split D181, D207 to D210).
 //!
 //! A keyframe or a diff crosses a carrier as one CBOR::Core map: a version,
-//! the payload's kind, its required identity (the engine revision, the
-//! projection epoch and revision), the payload as embedded canonical CBOR,
+//! the payload's kind, its required identity (the engine revision or a
+//! declared no-engine marker, the projection epoch and revision), the payload
+//! as embedded canonical CBOR,
 //! and a domain-separated BLAKE3 over all of it. `wire/projection.cddl` is
 //! the schema and `wire/vectors/` pins the bytes. Signing stays with each
 //! carrier.
@@ -61,7 +62,9 @@ impl EnvelopeKind {
 /// The identity an envelope binds its payload to.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct EnvelopeIdentity {
-    pub engine: EngineRevision,
+    /// `None` is the declared no-engine marker, written as `null`: a
+    /// projection no engine backs. The field itself is never omitted (D217).
+    pub engine: Option<EngineRevision>,
     pub epoch: SceneEpoch,
     pub revision: Revision,
 }
@@ -72,8 +75,8 @@ pub trait Enveloped: Serialize + DeserializeOwned {
 
     /// # Errors
     ///
-    /// [`EnvelopeError::MissingIdentity`] when the payload names no engine
-    /// revision: the identity is required, never optional (D208).
+    /// [`EnvelopeError::MissingIdentity`] when the payload's identity is
+    /// incomplete.
     fn identity(&self) -> Result<EnvelopeIdentity, EnvelopeError>;
 }
 
@@ -82,32 +85,26 @@ impl Enveloped for ProjectionSnapshot {
 
     fn identity(&self) -> Result<EnvelopeIdentity, EnvelopeError> {
         Ok(EnvelopeIdentity {
-            engine: self
-                .scene
-                .engine_revision
-                .clone()
-                .ok_or(EnvelopeError::MissingIdentity("engine_revision"))?,
+            engine: self.scene.engine_revision.clone(),
             epoch: self.scene.epoch,
             revision: self.scene.revision,
         })
     }
 }
 
-/// A diff names its base and target engine revisions; the header carries the
-/// target and the digest binds the base inside the payload.
+/// A diff names both its base and target engine revisions or neither; the
+/// header carries the target and the digest binds the base inside the payload.
 impl Enveloped for ProjectionDiff {
     const KIND: EnvelopeKind = EnvelopeKind::Diff;
 
     fn identity(&self) -> Result<EnvelopeIdentity, EnvelopeError> {
-        if self.scene.base_engine.is_none() {
-            return Err(EnvelopeError::MissingIdentity("base_engine"));
+        match (&self.scene.base_engine, &self.scene.engine_revision) {
+            (Some(_), None) => return Err(EnvelopeError::MissingIdentity("engine_revision")),
+            (None, Some(_)) => return Err(EnvelopeError::MissingIdentity("base_engine")),
+            _ => {},
         }
         Ok(EnvelopeIdentity {
-            engine: self
-                .scene
-                .engine_revision
-                .clone()
-                .ok_or(EnvelopeError::MissingIdentity("engine_revision"))?,
+            engine: self.scene.engine_revision.clone(),
             epoch: self.scene.epoch,
             revision: self.scene.revision,
         })
@@ -186,8 +183,8 @@ fn digest_of(unsigned: &Value<'_>) -> [u8; 32] {
 ///
 /// # Errors
 ///
-/// [`EnvelopeError::MissingIdentity`] when the payload names no engine
-/// revision, or [`EnvelopeError::Payload`] when it does not serialize.
+/// [`EnvelopeError::MissingIdentity`] for a diff that names only one of its
+/// engine revisions, or [`EnvelopeError::Payload`] when it does not serialize.
 pub fn seal<P: Enveloped>(payload: &P) -> Result<Vec<u8>, EnvelopeError> {
     let identity = payload.identity()?;
     let engine = Value::serialized(&identity.engine)
@@ -336,22 +333,29 @@ fn unsigned(value: &Value<'_>, name: &'static str) -> Result<u64, EnvelopeError>
         .map_err(|_| EnvelopeError::Malformed(format!("{name} is not an unsigned integer")))
 }
 
-fn engine(value: &Value<'_>) -> Result<EngineRevision, EnvelopeError> {
+fn engine(value: &Value<'_>) -> Result<Option<EngineRevision>, EnvelopeError> {
+    if value.data_type().is_null() {
+        return Ok(None);
+    }
     let map = value
         .as_map()
-        .map_err(|_| EnvelopeError::Malformed("engine is not a map".into()))?;
+        .map_err(|_| EnvelopeError::Malformed("engine is neither a map nor null".into()))?;
     for key in map.keys() {
         if !matches!(key.as_str(), Ok("session" | "cursor" | "digest")) {
             return Err(EnvelopeError::UnknownField(format!("engine {key:?}")));
         }
     }
     let part = |name: &'static str| value.get(name).ok_or(EnvelopeError::MissingIdentity(name));
-    Ok(EngineRevision {
+    Ok(Some(EngineRevision {
         session: text(part("session")?, "session")?.to_string(),
         cursor: unsigned(part("cursor")?, "cursor")?,
         digest: text(part("digest")?, "digest")?.to_string(),
-    })
+    }))
 }
+
+#[path = "envelope_serde.rs"]
+mod carried;
+pub use carried::{Keyframe, diffs, keyframe};
 
 #[cfg(test)]
 #[path = "envelope_tests.rs"]

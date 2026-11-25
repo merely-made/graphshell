@@ -7,14 +7,15 @@
 ; floats, map keys in canonical order, no indefinite lengths. Payloads are the
 ; Rust types serde-encoded through cbor-core: structs are text-keyed maps,
 ; Option is null, unit variants are text, and other variants are a one-entry
-; map from the variant's name. A renamed Rust field is a schema change.
+; map from the variant's name. A renamed Rust field is a schema change, and a
+; reader refuses a field the schema does not name (D224).
 ;
 ; `?` marks a field the writer omits when it is empty, unset or default.
 
 envelope = {
   "version": 1,
   "kind": envelope-kind,
-  "engine": engine-revision,          ; required: the identity is never optional
+  "engine": engine-revision / null,   ; required; null declares no engine (D217)
   "epoch": u64,                       ; the payload's projection epoch
   "revision": u64,                    ; the payload's (target) revision
   "payload": bstr .cbor payload,      ; the payload's canonical encoding
@@ -54,7 +55,7 @@ scene-snapshot = {
   "epoch": u64,
   "revision": u64,
   "tables": scene-tables,
-  "engine_revision": engine-revision, ; required inside an envelope
+  ? "engine_revision": engine-revision, ; omitted when no engine backs it
 }
 
 scene-tables = {
@@ -242,8 +243,10 @@ scene-diff = {
   "base": u64,
   "revision": u64,
   "operations": [* scene-op],
-  "base_engine": engine-revision,     ; both required inside an envelope
-  "engine_revision": engine-revision,
+  ? (                                 ; both, or neither when no engine backs it
+    "base_engine": engine-revision,
+    "engine_revision": engine-revision,
+  ),
 }
 
 scene-op = { "AddSource": { "index": u32, "value": source-ref } }

@@ -401,7 +401,7 @@ async fn a_wrong_host_is_refused_before_any_secret_crosses() {
 ///
 /// The host end is the real `serve_admitted_session` over a real
 /// `ResumeFixtureEndpoint`; the peer end is the event-driven
-/// `SessionDriver` — the browser's adapter — speaking NDJSON lines. This
+/// `SessionDriver` — the browser's adapter — speaking wire items. This
 /// is every C4a seam except DTLS itself composed in one test: join,
 /// admission, authority, serve loop, discovery, mount, close.
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
@@ -433,16 +433,16 @@ async fn a_completed_join_serves_a_real_session_to_the_event_driver() {
 
     let driving = async {
         let (read, mut write) = tokio::io::split(peer_stream);
-        let mut lines = BufReader::new(read).lines();
+        let mut items = crate::wire::ItemReader::new(read);
         let mut driver = SessionDriver::new(chirograph::CapabilityProfile::default());
 
-        // Carry one Advance to the wire, then feed lines back until the
+        // Carry one Advance to the wire, then feed items back until the
         // operation concludes — the event-driven loop a browser runs, with
         // a duplex where the data channel will be.
         async fn drive<R, W>(
             driver: &mut SessionDriver,
             write: &mut W,
-            lines: &mut tokio::io::Lines<BufReader<R>>,
+            items: &mut crate::wire::ItemReader<R>,
             start: Advance,
         ) -> Result<Outcome, String>
         where
@@ -454,35 +454,31 @@ async fn a_completed_join_serves_a_real_session_to_the_event_driver() {
                 match advance {
                     Advance::Done(outcome) => return Ok(outcome),
                     Advance::Noted => {
-                        let line = lines
-                            .next_line()
+                        let item = items
+                            .next_item()
                             .await
                             .map_err(|error| error.to_string())?
                             .ok_or("the session ended mid-operation")?;
-                        advance = driver.on_line(&line)?;
+                        advance = driver.on_item(&item)?;
                     },
-                    Advance::Send(line) => {
+                    Advance::Send(item) => {
                         write
-                            .write_all(line.as_bytes())
+                            .write_all(&item)
                             .await
                             .map_err(|error| error.to_string())?;
-                        write
-                            .write_all(b"\n")
-                            .await
-                            .map_err(|error| error.to_string())?;
-                        let line = lines
-                            .next_line()
+                        let item = items
+                            .next_item()
                             .await
                             .map_err(|error| error.to_string())?
                             .ok_or("the session ended mid-operation")?;
-                        advance = driver.on_line(&line)?;
+                        advance = driver.on_item(&item)?;
                     },
                 }
             }
         }
 
         let start = driver.discover()?;
-        let discovered = drive(&mut driver, &mut write, &mut lines, start).await?;
+        let discovered = drive(&mut driver, &mut write, &mut items, start).await?;
         let Outcome::Descriptor(descriptor) = discovered else {
             return Err(format!("expected a descriptor, got {discovered:?}"));
         };
@@ -493,7 +489,7 @@ async fn a_completed_join_serves_a_real_session_to_the_event_driver() {
             .ok_or("no core after discovery")?
             .mount(0)?;
         let start = driver.begin(start)?;
-        let mounted = drive(&mut driver, &mut write, &mut lines, start).await?;
+        let mounted = drive(&mut driver, &mut write, &mut items, start).await?;
         let Outcome::Mounted(session) = mounted else {
             return Err(format!("expected a mount, got {mounted:?}"));
         };
@@ -507,7 +503,7 @@ async fn a_completed_join_serves_a_real_session_to_the_event_driver() {
 
         let close = driver.core_mut().ok_or("no core")?.close();
         let close = driver.begin(close)?;
-        let closed = drive(&mut driver, &mut write, &mut lines, close).await?;
+        let closed = drive(&mut driver, &mut write, &mut items, close).await?;
         assert!(matches!(closed, Outcome::Closed));
         Ok::<(), String>(())
     };

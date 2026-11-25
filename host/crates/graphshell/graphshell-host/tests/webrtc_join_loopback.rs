@@ -50,11 +50,11 @@ fn profile() -> ProfileRef {
     }
 }
 
-/// Drive one operation of the event-driven adapter over NDJSON lines.
+/// Drive one operation of the event-driven adapter over wire items.
 async fn drive<R, W>(
     driver: &mut SessionDriver,
     write: &mut W,
-    lines: &mut tokio::io::Lines<BufReader<R>>,
+    items: &mut graphshell_host::wire::ItemReader<R>,
     start: Advance,
 ) -> Result<Outcome, String>
 where
@@ -66,22 +66,18 @@ where
         match advance {
             Advance::Done(outcome) => return Ok(outcome),
             Advance::Noted | Advance::Send(_) => {
-                if let Advance::Send(line) = &advance {
+                if let Advance::Send(item) = &advance {
                     write
-                        .write_all(line.as_bytes())
-                        .await
-                        .map_err(|error| error.to_string())?;
-                    write
-                        .write_all(b"\n")
+                        .write_all(item)
                         .await
                         .map_err(|error| error.to_string())?;
                 }
-                let line = lines
-                    .next_line()
+                let item = items
+                    .next_item()
                     .await
                     .map_err(|error| error.to_string())?
                     .ok_or("the session ended mid-operation")?;
-                advance = driver.on_line(&line)?;
+                advance = driver.on_item(&item)?;
             },
         }
     }
@@ -202,13 +198,13 @@ async fn a_browser_shaped_peer_joins_and_is_served_over_real_dtls() {
             let (reader, writer, _control) = peer_carrier.into_parts();
             let (stream, _pump) = stream_over_frames(reader, writer);
             let (read, mut write) = tokio::io::split(stream);
-            let mut lines = BufReader::new(read).lines();
+            let mut items = graphshell_host::wire::ItemReader::new(read);
             let mut driver = SessionDriver::new(chirograph::CapabilityProfile::default());
 
             let start = driver.discover().expect("discovery starts");
             let discovered = tokio::time::timeout(
                 Duration::from_secs(5),
-                drive(&mut driver, &mut write, &mut lines, start),
+                drive(&mut driver, &mut write, &mut items, start),
             )
             .await
             .expect("PHASE discovery timed out")
@@ -226,7 +222,7 @@ async fn a_browser_shaped_peer_joins_and_is_served_over_real_dtls() {
             let start = driver.begin(start).expect("mount encodes");
             let mounted = tokio::time::timeout(
                 Duration::from_secs(5),
-                drive(&mut driver, &mut write, &mut lines, start),
+                drive(&mut driver, &mut write, &mut items, start),
             )
             .await
             .expect("PHASE mount timed out")
@@ -246,7 +242,7 @@ async fn a_browser_shaped_peer_joins_and_is_served_over_real_dtls() {
             let start = driver.begin(start).expect("close encodes");
             let closed = tokio::time::timeout(
                 Duration::from_secs(5),
-                drive(&mut driver, &mut write, &mut lines, start),
+                drive(&mut driver, &mut write, &mut items, start),
             )
             .await
             .expect("PHASE close timed out")
@@ -382,7 +378,7 @@ async fn the_admitted_intent_moves_the_revision_and_the_refused_one_does_not() {
             tokio::join!(host_side, peer_side);
 
         let (read, mut write) = tokio::io::split(stream);
-        let mut lines = BufReader::new(read).lines();
+        let mut items = graphshell_host::wire::ItemReader::new(read);
         // The profile is the negotiation, not a formality: an empty one
         // supports no offer, so every advertised action reads as unadvertised
         // and `invoke` refuses before anything reaches the wire. Declaring
@@ -395,7 +391,7 @@ async fn the_admitted_intent_moves_the_revision_and_the_refused_one_does_not() {
         // Discover and mount, so the client holds a real acknowledgement to
         // invoke against.
         let start = driver.discover().expect("discovery starts");
-        drive(&mut driver, &mut write, &mut lines, start)
+        drive(&mut driver, &mut write, &mut items, start)
             .await
             .expect("discovery completes");
         let start = driver
@@ -404,7 +400,7 @@ async fn the_admitted_intent_moves_the_revision_and_the_refused_one_does_not() {
             .mount(0)
             .expect("offer 0 exists");
         let start = driver.begin(start).expect("mount encodes");
-        let mounted = drive(&mut driver, &mut write, &mut lines, start)
+        let mounted = drive(&mut driver, &mut write, &mut items, start)
             .await
             .expect("the mount completes");
         let Outcome::Mounted(session) = mounted else {
@@ -445,7 +441,7 @@ async fn the_admitted_intent_moves_the_revision_and_the_refused_one_does_not() {
             .invoke(&session, InstanceId(0), &refused, &())
             .expect("the refused action is advertised and composes");
         let start = driver.begin(start).expect("intent encodes");
-        let result = drive(&mut driver, &mut write, &mut lines, start)
+        let result = drive(&mut driver, &mut write, &mut items, start)
             .await
             .expect("the endpoint answers");
         let Outcome::Intent(result) = result else {
@@ -463,7 +459,7 @@ async fn the_admitted_intent_moves_the_revision_and_the_refused_one_does_not() {
             .resnapshot(&session)
             .expect("the session is mounted");
         let start = driver.begin(start).expect("snapshot encodes");
-        drive(&mut driver, &mut write, &mut lines, start)
+        drive(&mut driver, &mut write, &mut items, start)
             .await
             .expect("the resnapshot completes");
         let after_refusal = driver
@@ -484,7 +480,7 @@ async fn the_admitted_intent_moves_the_revision_and_the_refused_one_does_not() {
             .invoke(&session, InstanceId(0), &admitted, &())
             .expect("the admitted action composes");
         let start = driver.begin(start).expect("intent encodes");
-        let result = drive(&mut driver, &mut write, &mut lines, start)
+        let result = drive(&mut driver, &mut write, &mut items, start)
             .await
             .expect("the endpoint answers");
         let Outcome::Intent(result) = result else {
@@ -498,7 +494,7 @@ async fn the_admitted_intent_moves_the_revision_and_the_refused_one_does_not() {
         // found the refusal: the catalog registration had erased resume.
         let start = driver.core_mut().expect("core").poll();
         let start = driver.begin(start).expect("poll encodes");
-        drive(&mut driver, &mut write, &mut lines, start)
+        drive(&mut driver, &mut write, &mut items, start)
             .await
             .expect("the poll completes");
         let notice = driver
@@ -511,7 +507,7 @@ async fn the_admitted_intent_moves_the_revision_and_the_refused_one_does_not() {
             .resume_from_notice(notice)
             .expect("the bell names a mounted session");
         let start = driver.begin(start).expect("resume encodes");
-        let resumed = drive(&mut driver, &mut write, &mut lines, start)
+        let resumed = drive(&mut driver, &mut write, &mut items, start)
             .await
             .expect("the host answers the resume rather than refusing it");
         assert!(
@@ -532,13 +528,13 @@ async fn the_admitted_intent_moves_the_revision_and_the_refused_one_does_not() {
         // End politely, in the order `ServedJoin::finish` documents.
         let start = driver.core_mut().expect("core").close();
         let start = driver.begin(start).expect("close encodes");
-        let closed = drive(&mut driver, &mut write, &mut lines, start)
+        let closed = drive(&mut driver, &mut write, &mut items, start)
             .await
             .expect("the close completes");
         assert!(matches!(closed, Outcome::Closed));
 
         drop(write);
-        drop(lines);
+        drop(items);
         let _ = peer_pump.await;
         let summary = projection
             .finished()
