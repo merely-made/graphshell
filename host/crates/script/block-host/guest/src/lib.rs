@@ -138,8 +138,10 @@ impl Guest for Component {
             });
         }
         scene.regions = regions;
+        // Version byte, then canonical CBOR::Core (engine split D209).
+        let body = cbor_core::Value::serialized(&scene).map_err(|e| e.to_string())?;
         let mut scene_bytes = vec![1u8];
-        ciborium::into_writer(&scene, &mut scene_bytes).map_err(|e| e.to_string())?;
+        scene_bytes.extend(body.encode());
 
         let selected_role = if ask.selected.is_some() { Role::Accent } else { Role::Ink };
         let ring = [

@@ -21,7 +21,7 @@ guest = ["dep:block-host"]
 block-host = { workspace = true, optional = true }
 sceno = { workspace = true }
 vector-sheet = { workspace = true }
-ciborium = "0.2"
+cbor-core = { workspace = true }
 
 [lints]
 workspace = true

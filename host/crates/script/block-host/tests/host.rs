@@ -94,7 +94,7 @@ fn view_returns_a_scene_naming_regions_and_a_sheet_with_a_compound_path() {
         .unwrap()
         .unwrap();
     assert_eq!(view.scene[0], 1, "version byte");
-    let scene: sceno::Scene = ciborium_from(&view.scene[1..]);
+    let scene: sceno::Scene = cbor_from(&view.scene[1..]);
     assert_eq!(scene.regions.len(), 2);
     assert_eq!(scene.regions[0].label.as_deref(), Some("Event 1 of fixture"));
     let sheet = VectorSheet::decode(&view.sheet).unwrap();
@@ -109,21 +109,13 @@ fn view_returns_a_scene_naming_regions_and_a_sheet_with_a_compound_path() {
         .is_err());
 }
 
-fn ciborium_from<T: serde::de::DeserializeOwned>(bytes: &[u8]) -> T {
-    // sceno derives serde; the guest wrote CBOR with ciborium. serde_json is not involved.
-    let value: serde_cbor_shim::Value = serde_cbor_shim::decode(bytes);
-    serde_cbor_shim::into(value)
-}
-
-mod serde_cbor_shim {
-    //! A test-local bridge: decode CBOR through ciborium's `Value`, then into `T`.
-    pub use ciborium::value::Value;
-    pub fn decode(bytes: &[u8]) -> Value {
-        ciborium::from_reader(bytes).expect("CBOR scene")
-    }
-    pub fn into<T: serde::de::DeserializeOwned>(value: Value) -> T {
-        value.deserialized().expect("a sceno scene")
-    }
+fn cbor_from<T: serde::de::DeserializeOwned>(bytes: &[u8]) -> T {
+    // sceno derives serde; the guest wrote canonical CBOR, which cbor-core reads strictly.
+    cbor_core::DecodeOptions::new()
+        .decode(bytes)
+        .expect("canonical CBOR scene")
+        .deserialized()
+        .expect("a sceno scene")
 }
 
 #[test]

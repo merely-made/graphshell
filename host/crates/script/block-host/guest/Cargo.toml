@@ -19,7 +19,7 @@ crate-type = ["cdylib"]
 wit-bindgen = "0.58"
 sceno = { git = "https://github.com/merely-made/graphshell.git", branch = "main" }
 vector-sheet = { git = "https://github.com/merely-made/graphshell.git", branch = "main" }
-ciborium = "0.2"
+cbor-core = { version = "0.10", features = ["serde"] }
 
 [profile.release]
 opt-level = "s"

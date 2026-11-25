@@ -10,9 +10,11 @@
 //! engraved (notation, a diagram) returns a sheet beside the scene: ordered fills and
 //! strokes over compound paths, paint named by theme role (never by colour), and text runs.
 //! The host paints it with its own theme and fonts; the guest never draws and never
-//! chooses a colour. The payload is a version byte then CBOR, at most [`MAX_PAYLOAD_BYTES`],
-//! like the projection session's payloads.
+//! chooses a colour. The payload is a version byte then canonical CBOR::Core through
+//! cbor-core (engine split D209), at most [`MAX_PAYLOAD_BYTES`], like the projection
+//! session's payloads. A body that is not canonical is refused.
 
+use cbor_core::{DecodeOptions, Value};
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
@@ -245,11 +247,12 @@ impl VectorSheet {
         Ok(())
     }
 
-    /// Version byte, then CBOR.
+    /// Version byte, then canonical CBOR.
     pub fn encode(&self) -> Result<Vec<u8>, SheetError> {
         self.validate()?;
+        let body = Value::serialized(self).map_err(|e| SheetError::Decode(e.to_string()))?;
         let mut out = vec![SHEET_VERSION];
-        ciborium::into_writer(self, &mut out).map_err(|e| SheetError::Decode(e.to_string()))?;
+        out.extend(body.encode());
         if out.len() > MAX_PAYLOAD_BYTES {
             return Err(SheetError::TooLarge(out.len()));
         }
@@ -265,8 +268,11 @@ impl VectorSheet {
         if *version != SHEET_VERSION {
             return Err(SheetError::Version(*version));
         }
-        let sheet: Self =
-            ciborium::from_reader(body).map_err(|e| SheetError::Decode(e.to_string()))?;
+        let sheet: Self = DecodeOptions::new()
+            .decode(body)
+            .map_err(|e| SheetError::Decode(e.to_string()))?
+            .deserialized()
+            .map_err(|e| SheetError::Decode(e.to_string()))?;
         sheet.validate()?;
         Ok(sheet)
     }
@@ -348,6 +354,25 @@ mod tests {
             Err(SheetError::TooLarge(_))
         ));
         assert!(matches!(VectorSheet::decode(&[1, 0xff, 0xff]), Err(SheetError::Decode(_))));
+    }
+
+    #[test]
+    fn refuses_a_body_that_is_not_canonical() {
+        let bytes = sample().encode().unwrap();
+        assert_eq!(VectorSheet::decode(&bytes).unwrap(), sample(), "control");
+        // The same sheet with its top-level keys in declaration order, as ciborium wrote it.
+        let Value::Map(entries) = DecodeOptions::new().decode(&bytes[1..]).unwrap() else {
+            panic!("a sheet is a map");
+        };
+        let order = ["width", "height", "ops"];
+        let mut unsorted = vec![SHEET_VERSION, 0xa0 + order.len() as u8];
+        for key in order {
+            let (k, v) = entries.get_key_value(&Value::from(key)).unwrap();
+            unsorted.extend(k.encode());
+            unsorted.extend(v.encode());
+        }
+        assert_ne!(unsorted, bytes, "the keys moved");
+        assert!(matches!(VectorSheet::decode(&unsorted), Err(SheetError::Decode(_))));
         let mut long = sample();
         if let Op::Text { text, .. } = &mut long.ops[2] {
             *text = "x".repeat(MAX_TEXT_BYTES + 1);

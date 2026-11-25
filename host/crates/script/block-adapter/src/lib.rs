@@ -153,12 +153,13 @@ pub struct GuestView {
     pub description: String,
 }
 
-/// The two payload version bytes a view carries (a version byte, then CBOR).
+/// The two payload version bytes a view carries (a version byte, then canonical CBOR::Core
+/// through cbor-core, engine split D209).
 pub const SCENE_PAYLOAD_VERSION: u8 = 1;
 
 impl GuestView {
     /// Decode the two payloads a guest's view returns, refusing any that is over the 1 MiB cap
-    /// or has an unknown version byte. The sheet is validated.
+    /// or has an unknown version byte or a body that is not canonical. The sheet is validated.
     pub fn decode(
         scene: &[u8],
         sheet: &[u8],
@@ -173,7 +174,10 @@ impl GuestView {
         if *version != SCENE_PAYLOAD_VERSION {
             return Err(format!("Unsupported scene version {version}"));
         }
-        let scene: Scene = ciborium::from_reader(body)
+        let scene: Scene = cbor_core::DecodeOptions::new()
+            .decode(body)
+            .map_err(|e| format!("The view's scene did not decode: {e}"))?
+            .deserialized()
             .map_err(|e| format!("The view's scene did not decode: {e}"))?;
         let sheet = VectorSheet::decode(sheet).map_err(|e| e.to_string())?;
         Ok(Self {
@@ -319,7 +323,7 @@ mod tests {
     fn a_view_decodes_from_its_two_payloads_and_refuses_bad_ones() {
         let view = event_scene("bar:0/event:0", true);
         let mut scene = vec![SCENE_PAYLOAD_VERSION];
-        ciborium::into_writer(&view.scene, &mut scene).unwrap();
+        scene.extend(cbor_core::Value::serialized(&view.scene).unwrap().encode());
         let sheet = VectorSheet {
             width: 10.0,
             height: 10.0,
@@ -334,6 +338,11 @@ mod tests {
         assert!(GuestView::decode(&scene, &[1, 0xff], 1.0, 1.0, String::new()).is_err());
         let huge = vec![1u8; vector_sheet::MAX_PAYLOAD_BYTES + 1];
         assert!(GuestView::decode(&huge, &sheet_bytes, 1.0, 1.0, String::new()).is_err());
+        // The scene's map head widened to two bytes: well-formed, not canonical.
+        assert!((0xa0..0xb8).contains(&scene[1]), "a short map head");
+        let mut wide = vec![SCENE_PAYLOAD_VERSION, 0xb9, 0x00, scene[1] & 0x1f];
+        wide.extend_from_slice(&scene[2..]);
+        assert!(GuestView::decode(&wide, &sheet_bytes, 1.0, 1.0, String::new()).is_err());
     }
 
     #[test]

@@ -36,7 +36,7 @@ pollster = "1"
 [dev-dependencies]
 vector-sheet = { workspace = true }
 sceno = { workspace = true }
-ciborium = "0.2"
+cbor-core = { workspace = true }
 serde = "1"
 
 [lints]
