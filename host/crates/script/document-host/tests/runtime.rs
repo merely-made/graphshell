@@ -54,9 +54,10 @@ fn manifest(mod_id: &str, capabilities: Vec<ModCapability>) -> ModManifest {
 
 #[test]
 fn activate_then_deactivate_runs_the_full_lifecycle() {
-    // Empty policy still activates a mod that requests no host capabilities.
-    let rt = DocumentScriptRuntime::new(vec![]);
-    let m = manifest("doc.basic", vec![]);
+    // The fixture guest imports `net`, so the mod declares Network and the surface
+    // grants it (MP0: no ambient authority).
+    let rt = DocumentScriptRuntime::new(vec![ModCapability::Network]);
+    let m = manifest("doc.basic", vec![ModCapability::Network]);
     let src = source_for(doc_wasm());
 
     rt.activate(&m, &src).expect("activate should succeed");
@@ -110,9 +111,36 @@ fn within_policy_capability_is_admitted() {
 }
 
 #[test]
-fn double_activate_is_refused() {
+fn undeclared_network_leaves_the_net_import_unlinked() {
+    // The surface would grant Network, but the manifest declares nothing: `net` is
+    // not linked, so the guest (which imports it) fails to instantiate, naming it.
+    let rt = DocumentScriptRuntime::permissive();
+    let m = manifest("doc.quiet", vec![]);
+    let err = rt
+        .activate(&m, &source_for(doc_wasm()))
+        .expect_err("a mod importing net without declaring Network must not instantiate");
+    assert!(err.contains("instantiate"), "got: {err}");
+    assert!(err.contains("mere:script/net"), "must name the import: {err}");
+    assert!(!rt.is_active("doc.quiet"));
+}
+
+#[test]
+fn declared_but_ungranted_network_is_refused_naming_the_import() {
+    // Declared, not granted by the surface: refused, and the refusal names the
+    // `net` import that stays unlinked. (The policy check runs before any load.)
     let rt = DocumentScriptRuntime::new(vec![]);
-    let m = manifest("doc.dup", vec![]);
+    let m = manifest("doc.wants-net", vec![ModCapability::Network]);
+    let err = rt
+        .activate(&m, &source_for(doc_wasm()))
+        .expect_err("declared-but-ungranted Network must be refused");
+    assert!(err.contains("mere:script/net"), "must name the import: {err}");
+    assert!(!rt.is_active("doc.wants-net"));
+}
+
+#[test]
+fn double_activate_is_refused() {
+    let rt = DocumentScriptRuntime::new(vec![ModCapability::Network]);
+    let m = manifest("doc.dup", vec![ModCapability::Network]);
     let src = source_for(doc_wasm());
     rt.activate(&m, &src)
         .expect("first activate should succeed");

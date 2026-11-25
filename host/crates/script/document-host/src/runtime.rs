@@ -55,7 +55,7 @@ use std::sync::Mutex;
 use crate::mod_loader::{ModCapability, ModManifest, WasmModRuntime, WasmModSource};
 use wasmtime::{Engine, Store, StoreLimits};
 
-use crate::{DocumentCore, Grant, ScriptHost, build_instance, seed_dom};
+use crate::{CapPermission, DocumentCore, Grant, ScriptHost, build_instance, seed_dom};
 
 /// One activated wasm mod: the live store + bindings, retained so `deactivate` can
 /// drive the teardown export before the store (and the instance it owns) is freed.
@@ -116,12 +116,23 @@ impl DocumentScriptRuntime {
     }
 }
 
-/// Map a mod's manifest to the `document-core` import grant. Both world imports
-/// (`log`, `document`) are intrinsic to a document mod, so both are granted; the
-/// host `ModCapability`s are policy-checked in [`DocumentScriptRuntime::activate`]
-/// (they gate future imports like `fetch`, which do not exist yet).
-fn grant_for(_manifest: &ModManifest) -> Grant {
-    Grant::allow_all()
+/// Map a mod to the `document-core` import grant (mod projects MP0, D2). `log` and
+/// `document` are intrinsic to a document mod. Every other interface is linked only
+/// when the manifest declares its capability AND the surface granted it
+/// (`allowed`): `Network` -> `mere:script/net`. The other `ModCapability`s gate no
+/// import yet. An unlinked import fails instantiation, naming it.
+fn grant_for(manifest: &ModManifest, allowed: &[ModCapability]) -> Grant {
+    let granted =
+        |c: ModCapability| manifest.capabilities.contains(&c) && allowed.contains(&c);
+    Grant {
+        log: CapPermission::Allow,
+        document: CapPermission::Allow,
+        net: if granted(ModCapability::Network) {
+            CapPermission::Allow
+        } else {
+            CapPermission::Deny
+        },
+    }
 }
 
 impl WasmModRuntime for DocumentScriptRuntime {
@@ -132,8 +143,12 @@ impl WasmModRuntime for DocumentScriptRuntime {
             .iter()
             .find(|c| !self.allowed.contains(c))
         {
+            let import = match denied {
+                ModCapability::Network => " (import mere:script/net stays unlinked)",
+                _ => "",
+            };
             return Err(format!(
-                "mod '{}' requests capability {:?} not granted by this surface",
+                "mod '{}' requests capability {:?}{import} not granted by this surface",
                 manifest.mod_id, denied
             ));
         }
@@ -154,7 +169,7 @@ impl WasmModRuntime for DocumentScriptRuntime {
         //    the grant omitted (the runtime-enforced capability boundary).
         // Extension mods get a fresh seeded DOM (they are not page-attached) and are
         // unguarded for P2.4 (the page-script guards live in `DocumentScript`).
-        let grant = grant_for(manifest);
+        let grant = grant_for(manifest, &self.allowed);
         let (mut store, bindings) = pollster::block_on(build_instance(
             &self.engine,
             &source.module_path,
