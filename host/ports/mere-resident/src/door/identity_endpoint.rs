@@ -1247,9 +1247,15 @@ pub mod test_support {
         /// confirmation gate: a payload saying `"confirmed": false` is
         /// refused, as an unconfirmed device revocation is.
         fn apply_intent(&self, intent: &str, payload: &[u8]) -> Result<(), String> {
-            let unconfirmed = chirograph::wire::decode::<serde_json::Value>(payload)
+            // Only the confirmation is read; the rest of the payload is the
+            // action's own (a device id crosses as CBOR bytes).
+            #[derive(serde::Deserialize)]
+            struct Confirmation {
+                confirmed: Option<bool>,
+            }
+            let unconfirmed = chirograph::wire::decode::<Confirmation>(payload)
                 .ok()
-                .and_then(|value| value.get("confirmed").and_then(|c| c.as_bool()))
+                .and_then(|payload| payload.confirmed)
                 == Some(false);
             if unconfirmed {
                 return Err("the action must be confirmed".to_string());
