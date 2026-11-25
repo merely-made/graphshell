@@ -83,6 +83,7 @@ pub fn slider(state: &Slider) -> impl View<Slider, (), GenetCtx, Element = Genet
             .attr("aria-valuemax", "1")
             .attr("aria-valuenow", state.value.clamp(0.0, 1.0).to_string())
             .attr("aria-valuetext", format!("{pct:.0}%"))
+            .attr("data-cambium-set-value", "true")
             .attr("tabindex", "0")
             .attr("style", "position: relative;"),
         |s: &mut Slider, e: PointerEvent| {
