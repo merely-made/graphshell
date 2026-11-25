@@ -73,6 +73,38 @@ pub(crate) fn guarded_block_on<T>(
     result
 }
 
+/// Why [`DocumentScript::reload`] left the old instance attached.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum ReloadError {
+    /// The new component does not match its grants or the world; each mismatch named.
+    Check(CheckReport),
+    /// The new component could not be read or is not a component.
+    Refused(String),
+    /// The new component failed to instantiate (an unlinked import is named).
+    Instantiate(String),
+    /// The new component's `activate` trapped.
+    Activate(String),
+}
+
+impl ReloadError {
+    pub fn words(&self) -> String {
+        match self {
+            Self::Check(report) => report.words(),
+            Self::Refused(why) => why.clone(),
+            Self::Instantiate(why) => format!("instantiate: {why}"),
+            Self::Activate(why) => format!("activate: {why}"),
+        }
+    }
+}
+
+impl std::fmt::Display for ReloadError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.words())
+    }
+}
+
+impl std::error::Error for ReloadError {}
+
 /// A live DocumentScript attached to a caller-provided page [`ScriptedDom`] — the
 /// P2.5 seam the content actor consumes. It owns the wasm instance plus the page
 /// DOM (which the script mutates) for the attachment's lifetime; the caller renders
@@ -129,7 +161,8 @@ impl DocumentScript {
         )
     }
 
-    fn attach_with(
+    /// Instantiate `component_path` over `dom` under the guards, before `activate`.
+    fn instantiate(
         component_path: &Path,
         pin: Option<&InstallRecord>,
         dom: ScriptedDom,
@@ -137,7 +170,7 @@ impl DocumentScript {
         quota: Quota,
         fetcher: Option<std::sync::Arc<dyn NetFetcher>>,
         net_origins: Vec<String>,
-    ) -> wasmtime::Result<Self> {
+    ) -> wasmtime::Result<(Store<ScriptHost>, DocumentCore)> {
         let engine = guarded_engine()?;
         let limits = StoreLimitsBuilder::new()
             .memory_size(quota.mem_bytes)
@@ -158,14 +191,103 @@ impl DocumentScript {
         store.data_mut().net_origins = net_origins;
         store.data_mut().max_fetches_per_turn = quota.max_fetches_per_turn;
         store.set_epoch_deadline(quota.epoch_deadline_ticks);
-        let engine = store.engine().clone();
-        let activate = bindings.call_activate(&mut store);
-        guarded_block_on(engine, activate)?;
+        Ok((store, bindings))
+    }
+
+    fn attach_with(
+        component_path: &Path,
+        pin: Option<&InstallRecord>,
+        dom: ScriptedDom,
+        grant: &Grant,
+        quota: Quota,
+        fetcher: Option<std::sync::Arc<dyn NetFetcher>>,
+        net_origins: Vec<String>,
+    ) -> wasmtime::Result<Self> {
+        let (mut store, bindings) =
+            Self::instantiate(component_path, pin, dom, grant, quota, fetcher, net_origins)?;
+        Self::activate(&mut store, &bindings)?;
         Ok(Self {
             store,
             bindings,
             epoch_deadline_ticks: quota.epoch_deadline_ticks,
         })
+    }
+
+    fn activate(store: &mut Store<ScriptHost>, bindings: &DocumentCore) -> wasmtime::Result<()> {
+        let engine = store.engine().clone();
+        let activate = bindings.call_activate(&mut *store);
+        guarded_block_on(engine, activate)
+    }
+
+    /// Replace the running component with the one at `component_path`, keeping the
+    /// document (mod projects MP3, D3). The new component is checked against `grant`
+    /// and the `document-core` world, instantiated, handed the document and
+    /// activated; only then does the old instance deactivate and go. Instance-held
+    /// state is lost; the document and its revision carry over. A new component that
+    /// fails check, instantiation or activation leaves the old instance attached,
+    /// the document untouched. With a `record`, the new component loads against it
+    /// and a failure is kept as its `last_trap` (a failed check as its `last_check`).
+    ///
+    /// # Errors
+    ///
+    /// Why the new component was not attached.
+    pub fn reload(
+        &mut self,
+        component_path: &Path,
+        grant: &Grant,
+        quota: Quota,
+        fetcher: Option<std::sync::Arc<dyn NetFetcher>>,
+        net_origins: Vec<String>,
+        mut record: Option<&mut InstallRecord>,
+    ) -> Result<(), ReloadError> {
+        let fail = |record: &mut Option<&mut InstallRecord>, e: ReloadError| {
+            if let Some(r) = record.as_deref_mut() {
+                match &e {
+                    ReloadError::Check(report) => r.note_check(report.words()),
+                    other => r.note_trap(format!("reload: {}", other.words())),
+                }
+            }
+            e
+        };
+        let report = crate::check(component_path, grant, &World::document_core())
+            .map_err(|e| fail(&mut record, ReloadError::Refused(e.words())))?;
+        if !report.ok() {
+            return Err(fail(&mut record, ReloadError::Check(report)));
+        }
+        let pin = record.as_deref();
+        let (mut store, bindings) = Self::instantiate(
+            component_path,
+            pin,
+            ScriptedDom::new(),
+            grant,
+            quota,
+            fetcher,
+            net_origins,
+        )
+        .map_err(|e| fail(&mut record, ReloadError::Instantiate(format!("{e:#}"))))?;
+        // Hand the document over, activate, and hand it back if activation fails.
+        let doc = std::mem::replace(&mut self.store.data_mut().dom, ScriptedDom::new());
+        let revision = self.store.data().revision;
+        store.data_mut().dom = doc;
+        store.data_mut().revision = revision;
+        if let Err(e) = Self::activate(&mut store, &bindings) {
+            self.store.data_mut().dom = std::mem::replace(&mut store.data_mut().dom, ScriptedDom::new());
+            return Err(fail(&mut record, ReloadError::Activate(format!("{e:#}"))));
+        }
+        // The new instance owns the document; the old one deactivates and drops. Its
+        // own teardown trap changes nothing: it is gone either way.
+        let engine = self.store.engine().clone();
+        self.store.set_epoch_deadline(self.epoch_deadline_ticks);
+        let _ = guarded_block_on(engine, self.bindings.call_deactivate(&mut self.store));
+        self.store = store;
+        self.bindings = bindings;
+        self.epoch_deadline_ticks = quota.epoch_deadline_ticks;
+        Ok(())
+    }
+
+    /// What the guest has logged through `log` since this instance attached.
+    pub fn guest_logs(&self) -> &[String] {
+        &self.store.data().logs
     }
 
     /// Deliver one event under the guards; apply the returned batch to the live DOM;
