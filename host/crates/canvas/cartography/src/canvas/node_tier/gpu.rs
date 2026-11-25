@@ -326,9 +326,11 @@ impl GpuNodes {
     /// Upload what changed and draw links, then bodies, when anything did. The
     /// pass is submitted on the device's queue before this returns.
     pub(crate) fn render(&mut self, input: &PassInput) -> PassReport {
+        // Clamped to the device's limit: a larger pane samples a smaller texture.
+        let max = self.device.limits().max_texture_dimension_2d as f32;
         let size = [
-            (input.viewport.0 * input.pixel_scale).round().max(1.0) as u32,
-            (input.viewport.1 * input.pixel_scale).round().max(1.0) as u32,
+            (input.viewport.0 * input.pixel_scale).round().clamp(1.0, max) as u32,
+            (input.viewport.1 * input.pixel_scale).round().clamp(1.0, max) as u32,
         ];
         let mut stale = self.ensure_texture(size) || self.key != input.key;
         self.key = input.key;
