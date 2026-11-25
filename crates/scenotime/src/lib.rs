@@ -12,6 +12,7 @@
 //! Networking, presentation resources, and product authority remain outside.
 
 mod clock;
+mod delta;
 mod diff;
 mod ids;
 mod pick;

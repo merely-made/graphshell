@@ -410,6 +410,8 @@ mod tests {
         scene.items.push(item(source, 10.0));
         let before = SceneSnapshot::from_dense(SceneEpoch(3), Revision(7), scene).unwrap();
         let diff = SceneDiff {
+            base_engine: None,
+            engine_revision: None,
             epoch: SceneEpoch(3),
             base: Revision(7),
             revision: Revision(8),

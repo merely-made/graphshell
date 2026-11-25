@@ -43,6 +43,8 @@ mod mapping {
                 version: ProtocolVersion::V1,
                 session: session.clone(),
                 scene: SceneDiff {
+                    base_engine: None,
+                    engine_revision: None,
                     epoch: mounted.scene.epoch,
                     base: mounted.scene.revision,
                     revision: Revision(mounted.scene.revision.0 + 1),

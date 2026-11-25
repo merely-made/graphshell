@@ -22,12 +22,18 @@ pub struct SceneDiff {
     pub base: Revision,
     pub revision: Revision,
     pub operations: Vec<SceneOp>,
+    /// The engine revision of the scene this diff applies to, named with
+    /// [`Self::engine_revision`] or not at all (engine binding E3). Absent
+    /// from the wire when unset, as on [`SceneSnapshot`].
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub base_engine: Option<EngineRevision>,
+    /// The engine revision of the scene this diff produces.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub engine_revision: Option<EngineRevision>,
 }
 
 impl SceneDiff {
-    /// A diff from `base` to `revision` within `epoch`. Build diffs here rather
-    /// than by struct literal: the engine revisions join as fields next
-    /// (engine binding D5), and a literal would have to name them.
+    /// A diff that names no engine revision.
     pub fn new(
         epoch: SceneEpoch,
         base: Revision,
@@ -39,12 +45,15 @@ impl SceneDiff {
             base,
             revision,
             operations,
+            base_engine: None,
+            engine_revision: None,
         }
     }
 
-    /// This diff, naming the engine revisions of its base and target. Until
-    /// those fields land (engine binding D5) it names neither.
-    pub fn with_engine(self, _base: EngineRevision, _target: EngineRevision) -> Self {
+    /// This diff, naming the engine revisions of its base and target.
+    pub fn with_engine(mut self, base: EngineRevision, target: EngineRevision) -> Self {
+        self.base_engine = Some(base);
+        self.engine_revision = Some(target);
         self
     }
 }
@@ -183,6 +192,12 @@ pub enum DiffError {
         base: Revision,
         revision: Revision,
     },
+    /// The diff names an engine revision other than the one the scene holds,
+    /// at its base or, for a repeat of the held revision, at its target.
+    Diverged {
+        held: Option<EngineRevision>,
+        named: Option<EngineRevision>,
+    },
     InvalidOperation(String),
     InvalidSnapshot(SnapshotError),
 }
@@ -191,13 +206,53 @@ impl SceneSnapshot {
     /// Apply a diff transactionally. A repeated or older target revision is a
     /// successful no-op; a future diff with a missing base requests resync.
     pub fn apply_diff(&mut self, diff: &SceneDiff) -> Result<ApplyOutcome, DiffError> {
+        if self.check_diff(diff)? == ApplyOutcome::AlreadyApplied {
+            return Ok(ApplyOutcome::AlreadyApplied);
+        }
+        let mut next = self.clone();
+        next.apply_checked(diff)?;
+        *self = next;
+        Ok(ApplyOutcome::Applied)
+    }
+
+    /// Apply a diff in place, to a scene the caller has staged for a whole
+    /// suffix, so the suffix costs one clone rather than one per diff
+    /// (engine split D201). Checks as [`Self::apply_diff`] does; after an
+    /// error the scene may be part changed and the caller discards it.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::apply_diff`], and [`DiffError::Diverged`] when the diff
+    /// names another engine revision than the scene holds.
+    pub fn apply_diff_staged(&mut self, diff: &SceneDiff) -> Result<ApplyOutcome, DiffError> {
+        if self.check_diff(diff)? == ApplyOutcome::AlreadyApplied {
+            return Ok(ApplyOutcome::AlreadyApplied);
+        }
+        self.apply_checked(diff)?;
+        Ok(ApplyOutcome::Applied)
+    }
+
+    /// Check a diff's epoch, base and target, and the engine revisions it
+    /// names, before anything is applied.
+    fn check_diff(&self, diff: &SceneDiff) -> Result<ApplyOutcome, DiffError> {
         if self.epoch != diff.epoch {
             return Err(DiffError::WrongEpoch {
                 current: self.epoch,
                 received: diff.epoch,
             });
         }
+        let diverged = |named: &Option<EngineRevision>| DiffError::Diverged {
+            held: self.engine_revision.clone(),
+            named: named.clone(),
+        };
         if diff.revision <= self.revision {
+            // A repeat of the held revision must name the identity held.
+            if diff.revision == self.revision
+                && diff.engine_revision.is_some()
+                && diff.engine_revision != self.engine_revision
+            {
+                return Err(diverged(&diff.engine_revision));
+            }
             return Ok(ApplyOutcome::AlreadyApplied);
         }
         if diff.base != self.revision {
@@ -212,15 +267,25 @@ impl SceneSnapshot {
                 revision: diff.revision,
             });
         }
-
-        let mut next = self.clone();
-        for operation in &diff.operations {
-            next.apply_operation(operation)?;
+        if diff.base_engine.is_some() != diff.engine_revision.is_some() {
+            return operation_error("a diff names its engine revision at both ends or neither");
         }
-        next.validate().map_err(DiffError::InvalidSnapshot)?;
-        next.revision = diff.revision;
-        *self = next;
+        if diff.base_engine.is_some() && diff.base_engine != self.engine_revision {
+            return Err(diverged(&diff.base_engine));
+        }
         Ok(ApplyOutcome::Applied)
+    }
+
+    fn apply_checked(&mut self, diff: &SceneDiff) -> Result<(), DiffError> {
+        for operation in &diff.operations {
+            self.apply_operation(operation)?;
+        }
+        self.validate().map_err(DiffError::InvalidSnapshot)?;
+        self.revision = diff.revision;
+        if let Some(engine) = &diff.engine_revision {
+            self.engine_revision = Some(engine.clone());
+        }
+        Ok(())
     }
 
     fn apply_operation(&mut self, operation: &SceneOp) -> Result<(), DiffError> {

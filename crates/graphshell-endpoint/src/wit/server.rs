@@ -221,6 +221,7 @@ where
         let reply = self
             .endpoint
             .resume(ResumeRequest {
+                engine_revision: None,
                 session,
                 epoch: SceneEpoch(epoch),
                 revision: Revision(revision),

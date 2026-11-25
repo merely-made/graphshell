@@ -300,6 +300,8 @@ mod tests {
 
     fn layer(base: u64, revision: u64, layer: i16) -> SceneDiff {
         SceneDiff {
+            base_engine: None,
+            engine_revision: None,
             epoch: SceneEpoch(3),
             base: Revision(base),
             revision: Revision(revision),

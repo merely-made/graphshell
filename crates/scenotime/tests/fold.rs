@@ -55,6 +55,8 @@ fn dependents() -> Fold {
 
 fn diff(base: u64, operations: Vec<SceneOp>) -> SceneDiff {
     SceneDiff {
+        base_engine: None,
+        engine_revision: None,
         epoch: EPOCH,
         base: Revision(base),
         revision: Revision(base + 1),

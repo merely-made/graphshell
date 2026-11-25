@@ -271,6 +271,8 @@ fn offer_diff(
         version: ProtocolVersion::V1,
         session: session.clone(),
         scene: SceneDiff {
+            base_engine: None,
+            engine_revision: None,
             epoch: SceneEpoch(1),
             base: Revision(base),
             revision: Revision(base + 1),

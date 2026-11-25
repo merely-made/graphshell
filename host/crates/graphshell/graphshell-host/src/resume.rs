@@ -73,6 +73,8 @@ impl ResumeFixtureEndpoint {
             version: ProtocolVersion::V1,
             session: session.clone(),
             scene: SceneDiff {
+                base_engine: None,
+                engine_revision: None,
                 epoch: SceneEpoch(3),
                 base: Revision(1),
                 revision: Revision(2),
@@ -98,6 +100,8 @@ impl ResumeFixtureEndpoint {
             version: ProtocolVersion::V1,
             session: session.clone(),
             scene: SceneDiff {
+                base_engine: None,
+                engine_revision: None,
                 epoch: SceneEpoch(3),
                 base: Revision(2),
                 revision: Revision(3),
@@ -422,6 +426,7 @@ mod tests {
         let session = ProjectionSession(SESSION.into());
         let reply = endpoint
             .resume(ResumeRequest {
+                engine_revision: None,
                 session: session.clone(),
                 epoch: SceneEpoch(3),
                 revision: Revision(99),

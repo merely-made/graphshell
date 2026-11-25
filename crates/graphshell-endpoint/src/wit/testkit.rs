@@ -252,6 +252,7 @@ pub fn run(carrier: &mut impl Carrier) -> Transcript {
     t.push(("take-notice".into(), format!("{:?}", carrier.take_notice())));
     ask(&mut t, carrier, "intent.stale", intent(&id, 7, 8));
     let resume = CarrierRequestBody::Resume(ResumeRequest {
+        engine_revision: None,
         session: id.clone(),
         epoch: SceneEpoch(1),
         revision: Revision(2),

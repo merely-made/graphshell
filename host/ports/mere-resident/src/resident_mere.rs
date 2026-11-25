@@ -33,7 +33,7 @@ use chirograph::{
     AdvertisedAction, BoundsRelationship, CachePolicy, CardValueV1, CarrierNotice, ContentHash,
     EndpointDescriptor, IntentEffect, IntentInvocation, IntentReference, IntentResult,
     PortableCardV1, PresentationBinding, PresentationCapability, PresentationCodec,
-    PresentationKey, PresentationManifest, PresentationOffer, PresentationSemantics, ProjectionAck,
+    PresentationKey, PresentationManifest, PresentationOffer, PresentationSemantics,
     ProjectionOffer, ProjectionRequest, ProjectionSession, ProjectionSnapshot, ProtocolVersion,
     ResourceRequest, ResourceResponse, ResumeReply, ResumeRequest, SemanticRole,
 };
@@ -813,16 +813,9 @@ impl ResumableProjectionSource for AccessEndpoint {
             .find(|offer| offer.request.session == request.session)
             .ok_or("resume names a projection not disclosed by this admitted route")?
             .request;
-        let snapshot = self.snapshot(projection)?;
-        if snapshot.scene.epoch == request.epoch && snapshot.scene.revision == request.revision {
-            Ok(ResumeReply::Current(ProjectionAck {
-                session: snapshot.session,
-                epoch: snapshot.scene.epoch,
-                revision: snapshot.scene.revision,
-            }))
-        } else {
-            Ok(ResumeReply::Snapshot(Box::new(snapshot)))
-        }
+        // Current only for the acknowledged engine revision too; every gap
+        // is a fresh keyframe, nothing retained (engine split D206).
+        Ok(chirograph::keyframe_reply(&request, self.snapshot(projection)?))
     }
 }
 
@@ -3392,11 +3385,12 @@ mod tests {
             .unwrap()
             .request;
         let initial = proxy.snapshot(request.clone()).unwrap();
-        let resumed = ResumeRequest {
-            session: initial.session.clone(),
-            epoch: initial.scene.epoch,
-            revision: initial.scene.revision,
-        };
+        let resumed = ResumeRequest::new(
+            initial.session.clone(),
+            initial.scene.epoch,
+            initial.scene.revision,
+        )
+        .with_engine(initial.scene.engine_revision.clone());
         assert!(matches!(
             proxy.resume(resumed.clone()).unwrap(),
             ResumeReply::Current(_)
@@ -3462,14 +3456,23 @@ mod tests {
             panic!("changed graph must resume with a fresh snapshot");
         };
         assert_eq!(nodes(&fresh), 2);
-        let exact = ResumeRequest {
-            session: fresh.session.clone(),
-            epoch: fresh.scene.epoch,
-            revision: fresh.scene.revision,
-        };
+        let exact = ResumeRequest::new(
+            fresh.session.clone(),
+            fresh.scene.epoch,
+            fresh.scene.revision,
+        )
+        .with_engine(fresh.scene.engine_revision.clone());
         assert!(matches!(
             proxy.resume(exact.clone()).unwrap(),
             ResumeReply::Current(_)
+        ));
+        // The current counter under another engine revision has diverged:
+        // a fresh keyframe, not current.
+        let mut diverged = exact.clone();
+        diverged.engine_revision = initial.scene.engine_revision.clone();
+        assert!(matches!(
+            proxy.resume(diverged).unwrap(),
+            ResumeReply::Snapshot(_)
         ));
         let mere = fixture.reservoir.meres().await.remove(0);
         fixture

@@ -947,6 +947,8 @@ impl ArrangementTransition {
         )
         .map_err(|error| format!("could not build transition start: {error:?}"))?;
         let diff = scenotime::SceneDiff {
+            base_engine: None,
+            engine_revision: None,
             epoch: before.epoch,
             base: before.revision,
             revision: scenotime::Revision(before.revision.0 + 1),

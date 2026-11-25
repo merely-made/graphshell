@@ -177,3 +177,7 @@ mod arrangement_tests;
 #[cfg(test)]
 #[path = "mere_host_digest_tests.rs"]
 mod digest_tests;
+
+#[cfg(test)]
+#[path = "mere_host_recovery_tests.rs"]
+mod recovery_tests;

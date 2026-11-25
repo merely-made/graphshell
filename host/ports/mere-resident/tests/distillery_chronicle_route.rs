@@ -210,6 +210,7 @@ async fn resident_board_fold_advances_the_admitted_chronicle_route() {
         assert!(notice.revision.0 > initial.scene.revision.0);
         let resumed = match carrier
             .request(CarrierRequestBody::Resume(ResumeRequest {
+                engine_revision: None,
                 session: session.clone(),
                 epoch: initial.scene.epoch,
                 revision: initial.scene.revision,
@@ -414,6 +415,7 @@ async fn resident_board_state_transition_resumes_by_contiguous_diff() {
         assert_eq!(notice.revision.0, initial_revision + 1);
         let resumed = match carrier
             .request(CarrierRequestBody::Resume(ResumeRequest {
+                engine_revision: None,
                 session: session.clone(),
                 epoch: initial.scene.epoch,
                 revision: initial.scene.revision,

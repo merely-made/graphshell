@@ -125,7 +125,10 @@ fn a_pinned_scene_names_its_pin_and_keeps_its_graph_after_a_later_edit() {
     let live_revision = host.graph_session().live_revision().unwrap();
     assert_eq!(live.engine_revision, Some(named(&live_revision)));
     assert_ne!(live.engine_revision, held.engine_revision);
-    assert_eq!(live.tables.items.len(), 3);
+    // The earlier pin had no node 2, so its slot was tombstoned there and
+    // the live view gives it a new one within the epoch (D6).
+    assert_eq!(live.active_item_count(), 3);
+    assert_eq!(live.tables.items.len(), 4);
 }
 
 #[test]

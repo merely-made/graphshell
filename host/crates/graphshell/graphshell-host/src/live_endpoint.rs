@@ -433,6 +433,8 @@ impl LiveEndpoint {
             version: ProtocolVersion::V1,
             session: self.session.clone(),
             scene: SceneDiff {
+                base_engine: None,
+                engine_revision: None,
                 epoch: EPOCH,
                 base,
                 revision: self.revision,

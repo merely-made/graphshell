@@ -1,9 +1,13 @@
 # Engine binding plan: a host view names the Mere revision it shows
 
-**Status:** 2026-11-23: E1, E2 and E4 are built: a scene names its engine revision, a stale intent
-names the revision now current, and `MereHost` reports a pinned view's Resource digest on request
-(D1, D2). The E5 finding panel and native kept-source binding are built. E3 and the general scene
-binding remain open lanes of `mere:engine-split P8`.
+**Status:** 2026-11-24: E1 to E4 are built: a scene names its engine revision, a stale intent
+names the revision now current, a missed delta is seen before the next applies and recovered with
+a fresh keyframe, and `MereHost` reports a pinned view's Resource digest on request (D1, D2, D5,
+D6). Deltas are not retained or served until placement changes (`mere:engine-split D206`); D7
+waits with them. E3 lands after D5's consumer step (distillery, knot, mer3ly and Turnstone build
+`SceneDiff` and `ResumeRequest` through constructors). The CBOR envelope, its schema and vectors
+stay open (`mere:engine-split D181`, D189). The E5 finding panel and native kept-source binding
+are built. The general scene binding remains an open lane of `mere:engine-split P8`.
 
 **For:** Graphshell's half of the engine-to-workspace contract
 (`mere/design_docs/mere_docs/technical_architecture/2026-11-16_engine_workspace_contract.md`). The
@@ -121,6 +125,57 @@ evidence actions become stale. The scene envelope and its intent routing remain 
 
 ## Findings
 
+- 2026-11-24, E3, against `mere:engine-split D201`'s evidence: `MereHost` builds the newest node
+  first (observed through `build_snapshot`'s walk of `served_layout`'s positions,
+  `host/crates/graphshell/graphshell-host/src/mere_host.rs:1284`), so a one-node edit moves every
+  older node up one instance slot and its diff rewrites every source and binding. On the citing
+  chain a one-node delta is 2n + 3 scene operations and n + 2 presentation changes: 544 KB of a
+  1.50 MB keyframe at 1k nodes, 5.50 of 15.1 MB at 10k and 55.6 of 151 MB at 100k, 37% each
+  (release; `Code/testing/engine-split/e3_retention/numbers_e3_build.tsv`). D201's 0.4 to 1.5 KB deltas were shaped by hand
+  (`Code/testing/engine-split/e3_retention/e3_probe.rs`), not diffed from two builds, so the byte
+  cap and not the count of 64 bounds retention: two deltas at 100 nodes, about five at 200.
+  Recovery stays correct and falls back to a keyframe sooner. A scene slot also names another node
+  from one revision to the next within an epoch, which scenotime's stable slots do not intend.
+- 2026-11-24, E3, D6's re-measure for `mere:engine-split D205`: with slot-stable builds a one-node
+  edit changes two presentation entries (the new node's binding and offers) and no source, but
+  still 2n + 3 scene operations, an `UpdateItem` for every node and an `UpdateRelation` for every
+  relation: the served phyllotaxis places nodes by rank, most recent first, so a new node at the
+  centre moves every other node one place out. The delta is 42% of a keyframe: 630 KB of 1.50 MB
+  at 1k nodes, 6.37 of 15.1 MB at 10k, 64.3 of 152 MB at 100k (release, `numbers_e3_build.tsv`, v3).
+  The byte cap, not D201's count of 64, still binds: two deltas are retained at every scale.
+  Producing one now costs 3 to 4 ms at 1k, 57 to 82 ms at 10k and 0.71 to 0.82 s at 100k beyond the
+  build; five replayed with one clone take 3.2, 20 and 343 ms against a keyframe's 4.4, 36 and
+  456 ms. Placing nodes so that an edit moves only what it touches is a layout question, not a slot
+  one; it has not been asked.
+- 2026-11-24, `mere:engine-split D206`: with D6's slot-stable builds a one-node delta is still
+  42% of a keyframe and two are retained at every scale (above), so a retained suffix spares no
+  keyframe; retention is dropped until placement changes, and D7's per-application retention in
+  `MereShared` waits with it.
+- 2026-11-24, D6: slots persist across a pinned view. A pin without a node tombstones its slot,
+  and the node takes a new slot when the live view returns, within the epoch
+  (`mere_host_pin_tests.rs`).
+- 2026-11-24, E3: the resident builds the attached session's scene per application
+  (`MereEndpoint::snapshot` runs `host.through(app, ..)`, and `build_snapshot` filters the session
+  item's views by `via`), so two applications' scenes of one session differ at one revision, and
+  retained deltas belong to one application's builds (D7). An ambient route strips actions and
+  card media from what it discloses, so the retention built for D7 was keyed by session,
+  application and whether the route is ambient.
+- 2026-11-24, E3: `ClientState::apply_resume` answered a broken suffix with a resume from the
+  staged copy's revision, a copy it then discarded, so it asked from a revision it did not hold. It
+  now resumes from what it acknowledged.
+- 2026-11-24, E3: a shorter build leaves tombstones in the held scene, and a later build that
+  fills one cannot be a diff (tombstones are not reused within an epoch), so retention restarts
+  there and serves that build as the keyframe. A build at an unchanged revision and engine revision
+  with changed content restarts it too; a client at that revision is still answered `Current`.
+- 2026-11-24, E3: one clone per suffix leaves one `validate` per delta, linear in the scene.
+  Staging five of those deltas took 57 ms at 10k nodes against 141 ms cloning each, and 0.92 s
+  against 1.45 s at 100k, where applying the keyframe took 0.73 s; the client's whole suffix,
+  presentation and labels included, took 0.30 s and 2.9 s.
+- 2026-11-24, E3: applying a bind removed the instance's old binding by scanning every binding, so
+  a delta that rebinds every instance was quadratic: 12 to 17 s to advance the held scene at 100k
+  nodes and 58 s for a client to apply five such deltas.
+  `PresentationManifest::apply_changes` applies a diff's changes in one pass, to the same result
+  (`resume_tests.rs` checks it against one-by-one application): 1.4 to 2.3 s and 2.9 s.
 - 2026-11-24, D3: two quadratic patterns remain in `scenomise::solve`, both scaling with how many holds a score
   carries. `Score::hold_for` finds a hold by linear search (`crates/sceno/src/score.rs:162`) and is called per item
   (`host/crates/cambium/scenes/scenomise/src/solve.rs:114`, and `report_holds`'s honored holds at :215), items times
@@ -156,6 +211,29 @@ evidence actions become stale. The scene envelope and its intent routing remain 
 
 ## Progress
 
+- 2026-11-24: E3 built (D5, D6, branch `e3/recovery`) on the existing NDJSON transport; the CBOR
+  envelope can follow, since nothing here needed its schema. A diff names its base and target
+  engine revisions (`SceneDiff::base_engine`, `engine_revision`) and a resume the one the client
+  holds (`ResumeRequest::engine_revision`), each absent from the wire when unset; `apply_diff`
+  checks the epoch, base, target and both identities before anything applies
+  (`DiffError::Diverged`). `graphshell-client` stages a whole suffix with one clone
+  (`SceneSnapshot::apply_diff_staged`, `PresentationManifest::apply_changes`) and resumes from what
+  it acknowledged. A resume is answered by `chirograph::keyframe_reply`: current for the
+  acknowledged epoch, revision and engine revision, otherwise a fresh keyframe; the resident's
+  resume uses it, so a divergent engine revision at the current counter gets a keyframe.
+  `MereHost` keeps a node's instance slot within the epoch (D6, `mere_host_slots.rs`).
+  `mere_host_recovery_tests.rs`, over `MereHost`'s builds after journaled edits: a delta dropped
+  in transit is seen at the next one, which applies nothing, and the resume from the acknowledged
+  revision and engine identity gets a keyframe and ends on the undisturbed client's scene and
+  presentation (the same comparison fails against a client that missed a delta, `should_panic`);
+  a reordered suffix, a delta ahead of its base, a divergent duplicate and a divergent base are
+  refused with nothing applied, and an exact duplicate applies once; a node keeps its slot, source
+  and binding across edits and its intents still route, and one that leaves tombstones its slot.
+- 2026-11-24: retention dropped (`mere:engine-split D206`). D7's resident retention was built and
+  is removed again: nothing retains or serves a delta, and every gap gets a fresh keyframe.
+  `chirograph::DeltaRetention`, `SceneSnapshot::diff_to` and `PresentationManifest::changes_to`
+  stay, with their unit tests, for when placement changes; nothing in a product constructs the
+  ring.
 - 2026-11-24: D5's first step: `SceneDiff::new` and `with_engine` and `ResumeRequest::new` and
   `with_engine`, with no fields yet, so consumers can move their struct literals onto them before
   the fields land; `with_engine` names nothing until then. The resume types moved into

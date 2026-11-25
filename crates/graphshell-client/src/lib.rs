@@ -562,13 +562,11 @@ impl ClientState {
         })
     }
 
+    /// Resume from the acknowledged epoch and revision, naming the engine
+    /// revision of the mounted scene when it has one (engine binding E3).
     pub fn resume_request(&self, session: &ProjectionSession) -> Option<ResumeRequest> {
-        let ack = self.acknowledgement(session)?;
-        Some(ResumeRequest {
-            session: ack.session,
-            epoch: ack.epoch,
-            revision: ack.revision,
-        })
+        let mounted = self.mounted.get(session)?;
+        Some(resume_from(session, &mounted.scene))
     }
 
     /// Apply one endpoint resume reply as a transaction. A broken replay keeps
@@ -587,11 +585,9 @@ impl ClientState {
                     .acknowledgement(session)
                     .ok_or(ResumeApplyError::UnknownSession)?;
                 if current.epoch != ack.epoch || current.revision != ack.revision {
-                    return Ok(ResumeApplication::Resynchronize(ResumeRequest {
-                        session: session.clone(),
-                        epoch: current.epoch,
-                        revision: current.revision,
-                    }));
+                    return Ok(ResumeApplication::Resynchronize(
+                        self.resume_request(session).unwrap(),
+                    ));
                 }
                 let mounted = self.mounted.get_mut(session).unwrap();
                 if !is_terminal_status(mounted.status) {
@@ -600,6 +596,8 @@ impl ClientState {
                 Ok(ResumeApplication::Current(ack))
             },
             ResumeReply::Diffs(diffs) => {
+                // One clone stages the whole suffix; each diff applies to it
+                // in place (engine split D201).
                 let mut next = self
                     .mounted
                     .get(session)
@@ -619,8 +617,12 @@ impl ClientState {
                         DiffApplication::Applied(ack) | DiffApplication::AlreadyApplied(ack) => {
                             last_ack = ack
                         },
-                        DiffApplication::Resynchronize(request) => {
-                            return Ok(ResumeApplication::Resynchronize(request));
+                        // Nothing staged is kept: resume from what is
+                        // acknowledged, not from where the suffix broke.
+                        DiffApplication::Resynchronize(_) => {
+                            return Ok(ResumeApplication::Resynchronize(
+                                self.resume_request(session).unwrap(),
+                            ));
                         },
                     }
                 }
@@ -891,14 +893,19 @@ fn stage_diff(
     if diff.version.major != chirograph::ProtocolVersion::V1.major {
         return Err(ClientDiffError::UnsupportedVersion);
     }
-    let outcome = match next.scene.apply_diff(&diff.scene) {
+    // `next` is already the caller's staged copy, so the diff applies to it
+    // in place. Its base and target are checked before anything applies.
+    let outcome = match next.scene.apply_diff_staged(&diff.scene) {
         Ok(outcome) => outcome,
-        Err(DiffError::WrongEpoch { .. } | DiffError::MissingBase { .. }) => {
-            return Ok(DiffApplication::Resynchronize(ResumeRequest {
-                session: diff.session.clone(),
-                epoch: next.scene.epoch,
-                revision: next.scene.revision,
-            }));
+        Err(
+            DiffError::WrongEpoch { .. }
+            | DiffError::MissingBase { .. }
+            | DiffError::Diverged { .. },
+        ) => {
+            return Ok(DiffApplication::Resynchronize(resume_from(
+                &diff.session,
+                &next.scene,
+            )));
         },
         Err(error) => return Err(ClientDiffError::InvalidScene(error)),
     };
@@ -912,28 +919,11 @@ fn stage_diff(
     }
     labels.record(&next.presentation, diff);
     for change in &diff.presentation {
-        match change {
-            PresentationChange::Bind(binding) => {
-                next.presentation
-                    .bindings
-                    .retain(|existing| existing.instance != binding.instance);
-                next.presentation.bindings.push(binding.clone());
-            },
-            PresentationChange::Unbind { instance } => next
-                .presentation
-                .bindings
-                .retain(|binding| binding.instance != *instance),
-            PresentationChange::ReplaceOffers { key, offers } => {
-                next.presentation.offers.insert(key.clone(), offers.clone());
-            },
-            PresentationChange::RemoveOffers { key } => {
-                next.presentation.offers.remove(key);
-            },
-            PresentationChange::InvalidateResource { resource } => {
-                resources.invalidated.insert(*resource);
-            },
+        if let PresentationChange::InvalidateResource { resource } = change {
+            resources.invalidated.insert(*resource);
         }
     }
+    next.presentation.apply_changes(&diff.presentation);
     validate_presentation(next).map_err(ClientDiffError::InvalidPresentation)?;
     if let Some(status) = diff.status {
         // Lapse statuses are terminal for this admitted projection. A replay
@@ -944,6 +934,12 @@ fn stage_diff(
             next.status == SessionStatus::Revoked && next.cache_policy.purge_on_revocation;
     }
     Ok(DiffApplication::Applied(ack))
+}
+
+/// A resume from a scene's epoch and revision, naming its engine revision.
+fn resume_from(session: &ProjectionSession, scene: &SceneSnapshot) -> ResumeRequest {
+    ResumeRequest::new(session.clone(), scene.epoch, scene.revision)
+        .with_engine(scene.engine_revision.clone())
 }
 
 fn is_terminal_status(status: SessionStatus) -> bool {
@@ -1119,6 +1115,8 @@ mod tests {
             version: ProtocolVersion::V1,
             session: session.clone(),
             scene: SceneDiff {
+                base_engine: None,
+                engine_revision: None,
                 epoch: SceneEpoch(1),
                 base: Revision(base),
                 revision: Revision(base + 1),
@@ -1615,6 +1613,8 @@ mod tests {
                 version: ProtocolVersion::V1,
                 session: session.clone(),
                 scene: SceneDiff {
+                    base_engine: None,
+                    engine_revision: None,
                     epoch: SceneEpoch(1),
                     base: Revision(8),
                     revision: Revision(9),
@@ -1627,6 +1627,7 @@ mod tests {
         assert_eq!(
             result,
             DiffApplication::Resynchronize(ResumeRequest {
+                engine_revision: None,
                 session,
                 epoch: SceneEpoch(1),
                 revision: Revision(4)
@@ -1670,6 +1671,8 @@ mod tests {
             version: ProtocolVersion::V1,
             session: session.clone(),
             scene: SceneDiff {
+                base_engine: None,
+                engine_revision: None,
                 epoch: SceneEpoch(1),
                 base: Revision(4),
                 revision: Revision(5),
@@ -1757,6 +1760,8 @@ mod tests {
             version: ProtocolVersion::V1,
             session,
             scene: SceneDiff {
+                base_engine: None,
+                engine_revision: None,
                 epoch: SceneEpoch(1),
                 base: Revision(4),
                 revision: Revision(5),
@@ -1816,6 +1821,8 @@ mod tests {
                 version: ProtocolVersion::V1,
                 session: session.clone(),
                 scene: SceneDiff {
+                    base_engine: None,
+                    engine_revision: None,
                     epoch: SceneEpoch(1),
                     base: Revision(4),
                     revision: Revision(5),

@@ -35,6 +35,8 @@ fn raise(trace: &SceneTrace, layer: i16) -> TraceStep {
     TraceStep::diff(
         format!("Raise to {layer}"),
         SceneDiff {
+            base_engine: None,
+            engine_revision: None,
             epoch: SceneEpoch(1),
             base: head,
             revision: Revision(head.0 + 1),

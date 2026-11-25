@@ -129,6 +129,7 @@ fn a_resuming_peer_is_caught_up_by_diff() {
 
     let reply = endpoint
         .resume(ResumeRequest {
+            engine_revision: None,
             session: session.clone(),
             epoch: EPOCH,
             revision: start,
@@ -151,6 +152,7 @@ fn a_peer_already_current_is_told_so_rather_than_re_sent() {
     let session = endpoint.session().clone();
     let reply = endpoint
         .resume(ResumeRequest {
+            engine_revision: None,
             session: session.clone(),
             epoch: EPOCH,
             revision: endpoint.current_revision(),

@@ -64,7 +64,8 @@ pub struct SceneSnapshot {
     /// The engine revision the scene was built from, beside the projection's
     /// epoch and counter (engine split D188, D189). Absent from the wire when
     /// unset, so older readers and writers see the snapshot they knew. A diff
-    /// applied on top does not restamp it.
+    /// that names its engine revisions restamps it; one that names none
+    /// leaves it as it was.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub engine_revision: Option<EngineRevision>,
 }

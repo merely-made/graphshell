@@ -174,6 +174,8 @@ fn backdrop_changes_cross_the_wire_in_stable_slots() {
     let mut state = snapshot();
     let added = backdrop(SourceIx(0), "fixture:floor");
     let diff = SceneDiff {
+        base_engine: None,
+        engine_revision: None,
         epoch: SceneEpoch(7),
         base: Revision(1),
         revision: Revision(2),
@@ -189,6 +191,8 @@ fn backdrop_changes_cross_the_wire_in_stable_slots() {
 
     state
         .apply_diff(&SceneDiff {
+            base_engine: None,
+            engine_revision: None,
             epoch: SceneEpoch(7),
             base: Revision(2),
             revision: Revision(3),
@@ -206,6 +210,8 @@ fn tombstoned_slots_are_not_reused() {
     let mut state = snapshot();
     state
         .apply_diff(&SceneDiff {
+            base_engine: None,
+            engine_revision: None,
             epoch: SceneEpoch(7),
             base: Revision(1),
             revision: Revision(2),
@@ -217,6 +223,8 @@ fn tombstoned_slots_are_not_reused() {
     let before = state.clone();
     let error = state
         .apply_diff(&SceneDiff {
+            base_engine: None,
+            engine_revision: None,
             epoch: SceneEpoch(7),
             base: Revision(2),
             revision: Revision(3),
@@ -235,6 +243,8 @@ fn tombstoned_slots_are_not_reused() {
 fn duplicate_diff_is_an_idempotent_noop() {
     let mut state = snapshot();
     let diff = SceneDiff {
+        base_engine: None,
+        engine_revision: None,
         epoch: SceneEpoch(7),
         base: Revision(1),
         revision: Revision(2),
@@ -253,6 +263,8 @@ fn duplicate_diff_is_an_idempotent_noop() {
 fn missing_base_and_wrong_epoch_request_resynchronization() {
     let mut state = snapshot();
     let missing = SceneDiff {
+        base_engine: None,
+        engine_revision: None,
         epoch: SceneEpoch(7),
         base: Revision(9),
         revision: Revision(10),
@@ -266,6 +278,8 @@ fn missing_base_and_wrong_epoch_request_resynchronization() {
         })
     );
     let other_epoch = SceneDiff {
+        base_engine: None,
+        engine_revision: None,
         epoch: SceneEpoch(8),
         base: Revision(1),
         revision: Revision(2),
@@ -298,6 +312,8 @@ fn dangling_relations_reject_the_whole_diff() {
     let before = state.clone();
     assert!(matches!(
         state.apply_diff(&SceneDiff {
+            base_engine: None,
+            engine_revision: None,
             epoch: SceneEpoch(7),
             base: Revision(1),
             revision: Revision(2),
@@ -315,6 +331,8 @@ fn explicit_order_is_independent_of_stable_slot() {
     let mut state = snapshot();
     state
         .apply_diff(&SceneDiff {
+            base_engine: None,
+            engine_revision: None,
             epoch: SceneEpoch(7),
             base: Revision(1),
             revision: Revision(2),
@@ -341,6 +359,8 @@ fn explicit_order_is_independent_of_stable_slot() {
 fn snapshot_and_diff_round_trip_with_tombstones() {
     let mut state = snapshot();
     let diff = SceneDiff {
+        base_engine: None,
+        engine_revision: None,
         epoch: SceneEpoch(7),
         base: Revision(1),
         revision: Revision(2),
@@ -407,6 +427,8 @@ fn deterministic_random_diff_run_matches_full_rebuild_oracle() {
         let base = Revision(step + 1);
         state
             .apply_diff(&SceneDiff {
+                base_engine: None,
+                engine_revision: None,
                 epoch: SceneEpoch(7),
                 base,
                 revision: Revision(step + 2),
@@ -455,6 +477,8 @@ fn placed_relation_outcomes_and_order_survive_snapshot_and_diff() {
     assert_eq!(decoded.tables.arrangement_order, vec![InstanceId(0)]);
     snapshot
         .apply_diff(&SceneDiff {
+            base_engine: None,
+            engine_revision: None,
             epoch: SceneEpoch(1),
             base: Revision(1),
             revision: Revision(2),
@@ -489,6 +513,8 @@ fn frame_metadata_survives_snapshots_and_invalid_frame_diffs_are_atomic() {
     assert!(
         snapshot
             .apply_diff(&SceneDiff {
+                base_engine: None,
+                engine_revision: None,
                 epoch: SceneEpoch(1),
                 base: Revision(1),
                 revision: Revision(2),
@@ -501,6 +527,8 @@ fn frame_metadata_survives_snapshots_and_invalid_frame_diffs_are_atomic() {
     assert_eq!(snapshot, before);
     snapshot
         .apply_diff(&SceneDiff {
+            base_engine: None,
+            engine_revision: None,
             epoch: SceneEpoch(1),
             base: Revision(1),
             revision: Revision(2),

@@ -401,6 +401,7 @@ fn resynchronize_is_resume_not_snapshot() {
     // projection rather than recovering a session.
     let session = ProjectionSession("s".into());
     let resync = CarrierRequestBody::Resume(ResumeRequest {
+        engine_revision: None,
         session: session.clone(),
         epoch: SceneEpoch(1),
         revision: Revision(4),
@@ -481,6 +482,8 @@ fn diff_replay_round_trips_as_a_carrier_neutral_message() {
         version: ProtocolVersion::V1,
         session: ProjectionSession("local:fixture".into()),
         scene: SceneDiff {
+            base_engine: None,
+            engine_revision: None,
             epoch: SceneEpoch(5),
             base: Revision(8),
             revision: Revision(9),

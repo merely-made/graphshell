@@ -217,7 +217,10 @@ pub struct MereHost<B> {
     epoch_stored: u64,
     pub(crate) projection_revision: u64,
     resources: BTreeMap<ContentHash, Vec<u8>>,
-    instance_targets: Vec<NodeKey>,
+    /// Each node slot's node, `None` for a slot whose node left.
+    instance_targets: Vec<Option<NodeKey>>,
+    /// The slot each node keeps within the epoch (engine binding D6).
+    instance_slots: slots::InstanceSlots,
     reopened: bool,
     /// Another view of this store holds its one writer: this host reads the
     /// committed session and stores nothing.
@@ -263,6 +266,8 @@ mod pin;
 mod resident_presentation;
 #[path = "mere_host_resident.rs"]
 mod resident_transaction;
+#[path = "mere_host_slots.rs"]
+mod slots;
 
 /// Changes not yet stored, taken as one batch by [`MereHost::prepare_store`]
 /// for its caller to write. Mark it stored once it commits.
@@ -349,6 +354,7 @@ impl<B: Backend + Clone> MereHost<B> {
             projection_revision: 1,
             resources: BTreeMap::new(),
             instance_targets: Vec::new(),
+            instance_slots: Default::default(),
             reopened,
             observing: false,
             launch: 0,
@@ -904,8 +910,7 @@ impl<B: Backend> MereHost<B> {
         self.instance_targets
             .iter()
             .position(|key| {
-                self.scene_graph()
-                    .get_node(*key)
+                key.and_then(|key| self.scene_graph().get_node(key))
                     .is_some_and(|node| node.url() == address)
             })
             .map(|index| InstanceId(index as u32 + self.node_offset()))
@@ -1191,6 +1196,7 @@ impl<B: Backend> MereHost<B> {
         let mut resources = BTreeMap::new();
         let mut instance_targets = Vec::with_capacity(layout.positions.len());
         let mut instance_of = HashMap::with_capacity(layout.positions.len());
+        let mut position_of = HashMap::with_capacity(layout.positions.len());
         let mut min_x = f32::INFINITY;
         let mut min_y = f32::INFINITY;
         let mut max_x = f32::NEG_INFINITY;
@@ -1282,14 +1288,38 @@ impl<B: Backend> MereHost<B> {
             resources.insert(resource, bytes);
         }
 
-        for (index, (key, position)) in layout.positions.iter().copied().enumerate() {
+        // Each node keeps its slot within the epoch whatever the layout's
+        // order (engine binding D6); a slot whose node left stays, tombstoned
+        // below, and its source is interned again so later ones keep theirs.
+        let ids: Vec<(uuid::Uuid, SourceRef)> = layout
+            .positions
+            .iter()
+            .map(|(key, _)| {
+                let id = self
+                    .scene_graph()
+                    .get_node(*key)
+                    .expect("Mere canvas returned a key from this graph")
+                    .id;
+                (id, SourceRef::new("mere.graph", id.to_string()))
+            })
+            .collect();
+        let placed = self.instance_slots.place(self.projection_epoch, &ids);
+        for (slot, rank) in placed.rank.iter().copied().enumerate() {
+            let Some(rank) = rank else {
+                let source = interner.intern(&mut scene, placed.source[slot].clone());
+                scene.items.push(slots::left(source));
+                instance_targets.push(None);
+                continue;
+            };
+            let (key, position) = layout.positions[rank];
             let node = self
                 .scene_graph()
                 .get_node(key)
                 .expect("Mere canvas returned a key from this graph");
-            let instance = InstanceId(index as u32 + offset);
-            instance_targets.push(key);
+            let instance = InstanceId(slot as u32 + offset);
+            instance_targets.push(Some(key));
             instance_of.insert(key, instance);
+            position_of.insert(key, position);
             min_x = min_x.min(position.x);
             min_y = min_y.min(position.y);
             max_x = max_x.max(position.x);
@@ -1422,8 +1452,8 @@ impl<B: Backend> MereHost<B> {
             ) else {
                 continue;
             };
-            let from_position = layout.positions[(from.0 - offset) as usize].1;
-            let to_position = layout.positions[(to.0 - offset) as usize].1;
+            let from_position = position_of[&relation.from];
+            let to_position = position_of[&relation.to];
             scene.relations.push(RoutedRelation {
                 form: Default::default(),
                 from,
@@ -1464,13 +1494,15 @@ impl<B: Backend> MereHost<B> {
             )
         };
         scene.generation = self.projection_revision;
-        let scene = SceneSnapshot::from_dense(
+        let mut scene = SceneSnapshot::from_dense(
             SceneEpoch(self.projection_epoch),
             Revision(self.projection_revision),
             scene,
         )
         .map_err(|error| MereHostError::InvalidSnapshot(format!("{error:?}")))?
         .with_engine_revision(engine);
+        slots::settle(&mut scene, &placed, offset, self.session_item)
+            .map_err(|error| MereHostError::InvalidSnapshot(format!("{error:?}")))?;
 
         self.resources = resources;
         self.instance_targets = instance_targets;
@@ -1639,8 +1671,8 @@ impl<B: Backend> IntentSink for MereHost<B> {
             .target
             .0
             .checked_sub(self.node_offset())
-            .and_then(|index| self.instance_targets.get(index as usize))
-            .and_then(|&target| self.live_target(target))
+            .and_then(|index| self.instance_targets.get(index as usize).copied().flatten())
+            .and_then(|target| self.live_target(target))
         else {
             return Ok(IntentResult::Rejected {
                 reason: "intent target is not in the disclosed scene".to_string(),

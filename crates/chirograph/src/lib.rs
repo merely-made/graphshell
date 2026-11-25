@@ -31,9 +31,12 @@ pub use titulus::{
 };
 
 pub use presentation::{PresentationValidationError, validate_presentation};
-// Resume: the acknowledgement, the request and its reply.
+// Resume, answered with a keyframe; the deltas a producer could retain (E3).
 mod resume;
-pub use resume::{ProjectionAck, ResumeReply, ResumeRequest};
+pub use resume::{
+    Advance, DeltaRetention, ProjectionAck, RETAINED_DELTAS, ResumeReply, ResumeRequest, WireSize,
+    keyframe_reply,
+};
 pub use scenotime::{EngineRevision, Revision, SceneDiff, SceneEpoch, SceneSnapshot};
 
 // Portable projection captures, apart from the live wire they snapshot.
