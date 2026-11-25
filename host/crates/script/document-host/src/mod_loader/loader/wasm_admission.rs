@@ -140,6 +140,17 @@ impl InstallRecord {
         self.last_trap = Some(RecordEvent::now(why));
     }
 
+    /// Record the outcome of `check` (D1) as the last check.
+    pub fn note_check(&mut self, outcome: impl Into<String>) {
+        self.last_check = Some(RecordEvent::now(outcome));
+    }
+
+    /// Record the outcome of a toolchain build of the component (D1), a success or
+    /// the plain reason it did not happen. Leaves `build_hash`, the `.cwasm`, alone.
+    pub fn note_component_build(&mut self, outcome: impl Into<String>) {
+        self.last_build = Some(RecordEvent::now(outcome));
+    }
+
     pub fn note_build(&mut self, build_hash: String) {
         self.last_build = Some(RecordEvent::now(build_hash.clone()));
         self.build_hash = Some(build_hash);

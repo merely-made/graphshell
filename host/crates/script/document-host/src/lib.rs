@@ -108,12 +108,16 @@ fn seed_dom() -> ScriptedDom {
     dom
 }
 
+mod builder;
 mod capabilities;
+mod check;
 mod host;
 mod net;
 mod script;
 
+pub use builder::*;
 pub use capabilities::*;
+pub use check::*;
 pub use host::*;
 pub use net::*;
 pub use script::*;

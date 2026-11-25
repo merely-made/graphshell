@@ -63,7 +63,10 @@ use wasmtime::{Engine, Store, StoreLimits};
 /// guarded one only so a host-built `.cwasm` is config-compatible with it.
 const NO_DEADLINE: u64 = 1 << 40;
 
-use crate::{CapPermission, DocumentCore, Grant, ScriptHost, build_instance, seed_dom};
+use crate::{
+    BuildError, BuiltComponent, CapPermission, CheckReport, ComponentBuilder, DocumentCore, Grant,
+    ScriptHost, World, build_instance, seed_dom,
+};
 
 /// One activated wasm mod: the live store + bindings, retained so `deactivate` can
 /// drive the teardown export before the store (and the instance it owns) is freed.
@@ -179,6 +182,62 @@ impl DocumentScriptRuntime {
         std::fs::write(out, &cwasm).map_err(|e| format!("{}: {e}", out.display()))?;
         record.note_build(hash_bytes(&cwasm));
         Ok(record.clone())
+    }
+
+    /// The surface's grant for `manifest`: what `activate` would link. Dev mode never
+    /// grants (D2).
+    fn grant_of(&self, manifest: &ModManifest) -> Grant {
+        let dev = self
+            .record(&manifest.mod_id)
+            .is_some_and(|r| r.level == AdmissionLevel::DevMode);
+        grant_for(manifest, if dev { &[] } else { &self.allowed })
+    }
+
+    /// Check the component at `component` against the grant this surface gives
+    /// `manifest` and against `world`, and keep the result as the record's last
+    /// check (MP2, D1).
+    ///
+    /// # Errors
+    ///
+    /// The refusal, when the file is unreadable or not a component.
+    pub fn check(
+        &self,
+        manifest: &ModManifest,
+        component: &Path,
+        world: &World,
+    ) -> Result<CheckReport, WasmRefusal> {
+        let report = crate::check(component, &self.grant_of(manifest), world)?;
+        if let Ok(mut records) = self.records.lock() {
+            if let Some(r) = records.get_mut(&manifest.mod_id) {
+                r.note_check(report.words());
+            }
+        }
+        Ok(report)
+    }
+
+    /// Build the project of `mod_id` with `builder` and keep the outcome as the
+    /// record's last build. The component is not re-admitted; a conformant mod
+    /// still needs `admit` with `readmit` to pin it (D1).
+    ///
+    /// # Errors
+    ///
+    /// The builder's reason.
+    pub fn build_project(
+        &self,
+        mod_id: &str,
+        builder: &dyn ComponentBuilder,
+        project: &Path,
+    ) -> Result<BuiltComponent, BuildError> {
+        let result = builder.build(project);
+        if let Ok(mut records) = self.records.lock() {
+            if let Some(r) = records.get_mut(mod_id) {
+                r.note_component_build(match &result {
+                    Ok(b) => format!("built {}", b.path.display()),
+                    Err(e) => e.words(),
+                });
+            }
+        }
+        result
     }
 
     /// Whether `mod_id` is currently active.
