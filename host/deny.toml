@@ -33,10 +33,6 @@ deny = [
 ]
 
 [[bans.skip]]
-crate = "accesskit@0.24.1"
-reason = "held by egui 0.36.2; gone when its holders move to accesskit 0.25.1 (egui 0.36.2 in the graph, 0.37.0 newest)"
-
-[[bans.skip]]
 crate = "addr2line@0.26.1"
 reason = "held by wasmtime 45.0.3; gone when its holders move to addr2line 0.27.1 (wasmtime 45.0.3 in the graph, 50.0.1 newest)"
 
@@ -169,6 +165,10 @@ reason = "held by aes-gcm 0.10.3; gone when its holders move to ghash 0.6.0 (aes
 [[bans.skip]]
 crate = "gimli@0.33.0"
 reason = "held by addr2line 0.26.1, cranelift-codegen 0.132.3, wasmtime 45.0.3, wasmtime-environ 45.0.3 +3 more; gone when its holders move to gimli 0.34.0 (addr2line 0.26.1 in the graph, 0.27.1 newest; cranelift-codegen 0.132.3 in the graph, 0.137.1 newest)"
+
+[[bans.skip]]
+crate = "harfrust@0.12.0"
+reason = "held by cosmic-text 0.19.0 (newest) and epaint 0.37.0 (newest), while genet-parley takes harfrust 0.16.1; gone when cosmic-text and epaint move to harfrust 0.16"
 
 [[bans.skip]]
 crate = "hash32@0.2.1"
@@ -345,7 +345,7 @@ reason = "held by rand 0.9.5, rand_chacha 0.9.0; gone when its holders move to r
 
 [[bans.skip]]
 crate = "read-fonts@0.41.0"
-reason = "held by skrifa 0.44.0 and harfrust 0.12.0 under cosmic-text 0.19.0 and swash 0.2.10 (both newest), epaint 0.36.2 and genet-parley 0.11.0, while netrender-vello 0.12.0's skrifa 0.49.0 takes read-fonts 0.46.0; gone when cosmic-text and swash move to skrifa 0.49"
+reason = "held by skrifa 0.44.0 and harfrust 0.12.0 under cosmic-text 0.19.0 and swash 0.2.10 (both newest) and epaint 0.37.0 (newest), while netrender, netrender-vello 0.12.1 and genet-parley take read-fonts 0.47.0; gone when cosmic-text, swash and epaint move to skrifa 0.50"
 
 [[bans.skip]]
 crate = "redox_syscall@0.5.18"
@@ -377,7 +377,7 @@ reason = "held by lalrpop 0.22.2 under wgsl-parse 0.4.0, beside sha3 0.11.0 from
 
 [[bans.skip]]
 crate = "skrifa@0.44.0"
-reason = "held by cosmic-text 0.19.0 and swash 0.2.10 (both newest), epaint 0.36.2, glifo 0.2.0 and genet-parley 0.11.0, while netrender-vello 0.12.0 and netrender 0.2.0 take skrifa 0.49.0; gone when cosmic-text and swash move to skrifa 0.49"
+reason = "held by cosmic-text 0.19.0 and swash 0.2.10 (both newest), epaint 0.37.0 (newest) and glifo 0.3.0 under its vello_cpu 0.2.0 (glifo 0.5.0 newest, on skrifa 0.49), while netrender, netrender-vello 0.12.1 and genet-parley take skrifa 0.50.0; gone when cosmic-text, swash, epaint and glifo move to skrifa 0.50"
 
 [[bans.skip]]
 crate = "smol_str@0.1.24"
