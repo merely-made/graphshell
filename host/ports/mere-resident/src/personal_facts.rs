@@ -80,7 +80,7 @@ impl PersonalFactsClient {
             observed_epoch: snapshot.scene.epoch,
             observed_revision: snapshot.scene.revision,
             intent: crate::resident_reservoir::RESERVOIR_ENSURE_MERE_INTENT.into(),
-            payload: serde_json::to_vec(&crate::resident_reservoir::EnsureMereV1::new(
+            payload: chirograph::wire::encode(&crate::resident_reservoir::EnsureMereV1::new(
                 personal_facts::DOMAIN,
             ))
             .map_err(err)?,
@@ -283,7 +283,7 @@ impl PersonalFactsClient {
                 observed_epoch: sessions.scene.epoch,
                 observed_revision: sessions.scene.revision,
                 intent: wire::MINT_SESSION_INTENT.into(),
-                payload: serde_json::to_vec(&wire::SessionsActionV1::mint(Some(
+                payload: chirograph::wire::encode(&wire::SessionsActionV1::mint(Some(
                     "Personal facts".into(),
                 )))
                 .map_err(err)?,
@@ -323,7 +323,7 @@ impl PersonalFactsClient {
                 observed_epoch: projection.scene.epoch,
                 observed_revision: projection.scene.revision,
                 intent: wire::APPLY_EDITS_INTENT.into(),
-                payload: serde_json::to_vec(&wire::ApplyEditsV1::checked(envelope.revision, steps))
+                payload: chirograph::wire::encode(&wire::ApplyEditsV1::checked(envelope.revision, steps))
                     .map_err(err)?,
             };
             accepted(

@@ -31,7 +31,7 @@ fn graph_intent(session: &ProjectionSnapshot, intent: &str, payload: Vec<u8>) ->
 }
 
 fn setting(enabled: bool) -> Vec<u8> {
-    serde_json::to_vec(&KeepSettingV1 {
+    chirograph::wire::encode(&KeepSettingV1 {
         enabled,
         ..KeepSettingV1::default()
     })
@@ -39,7 +39,7 @@ fn setting(enabled: bool) -> Vec<u8> {
 }
 
 fn keep(pages: &[(&str, &str)]) -> Vec<u8> {
-    serde_json::to_vec(&KeepPagesV1 {
+    chirograph::wire::encode(&KeepPagesV1 {
         fetches: Vec::new(),
         pages: pages
             .iter()
@@ -94,12 +94,12 @@ async fn switching_keeping_preserves_the_existing_page_policy() {
         excluded_origins: ["https://blocked.test".into()].into(),
     };
     assert_eq!(
-        app.invoke(graph_intent(&graph, KEEP_SETTING_INTENT, serde_json::to_vec(&setting).unwrap()))
+        app.invoke(graph_intent(&graph, KEEP_SETTING_INTENT, chirograph::wire::encode(&setting).unwrap()))
             .unwrap(),
         IntentResult::Accepted,
     );
     for enabled in [false, true] {
-        let payload = serde_json::to_vec(&KeepEnabledV1 { enabled }).unwrap();
+        let payload = chirograph::wire::encode(&KeepEnabledV1 { enabled }).unwrap();
         assert_eq!(app.invoke(graph_intent(&graph, KEEP_ENABLED_INTENT, payload)).unwrap(),
             IntentResult::Accepted);
         let kept = read(&mut app, &graph, Default::default()).unwrap().keeping;
@@ -492,7 +492,7 @@ async fn an_explicit_fetch_is_recorded_beside_the_text_it_produced() {
         text_bytes: text.len() as u64,
         text_version: eidetic::Hash::of(text.as_bytes()).to_hex(),
     };
-    let payload = serde_json::to_vec(&KeepPagesV1 {
+    let payload = chirograph::wire::encode(&KeepPagesV1 {
         pages: vec![KeptPage { url: record.final_url.clone(), text: text.into(), at_ms: 0, private: false }],
         fetches: vec![record.clone()],
     })

@@ -80,7 +80,7 @@ fn open(host: &MereHost<MemoryBackend>, scene: &SceneSnapshot, n: u128) -> Inten
         observed_epoch: scene.epoch,
         observed_revision: scene.revision,
         intent: intent_id(HANDLER),
-        payload: serde_json::to_vec(&OpenAddressV1 {
+        payload: chirograph::wire::encode(&OpenAddressV1 {
             address: url(n),
             handler: HANDLER.to_string(),
         })

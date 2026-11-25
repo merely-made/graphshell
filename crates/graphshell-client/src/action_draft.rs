@@ -300,7 +300,7 @@ mod tests {
         assert_eq!(invocation.observed_revision, Revision(9));
         assert_eq!(invocation.intent, "fixture.choose");
         assert_eq!(
-            serde_json::from_slice::<serde_json::Value>(&invocation.payload).unwrap(),
+            chirograph::wire::decode::<serde_json::Value>(&invocation.payload).unwrap(),
             serde_json::json!({
                 "schema": "fixture.choose/v1",
                 "inspection_scope": "outline",

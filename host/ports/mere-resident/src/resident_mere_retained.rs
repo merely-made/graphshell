@@ -130,7 +130,7 @@ impl MereEndpoint {
             let setting = match intent.intent.as_str() {
                 KEEP_SETTING_INTENT => {
                     let asked: KeepSettingV1 =
-                        serde_json::from_slice(&intent.payload).map_err(|e| e.to_string())?;
+                        chirograph::wire::decode(&intent.payload).map_err(|e| e.to_string())?;
                     Some(KeepPageText {
                         enabled: asked.enabled,
                         max_bytes: asked.max_bytes,
@@ -139,7 +139,7 @@ impl MereEndpoint {
                 },
                 KEEP_ENABLED_INTENT => {
                     let asked: KeepEnabledV1 =
-                        serde_json::from_slice(&intent.payload).map_err(|e| e.to_string())?;
+                        chirograph::wire::decode(&intent.payload).map_err(|e| e.to_string())?;
                     if let Keeping::Paused(reason) = store.keeping().await? {
                         return rejected(reason);
                     }
@@ -156,7 +156,7 @@ impl MereEndpoint {
                 };
             }
             let asked: KeepPagesV1 =
-                serde_json::from_slice(&intent.payload).map_err(|e| e.to_string())?;
+                chirograph::wire::decode(&intent.payload).map_err(|e| e.to_string())?;
             let setting = match store.permit_write().await {
                 Ok(setting) => setting,
                 Err(Keeping::Off) => {

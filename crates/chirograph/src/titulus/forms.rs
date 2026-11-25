@@ -62,7 +62,8 @@ impl ActionFormV1 {
         Ok(())
     }
 
-    /// Build the version-one JSON payload after checking the endpoint's form.
+    /// Build the version-one payload, canonical CBOR, after checking the
+    /// endpoint's form.
     pub fn compose_payload(
         &self,
         expected_schema: &str,
@@ -104,7 +105,8 @@ impl ActionFormV1 {
             values: &'a BTreeMap<String, String>,
         }
 
-        serde_json::to_vec(&Payload {
+        // Canonical CBOR, as every intent payload (engine split D231).
+        crate::wire::encode(&Payload {
             schema: &self.schema,
             values,
         })

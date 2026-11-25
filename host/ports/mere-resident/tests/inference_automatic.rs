@@ -503,7 +503,7 @@ async fn exercise_inner(native: bool) {
                 &mut client,
                 &projection,
                 ASK_INTENT,
-                serde_json::to_vec(&AskRequestV1 {
+                chirograph::wire::encode(&AskRequestV1 {
                     run: run.into(),
                     question: question.into()
                 })

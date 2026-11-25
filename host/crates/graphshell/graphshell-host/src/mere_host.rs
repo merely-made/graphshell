@@ -1688,7 +1688,7 @@ impl<B: Backend> IntentSink for MereHost<B> {
                 reason: "selected handler is unavailable".to_string(),
             });
         };
-        let payload: OpenAddressV1 = match serde_json::from_slice(&intent.payload) {
+        let payload: OpenAddressV1 = match chirograph::wire::decode(&intent.payload) {
             Ok(payload) => payload,
             Err(error) => {
                 return Ok(IntentResult::Rejected {

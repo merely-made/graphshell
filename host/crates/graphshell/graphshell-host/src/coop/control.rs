@@ -90,7 +90,7 @@ impl IntentSink for Endpoint {
         if intent.observed_epoch != SceneEpoch(1) || intent.observed_revision != self.revision {
             return Ok(IntentResult::stale(SceneEpoch(1), self.revision));
         }
-        let request = serde_json::from_slice(&intent.payload).map_err(|e| e.to_string())?;
+        let request = chirograph::wire::decode(&intent.payload).map_err(|e| e.to_string())?;
         match (self.call)(request) {
             Ok(reply) => {
                 self.revision = Revision(
@@ -236,7 +236,7 @@ mod tests {
             observed_epoch: SceneEpoch(1),
             observed_revision: Revision(0),
             intent: INTENT.into(),
-            payload: serde_json::to_vec(&Request::Read { graph }).unwrap(),
+            payload: chirograph::wire::encode(&Request::Read { graph }).unwrap(),
         };
         assert_eq!(
             endpoint.invoke(intent.clone()).unwrap(),

@@ -173,12 +173,15 @@ impl MereRouteSession {
                         })
                         .cloned()
                         .ok_or("The owner no longer advertises that action.")?;
-                    let payload: serde_json::Value =
-                        serde_json::from_slice(&invocation.payload).map_err(|e| e.to_string())?;
                     self.driver
                         .core_mut()
                         .ok_or("The route is closed.")?
-                        .invoke(&invocation.session, invocation.target, &action, &payload)?
+                        .invoke_encoded(
+                            &invocation.session,
+                            invocation.target,
+                            &action,
+                            invocation.payload.clone(),
+                        )?
                 },
             };
             self.current = Some(task);

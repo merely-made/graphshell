@@ -421,7 +421,7 @@ async fn ensure(
             observed_epoch: snapshot.scene.epoch,
             observed_revision: snapshot.scene.revision,
             intent: RESERVOIR_ENSURE_MERE_INTENT.into(),
-            payload: serde_json::to_vec(&EnsureMereV1::new(domain.as_str()))
+            payload: chirograph::wire::encode(&EnsureMereV1::new(domain.as_str()))
                 .expect("ensure payload serializes"),
         }))
         .await?;

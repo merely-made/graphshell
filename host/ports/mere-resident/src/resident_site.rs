@@ -391,7 +391,7 @@ impl IntentSink for PublishedSiteEndpoint {
         }
         match intent.intent.as_str() {
             PUBLISHED_SITE_PREPARE_INTENT => {
-                let prepare: PublishedSitePrepareV1 = serde_json::from_slice(&intent.payload)
+                let prepare: PublishedSitePrepareV1 = chirograph::wire::decode(&intent.payload)
                     .map_err(|error| format!("invalid published-site prepare: {error}"))?;
                 prepare.policy.validate()?;
                 if prepare.total_bytes == 0
@@ -419,7 +419,7 @@ impl IntentSink for PublishedSiteEndpoint {
                 Ok(IntentResult::Accepted)
             },
             PUBLISHED_SITE_CHUNK_INTENT => {
-                let chunk: PublishedSiteChunkV1 = serde_json::from_slice(&intent.payload)
+                let chunk: PublishedSiteChunkV1 = chirograph::wire::decode(&intent.payload)
                     .map_err(|error| format!("invalid published-site chunk: {error}"))?;
                 let Some(pending) = self.pending.as_mut() else {
                     return Ok(IntentResult::Rejected {

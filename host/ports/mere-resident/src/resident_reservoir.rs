@@ -490,7 +490,7 @@ impl IntentSink for ReservoirEndpoint {
         }
         match intent.intent.as_str() {
             RESERVOIR_ENSURE_MERE_INTENT => {
-                let ensure: EnsureMereV1 = match serde_json::from_slice(&intent.payload) {
+                let ensure: EnsureMereV1 = match chirograph::wire::decode(&intent.payload) {
                     Ok(ensure) => ensure,
                     Err(error) => {
                         return Ok(IntentResult::Rejected {
@@ -585,7 +585,7 @@ mod tests {
             observed_epoch: snapshot.scene.epoch,
             observed_revision: snapshot.scene.revision,
             intent: RESERVOIR_ENSURE_MERE_INTENT.into(),
-            payload: serde_json::to_vec(&EnsureMereV1::new(domain)).unwrap(),
+            payload: chirograph::wire::encode(&EnsureMereV1::new(domain)).unwrap(),
         }
     }
 

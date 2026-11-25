@@ -290,7 +290,7 @@ impl MereEndpoint {
         }
         match intent.intent.as_str() {
             SEARCH_NOTES_INTENT => {
-                let search = match serde_json::from_slice::<SearchNotesV1>(&intent.payload) {
+                let search = match chirograph::wire::decode::<SearchNotesV1>(&intent.payload) {
                     Ok(search) if search.schema == SEARCH_NOTES_SCHEMA => search,
                     Ok(search) => {
                         return reject(format!("unknown search schema {:?}", search.schema));
@@ -313,7 +313,7 @@ impl MereEndpoint {
                         "read-only archive; fork the session before appending a note".into(),
                     );
                 }
-                let note = match serde_json::from_slice::<AppendNoteV1>(&intent.payload) {
+                let note = match chirograph::wire::decode::<AppendNoteV1>(&intent.payload) {
                     Ok(note) => note,
                     Err(error) => return reject(format!("invalid note payload: {error}")),
                 };

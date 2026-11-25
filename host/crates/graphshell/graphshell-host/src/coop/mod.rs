@@ -655,7 +655,7 @@ impl<B: pandect::graph_session::LegacyTransactionBackend + Clone> IntentSink for
             {
                 return Err("action is not offered by this graph".into());
             }
-            let edit: Edit = serde_json::from_slice(&intent.payload).map_err(|e| e.to_string())?;
+            let edit: Edit = chirograph::wire::decode(&intent.payload).map_err(|e| e.to_string())?;
             if intent.observed_epoch != edit.epoch || intent.observed_revision != edit.revision {
                 return Err("edit observation does not match invocation".into());
             }

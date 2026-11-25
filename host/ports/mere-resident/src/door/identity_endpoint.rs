@@ -242,7 +242,7 @@ impl<A: IdentityAuthority + ?Sized> IdentityEndpoint<A> {
                     .to_string(),
             };
         };
-        let accepted: TransferAcceptIntentV1 = match serde_json::from_slice(payload) {
+        let accepted: TransferAcceptIntentV1 = match chirograph::wire::decode(payload) {
             Ok(accepted) => accepted,
             Err(error) => {
                 return IntentResult::Rejected {
@@ -874,7 +874,7 @@ mod tests {
             })
             .unwrap()
             .instance;
-        let payload = serde_json::to_vec(&GenerateSshKeyIntentV1 {
+        let payload = chirograph::wire::encode(&GenerateSshKeyIntentV1 {
             comment: "generated through endpoint".to_string(),
             unlock_policy: SshUnlockPolicyIntentV1::Session,
         })
@@ -1077,7 +1077,7 @@ mod tests {
         endpoint.with_decisions(Arc::clone(&decisions));
 
         let transfer = "3f6b1e28-0000-4000-8000-00000000ffee";
-        let payload = serde_json::to_vec(&TransferAcceptIntentV1 {
+        let payload = chirograph::wire::encode(&TransferAcceptIntentV1 {
             schema: TRANSFER_ACCEPT_SCHEMA.to_string(),
             transfer_id: transfer.to_string(),
         })
@@ -1134,6 +1134,21 @@ mod tests {
             })
         };
 
+        // The same accept as JSON, or with trailing bytes, is refused (D231).
+        let json = serde_json::to_vec(&TransferAcceptIntentV1 {
+            schema: TRANSFER_ACCEPT_SCHEMA.to_string(),
+            transfer_id: transfer.to_string(),
+        })
+        .unwrap();
+        let mut trailing = payload.clone();
+        trailing.push(0);
+        for refused in [json, trailing] {
+            assert!(matches!(
+                invoke(&mut endpoint, target, &refused).unwrap(),
+                IntentResult::Rejected { .. }
+            ));
+        }
+        assert!(decisions.lock().unwrap().is_empty());
         assert!(matches!(
             invoke(&mut endpoint, target, &payload).unwrap(),
             IntentResult::Accepted
@@ -1169,7 +1184,7 @@ mod tests {
     #[test]
     fn accepting_without_a_place_to_record_it_is_refused() {
         let (endpoint, _) = endpoint_with_private_sentinel();
-        let payload = serde_json::to_vec(&TransferAcceptIntentV1 {
+        let payload = chirograph::wire::encode(&TransferAcceptIntentV1 {
             schema: TRANSFER_ACCEPT_SCHEMA.to_string(),
             transfer_id: "whatever".into(),
         })
@@ -1232,7 +1247,7 @@ pub mod test_support {
         /// confirmation gate: a payload saying `"confirmed": false` is
         /// refused, as an unconfirmed device revocation is.
         fn apply_intent(&self, intent: &str, payload: &[u8]) -> Result<(), String> {
-            let unconfirmed = serde_json::from_slice::<serde_json::Value>(payload)
+            let unconfirmed = chirograph::wire::decode::<serde_json::Value>(payload)
                 .ok()
                 .and_then(|value| value.get("confirmed").and_then(|c| c.as_bool()))
                 == Some(false);
@@ -1333,7 +1348,7 @@ pub mod test_support {
                 observed_epoch: before.scene.epoch,
                 observed_revision: before.scene.revision,
                 intent: DEVICE_REVOKE_INTENT.to_string(),
-                payload: serde_json::to_vec(&RevokeDeviceIntentV1 {
+                payload: chirograph::wire::encode(&RevokeDeviceIntentV1 {
                     device_id,
                     confirmed: false,
                 })
@@ -1348,7 +1363,7 @@ pub mod test_support {
                 observed_epoch: before.scene.epoch,
                 observed_revision: before.scene.revision,
                 intent: DEVICE_REVOKE_INTENT.to_string(),
-                payload: serde_json::to_vec(&RevokeDeviceIntentV1 {
+                payload: chirograph::wire::encode(&RevokeDeviceIntentV1 {
                     device_id,
                     confirmed: true,
                 })

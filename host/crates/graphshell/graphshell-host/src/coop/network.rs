@@ -350,7 +350,7 @@ impl Guest {
             intent: EDIT_INTENT.into(),
             observed_epoch: edit.epoch,
             observed_revision: edit.revision,
-            payload: serde_json::to_vec(&edit).map_err(|e| e.to_string())?,
+            payload: chirograph::wire::encode(&edit).map_err(|e| e.to_string())?,
         };
         let response = self
             .request(CarrierRequestBody::Intent(invocation))

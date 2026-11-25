@@ -314,7 +314,7 @@ async fn browser_carrier_delivers_public_identity_cards_and_an_approval() {
                 observed_epoch: acknowledgement.epoch,
                 observed_revision: acknowledgement.revision,
                 intent: SIGNING_APPROVE_ONCE_INTENT.to_string(),
-                payload: serde_json::to_vec(&SigningDecisionIntentV1 { request_id }).unwrap(),
+                payload: chirograph::wire::encode(&SigningDecisionIntentV1 { request_id }).unwrap(),
             }),
         ))
         .await

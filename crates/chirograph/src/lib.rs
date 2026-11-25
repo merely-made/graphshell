@@ -168,7 +168,8 @@ pub struct AdvertisedAction {
 }
 
 impl AdvertisedAction {
-    /// Build this action's JSON payload from its advertised input form.
+    /// Build this action's payload, canonical CBOR, from its advertised input
+    /// form.
     ///
     /// Actions without a form keep their established payload path: an empty
     /// value map produces no payload, while nonempty values are refused rather
@@ -312,11 +313,11 @@ impl LiveViewReferenceV1 {
 
     pub fn encode(&self) -> Result<Vec<u8>, LiveViewReferenceError> {
         self.validate()?;
-        serde_json::to_vec(self).map_err(|error| LiveViewReferenceError::Encode(error.to_string()))
+        crate::wire::encode(self).map_err(|error| LiveViewReferenceError::Encode(error.to_string()))
     }
 
     pub fn decode(bytes: &[u8]) -> Result<Self, LiveViewReferenceError> {
-        let reference = serde_json::from_slice::<Self>(bytes)
+        let reference = crate::wire::decode::<Self>(bytes)
             .map_err(|error| LiveViewReferenceError::Decode(error.to_string()))?;
         reference.validate()?;
         Ok(reference)

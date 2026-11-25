@@ -119,7 +119,7 @@ pub(crate) mod test_support {
         /// confirmation gate: a payload saying `"confirmed": false` is
         /// refused, as an unconfirmed device revocation is.
         fn apply_intent(&self, intent: &str, payload: &[u8]) -> Result<(), String> {
-            let unconfirmed = serde_json::from_slice::<serde_json::Value>(payload)
+            let unconfirmed = chirograph::wire::decode::<serde_json::Value>(payload)
                 .ok()
                 .and_then(|value| value.get("confirmed").and_then(|c| c.as_bool()))
                 == Some(false);

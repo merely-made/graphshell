@@ -136,7 +136,7 @@ async fn session_action(
             observed_epoch: snapshot.scene.epoch,
             observed_revision: snapshot.scene.revision,
             intent: intent.into(),
-            payload: serde_json::to_vec(&action).unwrap(),
+            payload: chirograph::wire::encode(&action).unwrap(),
         }))
         .await
         .unwrap();

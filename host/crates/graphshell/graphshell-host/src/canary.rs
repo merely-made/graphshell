@@ -401,7 +401,7 @@ impl IntentSink for FixtureEndpoint {
             "fixture.open-note" => Ok(IntentResult::Accepted),
             OPEN_LIVE_VIEW_INTENT => Ok(resolve_live_view_reference(&intent.payload, self)),
             "fixture.inspect-tile" => {
-                match serde_json::from_slice::<serde_json::Value>(&intent.payload) {
+                match chirograph::wire::decode::<serde_json::Value>(&intent.payload) {
                     Ok(payload) if valid_inspect_tile_payload(&payload) => {
                         // The endpoint, not the host, advances the projection after
                         // accepting the bounded inspection request. The host must

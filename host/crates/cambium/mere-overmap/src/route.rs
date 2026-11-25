@@ -245,7 +245,7 @@ pub fn intent(
         observed_epoch: sessions.scene.epoch,
         observed_revision: sessions.scene.revision,
         intent: intent.into(),
-        payload: serde_json::to_vec(&payload).expect("SessionsActionV1 always serializes"),
+        payload: chirograph::wire::encode(&payload).expect("SessionsActionV1 always serializes"),
     })
 }
 

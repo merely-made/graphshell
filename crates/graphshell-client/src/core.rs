@@ -394,7 +394,8 @@ impl SessionCore {
             .unwrap_or_else(Progress::Refused)
     }
 
-    /// Invoke an action exactly as advertised.
+    /// Invoke an action exactly as advertised. The payload crosses as
+    /// canonical CBOR, as every intent payload does (engine split D231).
     pub fn invoke<T: Serialize>(
         &mut self,
         session: &ProjectionSession,
@@ -402,12 +403,23 @@ impl SessionCore {
         action: &AdvertisedAction,
         payload: &T,
     ) -> Result<Progress<Outcome>, String> {
+        let payload = chirograph::wire::encode(payload)
+            .map_err(|error| format!("could not encode intent payload: {error}"))?;
+        self.invoke_encoded(session, target, action, payload)
+    }
+
+    /// [`Self::invoke`] with the payload already encoded.
+    pub fn invoke_encoded(
+        &mut self,
+        session: &ProjectionSession,
+        target: InstanceId,
+        action: &AdvertisedAction,
+        payload: Vec<u8>,
+    ) -> Result<Progress<Outcome>, String> {
         let ack = self
             .client
             .acknowledgement(session)
             .ok_or_else(|| format!("Graphshell did not acknowledge {}", session.0))?;
-        let payload = serde_json::to_vec(payload)
-            .map_err(|error| format!("could not encode intent payload: {error}"))?;
         self.submit_command(
             &ActionDraftTarget {
                 session: session.clone(),

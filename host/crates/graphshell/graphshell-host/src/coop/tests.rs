@@ -97,7 +97,7 @@ fn invocation(data: &Data, session: ProjectionSession, operation: Operation) -> 
         observed_epoch: data.epoch,
         observed_revision: data.revision,
         intent: EDIT_INTENT.into(),
-        payload: serde_json::to_vec(&data.edit(operation)).unwrap(),
+        payload: chirograph::wire::encode(&data.edit(operation)).unwrap(),
     }
 }
 fn add() -> Operation {
@@ -136,15 +136,22 @@ fn exact_graph_identity_payload_and_stale_requests_are_refused_without_writes() 
         let mut edit = data.edit(add());
         edit.graph = SessionId::new();
         let mut call = invocation(&data, session.clone(), add());
-        call.payload = serde_json::to_vec(&edit).unwrap();
+        call.payload = chirograph::wire::encode(&edit).unwrap();
         assert!(matches!(
             endpoint.invoke(call).unwrap(),
             IntentResult::Rejected { .. }
         ));
+        // An edit as JSON, or one trailed by a byte, is refused (D231).
         let mut call = invocation(&data, session.clone(), add());
-        let mut payload: serde_json::Value = serde_json::from_slice(&call.payload).unwrap();
-        payload["author"] = serde_json::json!(hex(&a.master_public_key().to_bytes()));
-        call.payload = serde_json::to_vec(&payload).unwrap();
+        call.payload = serde_json::to_vec(&data.edit(add())).unwrap();
+        assert!(matches!(endpoint.invoke(call).unwrap(), IntentResult::Rejected { .. }));
+        let mut call = invocation(&data, session.clone(), add());
+        call.payload.push(0);
+        assert!(matches!(endpoint.invoke(call).unwrap(), IntentResult::Rejected { .. }));
+        let mut call = invocation(&data, session.clone(), add());
+        let mut payload = cbor_core::Value::decode_owned(&call.payload).unwrap();
+        payload.insert("author", hex(&a.master_public_key().to_bytes()));
+        call.payload = payload.encode();
         assert!(matches!(
             endpoint.invoke(call).unwrap(),
             IntentResult::Rejected { .. }

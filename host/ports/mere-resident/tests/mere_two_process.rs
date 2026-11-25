@@ -182,7 +182,7 @@ async fn two_processes_edit_one_session_through_djinn_and_hear_each_other() {
             observed_epoch: listed.scene.epoch,
             observed_revision: listed.scene.revision,
             intent: RESERVOIR_ENSURE_MERE_INTENT.into(),
-            payload: serde_json::to_vec(&EnsureMereV1::new(DOMAIN)).unwrap(),
+            payload: chirograph::wire::encode(&EnsureMereV1::new(DOMAIN)).unwrap(),
         })
         .unwrap();
     assert_eq!(ensured, IntentResult::Accepted);
@@ -272,7 +272,7 @@ async fn add_node(client: &mut AppBrokerClient, snapshot: &ProjectionSnapshot, n
             observed_epoch: snapshot.scene.epoch,
             observed_revision: snapshot.scene.revision,
             intent: APPLY_EDITS_INTENT.into(),
-            payload: serde_json::to_vec(&edit).unwrap(),
+            payload: chirograph::wire::encode(&edit).unwrap(),
         }))
         .await
         .expect("the edit is answered");

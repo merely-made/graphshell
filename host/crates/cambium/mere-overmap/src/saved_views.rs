@@ -121,7 +121,7 @@ async fn select(client: &mut AppBrokerClient, session: SessionId) -> Result<(), 
             &catalog,
             instance,
             wire::ATTACH_SESSION_INTENT,
-            serde_json::to_vec(&wire::SessionsActionV1::on(session)).map_err(err)?,
+            chirograph::wire::encode(&wire::SessionsActionV1::on(session)).map_err(err)?,
         )
         .await?;
     }
@@ -254,7 +254,7 @@ impl<C: BorrowMut<AppBrokerClient>> SavedViewsClient<C> {
             None
         } else {
             Some(
-                serde_json::to_vec(&wire::ApplyEditsV1::checked(snapshot.scene.revision, edits))
+                chirograph::wire::encode(&wire::ApplyEditsV1::checked(snapshot.scene.revision, edits))
                     .map_err(err)?,
             )
         };

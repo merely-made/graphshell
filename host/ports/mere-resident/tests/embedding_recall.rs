@@ -381,7 +381,7 @@ async fn resident_embedding_process_fixture() {
                 &mut client,
                 &request,
                 RECALL_ASK_INTENT,
-                serde_json::to_vec(&ask).unwrap()
+                chirograph::wire::encode(&ask).unwrap()
             )
             .await,
             chirograph::IntentResult::Accepted

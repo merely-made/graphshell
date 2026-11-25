@@ -224,7 +224,7 @@ pub(super) async fn fixture_inner(
         observed_epoch: listed.scene.epoch,
         observed_revision: listed.scene.revision,
         intent: RESERVOIR_ENSURE_MERE_INTENT.into(),
-        payload: serde_json::to_vec(&EnsureMereV1::new(domain)).unwrap(),
+        payload: chirograph::wire::encode(&EnsureMereV1::new(domain)).unwrap(),
     };
     assert_eq!(door.invoke(ensure).unwrap(), IntentResult::Accepted);
     Fixture {

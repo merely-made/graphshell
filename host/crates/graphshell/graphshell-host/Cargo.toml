@@ -202,6 +202,7 @@ kernel = { workspace = true, features = ["fixtures"] }
 muniment = { workspace = true, features = ["directory"] }
 pollster = "1"
 uuid.workspace = true
+cbor-core.workspace = true
 transport = { workspace = true, features = ["test-identity"] }
 webrtc-carrier = { workspace = true, features = ["native"] }
 tempfile = "3"

@@ -132,7 +132,7 @@ pub fn archive_intent(
         observed_epoch: snapshot.scene.epoch,
         observed_revision: snapshot.scene.revision,
         intent: intent.into(),
-        payload: serde_json::to_vec(&payload).expect("ArchiveActionV1 always serializes"),
+        payload: chirograph::wire::encode(&payload).expect("ArchiveActionV1 always serializes"),
     })
 }
 
@@ -287,7 +287,7 @@ pub fn merge_intent(
         observed_epoch: sessions.scene.epoch,
         observed_revision: sessions.scene.revision,
         intent: intent.into(),
-        payload: serde_json::to_vec(&MergeResolutionV1::new(pending.source, choices))
+        payload: chirograph::wire::encode(&MergeResolutionV1::new(pending.source, choices))
             .expect("MergeResolutionV1 always serializes"),
     })
 }

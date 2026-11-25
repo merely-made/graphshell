@@ -23,7 +23,7 @@ fn a_form_composes_only_the_exact_values_the_endpoint_offered() {
     // endpoint's own opaque value, never something the host composed.
     let values = BTreeMap::from([("digest".to_string(), "facts-b".to_string())]);
     let payload: serde_json::Value =
-        serde_json::from_slice(&form().compose_payload("fixture.save/v1", &values).unwrap())
+        crate::wire::decode(&form().compose_payload("fixture.save/v1", &values).unwrap())
             .unwrap();
     assert_eq!(
         payload,
@@ -70,7 +70,7 @@ fn an_optional_field_may_be_omitted() {
         ActionFormFieldV1::choice("digest", "Saved facts", [ActionFormChoiceV1::new("a", "A")])
             .optional(),
     );
-    let payload: serde_json::Value = serde_json::from_slice(
+    let payload: serde_json::Value = crate::wire::decode(
         &optional
             .compose_payload("fixture.save/v1", &BTreeMap::new())
             .unwrap(),

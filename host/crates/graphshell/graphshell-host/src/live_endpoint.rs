@@ -377,7 +377,7 @@ impl IntentSink for LiveEndpoint {
             });
         }
         if intent.intent == COLOURED_INTENT {
-            let colour = serde_json::from_slice::<serde_json::Value>(&intent.payload)
+            let colour = chirograph::wire::decode::<serde_json::Value>(&intent.payload)
                 .ok()
                 .and_then(|payload| payload.get("colour")?.as_str().map(str::to_string));
             let Some(label) = colour.as_deref().and_then(|colour| {

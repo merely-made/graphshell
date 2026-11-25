@@ -142,7 +142,7 @@ async fn child_attempts_to_own_the_reservoir() {
                     observed_epoch: snapshot.scene.epoch,
                     observed_revision: snapshot.scene.revision,
                     intent: RESERVOIR_ENSURE_MERE_INTENT.into(),
-                    payload: serde_json::to_vec(&EnsureMereV1::new("fixture-domain")).unwrap(),
+                    payload: chirograph::wire::encode(&EnsureMereV1::new("fixture-domain")).unwrap(),
                 })
                 .unwrap();
             assert_eq!(result, IntentResult::Accepted);

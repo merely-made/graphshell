@@ -385,7 +385,7 @@ impl MereRouteSession {
                 };
                 (
                     crate::wire::SET_ATTENTION_INTENT,
-                    serde_json::to_vec(&crate::wire::SetAttentionV1::new(self.view_name(), state)),
+                    chirograph::wire::encode(&crate::wire::SetAttentionV1::new(self.view_name(), state)),
                 )
             },
             MereViewRequest::Layout(key) => {
@@ -393,7 +393,7 @@ impl MereRouteSession {
                 view.strategy = Some(key.clone());
                 (
                     crate::wire::SET_VIEW_INTENT,
-                    serde_json::to_vec(&crate::wire::SetViewV1::new(self.view_name(), view)),
+                    chirograph::wire::encode(&crate::wire::SetViewV1::new(self.view_name(), view)),
                 )
             },
             _ => return Ok(None),

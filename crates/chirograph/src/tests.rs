@@ -230,12 +230,12 @@ fn action_form_composes_exact_selected_values_under_its_schema() {
         ("reading_session_id".to_string(), "session-7".to_string()),
     ]);
 
-    let payload: serde_json::Value = serde_json::from_slice(
+    let payload: serde_json::Value = crate::wire::decode(
         &action
             .compose_payload(&values)
             .expect("valid selected values"),
     )
-    .expect("form output is JSON");
+    .expect("form output is CBOR");
     assert_eq!(
         payload,
         serde_json::json!({

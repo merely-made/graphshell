@@ -193,7 +193,7 @@ async fn edit(client: &mut AppBrokerClient, id: u128) {
             observed_epoch: snapshot.scene.epoch,
             observed_revision: snapshot.scene.revision,
             intent: APPLY_EDITS_INTENT.into(),
-            payload: serde_json::to_vec(&edit).unwrap(),
+            payload: chirograph::wire::encode(&edit).unwrap(),
         }))
         .await
         .unwrap();

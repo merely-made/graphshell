@@ -25,6 +25,7 @@ pub mod app_broker;
 mod app_broker_tests;
 pub mod browser_carrier;
 pub mod browser_host;
+mod browser_payloads;
 pub mod device_broker;
 pub mod identity_endpoint;
 pub mod identity_projection;

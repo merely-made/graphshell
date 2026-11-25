@@ -1494,7 +1494,7 @@ impl MereEndpoint {
         }
         let outcome = (|| -> Result<Option<(SessionId, SharedHost)>, String> {
             let payload: ArchiveActionV1 =
-                serde_json::from_slice(&intent.payload).map_err(|e| e.to_string())?;
+                chirograph::wire::decode(&intent.payload).map_err(|e| e.to_string())?;
             if payload.schema != ARCHIVE_SCHEMA {
                 return Err("unknown archive schema".into());
             }
@@ -1600,7 +1600,7 @@ impl MereEndpoint {
                 });
             },
         };
-        let payload: SessionsActionV1 = match serde_json::from_slice(&intent.payload) {
+        let payload: SessionsActionV1 = match chirograph::wire::decode(&intent.payload) {
             Ok(payload) => payload,
             Err(error) => {
                 return Ok(IntentResult::Rejected {
@@ -1750,7 +1750,7 @@ impl MereEndpoint {
 
     /// Apply or cancel a pending merge, named by its source session.
     fn invoke_merge(&mut self, intent: IntentInvocation) -> Result<IntentResult, String> {
-        let payload: MergeResolutionV1 = match serde_json::from_slice(&intent.payload) {
+        let payload: MergeResolutionV1 = match chirograph::wire::decode(&intent.payload) {
             Ok(payload) => payload,
             Err(error) => {
                 return Ok(IntentResult::Rejected {
@@ -1872,7 +1872,7 @@ impl MereEndpoint {
                 );
                 return (stale, None);
             }
-            let outcome = match serde_json::from_slice::<SetAttentionV1>(&intent.payload) {
+            let outcome = match chirograph::wire::decode::<SetAttentionV1>(&intent.payload) {
                 Ok(payload) if payload.schema == session_item::SET_ATTENTION_SCHEMA => {
                     async {
                         host.load_attention().await?;
@@ -1942,7 +1942,7 @@ impl MereEndpoint {
                 match intent.intent.as_str() {
                     session_item::APPLY_EDITS_INTENT => {
                         let payload: ApplyEditsV1 =
-                            serde_json::from_slice(&intent.payload).map_err(|e| e.to_string())?;
+                            chirograph::wire::decode(&intent.payload).map_err(|e| e.to_string())?;
                         if payload.schema != session_item::APPLY_EDITS_SCHEMA
                             || payload.edits.is_empty()
                         {
@@ -1965,7 +1965,7 @@ impl MereEndpoint {
                     },
                     session_item::SET_VIEW_INTENT => {
                         let payload: SetViewV1 =
-                            serde_json::from_slice(&intent.payload).map_err(|e| e.to_string())?;
+                            chirograph::wire::decode(&intent.payload).map_err(|e| e.to_string())?;
                         if payload.schema != session_item::SET_VIEW_SCHEMA {
                             return Err("unknown view schema".into());
                         }
@@ -2041,7 +2041,7 @@ impl MereEndpoint {
             }
             let outcome = match intent.intent.as_str() {
                 session_item::APPLY_EDITS_INTENT => {
-                    match serde_json::from_slice::<ApplyEditsV1>(&intent.payload) {
+                    match chirograph::wire::decode::<ApplyEditsV1>(&intent.payload) {
                         Ok(payload) if payload.schema == session_item::APPLY_EDITS_SCHEMA => {
                             if payload
                                 .expected_revision
@@ -2062,7 +2062,7 @@ impl MereEndpoint {
                     }
                 },
                 session_item::UNDO_INTENT | session_item::REDO_INTENT => {
-                    match serde_json::from_slice::<StepV1>(&intent.payload) {
+                    match chirograph::wire::decode::<StepV1>(&intent.payload) {
                         Ok(payload) if payload.schema == session_item::STEP_SCHEMA => {
                             let step = host
                                 .transact_history(&app, intent.intent == session_item::REDO_INTENT)
@@ -2086,7 +2086,7 @@ impl MereEndpoint {
                     }
                 },
                 session_item::SET_VIEW_INTENT => {
-                    match serde_json::from_slice::<SetViewV1>(&intent.payload) {
+                    match chirograph::wire::decode::<SetViewV1>(&intent.payload) {
                         Ok(payload) if payload.schema == session_item::SET_VIEW_SCHEMA => host
                             .transact_view(&app, &payload.view, payload.state)
                             .await
@@ -2476,7 +2476,7 @@ mod tests {
         on_item(
             snapshot,
             session_item::APPLY_EDITS_INTENT,
-            serde_json::to_vec(&ApplyEditsV1::new(edits)).unwrap(),
+            chirograph::wire::encode(&ApplyEditsV1::new(edits)).unwrap(),
         )
     }
 
@@ -2484,7 +2484,7 @@ mod tests {
         on_item(
             snapshot,
             session_item::UNDO_INTENT,
-            serde_json::to_vec(&StepV1::default()).unwrap(),
+            chirograph::wire::encode(&StepV1::default()).unwrap(),
         )
     }
 
@@ -2494,6 +2494,26 @@ mod tests {
 
     /// A reviewed guest decides a route's edits exactly as a linked validator does: the
     /// whole candidate is encoded, the guest refuses it, and nothing changes.
+    /// A route payload is canonical CBOR only (engine split D230, D231): the
+    /// same edit as JSON, or with a non-canonical map head, is refused, and
+    /// the canonical one, sent last, lands.
+    #[tokio::test(flavor = "multi_thread")]
+    async fn a_route_payload_is_read_only_as_canonical_cbor() {
+        let fixture = fixture(0x6331, "cbor-only").await;
+        let mut app = fixture.attach("turnstone").await;
+        let start = graph(&mut app);
+        let edits = ApplyEditsV1::new(vec![node(1)]);
+        let send = |payload| on_item(&start, session_item::APPLY_EDITS_INTENT, payload);
+        let json = send(serde_json::to_vec(&edits).unwrap());
+        assert!(matches!(app.invoke(json).unwrap(), IntentResult::Rejected { .. }));
+        let canonical = chirograph::wire::encode(&edits).unwrap();
+        assert!((0xa0..0xb8).contains(&canonical[0]), "a small map");
+        let mut loose = vec![0xb8, canonical[0] - 0xa0];
+        loose.extend_from_slice(&canonical[1..]);
+        assert!(matches!(app.invoke(send(loose)).unwrap(), IntentResult::Rejected { .. }));
+        assert_eq!(app.invoke(send(canonical)).unwrap(), IntentResult::Accepted);
+    }
+
     #[tokio::test(flavor = "multi_thread")]
     async fn a_guest_authority_gates_route_edits_like_any_validator() {
         let path = concat!(
@@ -2575,7 +2595,7 @@ mod tests {
             observed_epoch: current.scene.epoch,
             observed_revision: current.scene.revision,
             intent: intent_id(&handler.id),
-            payload: serde_json::to_vec(&OpenAddressV1 {
+            payload: chirograph::wire::encode(&OpenAddressV1 {
                 address: address.into(),
                 handler: handler.id.clone(),
             })
@@ -2736,7 +2756,7 @@ mod tests {
             observed_epoch: snapshot.scene.epoch,
             observed_revision: snapshot.scene.revision,
             intent: intent.into(),
-            payload: serde_json::to_vec(&payload).unwrap(),
+            payload: chirograph::wire::encode(&payload).unwrap(),
         }
     }
 
@@ -2765,7 +2785,7 @@ mod tests {
             observed_epoch: snapshot.scene.epoch,
             observed_revision: snapshot.scene.revision,
             intent: intent.into(),
-            payload: serde_json::to_vec(&payload).unwrap(),
+            payload: chirograph::wire::encode(&payload).unwrap(),
         }
     }
 
@@ -2837,7 +2857,7 @@ mod tests {
         let checked = on_item(
             &original,
             session_item::APPLY_EDITS_INTENT,
-            serde_json::to_vec(&ApplyEditsV1::checked(
+            chirograph::wire::encode(&ApplyEditsV1::checked(
                 original.scene.revision,
                 vec![node(2)],
             ))
@@ -2946,7 +2966,7 @@ mod tests {
             app.invoke(on_item(
                 &thaw,
                 session_item::SET_ATTENTION_INTENT,
-                serde_json::to_vec(&SetAttentionV1::new("reading", looked.clone())).unwrap()
+                chirograph::wire::encode(&SetAttentionV1::new("reading", looked.clone())).unwrap()
             ))
             .unwrap(),
             IntentResult::Accepted
@@ -2984,7 +3004,7 @@ mod tests {
                 .invoke(on_item(
                     &original,
                     session_item::SET_VIEW_INTENT,
-                    serde_json::to_vec(&SetViewV1::new("reading", state.clone())).unwrap()
+                    chirograph::wire::encode(&SetViewV1::new("reading", state.clone())).unwrap()
                 ))
                 .unwrap(),
             IntentResult::Accepted
@@ -3023,7 +3043,7 @@ mod tests {
                 .invoke(on_item(
                     &other,
                     session_item::SET_VIEW_INTENT,
-                    serde_json::to_vec(&forged).unwrap()
+                    chirograph::wire::encode(&forged).unwrap()
                 ))
                 .unwrap(),
             IntentResult::Rejected { .. }
@@ -3033,7 +3053,7 @@ mod tests {
                 .invoke(on_item(
                     &other,
                     session_item::SET_VIEW_INTENT,
-                    serde_json::to_vec(&SetViewV1::new("reading", incipit::view::ViewIntent::default()))
+                    chirograph::wire::encode(&SetViewV1::new("reading", incipit::view::ViewIntent::default()))
                         .unwrap()
                 ))
                 .unwrap(),
@@ -3815,7 +3835,7 @@ mod tests {
                 .invoke(on_item(
                     &other_graph,
                     session_item::SET_VIEW_INTENT,
-                    serde_json::to_vec(&SetViewV1::new(
+                    chirograph::wire::encode(&SetViewV1::new(
                         "graphshell.mere",
                         incipit::view::ViewIntent::default()
                     ))
@@ -5424,7 +5444,7 @@ mod tests {
             observed_epoch: listed.scene.epoch,
             observed_revision: listed.scene.revision,
             intent: RESERVOIR_ENSURE_MERE_INTENT.into(),
-            payload: serde_json::to_vec(&EnsureMereV1::new("divination")).unwrap(),
+            payload: chirograph::wire::encode(&EnsureMereV1::new("divination")).unwrap(),
         };
         assert!(matches!(
             reservoir.invoke(ensure).unwrap(),
@@ -5520,7 +5540,7 @@ mod tests {
                     .flat_map(|offer| &offer.semantics.actions)
                     .all(|action| action.intent.0 != "mere.reservoir.set-access")
             );
-            let invocation = IntentInvocation { session: snapshot.session.clone(), target: InstanceId(0), observed_epoch: snapshot.scene.epoch, observed_revision: snapshot.scene.revision, intent: "mere.reservoir.set-access".into(), payload: serde_json::to_vec(&serde_json::json!({ "schema": "mere.reservoir.set-access/v1", "mere": mere.id, "application": "knot-editor", "denied": false, "ambient": true, "via": "turnstone" })).unwrap() };
+            let invocation = IntentInvocation { session: snapshot.session.clone(), target: InstanceId(0), observed_epoch: snapshot.scene.epoch, observed_revision: snapshot.scene.revision, intent: "mere.reservoir.set-access".into(), payload: chirograph::wire::encode(&serde_json::json!({ "schema": "mere.reservoir.set-access/v1", "mere": mere.id, "application": "knot-editor", "denied": false, "ambient": true, "via": "turnstone" })).unwrap() };
             assert!(matches!(
                 control.invoke(invocation).unwrap(),
                 IntentResult::Rejected { .. }

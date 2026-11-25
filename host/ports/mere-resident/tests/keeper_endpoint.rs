@@ -107,7 +107,7 @@ fn an_advertised_generate_intent_reaches_the_keeper() {
             observed_epoch: snapshot.scene.epoch,
             observed_revision: snapshot.scene.revision,
             intent: SSH_GENERATE_INTENT.to_string(),
-            payload: serde_json::to_vec(&GenerateSshKeyIntentV1 {
+            payload: chirograph::wire::encode(&GenerateSshKeyIntentV1 {
                 comment: "generated through endpoint".to_string(),
                 unlock_policy: SshUnlockPolicyIntentV1::Session,
             })

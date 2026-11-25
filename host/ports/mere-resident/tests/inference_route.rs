@@ -230,7 +230,7 @@ async fn exercise_route(library_model: bool) {
             &mut client,
             &request,
             ASK_INTENT,
-            serde_json::to_vec(&ask).unwrap()
+            chirograph::wire::encode(&ask).unwrap()
         )
         .await,
         IntentResult::Accepted
@@ -257,7 +257,7 @@ async fn exercise_route(library_model: bool) {
 
     // A cancel of an ended run is accepted and changes nothing; an unknown
     // run and a repeated name are refused.
-    let cancel = |run: &str| serde_json::to_vec(&CancelRequestV1 { run: run.into() }).unwrap();
+    let cancel = |run: &str| chirograph::wire::encode(&CancelRequestV1 { run: run.into() }).unwrap();
     assert_eq!(
         intent(&mut client, &request, CANCEL_INTENT, cancel("first")).await,
         IntentResult::Accepted
@@ -271,7 +271,7 @@ async fn exercise_route(library_model: bool) {
             &mut client,
             &request,
             ASK_INTENT,
-            serde_json::to_vec(&ask).unwrap()
+            chirograph::wire::encode(&ask).unwrap()
         )
         .await,
         IntentResult::Rejected { .. }

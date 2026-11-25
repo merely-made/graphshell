@@ -312,7 +312,7 @@ async fn inspect_connected(
                 observed_epoch: sessions.scene.epoch,
                 observed_revision: sessions.scene.revision,
                 intent: session_item::ATTACH_SESSION_INTENT.into(),
-                payload: serde_json::to_vec(&session_item::SessionsActionV1::on(
+                payload: chirograph::wire::encode(&session_item::SessionsActionV1::on(
                     pandect::SessionId::from_uuid(target),
                 ))
                 .map_err(|e| e.to_string())?,

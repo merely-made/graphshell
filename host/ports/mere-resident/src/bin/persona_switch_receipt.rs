@@ -150,7 +150,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // method, so what is exercised is what the UI actually invokes.
     let outcome = host.apply_intent(
         PROFILE_SWITCH_INTENT,
-        &serde_json::to_vec(&SwitchProfileIntentV1 {
+        &chirograph::wire::encode(&SwitchProfileIntentV1 {
             profile: "alt".to_string(),
         })?,
     )?;
@@ -215,7 +215,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // A switch to a persona that is not there must not move anything.
     let missing = host.apply_intent(
         PROFILE_SWITCH_INTENT,
-        &serde_json::to_vec(&SwitchProfileIntentV1 {
+        &chirograph::wire::encode(&SwitchProfileIntentV1 {
             profile: "nobody".to_string(),
         })?,
     );
@@ -236,7 +236,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // becoming a filename.
     let created = host.apply_intent(
         PROFILE_CREATE_INTENT,
-        &serde_json::to_vec(&CreateProfileIntentV1 {
+        &chirograph::wire::encode(&CreateProfileIntentV1 {
             id: "studio".to_string(),
             display_name: "Studio".to_string(),
         })?,
@@ -268,7 +268,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
     let hostile = host.apply_intent(
         PROFILE_CREATE_INTENT,
-        &serde_json::to_vec(&CreateProfileIntentV1 {
+        &chirograph::wire::encode(&CreateProfileIntentV1 {
             id: "../../evil".to_string(),
             display_name: "Escape".to_string(),
         })?,

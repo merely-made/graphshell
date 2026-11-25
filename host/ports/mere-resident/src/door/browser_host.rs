@@ -175,6 +175,8 @@ where
     R: tokio::io::AsyncRead + Unpin,
     W: tokio::io::AsyncWrite + Unpin,
 {
+    // Only the identity session's payloads are translated from JSON (D231).
+    let identity_edge = matches!(selected_endpoint, BrowserSessionEndpoint::Identity { .. });
     let challenge = BrowserChallenge::fresh()?;
     write_native_message_async(
         writer,
@@ -250,7 +252,15 @@ where
 
     while let Some(message) = read_native_message_async::<_, BrowserMessage>(reader).await? {
         match message {
-            BrowserMessage::Request { request } => {
+            BrowserMessage::Request { mut request } => {
+                if identity_edge && let Err(reason) = crate::door::browser_payloads::translate(&mut request) {
+                    let response = chirograph::CarrierResponse {
+                        id: request.id,
+                        body: Ok(CarrierResponseBody::Intent(chirograph::IntentResult::Rejected { reason })),
+                    };
+                    write_native_message_async(writer, &BrowserHostMessage::Response { response }).await?;
+                    continue;
+                }
                 let terminal = matches!(
                     request.body,
                     CarrierRequestBody::Close | CarrierRequestBody::Suspend
