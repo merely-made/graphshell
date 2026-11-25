@@ -13,6 +13,7 @@ hest.workspace = true
 # The card vocabulary, extracted 2026-08-14 and re-exported from here.
 base64.workspace = true
 blake3.workspace = true
+cbor-core.workspace = true
 sceno.workspace = true
 scenotime.workspace = true
 serde.workspace = true

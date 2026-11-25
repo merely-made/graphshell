@@ -39,6 +39,10 @@ pub use resume::{
 };
 pub use scenotime::{EngineRevision, Revision, SceneDiff, SceneEpoch, SceneSnapshot};
 
+// The envelope keyframes and diffs cross carriers in (engine split D207-D210).
+pub mod envelope;
+pub use envelope::{Envelope, EnvelopeError, EnvelopeIdentity, EnvelopeKind, Enveloped};
+
 // Portable projection captures, apart from the live wire they snapshot.
 mod capture;
 pub use capture::{

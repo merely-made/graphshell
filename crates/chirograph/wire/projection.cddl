@@ -1,0 +1,285 @@
+; Copyright 2026 Mark Alan Boykin
+; SPDX-License-Identifier: MPL-2.0
+;
+; The projection wire's envelope and what it carries (engine split D207-D210).
+; This schema is the authority; wire/vectors/ pins bytes that conform to it.
+; Encoding is CBOR::Core (draft-rundgren-cbor-core-25): shortest integers and
+; floats, map keys in canonical order, no indefinite lengths. Payloads are the
+; Rust types serde-encoded through cbor-core: structs are text-keyed maps,
+; Option is null, unit variants are text, and other variants are a one-entry
+; map from the variant's name. A renamed Rust field is a schema change.
+;
+; `?` marks a field the writer omits when it is empty, unset or default.
+
+envelope = {
+  "version": 1,
+  "kind": envelope-kind,
+  "engine": engine-revision,          ; required: the identity is never optional
+  "epoch": u64,                       ; the payload's projection epoch
+  "revision": u64,                    ; the payload's (target) revision
+  "payload": bstr .cbor payload,      ; the payload's canonical encoding
+  "digest": bstr .size 32,
+}
+; digest = BLAKE3 derive_key("graphshell projection envelope v1",
+;          canonical encoding of this map without "digest")
+envelope-kind = "keyframe" / "diff"
+payload = projection-snapshot / projection-diff
+
+engine-revision = {
+  "session": tstr,                    ; the engine's session id, opaque here
+  "cursor": u64,                      ; journal cursor
+  "digest": tstr,                     ; v2 digest of the journal prefix
+}
+
+u16 = 0..65535
+u32 = 0..4294967295
+u64 = uint
+i16 = -32768..32767
+i32 = -2147483648..2147483647
+f32 = float16 / float32
+slot<T> = T / null                    ; a stable table slot; null is a tombstone
+
+; --- the keyframe ----------------------------------------------------------
+
+projection-snapshot = {
+  "version": protocol-version,
+  "session": tstr,
+  "scene": scene-snapshot,
+  "presentation": presentation-manifest,
+  "cache_policy": cache-policy,
+}
+protocol-version = { "major": u16, "minor": u16 }
+
+scene-snapshot = {
+  "epoch": u64,
+  "revision": u64,
+  "tables": scene-tables,
+  "engine_revision": engine-revision, ; required inside an envelope
+}
+
+scene-tables = {
+  ? "frame": scene-frame,
+  "sources": [* slot<source-ref>],
+  "spaces": [* slot<space>],
+  "backdrops": [* slot<backdrop>],
+  "items": [* slot<projected-item>],
+  "item_order": [* slot<i32>],
+  "relations": [* slot<routed-relation>],
+  ? "relation_constraints": [+ relation-constraint-report],
+  ? "arrangement_order": [+ u32],
+  "regions": [* slot<region>],
+  ? "folds": [+ slot<fold>],
+  "bounds": rect,
+  "generation": u64,
+  "unmet_holds": [* held-placement],
+  "honored_holds": [* honored-hold],
+}
+
+; --- scene vocabulary (sceno) ----------------------------------------------
+
+vec2 = { "x": f32, "y": f32 }
+size2 = { "w": f32, "h": f32 }
+rect = { "origin": vec2, "size": size2 }
+transform2 = { "translate": vec2, "scale": f32, "rotate": f32 }
+
+scene-frame = { "spec": frame, "space": u32 }
+frame = { "kind": "unbounded", "origin": vec2 }
+      / { "kind": "bounded", "bounds": rect }
+      / { "kind": "nested", "bounds": rect, "transform": transform2 }
+      / { "kind": "flow", "origin": vec2, "width": f32 }
+
+source-ref = { "adapter": tstr, "id": tstr }
+space = { "parent": u32 / null, "transform": transform2, "name": tstr / null }
+
+footprint = "Point"
+          / { "Circle": { "radius": f32 } }
+          / { "Rect": { "size": size2 } }
+          / { "Polygon": { "points": [* vec2] } }
+          / { "Path": { "points": [* vec2], "width": f32 } }
+
+backdrop = {
+  "source": u32,
+  "space": u32,
+  "transform": transform2,
+  "footprint": footprint,
+  "kind": tstr,
+  "visible": bool,
+  "collidable": bool,
+}
+
+; A reader also accepts the retired "Sprite", as { "Open": { "kind": "sprite" } }.
+representation = "Glyph" / "Card" / "Snapshot" / "LivePane"
+               / { "Open": { "kind": tstr } }
+
+projected-item = {
+  "source": u32,
+  "space": u32,
+  "transform": transform2,
+  "footprint": footprint,
+  "representation": representation,
+  "layer": i16,
+  "visible": bool,
+  "hit": footprint / null,
+  "channels": [* [tstr, f32]],
+}
+
+relation-form = "stroke" / "containment" / "adjacency" / "matrix_cell" / "order"
+routed-relation = {
+  ? "form": relation-form,            ; omitted when "stroke"
+  "from": u32,
+  "to": u32,
+  "space": u32,
+  "points": [* vec2],
+  "kind": tstr / null,
+  "weight": f32 / null,
+  ? "link_key": link-key,
+  ? "marks": link-marks,              ; omitted when all false
+  ? "strength": f32,
+}
+link-key = { "stratum": "resource" / "surface", "first": tstr, "second": tstr }
+link-marks = { "forward": bool, "reverse": bool, "opposed": bool }
+
+relation-constraint-report = {
+  "constraint": relation-constraint,
+  "honored": bool,
+  "reason": tstr,
+}
+relation-constraint = { "id": tstr, "from": u32, "to": u32, "form": relation-form }
+
+region = {
+  "members": [* u32],
+  "space": u32,
+  "contour": footprint / null,
+  "label": tstr / null,
+  "confidence": f32,
+}
+
+fold = {
+  "members": [* u32],
+  "stand_in": stand-in,
+  ? "rule": fold-rule,
+  ? "boundary": fold-boundary,
+  ? "label": tstr,
+}
+stand-in = { "Member": u32 } / { "Summary": { ? "label": tstr } }
+fold-direction = "Outgoing" / "Incoming"
+fold-rule = "Selection"
+          / { "Descendants": { "root": u32, "family": tstr, "direction": fold-direction } }
+fold-boundary = { "internal_relations": u32, "bundles": [* boundary-bundle] }
+boundary-bundle = {
+  "outside": u32,
+  "direction": fold-direction,
+  "family": tstr / null,
+  "count": u32,
+}
+
+hold = "Seeded" / "Anchored" / "Pinned"
+held-placement = { "source": source-ref, "at": vec2, "hold": hold }
+honored-hold = { "instance": u32, "placement": held-placement }
+
+; --- presentation (chirograph) ---------------------------------------------
+
+presentation-manifest = {
+  "bindings": [* presentation-binding],
+  "offers": { * tstr => [* presentation-offer] },
+}
+presentation-binding = { "instance": u32, "key": tstr }
+presentation-offer = {
+  "codec": presentation-codec,
+  "resource": content-hash,
+  "byte_size": u64,
+  "requires": presentation-capability,
+  "semantics": presentation-semantics,
+}
+presentation-codec = "NativeGlyphV1" / "PortableCardV1" / "EditableTextV1"
+                   / { "ImageV1": { "mime_type": tstr } }
+content-hash = [32*32 (0..255)]  ; BLAKE3 of the resource bytes
+presentation-capability = "NativeGlyph" / "PortableCard" / "Image" / "EditableText"
+presentation-semantics = {
+  "label": tstr,
+  "role": "Graphic" / "Article" / "Image",
+  "bounds": "FillFootprint" / "FitWithinFootprint" / "IntrinsicWithinFootprint",
+  "actions": [* advertised-action],
+}
+advertised-action = {
+  "intent": tstr,
+  "label": tstr,
+  "explanation": tstr,
+  "payload_schema": tstr,
+  ? "input_form": action-form,
+  "effect": "Curation" / "DomainTruth" / "ExternalEffect",
+  ? "icon": { "Named": tstr },
+}
+action-form = { "schema": tstr, "fields": [* action-form-field] }
+action-form-field = {
+  "name": tstr,
+  "label": tstr,
+  "description": tstr,
+  "required": bool,
+  "choices": [* action-form-choice],
+}
+action-form-choice = { "value": tstr, "label": tstr, ? "description": tstr }
+
+cache-policy = {
+  "retention": "MemoryOnly" / "EncryptedPersistent" / "Exportable",
+  "expires_at_ms": u64 / null,
+  "purge_on_revocation": bool,
+}
+
+; --- the diff --------------------------------------------------------------
+
+projection-diff = {
+  "version": protocol-version,
+  "session": tstr,
+  "scene": scene-diff,
+  "presentation": [* presentation-change],
+  "status": session-status / null,
+}
+session-status = "Live" / "Stale" / "Disconnected" / "Expired" / "Revoked"
+
+scene-diff = {
+  "epoch": u64,
+  "base": u64,
+  "revision": u64,
+  "operations": [* scene-op],
+  "base_engine": engine-revision,     ; both required inside an envelope
+  "engine_revision": engine-revision,
+}
+
+scene-op = { "AddSource": { "index": u32, "value": source-ref } }
+         / { "UpdateSource": { "index": u32, "value": source-ref } }
+         / { "TombstoneSource": { "index": u32 } }
+         / { "AddSpace": { "index": u32, "value": space } }
+         / { "UpdateSpace": { "index": u32, "value": space } }
+         / { "TombstoneSpace": { "index": u32 } }
+         / { "AddBackdrop": { "index": u32, "value": backdrop } }
+         / { "UpdateBackdrop": { "index": u32, "value": backdrop } }
+         / { "TombstoneBackdrop": { "index": u32 } }
+         / { "AddItem": { "index": u32, "value": projected-item, "order": i32 } }
+         / { "UpdateItem": { "index": u32, "value": projected-item } }
+         / { "TombstoneItem": { "index": u32 } }
+         / { "SetItemLayer": { "index": u32, "layer": i16 } }
+         / { "SetItemOrder": { "index": u32, "order": i32 } }
+         / { "AddRelation": { "index": u32, "value": routed-relation } }
+         / { "UpdateRelation": { "index": u32, "value": routed-relation } }
+         / { "TombstoneRelation": { "index": u32 } }
+         / { "AddRegion": { "index": u32, "value": region } }
+         / { "UpdateRegion": { "index": u32, "value": region } }
+         / { "TombstoneRegion": { "index": u32 } }
+         / { "AddFold": { "index": u32, "value": fold } }
+         / { "UpdateFold": { "index": u32, "value": fold } }
+         / { "SetFoldStandIn": { "index": u32, "stand_in": stand-in } }
+         / { "TombstoneFold": { "index": u32 } }
+         / { "SetRelationConstraints": {
+               "reports": [* relation-constraint-report],
+               "order": [* u32],
+             } }
+         / { "SetFrame": { "frame": scene-frame / null } }
+         / { "SetBounds": { "bounds": rect } }
+         / { "SetGeneration": { "generation": u64 } }
+
+presentation-change = { "Bind": presentation-binding }
+                    / { "Unbind": { "instance": u32 } }
+                    / { "ReplaceOffers": { "key": tstr, "offers": [* presentation-offer] } }
+                    / { "RemoveOffers": { "key": tstr } }
+                    / { "InvalidateResource": { "resource": content-hash } }
