@@ -459,7 +459,7 @@ tincture = { package = "tinct", git = "https://github.com/merely-made/graphshell
 # could not parse ratcheted announces from real RNS). Since the 2026-07-23 radio
 # merge the repo is one workspace (retinue, tulle, sennet, tucket, firmware), so
 # this is an immutable source-revision pin rather than a relative path.
-retinue = { version = "0.3.0", git = "https://github.com/merely-made/murm.git", branch = "main" }
+retinue = { version = "0.3.0", git = "https://github.com/merely-made/retinue.git", branch = "main" }
 # Station commissioning now lives in Murm; resident NomadNet remains optional.
 
 # Reticulum identity derivation: HKDF-SHA256 stretches Mere's 32-byte master seed
