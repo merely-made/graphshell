@@ -15,10 +15,11 @@
 //! **What is different here, and why.** Two things only:
 //!
 //! - *The wire.* An application speaks [`AppMessage`] (the shared envelope in
-//!   `ostiary::wire`), not the browser's
-//!   native-messaging frames. The carrier payload inside is identical; the
-//!   envelope is separate so this door can version independently of a shipped
-//!   browser extension.
+//!   `ostiary::wire`), not the browser's messages, and each frame's body is
+//!   one canonical CBOR item rather than JSON (engine split D225): a snapshot
+//!   reply carries its keyframe envelope and a diffs reply its diff
+//!   envelopes. The envelope is separate so this door can version
+//!   independently of a shipped browser extension.
 //! - *No identity actions.* The browser door carries SSH import, because a
 //!   browser has no other way to reach the resident identity UI. A first-party
 //!   application runs on this device and can open that UI itself, so the door
@@ -54,7 +55,8 @@ type AppHostMessage = WireHostMessage<
     Result<castellan_client::custody::CustodyAnswer, castellan_client::custody::CustodyRefusal>,
 >;
 
-use crate::door::browser_carrier::{read_native_message_async, write_native_message_async};
+// The application door frames canonical CBOR (D225); the browser door keeps JSON.
+use ostiary::frame::{read_cbor_message_async, write_cbor_message_async};
 use crate::door::browser_host::BrowserHostError;
 use crate::door::device_broker::{DeviceSurface, DeviceSurfaceHandle};
 use crate::door::identity_endpoint::IdentityEndpoint;
@@ -82,6 +84,8 @@ pub enum AppBrokerError {
     Catalog(#[from] ResidentEndpointCatalogError),
     #[error(transparent)]
     Carrier(#[from] crate::door::browser_carrier::BrowserCarrierError),
+    #[error("application door frame failed: {0}")]
+    Frame(#[from] ostiary::frame::FrameError),
     #[error("projection provider failed: {0}")]
     Provider(String),
     #[error("application broker transport failed: {0}")]
@@ -192,7 +196,7 @@ pub async fn connect_as_app(
     app: AppId,
 ) -> Result<Box<dyn LocalStream>, AppBrokerError> {
     let mut stream = connect_local(endpoint).await?;
-    write_native_message_async(&mut stream, &AppHello::new(app)).await?;
+    write_cbor_message_async(&mut stream, &AppHello::new(app)).await?;
     Ok(stream)
 }
 
@@ -203,7 +207,7 @@ pub async fn connect_as_app_route(
     route: AppRouteId,
 ) -> Result<Box<dyn LocalStream>, AppBrokerError> {
     let mut stream = connect_local(endpoint).await?;
-    write_native_message_async(&mut stream, &AppHello::for_route(app, route)).await?;
+    write_cbor_message_async(&mut stream, &AppHello::for_route(app, route)).await?;
     Ok(stream)
 }
 
@@ -524,7 +528,7 @@ where
     };
     {
         let forwarding = async {
-            write_native_message_async(
+            write_cbor_message_async(
                 writer,
                 &AppHostMessage::Connected {
                     app: app.clone(),
@@ -533,7 +537,7 @@ where
             )
             .await?;
 
-            while let Some(message) = read_native_message_async::<_, AppMessage>(reader).await? {
+            while let Some(message) = read_cbor_message_async::<_, AppMessage>(reader).await? {
                 match message {
                     AppMessage::Request { request } => {
                         let terminal = matches!(
@@ -545,7 +549,7 @@ where
                             response.body,
                             Ok(CarrierResponseBody::Closed | CarrierResponseBody::Suspended)
                         );
-                        write_native_message_async(writer, &AppHostMessage::Response { response })
+                        write_cbor_message_async(writer, &AppHostMessage::Response { response })
                             .await?;
                         if terminal || ended {
                             break;
@@ -558,12 +562,12 @@ where
                         let notice = carrier
                             .poll_notice(std::time::Duration::from_millis(1))
                             .await?;
-                        write_native_message_async(writer, &AppHostMessage::Notice { notice })
+                        write_cbor_message_async(writer, &AppHostMessage::Notice { notice })
                             .await?;
                     },
                     AppMessage::WaitNotice => {
                         let notice = carrier.wait_for_notice().await?;
-                        write_native_message_async(
+                        write_cbor_message_async(
                             writer,
                             &AppHostMessage::Notice {
                                 notice: Some(notice),
@@ -572,7 +576,7 @@ where
                         .await?;
                     },
                     AppMessage::Connect { .. } => {
-                        write_native_message_async(
+                        write_cbor_message_async(
                             writer,
                             &AppHostMessage::Failure {
                                 message: "this application session is already connected"
@@ -582,7 +586,7 @@ where
                         .await?;
                     },
                     AppMessage::Call { .. } => {
-                        write_native_message_async(
+                        write_cbor_message_async(
                             writer,
                             &AppHostMessage::Failure {
                                 message: "custody calls belong to the custody route".to_string(),
@@ -632,7 +636,7 @@ where
     W: AsyncWrite + Unpin,
 {
     let session = format!("custody:{}", blake3::hash(&link.shared_link).to_hex());
-    write_native_message_async(
+    write_cbor_message_async(
         writer,
         &AppHostMessage::Connected {
             app: app.clone(),
@@ -640,7 +644,7 @@ where
         },
     )
     .await?;
-    while let Some(message) = read_native_message_async::<_, AppMessage>(reader).await? {
+    while let Some(message) = read_cbor_message_async::<_, AppMessage>(reader).await? {
         let reply = match message {
             AppMessage::Call { id, call } => AppHostMessage::Answer {
                 id,
@@ -652,7 +656,7 @@ where
                 message: "the custody route answers custody calls only".to_string(),
             },
         };
-        write_native_message_async(writer, &reply).await?;
+        write_cbor_message_async(writer, &reply).await?;
     }
     Ok(None)
 }
@@ -705,7 +709,7 @@ async fn write_provider_answer<W: AsyncWrite + Unpin>(
 ) -> Result<(), AppBrokerError> {
     tokio::time::timeout(
         timeout,
-        write_native_message_async(writer, &ProviderHostMessage::Answer { id, answer }),
+        write_cbor_message_async(writer, &ProviderHostMessage::Answer { id, answer }),
     )
     .await
     .map_err(|_| AppBrokerError::Provider("provider write timed out".into()))??;
@@ -719,7 +723,7 @@ async fn serve_provider<R: AsyncRead + Unpin, W: AsyncWrite + Unpin>(
     authority: Option<AppAuthority>,
     catalog: AppEndpointCatalog,
 ) -> Result<Option<SessionSummary>, AppBrokerError> {
-    write_native_message_async(
+    write_cbor_message_async(
         writer,
         &ProviderHostMessage::Connected {
             app: app.clone(),
@@ -729,7 +733,7 @@ async fn serve_provider<R: AsyncRead + Unpin, W: AsyncWrite + Unpin>(
     .await?;
     let first = tokio::time::timeout(
         std::time::Duration::from_secs(300),
-        read_native_message_async::<_, ProviderMessage>(reader),
+        read_cbor_message_async::<_, ProviderMessage>(reader),
     )
     .await
     .map_err(|_| AppBrokerError::Provider("provider offer timed out".into()))??;
@@ -746,7 +750,7 @@ async fn serve_provider<R: AsyncRead + Unpin, W: AsyncWrite + Unpin>(
     // A declared provider offers only what it declared; the owner's provider
     // policy still decides whether it may serve it.
     if let Some(Err(refusal)) = authority.as_ref().map(|authority| authority.offer(&route)) {
-        write_native_message_async(
+        write_cbor_message_async(
             writer,
             &ProviderHostMessage::Failure {
                 message: refusal.to_string(),
@@ -760,7 +764,7 @@ async fn serve_provider<R: AsyncRead + Unpin, W: AsyncWrite + Unpin>(
         Ok(pair) => pair,
         Err(error) => {
             drop(guard);
-            write_native_message_async(writer, &ProviderHostMessage::Failure { message: error })
+            write_cbor_message_async(writer, &ProviderHostMessage::Failure { message: error })
                 .await?;
             return Ok(None);
         },
@@ -776,7 +780,7 @@ async fn serve_provider<R: AsyncRead + Unpin, W: AsyncWrite + Unpin>(
     {
         catalog.offers.retire(&lease);
         drop(guard);
-        write_native_message_async(
+        write_cbor_message_async(
             writer,
             &ProviderHostMessage::Failure {
                 message: "projection route is already registered".into(),
@@ -798,7 +802,7 @@ async fn serve_provider<R: AsyncRead + Unpin, W: AsyncWrite + Unpin>(
         let mut next_message = tokio::select! {
             biased;
             _ = lease.wait_withdrawn() => None,
-            incoming = tokio::time::timeout(lease.permission.timeout, read_native_message_async::<_, ProviderMessage>(reader)) => {
+            incoming = tokio::time::timeout(lease.permission.timeout, read_cbor_message_async::<_, ProviderMessage>(reader)) => {
                 match incoming { Ok(result) => result?, Err(_) => None }
             },
         };
@@ -820,7 +824,7 @@ async fn serve_provider<R: AsyncRead + Unpin, W: AsyncWrite + Unpin>(
                         },
                         _ => break,
                     }
-                    let mut read = Box::pin(read_native_message_async::<_, ProviderMessage>(reader));
+                    let mut read = Box::pin(read_cbor_message_async::<_, ProviderMessage>(reader));
                     let mut item = tokio::select! {
                         biased;
                         _ = lease.wait_withdrawn() => break,
@@ -950,19 +954,23 @@ mod tests {
     /// one by accident.
     #[test]
     fn the_application_wire_cannot_carry_an_identity_action() {
-        let json = serde_json::to_string(&AppMessage::Connect {
+        fn crossed(message: &impl serde::Serialize) -> Result<Option<AppMessage>, ostiary::frame::FrameError> {
+            let mut wire = Vec::new();
+            ostiary::frame::write_cbor_message(&mut wire, message).unwrap();
+            ostiary::frame::read_cbor_message(&mut wire.as_slice())
+        }
+        let connect = AppMessage::Connect {
             schema: APP_CONNECT_SCHEMA.to_string(),
             host_nonce: "a".to_string(),
             client_nonce: "b".to_string(),
-        })
-        .unwrap();
-        assert!(json.contains("connect"));
+        };
+        assert_eq!(crossed(&connect).unwrap(), Some(connect));
         let identity_action = serde_json::json!({
             "type": "native_identity",
             "request": {"id": 1, "session": "s", "action": {"type": "import_ssh_private"}},
         });
         assert!(
-            serde_json::from_value::<AppMessage>(identity_action).is_err(),
+            crossed(&identity_action).is_err(),
             "the application wire must have no identity-action variant",
         );
     }

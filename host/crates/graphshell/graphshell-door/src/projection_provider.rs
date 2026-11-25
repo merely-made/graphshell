@@ -294,7 +294,7 @@ mod tests {
     #[cfg(unix)]
     async fn fixture_connection() -> (AppConnection, tokio::net::UnixStream) {
         use ostiary::app_admission::{AppHello, AppId};
-        use ostiary::frame::{read_native_message_async, write_native_message_async};
+        use ostiary::frame::{read_cbor_message_async, write_cbor_message_async};
         use ostiary::wire::{APP_CONNECT_SCHEMA, AppHostMessage, AppMessage, BrowserChallenge};
         use std::sync::atomic::{AtomicU64, Ordering};
         static NEXT: AtomicU64 = AtomicU64::new(0);
@@ -307,13 +307,13 @@ mod tests {
         let endpoint = path.to_str().unwrap().to_owned();
         let host = tokio::spawn(async move {
             let (mut host, _) = listener.accept().await.unwrap();
-            let hello: AppHello = read_native_message_async(&mut host).await.unwrap().unwrap();
+            let hello: AppHello = read_cbor_message_async(&mut host).await.unwrap().unwrap();
             let request = hello.accept().unwrap();
             let challenge = BrowserChallenge {
                 schema: ostiary::wire::BROWSER_CHALLENGE_SCHEMA.into(),
                 host_nonce: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA".into(),
             };
-            write_native_message_async(
+            write_cbor_message_async(
                 &mut host,
                 &AppHostMessage::<(), (), ()>::Challenge {
                     challenge: challenge.clone(),
@@ -322,11 +322,11 @@ mod tests {
             .await
             .unwrap();
             let connect: AppMessage<(), ()> =
-                read_native_message_async(&mut host).await.unwrap().unwrap();
+                read_cbor_message_async(&mut host).await.unwrap().unwrap();
             assert!(
                 matches!(connect, AppMessage::Connect { schema, host_nonce, .. } if schema == APP_CONNECT_SCHEMA && host_nonce == challenge.host_nonce)
             );
-            write_native_message_async(
+            write_cbor_message_async(
                 &mut host,
                 &AppHostMessage::<(), (), ()>::Connected {
                     app: request.app,
@@ -347,12 +347,12 @@ mod tests {
     #[cfg(unix)]
     #[tokio::test]
     async fn runner_exchanges_work_and_reports_disconnect() {
-        use ostiary::frame::{read_native_message_async, write_native_message_async};
+        use ostiary::frame::{read_cbor_message_async, write_cbor_message_async};
         use ostiary::wire::{AppHostMessage, AppMessage};
         let (connection, mut host) = fixture_connection().await;
         let server = tokio::spawn(async move {
             let first: AppMessage<(), ProviderCall> =
-                read_native_message_async(&mut host).await.unwrap().unwrap();
+                read_cbor_message_async(&mut host).await.unwrap().unwrap();
             assert!(matches!(
                 first,
                 AppMessage::Call {
@@ -360,7 +360,7 @@ mod tests {
                     call: ProviderCall::Offer { .. }
                 }
             ));
-            write_native_message_async(
+            write_cbor_message_async(
                 &mut host,
                 &AppHostMessage::<(), (), _>::Answer {
                     id: 1,
@@ -370,7 +370,7 @@ mod tests {
             .await
             .unwrap();
             let next: AppMessage<(), ProviderCall> =
-                read_native_message_async(&mut host).await.unwrap().unwrap();
+                read_cbor_message_async(&mut host).await.unwrap().unwrap();
             assert!(matches!(
                 next,
                 AppMessage::Call {
@@ -378,7 +378,7 @@ mod tests {
                     call: ProviderCall::Next { completed: None }
                 }
             ));
-            write_native_message_async(
+            write_cbor_message_async(
                 &mut host,
                 &AppHostMessage::<(), (), _>::Answer {
                     id: 2,
@@ -390,7 +390,7 @@ mod tests {
             .await
             .unwrap();
             let next: AppMessage<(), ProviderCall> =
-                read_native_message_async(&mut host).await.unwrap().unwrap();
+                read_cbor_message_async(&mut host).await.unwrap().unwrap();
             assert!(matches!(
                 next,
                 AppMessage::Call {
@@ -420,7 +420,7 @@ mod tests {
     #[cfg(unix)]
     #[tokio::test(flavor = "current_thread")]
     async fn slow_factory_does_not_block_the_async_runtime() {
-        use ostiary::frame::{read_native_message_async, write_native_message_async};
+        use ostiary::frame::{read_cbor_message_async, write_cbor_message_async};
         use ostiary::wire::{AppHostMessage, AppMessage};
         use std::sync::{
             Arc,
@@ -446,8 +446,8 @@ mod tests {
             },
         ));
         let _: AppMessage<(), ProviderCall> =
-            read_native_message_async(&mut host).await.unwrap().unwrap();
-        write_native_message_async(
+            read_cbor_message_async(&mut host).await.unwrap().unwrap();
+        write_cbor_message_async(
             &mut host,
             &AppHostMessage::<(), (), _>::Answer {
                 id: 1,
@@ -457,8 +457,8 @@ mod tests {
         .await
         .unwrap();
         let _: AppMessage<(), ProviderCall> =
-            read_native_message_async(&mut host).await.unwrap().unwrap();
-        write_native_message_async(
+            read_cbor_message_async(&mut host).await.unwrap().unwrap();
+        write_cbor_message_async(
             &mut host,
             &AppHostMessage::<(), (), _>::Answer {
                 id: 2,
@@ -476,7 +476,7 @@ mod tests {
             timer_ran.store(true, Ordering::SeqCst);
         });
         let next: AppMessage<(), ProviderCall> =
-            read_native_message_async(&mut host).await.unwrap().unwrap();
+            read_cbor_message_async(&mut host).await.unwrap().unwrap();
         assert!(matches!(
             next,
             AppMessage::Call {

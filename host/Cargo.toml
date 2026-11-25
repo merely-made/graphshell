@@ -158,6 +158,8 @@ athanor = { package = "mere-athanor", version = ">=0.0.1", git = "https://github
 # Shared pins the graphshell crates inherit.
 base64 = "0.23"
 blake3 = "1"
+# The family's one CBOR codec (engine split D209).
+cbor-core = { version = "0.10", features = ["serde"] }
 # One upstream ipc-channel across the family (capability door D10); never
 # force-inprocess outside an application root.
 ipc-channel = "0.23.1"

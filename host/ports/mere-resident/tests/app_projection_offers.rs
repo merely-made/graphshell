@@ -347,7 +347,7 @@ async fn idle_provider_disconnect_withdraws_and_replacement_does_not_inherit_vie
 async fn withdrawing_an_offer_closes_an_idle_viewer_socket() {
     use base64::Engine;
     use ostiary::app_admission::AppHello;
-    use ostiary::frame::{read_native_message_async, write_native_message_async};
+    use ostiary::frame::{read_cbor_message_async, write_cbor_message_async};
     use ostiary::local_endpoint::connect_local;
     use ostiary::wire::{APP_CONNECT_SCHEMA, AppHostMessage, AppMessage};
     use tokio::io::AsyncReadExt;
@@ -356,20 +356,20 @@ async fn withdrawing_an_offer_closes_an_idle_viewer_socket() {
     let door = door().await;
     let _provider = provider(&door, directory.path()).await;
     let mut socket = connect_local(&door.endpoint).await.unwrap();
-    write_native_message_async(
+    write_cbor_message_async(
         &mut socket,
         &AppHello::for_route(AppId::new(VIEWER), AppRouteId::new(ROUTE).unwrap()).declaring(declaring(&[ROUTE])),
     )
     .await
     .unwrap();
-    let Reply::Challenge { challenge } = read_native_message_async::<_, Reply>(&mut socket)
+    let Reply::Challenge { challenge } = read_cbor_message_async::<_, Reply>(&mut socket)
         .await
         .unwrap()
         .unwrap()
     else {
         panic!("expected shared door challenge")
     };
-    write_native_message_async(
+    write_cbor_message_async(
         &mut socket,
         &AppMessage::<(), ()>::Connect {
             schema: APP_CONNECT_SCHEMA.into(),
@@ -380,7 +380,7 @@ async fn withdrawing_an_offer_closes_an_idle_viewer_socket() {
     .await
     .unwrap();
     assert!(matches!(
-        read_native_message_async::<_, Reply>(&mut socket)
+        read_cbor_message_async::<_, Reply>(&mut socket)
             .await
             .unwrap(),
         Some(Reply::Connected { .. })

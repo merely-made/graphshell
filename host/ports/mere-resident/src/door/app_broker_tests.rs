@@ -17,7 +17,7 @@ use tokio::sync::RwLock;
 use crate::door::app_broker::{
     AppEndpointCatalog, serve_app_broker, serve_app_connection_for_tests,
 };
-use crate::door::browser_carrier::{read_native_message_async, write_native_message_async};
+use ostiary::frame::{read_cbor_message_async, write_cbor_message_async};
 use crate::door::device_broker::DeviceSurface;
 use crate::door::identity_endpoint::SupplementalCard;
 use crate::door::resident_identity::test_support::FixedIdentity;
@@ -106,10 +106,10 @@ async fn turnstone_opens_a_session_and_reads_a_capture() {
     );
 
     let app = async {
-        write_native_message_async(&mut app_writer, &identity_hello("turnstone"))
+        write_cbor_message_async(&mut app_writer, &identity_hello("turnstone"))
             .await
             .unwrap();
-        let challenge = match read_native_message_async::<_, AppHostMessage>(&mut app_reader)
+        let challenge = match read_cbor_message_async::<_, AppHostMessage>(&mut app_reader)
             .await
             .unwrap()
             .unwrap()
@@ -117,7 +117,7 @@ async fn turnstone_opens_a_session_and_reads_a_capture() {
             AppHostMessage::Challenge { challenge } => challenge,
             other => panic!("expected a challenge, got {other:?}"),
         };
-        write_native_message_async(
+        write_cbor_message_async(
             &mut app_writer,
             &AppMessage::Connect {
                 schema: APP_CONNECT_SCHEMA.into(),
@@ -127,7 +127,7 @@ async fn turnstone_opens_a_session_and_reads_a_capture() {
         )
         .await
         .unwrap();
-        match read_native_message_async::<_, AppHostMessage>(&mut app_reader)
+        match read_cbor_message_async::<_, AppHostMessage>(&mut app_reader)
             .await
             .unwrap()
             .unwrap()
@@ -138,7 +138,7 @@ async fn turnstone_opens_a_session_and_reads_a_capture() {
             other => panic!("expected connected, got {other:?}"),
         }
 
-        write_native_message_async(
+        write_cbor_message_async(
             &mut app_writer,
             &AppMessage::Request {
                 request: CarrierRequest {
@@ -157,7 +157,7 @@ async fn turnstone_opens_a_session_and_reads_a_capture() {
             other => panic!("expected opened, got {other:?}"),
         };
 
-        write_native_message_async(
+        write_cbor_message_async(
             &mut app_writer,
             &AppMessage::Request {
                 request: CarrierRequest {
@@ -184,7 +184,7 @@ async fn turnstone_opens_a_session_and_reads_a_capture() {
 
         // The capture itself: named by the card, held in the store, never
         // staged. This is the read-through path, exercised end to end.
-        write_native_message_async(
+        write_cbor_message_async(
             &mut app_writer,
             &AppMessage::Request {
                 request: CarrierRequest {
@@ -205,7 +205,7 @@ async fn turnstone_opens_a_session_and_reads_a_capture() {
             other => panic!("expected the resource, got {other:?}"),
         }
 
-        write_native_message_async(
+        write_cbor_message_async(
             &mut app_writer,
             &AppMessage::Request {
                 request: CarrierRequest {
@@ -233,7 +233,7 @@ async fn an_unadmitted_application_never_sees_a_challenge() {
     let (mut host_reader, mut host_writer) = tokio::io::split(host_stream);
     let (mut app_reader, mut app_writer) = tokio::io::split(app_stream);
 
-    write_native_message_async(&mut app_writer, &AppHello::new(AppId::new("not-ours")))
+    write_cbor_message_async(&mut app_writer, &AppHello::new(AppId::new("not-ours")))
         .await
         .unwrap();
     let allowed = AllowedAppRoutes::identity_for(AppId::new("turnstone"));
@@ -255,7 +255,7 @@ async fn an_unadmitted_application_never_sees_a_challenge() {
     drop(host_reader);
     let refused = tokio::time::timeout(
         std::time::Duration::from_secs(5),
-        read_native_message_async::<_, AppHostMessage>(&mut app_reader),
+        read_cbor_message_async::<_, AppHostMessage>(&mut app_reader),
     )
     .await
     .expect("the refused application reaches an end rather than hanging")
@@ -285,7 +285,7 @@ async fn an_ungranted_route_never_opens_its_product_endpoint() {
     let (host_stream, app_stream) = tokio::io::duplex(16 * 1024);
     let (mut host_reader, mut host_writer) = tokio::io::split(host_stream);
     let (_app_reader, mut app_writer) = tokio::io::split(app_stream);
-    write_native_message_async(
+    write_cbor_message_async(
         &mut app_writer,
         &AppHello::for_route(AppId::new("turnstone"), AppRouteId::new("knot").unwrap()),
     )
@@ -330,10 +330,10 @@ async fn the_browser_connect_frame_does_not_open_an_application_session() {
         AppEndpointCatalog::default(),
     );
     let app = async {
-        write_native_message_async(&mut app_writer, &identity_hello("turnstone"))
+        write_cbor_message_async(&mut app_writer, &identity_hello("turnstone"))
             .await
             .unwrap();
-        let challenge = match read_native_message_async::<_, AppHostMessage>(&mut app_reader)
+        let challenge = match read_cbor_message_async::<_, AppHostMessage>(&mut app_reader)
             .await
             .unwrap()
             .unwrap()
@@ -341,7 +341,7 @@ async fn the_browser_connect_frame_does_not_open_an_application_session() {
             AppHostMessage::Challenge { challenge } => challenge,
             other => panic!("expected a challenge, got {other:?}"),
         };
-        write_native_message_async(
+        write_cbor_message_async(
             &mut app_writer,
             &AppMessage::Connect {
                 schema: "mere.graphshell/browser-connect/v1".into(),
@@ -360,7 +360,7 @@ async fn the_browser_connect_frame_does_not_open_an_application_session() {
 }
 
 async fn response<R: tokio::io::AsyncRead + Unpin>(reader: &mut R) -> CarrierResponseBody {
-    match read_native_message_async::<_, AppHostMessage>(reader)
+    match read_cbor_message_async::<_, AppHostMessage>(reader)
         .await
         .unwrap()
         .unwrap()
@@ -566,7 +566,7 @@ async fn denials_and_ambient_refusals_precede_product_construction() {
         let (host, client) = tokio::io::duplex(16 * 1024);
         let (mut reader, mut writer) = tokio::io::split(host);
         let (mut client_reader, mut client_writer) = tokio::io::split(client);
-        write_native_message_async(
+        write_cbor_message_async(
             &mut client_writer,
             &AppHello::for_route(AppId::new(app), AppRouteId::new(route).unwrap()),
         )
@@ -587,7 +587,7 @@ async fn denials_and_ambient_refusals_precede_product_construction() {
         drop(reader);
         drop(writer);
         assert!(
-            read_native_message_async::<_, AppHostMessage>(&mut client_reader)
+            read_cbor_message_async::<_, AppHostMessage>(&mut client_reader)
                 .await
                 .unwrap()
                 .is_none()

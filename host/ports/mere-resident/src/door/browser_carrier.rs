@@ -311,6 +311,9 @@ pub enum BrowserCarrierError {
     Io(#[from] std::io::Error),
     #[error("native messaging JSON failed: {0}")]
     Json(#[from] frame::JsonDiagnostic),
+    /// Only the application door's frames are CBOR.
+    #[error("native messaging CBOR failed: {0}")]
+    Cbor(frame::CborDiagnostic),
     #[error("browser session handshake failed: {0}")]
     Handshake(#[from] IoHandshakeError),
     #[error("browser session was refused: {0}")]
@@ -372,6 +375,7 @@ impl From<FrameError> for BrowserCarrierError {
             FrameError::TooLarge { len, max } => Self::FrameTooLarge { len, max },
             FrameError::Io(error) => Self::Io(error),
             FrameError::Json(error) => Self::Json(error),
+            FrameError::Cbor(error) => Self::Cbor(error),
         }
     }
 }

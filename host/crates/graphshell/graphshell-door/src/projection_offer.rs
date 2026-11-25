@@ -10,7 +10,9 @@ use serde::{Deserialize, Serialize};
 
 pub const PROJECTION_PROVIDER_ROUTE: &str = "mere.projection-provider";
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+/// Read field by field, so a keyframe inside a completed
+/// response stays its envelope on the CBOR door (D219, D225).
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum ProviderCall {
     Offer { route: AppRouteId, label: String },
@@ -53,7 +55,8 @@ pub struct WorkResult {
     pub session: String,
     pub result: WorkOutcome,
 }
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+/// Read field by field, as [`ProviderCall`] is.
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum WorkOutcome {
     Opened { descriptor: EndpointDescriptor },
@@ -61,4 +64,101 @@ pub enum WorkOutcome {
     Notice { notice: Option<CarrierNotice> },
     Closed,
     Failed { message: String },
+}
+
+/// `Deserialize` with the derived shape. Serde's internally tagged enums
+/// buffer the item and report it human-readable, which would hand a sealed
+/// keyframe to the plain decoder; here each field reads from the format
+/// itself. Keys the variant does not name are ignored, as the derive did.
+mod read {
+    use serde::Deserialize;
+    use serde::de::{Deserializer, Error};
+
+    use super::*;
+
+    fn present<'de, D: Deserializer<'de>, T: Deserialize<'de>>(
+        d: D,
+    ) -> Result<Option<T>, D::Error> {
+        T::deserialize(d).map(Some)
+    }
+
+    fn required<T, E: Error>(field: Option<T>, name: &'static str) -> Result<T, E> {
+        field.ok_or_else(|| E::missing_field(name))
+    }
+
+    #[derive(Deserialize)]
+    #[serde(rename_all = "snake_case")]
+    enum CallKind {
+        Offer,
+        Next,
+        Withdraw,
+    }
+
+    #[derive(Deserialize)]
+    struct CallFields {
+        #[serde(rename = "type")]
+        kind: CallKind,
+        route: Option<AppRouteId>,
+        label: Option<String>,
+        #[serde(default, deserialize_with = "present")]
+        completed: Option<Option<WorkResult>>,
+    }
+
+    impl<'de> Deserialize<'de> for ProviderCall {
+        fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+            let f = CallFields::deserialize(deserializer)?;
+            Ok(match f.kind {
+                CallKind::Offer => Self::Offer {
+                    route: required(f.route, "route")?,
+                    label: required(f.label, "label")?,
+                },
+                CallKind::Next => Self::Next {
+                    completed: required(f.completed, "completed")?,
+                },
+                CallKind::Withdraw => Self::Withdraw,
+            })
+        }
+    }
+
+    #[derive(Deserialize)]
+    #[serde(rename_all = "snake_case")]
+    enum OutcomeKind {
+        Opened,
+        Response,
+        Notice,
+        Closed,
+        Failed,
+    }
+
+    #[derive(Deserialize)]
+    struct OutcomeFields {
+        #[serde(rename = "type")]
+        kind: OutcomeKind,
+        descriptor: Option<EndpointDescriptor>,
+        response: Option<CarrierResponse>,
+        #[serde(default, deserialize_with = "present")]
+        notice: Option<Option<CarrierNotice>>,
+        message: Option<String>,
+    }
+
+    impl<'de> Deserialize<'de> for WorkOutcome {
+        fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+            let f = OutcomeFields::deserialize(deserializer)?;
+            Ok(match f.kind {
+                OutcomeKind::Opened => Self::Opened {
+                    descriptor: required(f.descriptor, "descriptor")?,
+                },
+                OutcomeKind::Response => Self::Response {
+                    response: required(f.response, "response")?,
+                },
+                OutcomeKind::Notice => Self::Notice {
+                    notice: required(f.notice, "notice")?,
+                },
+                OutcomeKind::Closed => Self::Closed,
+                OutcomeKind::Failed => Self::Failed {
+                    message: required(f.message, "message")?,
+                },
+            })
+        }
+    }
 }

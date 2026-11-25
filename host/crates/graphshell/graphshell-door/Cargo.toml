@@ -48,6 +48,9 @@ personae = { workspace = true, optional = true }
 
 [dev-dependencies]
 tokio = { version = "1", features = ["io-util", "macros", "rt", "rt-multi-thread", "time"] }
+# The app-door wire tests read the frame and build a keyframe.
+cbor-core.workspace = true
+sceno.workspace = true
 
 [lints]
 workspace = true

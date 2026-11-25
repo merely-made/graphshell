@@ -384,7 +384,7 @@ mod resource_boundary_tests {
             };
             let framed = ostiary::wire::AppHostMessage::<_, (), ()>::Response { response };
             let mut wire = Vec::new();
-            ostiary::frame::write_native_message(&mut wire, &framed).unwrap();
+            ostiary::frame::write_cbor_message(&mut wire, &framed).unwrap();
             assert!(wire.len() < 1024 * 1024);
             frames += 1;
             if let Some(actual) =
@@ -441,5 +441,128 @@ mod resource_boundary_tests {
             .unwrap(),
             Some(Vec::new())
         );
+    }
+}
+
+/// The app door's body is the canonical CBOR wire item, so a snapshot reply
+/// carries a keyframe envelope and a diffs reply diff envelopes (D219, D225).
+#[cfg(test)]
+mod app_door_wire_tests {
+    use super::*;
+    use cbor_core::Value;
+    use chirograph::{
+        CarrierResponse, EngineRevision, Envelope, EnvelopeKind, ProjectionDiff, ProjectionSession,
+        ResumeReply, Revision, SceneDiff, SceneEpoch,
+    };
+    use ostiary::frame::{read_cbor_message, write_cbor_message};
+    use ostiary::wire::AppHostMessage;
+
+    type Host = AppHostMessage<CarrierResponse, CarrierNotice, ()>;
+
+    fn engine(cursor: u64) -> EngineRevision {
+        EngineRevision {
+            session: "engine-session".into(),
+            cursor,
+            digest: format!("v2:{cursor:064x}"),
+        }
+    }
+
+    fn keyframe() -> ProjectionSnapshot {
+        ProjectionSnapshot {
+            version: ProtocolVersion::V1,
+            session: ProjectionSession("projection-session".into()),
+            scene: chirograph::SceneSnapshot::from_dense(
+                SceneEpoch(3),
+                Revision(7),
+                sceno::Scene::new(),
+            )
+            .unwrap()
+            .with_engine_revision(engine(41)),
+            presentation: Default::default(),
+            cache_policy: Default::default(),
+        }
+    }
+
+    fn diff(to: u64) -> ProjectionDiff {
+        ProjectionDiff {
+            version: ProtocolVersion::V1,
+            session: ProjectionSession("projection-session".into()),
+            scene: SceneDiff::new(SceneEpoch(3), Revision(to - 1), Revision(to), Vec::new())
+                .with_engine(engine(to - 1), engine(to)),
+            presentation: Vec::new(),
+            status: None,
+        }
+    }
+
+    fn reply(body: CarrierResponseBody) -> Host {
+        Host::Response {
+            response: CarrierResponse {
+                id: 1,
+                body: Ok(body),
+            },
+        }
+    }
+
+    fn framed(message: &Host) -> Vec<u8> {
+        let mut wire = Vec::new();
+        write_cbor_message(&mut wire, message).unwrap();
+        wire
+    }
+
+    fn frame_of(body: &[u8]) -> Vec<u8> {
+        let mut wire = (body.len() as u32).to_ne_bytes().to_vec();
+        wire.extend_from_slice(body);
+        wire
+    }
+
+    /// The reply body inside a frame, as the item the frame holds.
+    fn reply_body(wire: &[u8]) -> Value<'static> {
+        let item = Value::decode_owned(&wire[4..]).unwrap();
+        item["response"]["body"]["Ok"].clone()
+    }
+
+    #[test]
+    fn a_snapshot_reply_crosses_as_a_keyframe_envelope() {
+        let message = reply(CarrierResponseBody::Snapshot(Box::new(keyframe())));
+        let wire = framed(&message);
+        let body = reply_body(&wire);
+        let envelope = Envelope::read(body["Snapshot"].as_bytes().unwrap()).unwrap();
+        assert_eq!(envelope.kind, EnvelopeKind::Keyframe);
+        assert_eq!(envelope.identity.engine, Some(engine(41)));
+        assert_eq!(envelope.identity.revision, Revision(7));
+        let read: Host = read_cbor_message(&mut wire.as_slice()).unwrap().unwrap();
+        assert_eq!(read, message);
+    }
+
+    #[test]
+    fn a_diffs_reply_crosses_as_one_diff_envelope_each() {
+        let diffs = vec![diff(8), diff(9)];
+        let message = reply(CarrierResponseBody::Resume(ResumeReply::Diffs(diffs)));
+        let wire = framed(&message);
+        let body = reply_body(&wire);
+        let sealed = body["Resume"]["Diffs"].as_array().unwrap();
+        assert_eq!(sealed.len(), 2);
+        for (sealed, to) in sealed.iter().zip([8, 9]) {
+            let envelope = Envelope::read(sealed.as_bytes().unwrap()).unwrap();
+            assert_eq!(envelope.kind, EnvelopeKind::Diff);
+            assert_eq!(envelope.identity.revision, Revision(to));
+        }
+        let read: Host = read_cbor_message(&mut wire.as_slice()).unwrap().unwrap();
+        assert_eq!(read, message);
+    }
+
+    #[test]
+    fn a_plain_keyframe_on_the_app_door_is_refused() {
+        let wire = framed(&reply(CarrierResponseBody::Snapshot(Box::new(keyframe()))));
+        let mut item = Value::decode_owned(&wire[4..]).unwrap();
+        // Positive control: the item re-encoded unchanged still reads.
+        assert!(read_cbor_message::<_, Host>(&mut frame_of(&item.encode()).as_slice()).is_ok());
+        let plain = Value::serialized(&keyframe()).unwrap();
+        item.get_mut("response")
+            .and_then(|r| r.get_mut("body"))
+            .and_then(|b| b.get_mut("Ok"))
+            .unwrap()
+            .insert("Snapshot", plain);
+        assert!(read_cbor_message::<_, Host>(&mut frame_of(&item.encode()).as_slice()).is_err());
     }
 }

@@ -140,3 +140,61 @@ fn request_and_response_payloads_preserve_chirograph_shapes() {
     assert_eq!(serde_json::to_string(&response).unwrap(), json);
     assert_eq!(serde_json::from_str::<WorkOutcome>(json).unwrap(), response);
 }
+
+/// The provider route is on the CBOR app door (D225): a keyframe a provider
+/// returns stays its envelope inside the two tagged layers around it.
+#[test]
+fn a_completed_snapshot_crosses_the_cbor_door_as_its_envelope() {
+    use chirograph::{
+        CarrierResponse, CarrierResponseBody, ProjectionSession, ProjectionSnapshot,
+        ProtocolVersion, Revision, SceneEpoch, SceneSnapshot,
+    };
+    use ostiary::frame::{read_cbor_message, write_cbor_message};
+    let snapshot = ProjectionSnapshot {
+        version: ProtocolVersion::V1,
+        session: ProjectionSession("viewer".into()),
+        scene: SceneSnapshot::from_dense(SceneEpoch(1), Revision(2), sceno::Scene::new()).unwrap(),
+        presentation: Default::default(),
+        cache_policy: Default::default(),
+    };
+    let call = ProviderCall::Next {
+        completed: Some(WorkResult {
+            id: 7,
+            session: "viewer".into(),
+            result: WorkOutcome::Response {
+                response: CarrierResponse {
+                    id: 3,
+                    body: Ok(CarrierResponseBody::Snapshot(Box::new(snapshot))),
+                },
+            },
+        }),
+    };
+    let mut wire = Vec::new();
+    write_cbor_message(&mut wire, &call).unwrap();
+    let item = cbor_core::Value::decode(&wire[4..]).unwrap();
+    let sealed = &item["completed"]["result"]["response"]["body"]["Ok"]["Snapshot"];
+    let envelope = chirograph::Envelope::read(sealed.as_bytes().unwrap()).unwrap();
+    assert_eq!(envelope.kind, chirograph::EnvelopeKind::Keyframe);
+    assert_eq!(
+        read_cbor_message::<_, ProviderCall>(&mut wire.as_slice()).unwrap(),
+        Some(call)
+    );
+    for idle in [
+        ProviderCall::Next { completed: None },
+        ProviderCall::Next {
+            completed: Some(WorkResult {
+                id: 8,
+                session: "viewer".into(),
+                result: WorkOutcome::Notice { notice: None },
+            }),
+        },
+        ProviderCall::Withdraw,
+    ] {
+        let mut wire = Vec::new();
+        write_cbor_message(&mut wire, &idle).unwrap();
+        assert_eq!(
+            read_cbor_message::<_, ProviderCall>(&mut wire.as_slice()).unwrap(),
+            Some(idle)
+        );
+    }
+}
