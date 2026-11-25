@@ -17,6 +17,7 @@
 //! gated to 3:1) when the host passes them, else the canvas's own eight.
 
 use std::collections::{BTreeMap, HashMap, HashSet};
+use std::sync::Arc;
 
 use kernel::graph::NodeKey;
 use scenograph::attention::Attention;
@@ -37,7 +38,7 @@ pub(crate) struct GrammarFrame {
     /// Nodes whose caption shows.
     pub labelled: HashSet<NodeKey>,
     /// Each node's category index (its site, in sorted order).
-    pub category: HashMap<NodeKey, usize>,
+    pub category: Arc<HashMap<NodeKey, usize>>,
 }
 
 impl Canvas {
@@ -85,6 +86,15 @@ impl Canvas {
 
     /// This frame's grammar, or `None` when the grammar is off.
     pub(crate) fn grammar_frame(&mut self) -> Option<GrammarFrame> {
+        self.grammar_frame_with(None)
+    }
+
+    /// As [`Self::grammar_frame`], with the hovered node given (`Some`) by a
+    /// caller that already knows it, so the frame does not pick over the graph.
+    pub(crate) fn grammar_frame_with(
+        &mut self,
+        hovered: Option<Option<NodeKey>>,
+    ) -> Option<GrammarFrame> {
         if !self.graph_grammar {
             return None;
         }
@@ -94,16 +104,18 @@ impl Canvas {
             .map(|(key, _)| key)
             .filter(|key| self.attention_of_key(*key) == Attention::Forward)
             .collect();
-        let hovered = self.pick_at(self.cursor);
+        let hovered = hovered.unwrap_or_else(|| self.pick_at(self.cursor));
         let mut loud = forward.clone();
         loud.extend(hovered);
         let mut labelled = loud.clone();
-        for (_, relation) in self.graph.projected_relations() {
-            if forward.contains(&relation.from) {
-                labelled.insert(relation.to);
-            }
-            if forward.contains(&relation.to) {
-                labelled.insert(relation.from);
+        if !forward.is_empty() {
+            for (_, relation) in self.graph.projected_relations() {
+                if forward.contains(&relation.from) {
+                    labelled.insert(relation.to);
+                }
+                if forward.contains(&relation.to) {
+                    labelled.insert(relation.from);
+                }
             }
         }
         labelled.extend(
@@ -112,21 +124,40 @@ impl Canvas {
                 .map(|(key, _)| key)
                 .filter(|key| self.attention_of_key(*key) == Attention::Retained),
         );
+        let category = self.site_categories();
+        Some(GrammarFrame {
+            loud,
+            labelled,
+            category,
+        })
+    }
+
+    /// Each node's category index (its site, in sorted order), kept until the
+    /// structure or the URL grouping changes.
+    fn site_categories(&mut self) -> Arc<HashMap<NodeKey, usize>> {
+        let key = (
+            self.graph.structural_input_key(),
+            self.graph.url_grouping_input_key(),
+        );
+        if let Some((held, categories)) = &self.grammar_categories
+            && *held == key
+        {
+            return Arc::clone(categories);
+        }
         let sites = self.channels.sites(&self.graph).clone();
         let mut names: Vec<&String> = sites.values().collect();
         names.sort();
         names.dedup();
         let index: BTreeMap<&String, usize> =
             names.into_iter().enumerate().map(|(i, n)| (n, i)).collect();
-        let category = sites
-            .iter()
-            .map(|(key, site)| (*key, index[site]))
-            .collect();
-        Some(GrammarFrame {
-            loud,
-            labelled,
-            category,
-        })
+        let categories: Arc<HashMap<NodeKey, usize>> = Arc::new(
+            sites
+                .iter()
+                .map(|(key, site)| (*key, index[site]))
+                .collect(),
+        );
+        self.grammar_categories = Some((key, Arc::clone(&categories)));
+        categories
     }
 
     /// The gnode's classes under the grammar, before its representation class.

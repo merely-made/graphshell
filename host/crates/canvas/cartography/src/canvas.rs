@@ -513,6 +513,11 @@ pub struct Canvas {
     territory_field: bool,
     /// Whether nodes and links are presented by the graph grammar (`grammar_view.rs`).
     graph_grammar: bool,
+    /// The grammar's category index per node, with the graph keys it was built for.
+    grammar_categories: Option<(
+        (kernel::graph::GraphInputKey, kernel::graph::GraphInputKey),
+        Arc<HashMap<NodeKey, usize>>,
+    )>,
     /// The host's rule for what the pair gesture may withdraw (`selection.rs`);
     /// `None` applies the canvas's own default.
     withdraw_policy: Option<WithdrawPolicy>,

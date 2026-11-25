@@ -9,7 +9,9 @@
 
 use std::collections::{HashMap, HashSet};
 
-use crate::canvas::underlay::{canvas_paint_list_demoted_from_arrangement, identity_arrangement};
+use crate::canvas::underlay::{
+    canvas_paint_list_demoted_from_arrangement, canvas_paint_list_empty, identity_arrangement,
+};
 use genet_scripted_dom::NodeId as DomNodeId;
 use kernel::geometry::PortablePoint;
 use kernel::graph::NodeKey;

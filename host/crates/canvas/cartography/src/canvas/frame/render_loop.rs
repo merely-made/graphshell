@@ -182,29 +182,31 @@ impl Canvas {
         // scope. Either way the canvas renders as a Cartography projection of an
         // arrangement (the spine's "two projections of one arrangement"); a scoped
         // arrangement is exactly the shape a stored/compare arrangement would take.
-        let arrangement = match (&self.scope, folds.is_empty()) {
-            _ if tiered => crate::canvas::underlay::arrangement_of_keys(&self.graph, &visible_keys),
+        let arrangement = (!tiered).then(|| match (&self.scope, folds.is_empty()) {
             (None, true) => identity_arrangement(&self.graph),
             _ => crate::canvas::underlay::arrangement_of_keys(&self.graph, &visible_keys),
-        };
+        });
         observer.mark(1);
-        let mut underlay = canvas_paint_list_demoted_from_arrangement(
-            &self.graph,
-            &arrangement,
-            |k| positions.get(&k).copied(),
-            |k| !on_screen.contains(&k),
-            // Link strokes are projected below from canonical LinkReading values.
-            // Suppress Platen's pair fallback so it cannot double-draw a link.
-            |_| false,
-            // Each node's face radius (node_size / 2) so straight edges trim to the
-            // face and demoted underlay rects draw at the node's true size. (Node-rep
-            // Decision 5 — size drives the face geometry.)
-            |k| Some(self.node_size(k) / 2.0),
-            viewport,
-            self.camera,
-            &self.style,
-            self.generation,
-        );
+        let mut underlay = match &arrangement {
+            None => canvas_paint_list_empty(viewport, self.camera, &self.style, self.generation),
+            Some(arrangement) => canvas_paint_list_demoted_from_arrangement(
+                &self.graph,
+                arrangement,
+                |k| positions.get(&k).copied(),
+                |k| !on_screen.contains(&k),
+                // Link strokes are projected below from canonical LinkReading values.
+                // Suppress Platen's pair fallback so it cannot double-draw a link.
+                |_| false,
+                // Each node's face radius (node_size / 2) so straight edges trim to the
+                // face and demoted underlay rects draw at the node's true size. (Node-rep
+                // Decision 5 — size drives the face geometry.)
+                |k| Some(self.node_size(k) / 2.0),
+                viewport,
+                self.camera,
+                &self.style,
+                self.generation,
+            ),
+        };
         // Placed field regions paint *under* the edges + demoted nodes (a background
         // the graph sits within), spliced at the bottom of the same camera transform.
         // The dashed extent box shows only for the hovered field (box-on-interaction);

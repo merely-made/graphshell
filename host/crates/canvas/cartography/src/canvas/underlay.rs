@@ -354,6 +354,19 @@ where
     list
 }
 
+/// An underlay with no nodes or edges, for splicing overlays into under the
+/// camera transform: what the canvas keeps when the GPU node tier draws both.
+pub fn canvas_paint_list_empty(
+    viewport: DeviceIntSize,
+    camera: Camera,
+    style: &ScenePaintStyle,
+    generation: u64,
+) -> CanvasPaintList {
+    paint_projection_filtered(&Projection::default(), viewport, camera, style, generation, |_| {
+        false
+    })
+}
+
 /// Axis-aligned bounds of the positioned nodes (a zero rect when there are none).
 fn bounds_of_nodes(nodes: &[PositionedNode]) -> PortableRect {
     let mut iter = nodes.iter();
