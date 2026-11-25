@@ -55,8 +55,8 @@ pub use loader::{
     LUA_PACK_MANIFEST, LuaPackRuntime, ModActivationError, ModCapability, ModDependencyError,
     ModExtensionRecord, ModLoadPathError, ModManifest, ModRegistry, ModStatus, ModType,
     ModUnloadError, NativeModRegistration, NativeModRuntime, PackLifecycleError, PackRefusal,
-    WasmModRuntime,
-    WasmModSource, discover_mod_manifests, discover_native_mods, discover_wasm_mods_in_dir,
+    InstallRecord, RecordEvent, WasmModRuntime, WasmModSource, WasmRefusal, admit_wasm,
+    capability_name, hash_bytes, discover_mod_manifests, discover_native_mods, discover_wasm_mods_in_dir,
     resolve_mod_load_order, runtime_has_capability,
 };
 

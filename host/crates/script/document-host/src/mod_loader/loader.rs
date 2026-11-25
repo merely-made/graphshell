@@ -12,6 +12,11 @@ pub use lua_pack::{
     AdmissionLevel, AdmittedPack, LUA_PACK_ABI, LUA_PACK_MANIFEST, PackLifecycleError, PackRefusal,
 };
 
+pub mod wasm_admission;
+pub use wasm_admission::{
+    InstallRecord, RecordEvent, WasmRefusal, admit_wasm, capability_name, hash_bytes,
+};
+
 pub mod types;
 pub use types::*;
 

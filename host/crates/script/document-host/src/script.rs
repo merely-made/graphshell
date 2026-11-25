@@ -7,6 +7,7 @@
 //! Quota, turn outcome, and the DocumentScript run loop.
 
 use super::*;
+use crate::mod_loader::InstallRecord;
 
 /// Default per-turn `net.fetch` budget (§A6). Generous for a real turn (a handful of
 /// API calls), a hard ceiling on a fetch flood. Per *turn*, reset each `handle-event`,
@@ -99,6 +100,44 @@ impl DocumentScript {
         fetcher: Option<std::sync::Arc<dyn NetFetcher>>,
         net_origins: Vec<String>,
     ) -> wasmtime::Result<Self> {
+        Self::attach_with(component_path, None, dom, grant, quota, fetcher, net_origins)
+    }
+
+    /// [`attach`](Self::attach) against an install record: the only way to attach a
+    /// `.cwasm`, which must hash to the build the record names (mod projects D4).
+    ///
+    /// # Errors
+    ///
+    /// As `attach`, and a refusal when the file does not match the record.
+    pub fn attach_pinned(
+        component_path: &Path,
+        record: &InstallRecord,
+        dom: ScriptedDom,
+        grant: &Grant,
+        quota: Quota,
+        fetcher: Option<std::sync::Arc<dyn NetFetcher>>,
+        net_origins: Vec<String>,
+    ) -> wasmtime::Result<Self> {
+        Self::attach_with(
+            component_path,
+            Some(record),
+            dom,
+            grant,
+            quota,
+            fetcher,
+            net_origins,
+        )
+    }
+
+    fn attach_with(
+        component_path: &Path,
+        pin: Option<&InstallRecord>,
+        dom: ScriptedDom,
+        grant: &Grant,
+        quota: Quota,
+        fetcher: Option<std::sync::Arc<dyn NetFetcher>>,
+        net_origins: Vec<String>,
+    ) -> wasmtime::Result<Self> {
         let engine = guarded_engine()?;
         let limits = StoreLimitsBuilder::new()
             .memory_size(quota.mem_bytes)
@@ -110,6 +149,7 @@ impl DocumentScript {
             grant,
             limits,
             Some(quota.epoch_deadline_ticks),
+            pin,
         ))?;
         // The network backend for `net.fetch` (None = unconfigured -> fetch errors)
         // plus the origin allowlist gating which URLs it may reach (§E1) and the

@@ -7,6 +7,7 @@
 //! Capability grants: Guarded/Grant model, grant-scoped linking, engine + component loading.
 
 use super::*;
+use crate::mod_loader::InstallRecord;
 
 /// Outcome of a guarded single-turn run (P2.2).
 #[derive(Debug)]
@@ -215,29 +216,56 @@ pub(crate) fn guarded_engine() -> wasmtime::Result<Engine> {
     Engine::new(&config)
 }
 
-/// Load a `document-core` component: a precompiled `.cwasm` via `deserialize` (the
-/// P2.6 AOT path — no Cranelift on the hot path), else a `.wasm` via `from_file`
-/// (JIT). `.cwasm` is for trusted first-party bundled components only.
-pub(crate) fn load_component(engine: &Engine, path: &Path) -> wasmtime::Result<Component> {
-    if path.extension().and_then(|e| e.to_str()) == Some("cwasm") {
-        // SAFETY: a `.cwasm` is a trusted first-party build artifact produced by
-        // `precompile_to_cwasm` with a config-matching engine; `deserialize` loads
-        // precompiled machine code (no Cranelift). Never deserialize untrusted bytes.
-        unsafe { Component::deserialize_file(engine, path) }
-    } else {
-        Component::from_file(engine, path)
+/// Load a `document-core` component. `pin` is the mod's install record (mod
+/// projects D4): with one, the file's bytes are read once, checked against the
+/// record (the pinned component hash for a `.wasm`, the host-built hash for a
+/// `.cwasm`) and loaded from those same bytes. Without one a `.wasm` loads from
+/// the file and a `.cwasm` is refused: a foreign `.cwasm` is never deserialized.
+pub(crate) fn load_component(
+    engine: &Engine,
+    path: &Path,
+    pin: Option<&InstallRecord>,
+) -> wasmtime::Result<Component> {
+    let is_cwasm = path.extension().and_then(|e| e.to_str()) == Some("cwasm");
+    match pin {
+        None if is_cwasm => Err(wasmtime::Error::msg(format!(
+            "{}: a .cwasm loads only against its install record (hash of a host build)",
+            path.display()
+        ))),
+        None => Component::from_file(engine, path),
+        Some(record) => {
+            let bytes = std::fs::read(path)?;
+            if is_cwasm {
+                record.verify_cwasm(&bytes).map_err(wasmtime::Error::new)?;
+                // SAFETY: the bytes hash to the `.cwasm` this host built from an
+                // admitted component (`DocumentScriptRuntime::build_cwasm`) with a
+                // config-matching engine; nothing else reaches `deserialize`.
+                unsafe { Component::deserialize(engine, &bytes) }
+            } else {
+                record.verify_component(&bytes).map_err(wasmtime::Error::new)?;
+                Component::new(engine, &bytes)
+            }
+        },
     }
 }
 
 /// Ahead-of-time compile a `document-core` `.wasm` component to a `.cwasm` byte blob
 /// (P2.6): Cranelift runs *here* (build time), not at `attach`. Write the bytes to a
 /// `.cwasm` file and load it with [`DocumentScript::attach`], which `deserialize`s
-/// with codegen off. Trusted / first-party components only (`deserialize` trusts the
-/// bytes). The blob is a per-target build artifact — never commit it.
+/// with codegen off. Load the result only through an install record
+/// (`DocumentScriptRuntime::build_cwasm`, [`DocumentScript::attach_pinned`]). The blob is a per-target build artifact — never commit it.
 pub fn precompile_to_cwasm(component_path: &Path) -> wasmtime::Result<Vec<u8>> {
+    precompile_bytes(&std::fs::read(component_path)?)
+}
+
+/// [`precompile_to_cwasm`] over component bytes already read (and hash-checked).
+///
+/// # Errors
+///
+/// The compiler's error for bytes that are not a component.
+pub fn precompile_bytes(component: &[u8]) -> wasmtime::Result<Vec<u8>> {
     let engine = guarded_engine()?;
-    let component = Component::from_file(&engine, component_path)?;
-    component.serialize()
+    Component::new(&engine, component)?.serialize()
 }
 
 pub(crate) async fn build_instance(
@@ -247,8 +275,9 @@ pub(crate) async fn build_instance(
     grant: &Grant,
     limits: StoreLimits,
     epoch_deadline_ticks: Option<u64>,
+    pin: Option<&InstallRecord>,
 ) -> wasmtime::Result<(Store<ScriptHost>, DocumentCore)> {
-    let component = load_component(engine, component_path)?;
+    let component = load_component(engine, component_path, pin)?;
     let mut linker = Linker::new(engine);
     link_with_grant(&mut linker, grant)?;
     let mut store = Store::new(engine, new_host(dom, grant.granted_names(), limits));
@@ -276,6 +305,7 @@ pub async fn instantiate_with_grant(component_path: &Path, grant: &Grant) -> was
         seed_dom(),
         grant,
         StoreLimits::default(),
+        None,
         None,
     )
     .await?;

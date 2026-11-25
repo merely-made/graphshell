@@ -143,9 +143,32 @@ fn precompiled_cwasm_attaches_and_drives_without_codegen() {
     let path = std::env::temp_dir().join(format!("doc-core-aot-{}.cwasm", std::process::id()));
     std::fs::write(&path, &cwasm).expect("write cwasm");
 
+    // D4: a `.cwasm` loads only against the record of the host build.
+    use document_host::mod_loader::{
+        AdmissionLevel, ModCapability, ModManifest, ModType, admit_wasm, hash_bytes,
+    };
+    let manifest = ModManifest::new("aot", "aot", ModType::Wasm, vec![], vec![], vec![]);
+    let mut record = admit_wasm(
+        &manifest,
+        "0",
+        &doc_wasm(),
+        AdmissionLevel::Conformant,
+        &[ModCapability::Network],
+        None,
+    )
+    .expect("admit");
+    let (dom, _body, _t) = page();
+    assert!(
+        DocumentScript::attach(&path, dom, &Grant::allow_all(), Quota::default(), None, vec![])
+            .is_err(),
+        "an unrecorded .cwasm is refused"
+    );
+    record.note_build(hash_bytes(&cwasm));
+
     let (dom, _body, t1) = page();
-    let mut script = DocumentScript::attach(
+    let mut script = DocumentScript::attach_pinned(
         &path,
+        &record,
         dom,
         &Grant::allow_all(),
         Quota::default(),

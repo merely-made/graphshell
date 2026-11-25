@@ -74,20 +74,23 @@ fn candidate_manifest_paths(path: &Path) -> Vec<PathBuf> {
     candidates
 }
 
+/// The 8-byte Component-Model preamble (`\0asm` + version 0x0d 0x00 + layer
+/// 0x01 0x00), not just the `\0asm` magic, so a core module (version
+/// 0x01 0x00 0x00 0x00) or a truncated file is rejected at discovery rather
+/// than failing later at instantiation. Document-script mods are components,
+/// never bare modules.
+pub(super) fn component_preamble_ok(bytes: &[u8]) -> bool {
+    bytes.len() >= 8
+        && bytes[..4] == [0x00, 0x61, 0x73, 0x6d]
+        && bytes[4..8] == [0x0d, 0x00, 0x01, 0x00]
+}
+
 fn validate_wasm_binary(path: &Path) -> Result<(), ModLoadPathError> {
     let bytes = std::fs::read(path).map_err(|error| ModLoadPathError::Io {
         path: path.to_path_buf(),
         reason: error.to_string(),
     })?;
-    // Require the 8-byte Component-Model preamble (`\0asm` + version 0x0d 0x00 +
-    // layer 0x01 0x00), not just the `\0asm` magic, so a core module
-    // (version 0x01 0x00 0x00 0x00) or a truncated file is rejected at discovery
-    // rather than failing later at instantiation. Document-script mods are
-    // components, never bare modules.
-    if bytes.len() < 8
-        || bytes[..4] != [0x00, 0x61, 0x73, 0x6d]
-        || bytes[4..8] != [0x0d, 0x00, 0x01, 0x00]
-    {
+    if !component_preamble_ok(&bytes) {
         return Err(ModLoadPathError::InvalidWasmBinary(path.to_path_buf()));
     }
     Ok(())

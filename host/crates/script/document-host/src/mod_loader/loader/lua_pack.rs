@@ -23,7 +23,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Component, Path, PathBuf};
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use super::contributes::Contribution;
 use super::types::{Grants, ModManifest, ModType};
@@ -46,8 +46,9 @@ const TOP_KEYS: &[&str] = &[
 const GRANT_KEYS: &[&str] = &["classes", "commands"];
 const COMMAND_KEYS: &[&str] = &["kind", "id", "label", "effect", "source", "targets"];
 
-/// How strictly a pack is admitted.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+/// How strictly a pack, or a Wasm component, is admitted.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum AdmissionLevel {
     Conformant,
     DevMode,

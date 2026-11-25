@@ -50,10 +50,18 @@
 //! a surface that will not grant `Network` rejects a `Network` mod up front.
 
 use std::collections::HashMap;
+use std::path::Path;
 use std::sync::Mutex;
 
-use crate::mod_loader::{ModCapability, ModManifest, WasmModRuntime, WasmModSource};
+use crate::mod_loader::{
+    AdmissionLevel, InstallRecord, ModCapability, ModManifest, WasmModRuntime, WasmModSource,
+    WasmRefusal, admit_wasm, hash_bytes,
+};
 use wasmtime::{Engine, Store, StoreLimits};
+
+/// A deadline no run reaches: the runtime has no watchdog, and its engine is the
+/// guarded one only so a host-built `.cwasm` is config-compatible with it.
+const NO_DEADLINE: u64 = 1 << 40;
 
 use crate::{CapPermission, DocumentCore, Grant, ScriptHost, build_instance, seed_dom};
 
@@ -74,6 +82,9 @@ pub struct DocumentScriptRuntime {
     allowed: Vec<ModCapability>,
     /// Live activated instances, keyed by `mod_id`.
     active: Mutex<HashMap<String, ActiveMod>>,
+    /// Install records of admitted mods, keyed by `mod_id` (mod projects MP1).
+    /// In memory: the registry persists nothing for Wasm mods yet.
+    records: Mutex<HashMap<String, InstallRecord>>,
 }
 
 impl DocumentScriptRuntime {
@@ -81,10 +92,10 @@ impl DocumentScriptRuntime {
     /// manifest requests anything outside this set is refused at `activate`.
     pub fn new(allowed: Vec<ModCapability>) -> Self {
         Self {
-            engine: Engine::new(&crate::engine_config())
-                .expect("the host's engine configuration is valid"),
+            engine: crate::guarded_engine().expect("the host's engine configuration is valid"),
             allowed,
             active: Mutex::new(HashMap::new()),
+            records: Mutex::new(HashMap::new()),
         }
     }
 
@@ -105,6 +116,69 @@ impl DocumentScriptRuntime {
             Ok(active) => active.keys().cloned().collect(),
             Err(_) => Vec::new(),
         }
+    }
+
+    /// Admit the component at `component` for `manifest` at `level` and keep its
+    /// install record (D2). Conformant pins the component's hash and, unless
+    /// `readmit`, refuses a component that differs from the one already pinned;
+    /// dev mode pins nothing and grants nothing.
+    ///
+    /// # Errors
+    ///
+    /// The refusal, when the component is unreadable, not a component, or changed.
+    pub fn admit(
+        &self,
+        manifest: &ModManifest,
+        version: &str,
+        component: &Path,
+        level: AdmissionLevel,
+        readmit: bool,
+    ) -> Result<InstallRecord, WasmRefusal> {
+        let mut records = self
+            .records
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        let prior = if readmit {
+            None
+        } else {
+            records.get(&manifest.mod_id)
+        };
+        let record = admit_wasm(manifest, version, component, level, &self.allowed, prior)?;
+        records.insert(manifest.mod_id.clone(), record.clone());
+        Ok(record)
+    }
+
+    /// The install record of `mod_id`, if admitted.
+    pub fn record(&self, mod_id: &str) -> Option<InstallRecord> {
+        self.records.lock().ok()?.get(mod_id).cloned()
+    }
+
+    /// Precompile the admitted component of `mod_id` to a `.cwasm` at `out` and
+    /// record its hash (D4). Only a conformant record builds, and only from bytes
+    /// that still match its pinned hash.
+    ///
+    /// # Errors
+    ///
+    /// No conformant record, a changed component, or a compile or write failure.
+    pub fn build_cwasm(
+        &self,
+        mod_id: &str,
+        component: &Path,
+        out: &Path,
+    ) -> Result<InstallRecord, String> {
+        let mut records = self.records.lock().map_err(|_| "records lock poisoned")?;
+        let record = records
+            .get_mut(mod_id)
+            .ok_or_else(|| WasmRefusal::NoRecord { id: mod_id.into() }.words())?;
+        if record.level != AdmissionLevel::Conformant {
+            return Err(format!("'{mod_id}' is in dev mode; only an admitted component builds"));
+        }
+        let bytes = std::fs::read(component).map_err(|e| format!("{}: {e}", component.display()))?;
+        record.verify_component(&bytes).map_err(|e| e.words())?;
+        let cwasm = crate::precompile_bytes(&bytes).map_err(|e| format!("precompile: {e}"))?;
+        std::fs::write(out, &cwasm).map_err(|e| format!("{}: {e}", out.display()))?;
+        record.note_build(hash_bytes(&cwasm));
+        Ok(record.clone())
     }
 
     /// Whether `mod_id` is currently active.
@@ -169,18 +243,38 @@ impl WasmModRuntime for DocumentScriptRuntime {
         //    the grant omitted (the runtime-enforced capability boundary).
         // Extension mods get a fresh seeded DOM (they are not page-attached) and are
         // unguarded for P2.4 (the page-script guards live in `DocumentScript`).
-        let grant = grant_for(manifest, &self.allowed);
+        //    An admitted mod loads against its install record (conformant: the
+        //    pinned hash; dev mode: live, granting nothing); a `.cwasm` needs one.
+        let record = self.record(&manifest.mod_id);
+        let granted_by_surface: &[ModCapability] = match &record {
+            Some(r) if r.level == AdmissionLevel::DevMode => &[],
+            _ => &self.allowed,
+        };
+        let grant = grant_for(manifest, granted_by_surface);
+        let note_trap = |why: &str| {
+            if let Ok(mut records) = self.records.lock() {
+                if let Some(r) = records.get_mut(&manifest.mod_id) {
+                    r.note_trap(why);
+                }
+            }
+        };
         let (mut store, bindings) = pollster::block_on(build_instance(
             &self.engine,
             &source.module_path,
             seed_dom(),
             &grant,
             StoreLimits::default(),
-            None,
+            Some(NO_DEADLINE),
+            record.as_ref(),
         ))
-        .map_err(|e| format!("instantiate '{}': {e}", manifest.mod_id))?;
-        pollster::block_on(bindings.call_activate(&mut store))
-            .map_err(|e| format!("activate '{}': {e}", manifest.mod_id))?;
+        .map_err(|e| {
+            note_trap(&e.to_string());
+            format!("instantiate '{}': {e}", manifest.mod_id)
+        })?;
+        pollster::block_on(bindings.call_activate(&mut store)).map_err(|e| {
+            note_trap(&e.to_string());
+            format!("activate '{}': {e}", manifest.mod_id)
+        })?;
 
         // 4. Retain the live instance for `deactivate`.
         self.active
