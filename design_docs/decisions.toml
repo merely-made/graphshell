@@ -1436,6 +1436,11 @@ title = "Find the unlogged frame time before the next gate cut (Mark, 2026-11-24
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
 summary = "The next scroll-gate step names the roughly 8 ms of each slow frame outside the logged stages before any cut."
 
+[decisions."table-projection D81"]
+title = "Cut the fixed cost of a row change (Mark, 2026-11-25)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "A row entering the table's window costs about what it changes, not a fixed whole-document 14 ms."
+
 [decisions."uxtree-spine D1"]
 title = "The spine is federated (Mark, 2026-11-11)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-11_uxtree_spine_plan.md"

@@ -875,6 +875,22 @@ Left from the headed pages (T4):
 
   *New.*
 
+- **D81. Cut the fixed cost of a row change (Mark, 2026-11-25):** "Cut the fixed
+  per-shift cost". The scroll p95 is set by the frames where rows enter the rendered
+  window, 142 of 418 scrolled frames. Their cost hardly depends on how much enters: one
+  row in and one out (75 to 99 mutations, 78 frames) costs 17.7 ms, two rows (150 to
+  174, 64 frames) 19.4 ms, and a frame with no row change 3.4 ms. About 14 ms is fixed
+  for any structural change: relayout +3.5 ms, scene emit +2.2, accessibility +2.1,
+  raster +2.0, collect +1.6, and about 2.8 that no field names. A row change is made to
+  cost about what it changes, stage by stage. The first ruling, "Spread row entry over
+  frames", was reopened on this evidence: even a single row fails the gate. Shifting
+  the window less often (hysteresis), alone or as a stopgap, was the option not taken;
+  it would pass p95 by making each rebuild a bigger spike.
+
+  Links: summary A row entering the table's window costs about what it changes, not a fixed whole-document 14 ms.
+
+  *New.*
+
 ## Findings
 
 - 2026-11-15: adding a slot to a recipe type breaks every repository that builds one as a
@@ -1259,3 +1275,10 @@ Left from the headed pages (T4):
   unexplained, a follow-up (is the refused patch attempt costing a rebuild's worth?).
   Idle p95 unchanged near 5.2 ms. The gate still fails both (`testing/graphshell/
   frame-cost/ab-base-{1,2}`, `ab-lane-{1,2}`).
+- 2026-11-25: every stage of a scrolled frame, from the whole frame profile (D80),
+  release, 10,000 rows, no rustc running. Scroll p95 20.2 ms. The slowest 5% (21
+  frames, 21.95 ms) are all window-shift frames (about 150 mutations): native submit
+  16.6 ms, inside it relayout 5.6 (style 2.0, layout 3.2), emit 4.6, raster 2.3, frame
+  hook 0.75, leaf boxes 0.4, clear 0.2 and about 2.8 ms no field names; then collect 2.5
+  and accessibility 2.9. The earlier unlogged 8 ms was collect, the unnamed part of
+  submit, and the hook, leaf and clear stages (`testing/graphshell/frame-cost/stages-1/`).

@@ -19,7 +19,7 @@
 //! `sort-next <column>` sorts at the top of one frame and records the time
 //! until that frame is drawn. `TABLE_STALL_MS` adds a sleep to every timed
 //! frame: the positive control that shows the gate can fail. `TABLE_FRAME_LOG`
-//! logs every scrolled frame's stages, not one in a hundred.
+//! logs every scrolled frame's stages and whole profile, not one in a hundred.
 //!
 //! The reading's other parameters (T5) have verbs too, each one undo step on
 //! the recipe: `filter <field> <op> [value]` adds a condition, `filter-clear`
@@ -390,6 +390,9 @@ fn main() {
                                 profile.layout_mutations,
                                 profile.layout_retained
                             );
+                            if every {
+                                eprintln!("[table] scroll profile: {profile:?}");
+                            }
                         }
                     }
                 }
