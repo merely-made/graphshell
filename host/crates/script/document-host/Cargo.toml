@@ -51,6 +51,9 @@ serde_json = { workspace = true }
 # The content hash of an admitted component and its `.cwasm` (mod projects MP1).
 blake3 = { workspace = true }
 toml = "1"
+# The Public Suffix List, for the registrable-domain rule on manifest origins (MP4, D8);
+# already in the workspace graph through netfetcher.
+psl = "2"
 # Drives the async `document-core` exports from the sync `WasmModRuntime` trait —
 # a minimal block_on with no global runtime, so the lib stays executor-neutral.
 pollster = "1"

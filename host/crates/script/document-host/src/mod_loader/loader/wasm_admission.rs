@@ -23,6 +23,7 @@ use serde::{Deserialize, Serialize};
 use super::free_fns::component_preamble_ok;
 use super::lua_pack::AdmissionLevel;
 use super::types::{ModCapability, ModManifest};
+use crate::{OriginRefusal, validate_origin};
 
 /// The BLAKE3 hash of `bytes`, as `blake3:<hex>`.
 pub fn hash_bytes(bytes: &[u8]) -> String {
@@ -183,6 +184,11 @@ pub enum WasmRefusal {
     NoRecord {
         id: String,
     },
+    /// A `document_script_origins` entry broader than one registrable domain (D8).
+    BadOrigin {
+        id: String,
+        refusal: OriginRefusal,
+    },
 }
 
 impl WasmRefusal {
@@ -202,6 +208,7 @@ impl WasmRefusal {
                 recorded.as_deref().unwrap_or("none")
             ),
             Self::NoRecord { id } => format!("no install record for '{id}'; a cwasm needs one"),
+            Self::BadOrigin { id, refusal } => format!("'{id}': {}", refusal.words()),
         }
     }
 }
@@ -231,6 +238,12 @@ pub fn admit_wasm(
     allowed: &[ModCapability],
     prior: Option<&InstallRecord>,
 ) -> Result<InstallRecord, WasmRefusal> {
+    for origin in &manifest.document_script_origins {
+        validate_origin(origin).map_err(|refusal| WasmRefusal::BadOrigin {
+            id: manifest.mod_id.clone(),
+            refusal,
+        })?;
+    }
     let bytes = std::fs::read(component).map_err(|e| WasmRefusal::Unreadable {
         path: component.display().to_string(),
         why: e.to_string(),

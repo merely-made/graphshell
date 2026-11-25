@@ -83,6 +83,10 @@ impl crate::mere::script::net::Host for ScriptHost {
                 req.url
             ));
         }
+        // Uncredentialed by contract (D8): a URL carrying userinfo never reaches the backend.
+        if url_carries_credentials(&req.url) {
+            return Err("net.fetch: URLs carrying credentials are refused".to_string());
+        }
         // Call the injected backend (netfetcher/errand, supplied by the content actor).
         // Blocking on the turn's fiber: the host thread parks for the I/O, then the
         // fiber resumes with the result. No backend configured = an error to the guest.

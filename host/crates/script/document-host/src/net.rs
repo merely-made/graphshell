@@ -15,6 +15,17 @@ pub struct NetResponse {
     pub body: String,
 }
 
+/// Whether `url` carries credentials: userinfo (`user:pass@host`) in its authority.
+/// `NetFetcher` takes only a URL, so userinfo is the one way a request can carry
+/// credentials to the backend; the host refuses such a URL before the backend runs.
+pub fn url_carries_credentials(url: &str) -> bool {
+    let after = url.split_once("://").map_or(url, |(_, r)| r);
+    after
+        .split(['/', '?', '#'])
+        .next()
+        .is_some_and(|authority| authority.contains('@'))
+}
+
 /// The host's network backend for `net.fetch` (§11.7-7). document-host stays
 /// dependency-light (no netfetcher/errand), so the embedder injects a concrete
 /// fetcher at [`DocumentScript::attach`]. `fetch` is **blocking**: it runs inside
@@ -22,6 +33,15 @@ pub struct NetResponse {
 /// actor drives the fiber via `pollster`, so the impl blocks that actor thread for
 /// the I/O (e.g. `block_on` over netfetcher/errand) and returns a ready result.
 /// `Err` surfaces to the guest as `result::err`.
+///
+/// # Uncredentialed by contract (mod projects D8)
+///
+/// A request from a script carries no credentials and no cookies, ever. The host
+/// refuses a URL with userinfo ([`url_carries_credentials`]) before calling `fetch`,
+/// and the trait has no other way to carry any. The embedder's duty is the rest: an
+/// implementation must not attach cookies from a jar, `Authorization` or proxy
+/// credentials, client certificates or any ambient session state, and must not
+/// store cookies a response sets. A test fetcher asserts the first half.
 pub trait NetFetcher: Send + Sync {
     fn fetch(&self, url: &str) -> Result<NetResponse, String>;
 }

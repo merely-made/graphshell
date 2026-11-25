@@ -114,6 +114,7 @@ mod check;
 mod fixture;
 mod host;
 mod net;
+mod origins;
 mod script;
 
 pub use builder::*;
@@ -122,4 +123,5 @@ pub use check::*;
 pub use fixture::*;
 pub use host::*;
 pub use net::*;
+pub use origins::*;
 pub use script::*;
