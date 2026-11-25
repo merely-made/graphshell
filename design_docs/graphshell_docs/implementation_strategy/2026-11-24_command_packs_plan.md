@@ -1,9 +1,9 @@
 # Command packs plan
 
-**Status:** 2026-11-24: in progress. Cut from GB6 P1 of `2026-10-28_graph_behaviors_plan.md`, whose
+**Status:** 2026-11-24: landed. Cut from GB6 P1 of `2026-10-28_graph_behaviors_plan.md`, whose
 D1 to D6 place packs in the host toolkit's mod registry, run them through `lua-command` and set
-their admission levels. D1 to D15 here settle the manifest, grants, context, first host, the
-edges of admission, reloading, and Turnstone's targets and pack manager. CP1, CP2 and CP3 are met; CP4 is next.
+their admission levels. D1 to D17 here settle the manifest, grants, context, first host, the
+edges of admission, reloading, and Turnstone's targets and pack manager. Every phase is met (CP4 in Turnstone, Findings 6).
 
 **For:** Lua command packs: commands that install at runtime from a manifest, show in an app's
 palette without a Rust enum variant, read a read-only context, and return action requests the host
@@ -220,6 +220,24 @@ packs.
 
   Links: area The stack · amends command-packs D12 · plans command-packs CP4 · summary Turnstone's settings show command packs in a section beside engine packs.
 
+- **D16. The viewer target waits for a native viewer palette (Mark, 2026-11-24):** Evidence: the
+  retained viewer's commands (`viewer_commands.rs`) are consumed only by `graphshell-web`, which is
+  wasm32-only, so under D11 the `"viewer"` target has no consumer; CP4 wired the `"app"` target.
+  Offered: drop the viewer half until a native viewer exists (recommended); a feature-gated hook in
+  the port; reopen D11. Answer: "Drop it until a native viewer exists (Recommended)". What
+  follows: CP4 is met with the app palette; `"viewer"` stays a name a manifest may use. Outcome:
+  refines D13.
+
+  Links: area The stack · amends command-packs D13 · plans command-packs CP4 · summary Pack commands reach the viewer palette once a native one exists; for now only the app palette reads them.
+
+- **D17. Pack actions stay buttons in settings (Mark, 2026-11-24):** Evidence: D15 placed the section
+  on provider rows; install, reload and unload are not setting values, so CP4 followed the
+  engine-pack section's buttons, the level switch among them. Offered: keep the buttons
+  (recommended); the level as a `Choice` row. Answer: "Keep the buttons (Recommended)". Outcome:
+  refines D15.
+
+  Links: area The stack · amends command-packs D15 · plans command-packs CP4 · summary A command pack's level and actions are buttons together in the settings section.
+
 ## Open questions
 
 - The install dialog's wording for an open-ended class grant (D3).
@@ -267,6 +285,23 @@ packs.
    refuses a leftover undeclared file, so removing a command means removing its `.lua` too.
    Reloading a pack that is not Active re-admits without activating. `command-packs` 22 tests
    (13 new) and `document-host` 57 pass.
+6. CP4, 2026-11-24. Graphshell `bc7821de`: a command's optional `targets`, and
+   `PackRunner::commands_for(target)`. Turnstone `95169587`: a native-only `PackHost`
+   (`src/command_packs.rs`) holds the registry with the runner; packs live in
+   `<data_root>/command-packs/`, and `installed.json` keeps the installed set across restarts. The
+   action catalog lists the `"app"` target's commands as `Action::RunPackCommand`, so the `>` lane,
+   the snapshot and the automation runner see them; a run sends each returned request through
+   `App::update`, and a refusal opens `OmnibarMode::PackStatus` with its reason. Settings gain a
+   Command packs section (`src/settings_pane/command_pack_controls.rs`). The receipt,
+   `scenarios/command_packs_cp4.scn`, ran headed and ended `RESULT ok`: a granted command ran, a
+   refusal read "pack demo-pack is not granted nav:reload: neither the command nor its class
+   ExternalEffect", and an edited manifest reloaded to a newly granted command without a restart.
+   The refusal line is clipped at the 1,024-pixel capture's edge, and the last capture shows the
+   settings section rather than the reload, which offline has nothing to draw. The browser crate
+   checks for wasm32 without packs. A fresh resolve after NetRender's move to Vello 0.12 needed
+   argued skip rows for `read-fonts` 0.41.0 and `skrifa` 0.44.0 in Graphshell's host and Turnstone's
+   web workspace; their last holders are `cosmic-text` and `swash` at their newest, and Genet's
+   `genet-fontique` and `genet-parley`.
 
 ## Progress
 
@@ -276,5 +311,6 @@ packs.
 - 2026-11-24: D9 and D10 ruled; CP3 started.
 - 2026-11-24: D11 and D12 ruled for CP4.
 - 2026-11-24: D13 to D15 ruled; CP4 started.
+- 2026-11-24: CP4 met (Findings 6); D16 and D17 ruled. The plan has landed.
 - 2026-11-24: CP3 met (Findings 5; graphshell `ca77d265`).
 - 2026-11-24: CP2 met (Findings 4; graphshell `6a1b2f54`, Inker `40a2d10`).

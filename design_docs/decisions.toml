@@ -309,6 +309,22 @@ summary = "Turnstone's settings show command packs in a section beside engine pa
 amends = ["command-packs D12"]
 plans = ["command-packs"]
 
+[decisions."command-packs D16"]
+title = "The viewer target waits for a native viewer palette (Mark, 2026-11-24)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-24_command_packs_plan.md"
+area = "The stack"
+summary = "Pack commands reach the viewer palette once a native one exists; for now only the app palette reads them."
+amends = ["command-packs D13"]
+plans = ["command-packs"]
+
+[decisions."command-packs D17"]
+title = "Pack actions stay buttons in settings (Mark, 2026-11-24)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-24_command_packs_plan.md"
+area = "The stack"
+summary = "A command pack's level and actions are buttons together in the settings section."
+amends = ["command-packs D15"]
+plans = ["command-packs"]
+
 [decisions."compositor-placement D1"]
 title = "Both motions (Mark, 2026-11-20)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-20_compositor_placement_plan.md"
