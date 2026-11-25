@@ -82,7 +82,7 @@ pub(crate) struct NodeCpuData {
     pub order: Vec<u32>,
     pub links: Vec<u32>,
     /// What the links were built from.
-    pub links_key: Option<(GraphInputKey, [usize; 3])>,
+    pub links_key: Option<(GraphInputKey, [u64; 3])>,
     sort_scratch: Vec<u64>,
 }
 

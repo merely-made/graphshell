@@ -215,9 +215,9 @@ impl Canvas {
         let key = (
             self.graph.structural_input_key(),
             [
-                self.hidden_links.len(),
-                self.hidden_edges.len(),
-                self.hidden_assertions.len(),
+                set_fingerprint(&self.hidden_links),
+                set_fingerprint(&self.hidden_edges),
+                set_fingerprint(&self.hidden_assertions),
             ],
         );
         if cpu.links_key == Some(key) {
@@ -303,4 +303,15 @@ impl Canvas {
             Vec::new()
         }
     }
+}
+
+/// An order-free fingerprint of a set's members, so swapping one hidden link
+/// for another (same count) still rebuilds the link list. O(members); hidden
+/// sets are small.
+fn set_fingerprint<T: std::hash::Hash>(set: &HashSet<T>) -> u64 {
+    use std::hash::BuildHasher;
+    // Fixed keys: a fingerprint is only compared with one from this process.
+    let state = std::hash::BuildHasherDefault::<std::collections::hash_map::DefaultHasher>::default();
+    set.iter()
+        .fold(set.len() as u64, |sum, member| sum.wrapping_add(state.hash_one(member)))
 }

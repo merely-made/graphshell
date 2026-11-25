@@ -209,3 +209,41 @@ fn turning_the_tier_off_restores_one_gnode_per_node() {
     assert_eq!(canvas.gnode_of.len(), keys.len());
     assert!(canvas.node_tier.dom.is_empty());
 }
+
+#[test]
+fn swapping_one_hidden_link_for_another_rebuilds_the_link_list() {
+    let (mut canvas, keys) = grid_canvas();
+    let segments = crate::canvas::edge_cells::visible_link_segments_with_assertion_hides(
+        &canvas.graph,
+        &canvas.view,
+        &HashSet::new(),
+        &HashSet::new(),
+        &HashSet::new(),
+        |_| 1.0,
+    );
+    let link_of = |a: usize, b: usize| {
+        segments
+            .iter()
+            .find(|s| {
+                let ends = (s.appearance.display_from, s.appearance.display_to);
+                ends == (keys[a], keys[b]) || ends == (keys[b], keys[a])
+            })
+            .map(|s| s.appearance.key.clone())
+            .expect("the link is visible")
+    };
+    let (first, second) = (link_of(0, 1), link_of(30, 31));
+    let drawn = |canvas: &Canvas, a: usize, b: usize| {
+        let cpu = &canvas.node_tier.cpu;
+        let (sa, sb) = (cpu.slot_of[&keys[a]], cpu.slot_of[&keys[b]]);
+        cpu.links
+            .chunks(4)
+            .any(|l| (l[0], l[1]) == (sa, sb) || (l[0], l[1]) == (sb, sa))
+    };
+    canvas.set_hidden_link_keys([first.clone()]);
+    canvas.frame(1000, 800);
+    assert!(!drawn(&canvas, 0, 1) && drawn(&canvas, 30, 31));
+    // Same count, different member.
+    canvas.set_hidden_link_keys([second]);
+    canvas.frame(1000, 800);
+    assert!(drawn(&canvas, 0, 1) && !drawn(&canvas, 30, 31));
+}

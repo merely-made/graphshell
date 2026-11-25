@@ -46,7 +46,9 @@ pub(crate) use pool::{DomMode, PoolDom};
 use super::Canvas;
 
 /// How many `.gnode` elements the tier's pool holds unless the host says.
-pub const DEFAULT_MAX_DOM_GNODES: usize = 256;
+/// Each held gnode costs about 0.17 ms of style, layout and paint a frame
+/// (native, 2026-11-25), so 64 keeps the DOM tier near 11 ms at its fullest.
+pub const DEFAULT_MAX_DOM_GNODES: usize = 64;
 
 /// A node earns a DOM gnode (caption, face) once its body is this many screen
 /// pixels across, or when it is selected, hovered, focused or pinned.
