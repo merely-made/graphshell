@@ -76,6 +76,8 @@ struct Entry {
     pack: String,
     root: PathBuf,
     source: String,
+    /// Palettes the command appears on; empty is every target.
+    targets: Vec<String>,
     /// The text admitted with a conformant pack (D10); `None` reads live.
     pinned: Option<String>,
     grants: Grants,
@@ -136,6 +138,18 @@ impl PackRunner {
             commands.register(command);
         }
         Ok(done)
+    }
+
+    /// The pack commands listed on `target` (D13, D14): those naming it in
+    /// `targets`, and those naming none.
+    pub fn commands_for(&self, target: &str) -> Vec<Command> {
+        let commands = lock(&self.commands);
+        let entries = lock(&self.entries);
+        entries
+            .iter()
+            .filter(|(_, e)| e.targets.is_empty() || e.targets.iter().any(|t| t == target))
+            .filter_map(|(id, _)| commands.get(id).cloned())
+            .collect()
     }
 
     /// Run the pack command `command_id` over `context`.
@@ -207,6 +221,7 @@ fn pack_commands(pack: &AdmittedPack) -> Vec<(Command, Entry)> {
             label,
             effect,
             source,
+            targets,
         } = contribution
         else {
             continue;
@@ -215,6 +230,7 @@ fn pack_commands(pack: &AdmittedPack) -> Vec<(Command, Entry)> {
             pack: mod_id.clone(),
             root: pack.root.clone(),
             source: source.clone(),
+            targets: targets.clone(),
             pinned: pack.sources.get(source).cloned(),
             grants: pack.manifest.grants.clone(),
         };

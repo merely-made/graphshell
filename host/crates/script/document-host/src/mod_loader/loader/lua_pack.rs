@@ -44,7 +44,7 @@ const TOP_KEYS: &[&str] = &[
     "contributes",
 ];
 const GRANT_KEYS: &[&str] = &["classes", "commands"];
-const COMMAND_KEYS: &[&str] = &["kind", "id", "label", "effect", "source"];
+const COMMAND_KEYS: &[&str] = &["kind", "id", "label", "effect", "source", "targets"];
 
 /// How strictly a pack is admitted.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

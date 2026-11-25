@@ -58,6 +58,7 @@ fn the_fixture_pack_admits_conformant() {
             label: "Publish the note".into(),
             effect: EffectClass::ExternalEffect,
             source: "publish.lua".into(),
+            targets: vec![],
         }
     );
 }
@@ -350,4 +351,16 @@ fn a_refused_pack_is_not_registered_and_a_known_mod_id_is_not_taken_twice() {
         registry.admission_level("notes-pack"),
         Some(AdmissionLevel::Conformant)
     );
+}
+
+#[test]
+fn a_command_may_list_targets_and_a_misspelt_key_is_refused() {
+    let with = pack_with(|text| text.replace("source = \"publish.lua\"", "source = \"publish.lua\"\ntargets = [\"app\"]"));
+    let pack = lua_pack::admit(with.path(), AdmissionLevel::Conformant).expect("admits");
+    assert!(matches!(
+        &pack.manifest.contributes[1],
+        Contribution::Command { targets, .. } if targets == &["app".to_string()]
+    ));
+    let typo = pack_with(|text| text.replace("source = \"publish.lua\"", "source = \"publish.lua\"\ntarget = [\"app\"]"));
+    assert!(lua_pack::admit(typo.path(), AdmissionLevel::Conformant).is_err());
 }

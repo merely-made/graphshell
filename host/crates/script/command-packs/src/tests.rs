@@ -541,3 +541,25 @@ fn reload_all_reloads_each_pack_and_reports_each_failure() {
     assert_eq!(argument(&l, "a:go"), b"a2".to_vec());
     assert_eq!(argument(&l, "b:go"), b"b1".to_vec());
 }
+
+#[test]
+fn commands_for_a_target_are_those_naming_it_and_those_naming_none() {
+    let dir = tempfile::tempdir().unwrap();
+    let manifest = "abi = 1\nmod_id = \"p\"\nmod_type = \"lua\"\n[grants]\nclasses = [\"Curation\"]\n\
+        [[contributes]]\nkind = \"command\"\nid = \"p:any\"\nlabel = \"any\"\neffect = \"Curation\"\nsource = \"a.lua\"\n\
+        [[contributes]]\nkind = \"command\"\nid = \"p:app\"\nlabel = \"app\"\neffect = \"Curation\"\nsource = \"b.lua\"\ntargets = [\"app\"]\n\
+        [[contributes]]\nkind = \"command\"\nid = \"p:both\"\nlabel = \"both\"\neffect = \"Curation\"\nsource = \"c.lua\"\ntargets = [\"app\", \"viewer\"]\n";
+    for f in ["a.lua", "b.lua", "c.lua"] {
+        fs::write(dir.path().join(f), "").unwrap();
+    }
+    fs::write(dir.path().join("mod.toml"), manifest).unwrap();
+    let runner = PackRunner::new(host(), SCHEMA);
+    let pack = lua_pack::admit(dir.path(), AdmissionLevel::Conformant).expect("admits");
+    runner.activate(&pack).unwrap();
+    let ids = |t: &str| -> Vec<String> {
+        runner.commands_for(t).into_iter().map(|c| c.id).collect()
+    };
+    assert_eq!(ids("app"), ["p:any", "p:app", "p:both"]);
+    assert_eq!(ids("viewer"), ["p:any", "p:both"]);
+    assert_eq!(ids("other"), ["p:any"]);
+}

@@ -40,6 +40,9 @@ pub enum Contribution {
         label: String,
         effect: EffectClass,
         source: String,
+        /// Palettes the command appears on; empty means every target that runs packs.
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        targets: Vec<String>,
     },
 }
 
