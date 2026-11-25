@@ -170,7 +170,8 @@ Five phases, none started, none of the plan's objects existing (`install_mod`, `
 `ModProject`, `meerkat.mod.*`). P1 Lua command packs (Rhai in the source; now its own plan,
 `2026-11-24_command_packs_plan.md`): dynamic command entries from a manifest, a
 `CommandContext` snapshot, an action-request return type, install, reload, unload and run commands,
-palette and menu exposure; the diagnostic names (`meerkat.mod.*`) need replacing. P2 Wasm mod
+palette and menu exposure; the diagnostic names (`meerkat.mod.*`) need replacing. P2 to P5
+and the tails below are now `2026-11-25_mod_projects_plan.md`. P2 Wasm mod
 projects: a `ModProject` store, a component build and check command, attach, run and reload through
 `DocumentScript`, a fixture runner and logs. P3 the model-assisted authoring pane: patch loop,
 check, build and run buttons, trap display, rollback to the last passing build. P4 parser and viewer
@@ -302,6 +303,8 @@ on a live moot, the mere-native meadowcap structural-cap layer, and "broader con
 - 2026-10-28: cut from the two sources named in Status; nothing new landed.
 - 2026-11-23: Rhai retired (`inker:lua-evaluator` L6). The lane constraint, GB6 and the host
   question read Lua; the command lane is `script-didge`'s `lua-command`.
+- 2026-11-25: GB6 P2 to P5 and their tails cut into `2026-11-25_mod_projects_plan.md` (mod-projects
+  D1 to D11).
 - 2026-11-24: GB6 P1 cut into `2026-11-24_command_packs_plan.md` (command-packs D1 to D5); the lane
   constraint names open-ended class grants.
 - 2026-11-23: D1 to D6 ruled for GB6 P1: packs live in the host's `mod_loader`, run through
