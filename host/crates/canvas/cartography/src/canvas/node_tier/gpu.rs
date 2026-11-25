@@ -71,8 +71,9 @@ impl Store {
         })
     }
 
-    /// Write `bytes` when they differ from the last write; reports whether the
-    /// buffer was replaced (its bind group is stale) and the bytes sent.
+    /// Write the part of `bytes` that differs from the last write (all of it
+    /// when the buffer grew or changed size); reports whether the buffer was
+    /// replaced (its bind group is stale) and the bytes sent.
     fn write(
         &mut self,
         device: &wgpu::Device,
@@ -80,21 +81,28 @@ impl Store {
         label: &str,
         bytes: &[u8],
     ) -> (bool, usize) {
-        if self.last == bytes {
-            return (false, 0);
-        }
         let need = bytes.len() as u64;
         let grew = need > self.capacity;
+        let span = if !grew && self.last.len() == bytes.len() {
+            let Some(first) = self.last.iter().zip(bytes).position(|(a, b)| a != b) else {
+                return (false, 0);
+            };
+            let last = self.last.iter().zip(bytes).rposition(|(a, b)| a != b).unwrap_or(first);
+            // Words, so the write keeps wgpu's four-byte alignment.
+            (first & !3)..((last + 1).next_multiple_of(4)).min(bytes.len())
+        } else {
+            0..bytes.len()
+        };
         if grew {
             self.capacity = need.next_power_of_two();
             self.buffer = Self::alloc(device, label, self.capacity);
         }
-        if !bytes.is_empty() {
-            queue.write_buffer(&self.buffer, 0, bytes);
+        if !span.is_empty() {
+            queue.write_buffer(&self.buffer, span.start as u64, &bytes[span.clone()]);
         }
         self.last.clear();
         self.last.extend_from_slice(bytes);
-        (grew, bytes.len())
+        (grew, span.len())
     }
 }
 
@@ -357,8 +365,10 @@ impl GpuNodes {
             stale = true;
             uploaded += GLOBALS_BYTES;
         }
-        self.bodies = cpu.order.len() as u32;
-        self.link_count = (cpu.links.len() / 4) as u32;
+        // A buffer that emptied writes nothing, so counts stand for it too.
+        let counts = (cpu.order.len() as u32, (cpu.links.len() / 4) as u32);
+        stale |= counts != (self.bodies, self.link_count);
+        (self.bodies, self.link_count) = counts;
         if !stale {
             return PassReport {
                 rendered: false,
