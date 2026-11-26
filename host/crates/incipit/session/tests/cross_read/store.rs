@@ -39,7 +39,7 @@ fn an_addressable_store_and_its_session_open_over_incipit() {
         );
         let roots = ResidencyRoots::default();
         let resident = Sessions::new(backend.clone())
-            .open_resident_graph(&backend, session_id, roots)
+            .open_resident_graph(session_id, roots)
             .await
             .unwrap();
         assert_eq!(resident.generation(), generation);
@@ -86,10 +86,7 @@ fn an_addressable_store_and_its_session_open_over_incipit() {
             .await
             .unwrap();
         assert_eq!(
-            session
-                .publish_resident_checkpoint(&incipit_store)
-                .await
-                .unwrap(),
+            session.publish_resident_checkpoint().await.unwrap(),
             kernel.publish_resident_checkpoint().await.unwrap()
         );
         let title = |node| mere_kernel::graph::apply::GraphDelta::ReplaySetNodeTitleById {

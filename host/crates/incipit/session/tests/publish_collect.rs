@@ -170,13 +170,12 @@ async fn commit<B: Backend + Clone + Sync>(
 /// One publication on the `write_recorded_graph` path: an unpublished edit,
 /// then the checkpoint's publication.
 async fn checkpoint<B: Backend + Clone + Sync>(
-    store: &B,
     session: &mut GraphSession<B>,
     deltas: Vec<GraphDelta>,
 ) -> String {
     let at = SystemTime::UNIX_EPOCH;
     session.transact_deltas(author(), deltas, at).await.unwrap();
-    session.publish_resident_checkpoint(store).await.unwrap()
+    session.publish_resident_checkpoint().await.unwrap()
 }
 
 /// What a collected store holds: a publication's keys and the `swept`
@@ -223,12 +222,12 @@ fn publications_on_both_paths_leave_exactly_what_the_head_names() {
         exact(&backend, &session, &generation).await;
         let generation = {
             let deltas = title(&session, 5, "first");
-            checkpoint(&backend, &mut session, deltas)
+            checkpoint(&mut session, deltas)
         }
         .await;
         exact(&backend, &session, &generation).await;
         let first = publication_keys(graph_id, session.graph());
-        let generation = checkpoint(&backend, &mut session, navigate(4, 10)).await;
+        let generation = checkpoint(&mut session, navigate(4, 10)).await;
         exact(&backend, &session, &generation).await;
         let generation = commit(&mut session, navigate(4, 20)).await;
         exact(&backend, &session, &generation).await;
@@ -240,7 +239,7 @@ fn publications_on_both_paths_leave_exactly_what_the_head_names() {
         exact(&backend, &session, &generation).await;
         let generation = {
             let deltas = title(&session, 5, "second");
-            checkpoint(&backend, &mut session, deltas)
+            checkpoint(&mut session, deltas)
         }
         .await;
         exact(&backend, &session, &generation).await;
@@ -255,7 +254,7 @@ fn publications_on_both_paths_leave_exactly_what_the_head_names() {
         exact(&backend, &session, &generation).await;
         let generation = {
             let deltas = title(&session, 5, "first");
-            checkpoint(&backend, &mut session, deltas)
+            checkpoint(&mut session, deltas)
         }
         .await;
         exact(&backend, &session, &generation).await;
@@ -283,7 +282,7 @@ fn publications_on_both_paths_leave_exactly_what_the_head_names() {
         // The same graph again changes nothing and deletes nothing.
         let before = stored(&backend, graph_id).await;
         assert_eq!(
-            session.publish_resident_checkpoint(&backend).await.unwrap(),
+            session.publish_resident_checkpoint().await.unwrap(),
             generation
         );
         assert_eq!(stored(&backend, graph_id).await, before);
@@ -344,7 +343,7 @@ fn a_shared_store_collects_nothing() {
         reads_back(&backend, graph_id, session.graph(), &second).await;
         let third = {
             let deltas = title(&session, 3, "changed");
-            checkpoint(&shared, &mut session, deltas)
+            checkpoint(&mut session, deltas)
         }
         .await;
         reads_back(&backend, graph_id, session.graph(), &third).await;
@@ -374,13 +373,13 @@ fn garbage_from_before_collection_is_swept_once() {
         // the same map behind a wrapper that reads as shared.
         let uncollected = Shared::default();
         let backend = uncollected.0.clone();
-        let mut session = MereSessions::new(uncollected.clone()).begin_recorded(author(), None);
+        let mut session = MereSessions::new(uncollected).begin_recorded(author(), None);
         session.flush(SystemTime::UNIX_EPOCH).await.unwrap();
         commit(&mut session, adds(1..=6)).await;
         let deltas = title(&session, 2, "changed");
         commit(&mut session, deltas).await;
         let deltas = navigate(3, 10);
-        checkpoint(&uncollected, &mut session, deltas).await;
+        checkpoint(&mut session, deltas).await;
         let deltas = remove(&session, 6);
         commit(&mut session, deltas).await;
         let graph_id = published_graph(&backend).await;
@@ -425,7 +424,7 @@ fn garbage_from_before_collection_is_swept_once() {
         );
         backend.put(&stray, b"stray").await.unwrap();
         let deltas = navigate(5, 20);
-        let generation = checkpoint(&backend, &mut owner, deltas).await;
+        let generation = checkpoint(&mut owner, deltas).await;
         reads_back(&backend, graph_id, owner.graph(), &generation).await;
         let mut expected = collected(graph_id, owner.graph());
         expected.extend(kept);

@@ -15,8 +15,8 @@
 //!
 //! The session methods pandect defines only for mere-kernel's graph are here
 //! as extension traits with the same names, so a caller changes its imports,
-//! not its calls. Three need the session's store, which pandect does not lend
-//! out, so they take it as their first argument.
+//! not its calls. They reach the session's store through pandect's
+//! `backend()` (engine split D268), so each keeps pandect's signature.
 
 use std::time::SystemTime;
 
@@ -159,11 +159,9 @@ pub trait IncipitSessions<B: Backend + Clone>: Sized {
         validate: impl FnOnce(&Graph) -> Result<(), String>,
     ) -> Result<GraphSessionManifest, SessionError>;
 
-    /// The resident graph of session `id`'s root container. `backend` is
-    /// these sessions' store: pandect does not lend its own out.
+    /// The resident graph of session `id`'s root container.
     async fn open_resident_graph(
         &self,
-        backend: &B,
         id: SessionId,
         roots: ResidencyRoots,
     ) -> Result<ResidentGraph<B>, SessionError>;
@@ -214,10 +212,10 @@ impl<B: Backend + Clone> IncipitSessions<B> for MereSessions<B, Graph> {
 
     async fn open_resident_graph(
         &self,
-        backend: &B,
         id: SessionId,
         roots: ResidencyRoots,
     ) -> Result<ResidentGraph<B>, SessionError> {
+        let backend = self.backend();
         let key = format!("{SESSIONS_PREFIX}/{}/manifest.json", id.as_uuid());
         let bytes = backend.get(&key).await?.ok_or(SessionError::Missing(id))?;
         let manifest: GraphSessionManifest = serde_json::from_slice(&bytes)
@@ -241,13 +239,12 @@ pub trait IncipitSession<B: Backend + Clone>: Sized {
     /// Open session `id` in `backend`, with incipit's hooks.
     async fn open(backend: B, id: SessionId) -> Result<Self, SessionError>;
 
-    /// The addressable store of this session's root graph. `backend` is the
-    /// session's store: pandect does not lend its own out.
-    fn resident_store(&self, backend: &B) -> AddressableGraphStore<B>;
+    /// The addressable store of this session's root graph, for a host that
+    /// stages its own settings writes beside the policy.
+    fn resident_store(&self) -> AddressableGraphStore<B>;
 
-    /// Checkpoint, then publish the whole graph to the addressable store in
-    /// `backend`, the session's store.
-    async fn publish_resident_checkpoint(&mut self, backend: &B) -> Result<String, SessionError>
+    /// Checkpoint, then publish the whole graph to the addressable store.
+    async fn publish_resident_checkpoint(&mut self) -> Result<String, SessionError>
     where
         B: LegacyTransactionBackend;
 
@@ -271,11 +268,14 @@ impl<B: Backend + Clone> IncipitSession<B> for GraphSession<B, Graph> {
             .await
     }
 
-    fn resident_store(&self, backend: &B) -> AddressableGraphStore<B> {
-        AddressableGraphStore::new(backend.clone(), *self.manifest().root_graph_id.as_uuid())
+    fn resident_store(&self) -> AddressableGraphStore<B> {
+        AddressableGraphStore::new(
+            self.backend().clone(),
+            *self.manifest().root_graph_id.as_uuid(),
+        )
     }
 
-    async fn publish_resident_checkpoint(&mut self, backend: &B) -> Result<String, SessionError>
+    async fn publish_resident_checkpoint(&mut self) -> Result<String, SessionError>
     where
         B: LegacyTransactionBackend,
     {
@@ -298,7 +298,7 @@ impl<B: Backend + Clone> IncipitSession<B> for GraphSession<B, Graph> {
             ));
         }
         self.checkpoint().await?;
-        self.resident_store(backend)
+        self.resident_store()
             .write_recorded_graph(self.graph())
             .await
             .map_err(SessionError::Store)
@@ -316,15 +316,11 @@ impl<B: Backend + Clone> IncipitSession<B> for GraphSession<B, Graph> {
         self.ensure_writable()?;
         // The complete current records are what external observations were
         // taken against; the resident graph's filtered copy is never hashed.
-        // Preparing a publication reads no storage, so the store it is
-        // prepared against holds nothing.
         check_resident_publishable(self)?;
-        let source = AddressableGraphStore::new(
-            muniment::MemoryBackend::new(),
-            *self.manifest().root_graph_id.as_uuid(),
-        )
-        .prepare_recorded_graph(self.graph())
-        .map_err(SessionError::Store)?;
+        let source = self
+            .resident_store()
+            .prepare_recorded_graph(self.graph())
+            .map_err(SessionError::Store)?;
         let program = preflight(self.graph(), &source, &author, commands)?;
         let created = program.created.clone();
         let (applied, generation) = self

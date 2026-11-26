@@ -138,7 +138,7 @@ fn an_edit_and_its_publication_commit_together_or_not_at_all() {
         assert!(applied.end > applied.first);
         assert!(!session.has_unstored());
         let view = sessions
-            .open_resident_graph(&backend, session.id(), ResidencyRoots::default())
+            .open_resident_graph(session.id(), ResidencyRoots::default())
             .await
             .unwrap();
         assert_eq!(view.generation(), generation);
@@ -150,7 +150,7 @@ fn an_edit_and_its_publication_commit_together_or_not_at_all() {
             .unwrap();
         assert_ne!(second, generation);
         let view = sessions
-            .open_resident_graph(&backend, session.id(), ResidencyRoots::default())
+            .open_resident_graph(session.id(), ResidencyRoots::default())
             .await
             .unwrap();
         assert_eq!(view.generation(), second);
@@ -193,7 +193,7 @@ fn a_commit_that_reports_an_error_is_refused_on_retry_and_never_repeated() {
         assert_eq!(reopened.graph().node_count(), 1);
         assert_eq!(reopened.changes().len(), changes + 1);
         let view = sessions
-            .open_resident_graph(&backend, id, ResidencyRoots::default())
+            .open_resident_graph(id, ResidencyRoots::default())
             .await
             .unwrap();
         assert_eq!(view.graph().node_count(), 1);
@@ -265,7 +265,7 @@ fn undo_and_redo_publish_with_the_history_they_move() {
         assert!(reverted.is_some());
         assert_ne!(undone, edited);
         let view = sessions
-            .open_resident_graph(&backend, session.id(), ResidencyRoots::default())
+            .open_resident_graph(session.id(), ResidencyRoots::default())
             .await
             .unwrap();
         assert_eq!(view.generation(), undone);
@@ -319,7 +319,7 @@ fn a_live_edit_is_observed_published_and_refused_whole_on_any_fault() {
             .unwrap();
         // The observation is read from the published reader, as a display would.
         let view = sessions
-            .open_resident_graph(&backend, session.id(), ResidencyRoots::default())
+            .open_resident_graph(session.id(), ResidencyRoots::default())
             .await
             .unwrap();
         let digest = view
@@ -365,7 +365,7 @@ fn a_live_edit_is_observed_published_and_refused_whole_on_any_fault() {
         let key = session.graph().get_node_key_by_id(id).unwrap();
         assert_eq!(session.graph().node_is_pinned(key), Some(true));
         let view = sessions
-            .open_resident_graph(&backend, session.id(), ResidencyRoots::default())
+            .open_resident_graph(session.id(), ResidencyRoots::default())
             .await
             .unwrap();
         assert_eq!(view.generation(), generation);

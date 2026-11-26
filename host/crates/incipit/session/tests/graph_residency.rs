@@ -233,7 +233,7 @@ async fn session_controls<B: ProbeBackend + Clone>(backend: B) {
     );
     let id = session.id();
     let graph_id = *session.manifest().root_graph_id.as_uuid();
-    let generation = session.publish_resident_checkpoint(&backend).await.unwrap();
+    let generation = session.publish_resident_checkpoint().await.unwrap();
     AddressableGraphStore::new(backend.clone(), graph_id)
         .set_policy(ResidencyPolicy::Neighborhood { hops: 0 })
         .await
@@ -248,7 +248,7 @@ async fn session_controls<B: ProbeBackend + Clone>(backend: B) {
         }
     }
     let view = sessions
-        .open_resident_graph(&backend, id, roots(surfaces[0]))
+        .open_resident_graph(id, roots(surfaces[0]))
         .await
         .unwrap();
     assert_eq!(view.generation(), generation);
@@ -258,7 +258,7 @@ async fn session_controls<B: ProbeBackend + Clone>(backend: B) {
         ResidencyStatus::NotLoaded
     );
     let mut legacy = sessions.begin(kernel::graph::Author::person("legacy"), Some(Graph::new()));
-    assert!(legacy.publish_resident_checkpoint(&backend).await.is_err());
+    assert!(legacy.publish_resident_checkpoint().await.is_err());
 }
 #[cfg(not(target_arch = "wasm32"))]
 #[test]
@@ -789,11 +789,11 @@ async fn p3_context_and_cache_controls<B: ProbeBackend + Clone>(backend: B) {
         sessions.begin_recorded(kernel::graph::Author::person("pending-owner"), Some(graph));
     let id = session.id();
     let graph_id = *session.manifest().root_graph_id.as_uuid();
-    session.publish_resident_checkpoint(&backend).await.unwrap();
+    session.publish_resident_checkpoint().await.unwrap();
     drop(session);
     let ordinary = sessions.open(id).await.unwrap();
     let mut view = sessions
-        .open_resident_graph(&backend, id, Default::default())
+        .open_resident_graph(id, Default::default())
         .await
         .unwrap();
     assert_eq!(
@@ -858,7 +858,7 @@ async fn p3_context_and_cache_controls<B: ProbeBackend + Clone>(backend: B) {
         )
         .await
         .unwrap();
-    writer.publish_resident_checkpoint(&backend).await.unwrap();
+    writer.publish_resident_checkpoint().await.unwrap();
     view.refresh().await.unwrap();
     assert_eq!(
         view.graph().revision(),
@@ -885,7 +885,7 @@ async fn p3_context_and_cache_controls<B: ProbeBackend + Clone>(backend: B) {
         )
         .await
         .unwrap();
-    writer.publish_resident_checkpoint(&backend).await.unwrap();
+    writer.publish_resident_checkpoint().await.unwrap();
     view.refresh().await.unwrap();
     assert_eq!(
         view.graph().revision(),
@@ -915,7 +915,7 @@ async fn p3_context_and_cache_controls<B: ProbeBackend + Clone>(backend: B) {
         )
         .await
         .unwrap();
-    writer.publish_resident_checkpoint(&backend).await.unwrap();
+    writer.publish_resident_checkpoint().await.unwrap();
     view.refresh().await.unwrap();
     assert!(view.graph().revision() > revision);
     view.set_host_coverage(Default::default());
@@ -939,7 +939,7 @@ async fn p3_context_and_cache_controls<B: ProbeBackend + Clone>(backend: B) {
             g.purge_pending_links()
         })
         .unwrap();
-    writer.publish_resident_checkpoint(&backend).await.unwrap();
+    writer.publish_resident_checkpoint().await.unwrap();
     view.refresh().await.unwrap();
     assert_eq!(view.graph().revision(), old_revision);
     assert!(view.graph().semantic_observation_revision() > old_observation);
