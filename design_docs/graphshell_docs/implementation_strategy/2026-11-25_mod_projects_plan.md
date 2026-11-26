@@ -1,11 +1,11 @@
 # Mod projects plan
 
-**Status:** 2026-11-26: in progress; MP0 to MP6 met. Cut from GB6 P2 to P5 and their tails in
+**Status:** 2026-11-26: in progress; MP0 to MP7 met. Cut from GB6 P2 to P5 and their tails in
 `2026-10-28_graph_behaviors_plan.md`; P1 landed as `2026-11-24_command_packs_plan.md`. D1 to D44
 settle building, admission, reload, `.cwasm`, the first host, fixtures, signing, network, the
 authoring loop, the parser and viewer worlds, the browser table, grants, pins on reload, live
-pages and traps. MP5, MP5b (live pages) and MP6 (the
-authoring loop) are met; MP7 (parser and viewer mods) is next.
+pages and traps. MP5, MP5b (live pages), MP6 (the
+authoring loop) and MP7 (parser and viewer mods) are met; MP8 (the browser table) is next.
 
 **For:** Wasm component mods a person (or any agent working in the same folder) can create, check,
 build, attach to a document, exercise against fixtures and reload without a restart, holding no
@@ -524,7 +524,8 @@ stated reason (D11).
 
 ## Open questions
 
-None open.
+- Where a viewer mod's pane is hosted: D34 says a viewer contributes a Pane, and nothing paints
+  one yet (Findings 15).
 
 ## Findings
 
@@ -676,6 +677,28 @@ None open.
    reads no `Presentation` contribution. `PackParser` (`src/engine_pack.rs`) is the in-process
    template for a session engine around a parser.
 
+15. MP7, 2026-11-26 (genet `d2b4a55d3b5`, Graphshell `e78fbfc0`, Turnstone `5536ffe7`):
+   Graphshell's `host/crates/script/mod-host` hosts the `parser-guest` and `viewer-guest` worlds on
+   block-host's engine and watchdog, with 16 MiB caps on component, input and document, 1 MiB on a
+   viewer's scene and sheet, strict CBOR decode, the host overwriting address, provenance and
+   trust, and at most 256 diagnostics. In Turnstone, `mod.toml` carries `kind` and a parser's
+   `media_types`; check compares the component with its kind's world and refuses a parser whose
+   `describe()` reports other types, naming both lists (D44); fixtures run by kind. One engine,
+   `turnstone.mod-parser` (`src/mod_parser.rs`), is registered at startup and finds the installed
+   parser per media type at spawn, handing it `body_bytes` and engine id `mod:<id>` (D38, D42).
+   Unclaimed types route to it; a claimed type only after "Hand over" on the row, kept in
+   `installed.json` as `claimed` (D39). A type an installed parser takes is a document, not a
+   download. The status line and an inspector row name the parser; a refusal or trap opens a page
+   naming the mod, the type and the address; the trail capture annotator skips non-HTML bodies
+   (D41). Other-origin images become alt text without the network grant (D43, unit tests only:
+   the fixture guest emits no images). The headed receipt (`scenarios/mod_projects_mp7.scn`, 13
+   frames in `Code/testing/turnstone/mod-projects-parsers/`) installs both fixture projects, passes
+   their fixtures, and opens a parsed page, a refusal, a trap and a parsed page after the trap. A
+   viewer installs and passes fixtures, and `view_graph` returns its scene and sheet, but nothing
+   paints a viewer pane yet. A trap's message is mod-host's first error line, the backtrace
+   header, which Turnstone replaces with "a wasm trap". If two projects declare one type, the first
+   by id wins.
+
 ## Progress
 
 - 2026-11-25: cut from GB6 P2 to P5 and their tails; D1 to D11 ruled.
@@ -693,3 +716,4 @@ None open.
 - 2026-11-26: MP7's routing forks ruled, D38 to D41.
 - 2026-11-26: D42 ruled (the spawn request is genet's).
 - 2026-11-26: genet `d2b4a55d3b5` (body bytes) and Graphshell `e78fbfc0` (parser and viewer worlds, mod-host) pushed; D43 and D44 ruled.
+- 2026-11-26: MP7 met (Findings 15, Turnstone `5536ffe7`); the viewer pane is open. MP8 is next.
