@@ -8,7 +8,7 @@
 //! against today's enum match, in one run, with the engine's headless frame
 //! share (P5's rows) in the same run as the denominator.
 //!
-//! `cargo run --release -p mere-kernel --features query,fixtures --example lens_dispatch -- 10000 100000`
+//! `cargo run --release -p incipit-graph --features query,fixtures --example lens_dispatch -- 10000 100000`
 //! (`LENS_MUTATE=1` corrupts one pack row: the checksum assertion must fail.)
 //!
 //! Per edge, the engine matches on `RelationKind` today in

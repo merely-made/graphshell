@@ -10,7 +10,7 @@
 //! the resource edge walk, the composed RDF projection, the held index build,
 //! and one edit followed by `is_current` and a rebuild. Medians of seven runs.
 //!
-//! `cargo run --release -p mere-kernel --features query --example join_scale -- 10000 100000`
+//! `cargo run --release -p incipit-graph --features query --example join_scale -- 10000 100000`
 
 use kernel::graph::apply::add_node;
 use kernel::graph::{Graph, NodeKey, SemanticStatementSpec, SemanticSubKind, predicate_iri};

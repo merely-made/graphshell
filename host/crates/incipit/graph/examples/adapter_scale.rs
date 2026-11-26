@@ -13,7 +13,7 @@
 //! materialized from the same projection, kept as the parity column. It also
 //! prints the index build time and the index's `memory_bytes()`.
 //!
-//! `cargo run --release -p mere-kernel --features query,fixtures --example adapter_scale -- 1000 10000 100000`
+//! `cargo run --release -p incipit-graph --features query,fixtures --example adapter_scale -- 1000 10000 100000`
 //! (in `mere-kernel` since engine split P5 L3: it builds a kernel graph)
 //!
 //! A query that took longer than the budget at one scale is skipped at the next.

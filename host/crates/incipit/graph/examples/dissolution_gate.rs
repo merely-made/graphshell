@@ -7,7 +7,7 @@
 //! The lane-D gate measurement: can Container + facets match the current rkyv
 //! `Node` on snapshot load and hot graph ops?
 //!
-//! Run: `cargo run --release -p mere-kernel --example dissolution_gate`
+//! Run: `cargo run --release -p incipit-graph --example dissolution_gate`
 //! Node count overrides with `DISSOLUTION_GATE_NODES` (default 50_000, the
 //! scale the node-image plan measured at).
 //!

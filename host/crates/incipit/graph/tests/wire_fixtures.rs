@@ -11,7 +11,7 @@
 //! type that moves between crates is proved shape-neutral.
 //!
 //! Regenerate only on a deliberate format change:
-//! `MERE_WRITE_WIRE_FIXTURES=1 cargo test -p mere-kernel --test wire_fixtures -- --ignored write_wire_fixtures`
+//! `MERE_WRITE_WIRE_FIXTURES=1 cargo test -p incipit-graph --test wire_fixtures -- --ignored write_wire_fixtures`
 
 #![cfg(not(target_arch = "wasm32"))]
 
