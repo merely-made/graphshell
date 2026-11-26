@@ -1,0 +1,20 @@
+# The host's painter for a guest's vector sheet (mod projects MP7b, D50): a sprigging leaf that
+# fills and strokes a `VectorSheet` in theme roles and hands its text runs to the host. Moved
+# from Turnstone's block pane so the block pane and the Mod viewer share one painter. It names
+# no surface theme: a host maps its own theme to `SheetTheme`.
+[package]
+name = "sheet-leaf"
+version = "0.0.1"
+description = "The host's painter for a guest's vector sheet, as a sprigging leaf."
+edition.workspace = true
+rust-version = "1.97.1"
+license = "MPL-2.0"
+repository.workspace = true
+publish = false
+
+[dependencies]
+sprigging.workspace = true
+vector-sheet.workspace = true
+
+[lints]
+workspace = true

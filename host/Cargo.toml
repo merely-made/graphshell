@@ -25,6 +25,7 @@ members = [
     "crates/cambium/meristem",
     "crates/cambium/scenes/scenograph",
     "crates/cambium/scenes/scenomise",
+    "crates/cambium/sheet-leaf",
     "crates/cambium/sprigging",
     "crates/cambium/workbench",
     "crates/canvas/cartography",
@@ -224,6 +225,7 @@ hest = { version = ">=0.3.0", path = "../crates/hest" }
 backstep = { version = ">=0.2.1", path = "crates/cambium/backstep" }
 meristem = { version = ">=0.3.0", path = "crates/cambium/meristem" }
 sprigging = { version = ">=0.4.0", path = "crates/cambium/sprigging" }
+sheet-leaf = { version = "0.0.1", path = "crates/cambium/sheet-leaf" }
 # The three engine adapters, unpublished, from merely-made/inker.
 scrying-engine = { version = "0.2.0", git = "https://github.com/merely-made/inker.git", branch = "main" }
 graft-engine = { version = "0.2.0", git = "https://github.com/merely-made/inker.git", branch = "main" }
@@ -496,6 +498,7 @@ scenomise = { path = "crates/cambium/scenes/scenomise" }
 backstep = { path = "crates/cambium/backstep" }
 meristem = { path = "crates/cambium/meristem" }
 sprigging = { path = "crates/cambium/sprigging" }
+sheet-leaf = { path = "crates/cambium/sheet-leaf" }
 workbench = { path = "crates/cambium/workbench" }
 chirograph = { path = "../crates/chirograph" }
 graphshell-client = { path = "../crates/graphshell-client" }
