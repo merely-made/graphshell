@@ -389,3 +389,22 @@ reason = "Predates enforcement (2026-11-11): over the ceiling in Mere without an
 [[exception]]
 path = "host/crates/graphshell/graphshell-door/src/blob_door.rs"
 reason = "Predates enforcement (2026-11-11): over the ceiling in Mere without an exception when the toolkit moved. A split along its responsibilities is listed as work after slice 4."
+
+# incipit-session (engine split D256): the copies of pandect's files that carry
+# Mere's exceptions, at their new paths.
+
+[[exception]]
+path = "host/crates/incipit/session/src/furnace.rs"
+reason = "The furnace's graph passes: forgetting and consolidation over a mere. Existing source-size debt; a responsibility split must preserve ForgetProposal, ImageGcProposal, ImageReferenceDrop and existing module visibility."
+
+[[exception]]
+path = "host/crates/incipit/session/src/snapshot_merge.rs"
+reason = "Snapshot-level merge for codicil compose (Alembic tail B7 / decision 1). Existing source-size debt; a responsibility split must preserve MergeReport and existing module visibility."
+
+[[exception]]
+path = "host/crates/incipit/session/tests/graph_residency.rs"
+reason = "Graph residency. Existing source-size debt; a responsibility split must preserve ProbeBackend, ProbeBackend, ReadProbe and existing module visibility."
+
+[[exception]]
+path = "host/crates/incipit/session/tests/live_graph.rs"
+reason = "Live graph. Existing source-size debt; a responsibility split must preserve LiveNow, Session and existing module visibility."
