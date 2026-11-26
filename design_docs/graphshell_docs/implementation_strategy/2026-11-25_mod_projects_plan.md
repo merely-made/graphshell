@@ -1,11 +1,12 @@
 # Mod projects plan
 
 **Status:** 2026-11-26: in progress; MP0 to MP7 met. Cut from GB6 P2 to P5 and their tails in
-`2026-10-28_graph_behaviors_plan.md`; P1 landed as `2026-11-24_command_packs_plan.md`. D1 to D44
+`2026-10-28_graph_behaviors_plan.md`; P1 landed as `2026-11-24_command_packs_plan.md`. D1 to D47
 settle building, admission, reload, `.cwasm`, the first host, fixtures, signing, network, the
 authoring loop, the parser and viewer worlds, the browser table, grants, pins on reload, live
 pages and traps. MP5, MP5b (live pages), MP6 (the
-authoring loop) and MP7 (parser and viewer mods) are met; MP8 (the browser table) is next.
+authoring loop) and MP7 (parser and viewer mods) are met; MP8 (the browser table), then MP7b and MP7c (viewer
+panes), are next.
 
 **For:** Wasm component mods a person (or any agent working in the same folder) can create, check,
 build, attach to a document, exercise against fixtures and reload without a restart, holding no
@@ -121,6 +122,23 @@ MP3's, packaged and installed through the same section (D10).
 - Done when: a fixture parser and a fixture viewer pass their fixtures and install from the
   section, and a page of the parser's declared media type opens in Turnstone parsed by the mod
   (D37).
+
+### MP7b. A Mod viewer pane (step toward MP7c)
+
+One built-in Mod viewer pane, opened from a viewer project's row, feeds the installed viewer the
+live graph as `mere.graph-snapshot-and-facets/json` and paints the scene and sheet it returns
+(D45). The feed and the painter are built for MP7c to reuse.
+
+- Done when: the fixture viewer's regions paint in the pane from the live graph, a trap shows in
+  the pane and the row, and a headed receipt shows both.
+
+### MP7c. A pane kind per viewer
+
+Pane definitions that can be added at runtime; each installed viewer appears as its own pane kind
+with a palette entry, and the single Mod viewer pane retires (D45).
+
+- Done when: installing a viewer adds its pane kind without a restart, uninstalling removes it, and
+  the single pane is gone.
 
 ### MP8. What a browser can load (GB6 P5)
 
@@ -522,10 +540,44 @@ stated reason (D11).
 
   Links: area The stack · plans mod-projects MP7 · summary Routing reads a parser's media types from mod.toml, and check refuses a component that claims others.
 
+- **D45. Each viewer is its own pane kind; one Mod viewer pane is the step there (Mark,
+  2026-11-26):** Evidence (Findings 15, 16): nothing paints a viewer's scene and sheet; Turnstone's
+  pane kinds are a static list of 18 in `src/panes/registry.rs`, so a kind is a compile-time edit;
+  no Turnstone code paints a vector sheet (frozen-projection paints a sceno scene through cambium
+  and netrender) or writes the graph-snapshot-and-facets JSON a viewer reads. Offered: one built-in
+  Mod viewer pane opened from the project's row (recommended); a pane kind per viewer, which needs
+  pane definitions that change at runtime; leave it for a later plan. Answer: "If 1 is an
+  intermediary step to 2, i guess. But 1 is not a desired end state, you feel me?" What follows:
+  MP7b builds the single pane, its feed and its painter for MP7c to reuse; MP7c gives each
+  installed viewer its own pane kind and retires the single pane. Outcome: refines D34.
+
+  Links: area The stack · amends mod-projects D34 · plans mod-projects MP7b · summary Every installed viewer becomes its own pane kind; a single Mod viewer pane comes first only as the step toward that.
+
+- **D46. A wasmtime-free admission module answers per target, tested on wasm32 (Mark,
+  2026-11-26):** Evidence (Findings 16): the browser build (`ports/graphshell/web`) carries no mod
+  loader; `document-host` depends on wasmtime unconditionally and does not build for wasm32; no
+  repository runs `wasm-bindgen-test`. Offered: a small wasmtime-free module in Graphshell's host
+  answering whether a kind loads on a target and why not, with a test run on wasm32 under Node and
+  the plan's table drawn from the same data (recommended); the same module tested natively with a
+  wasm32 check only; `document-host` gated to build for wasm32. Answer: "Small admission module,
+  wasm32 test (Recommended)". Outcome: refines D11.
+
+  Links: area The stack · amends mod-projects D11 · plans mod-projects MP8 · summary One wasmtime-free table says which mod kinds each target loads, and its refusals are tested in a wasm32 build.
+
+- **D47. The browser table states what loads today and marks what is planned (Mark,
+  2026-11-26):** Evidence: no Wasm engine ships in the browser build; the guest-runtime P7 probe
+  runs Pulley bytecode in Chromium; a `.cwasm` is machine code for the host's CPU (D4); a native mod
+  is a function compiled into the binary; whether script-didge builds for wasm32 is unchecked.
+  Offered: refuse document-script, parser, viewer and `.cwasm` with reasons, native as compiled-in
+  only, Lua if script-didge builds for wasm32, Pulley-opened rows marked planned (recommended);
+  refuse only `.cwasm` and native. Answer: "State today, mark planned rows (Recommended)".
+  Outcome: new.
+
+  Links: area The stack · plans mod-projects MP8 · summary The browser refuses every kind it cannot load today, with a reason, and the table marks what a browser engine would open.
+
 ## Open questions
 
-- Where a viewer mod's pane is hosted: D34 says a viewer contributes a Pane, and nothing paints
-  one yet (Findings 15).
+None open.
 
 ## Findings
 
@@ -699,6 +751,19 @@ stated reason (D11).
    header, which Turnstone replaces with "a wasm trap". If two projects declare one type, the first
    by id wins.
 
+16. Viewer pane and MP8 survey, 2026-11-26 (Turnstone `5536ffe7`, Graphshell `e93a1c53`): pane
+   kinds are `BUILTIN_PANES`, a static slice in `src/panes/registry.rs` (18 `kind::` ids), and
+   `pane_definition` searches only it; `SurfaceProviderRegistry` is a runtime `Vec` keyed by kinds
+   that already have a definition. `frozen_projection_pane.rs` paints a sceno scene through a
+   cambium DOM scene and `netrender::Scene`; nothing in Turnstone paints a `VectorSheet` or writes
+   `mere.graph-snapshot-and-facets/json` (named in Graphshell's authority-host, mod-host and
+   cleromancy). The browser build is `ports/graphshell/web` (`graphshell-web`, its own workspace,
+   `src/web.rs`), with no mod loader; Turnstone compiles `mod_projects` and `mod_parser` out on
+   wasm32. `document-host` depends on wasmtime 51 unconditionally and has no wasm32 gating;
+   nothing refuses a kind by target. No `wasm_bindgen_test` runs in Turnstone or Graphshell; the
+   guest-runtime probes run wasm32 through JS harnesses. `NativeModRuntime` is an in-binary
+   function table, not a dylib loader. script-didge's source is not checked out locally.
+
 ## Progress
 
 - 2026-11-25: cut from GB6 P2 to P5 and their tails; D1 to D11 ruled.
@@ -717,3 +782,4 @@ stated reason (D11).
 - 2026-11-26: D42 ruled (the spawn request is genet's).
 - 2026-11-26: genet `d2b4a55d3b5` (body bytes) and Graphshell `e78fbfc0` (parser and viewer worlds, mod-host) pushed; D43 and D44 ruled.
 - 2026-11-26: MP7 met (Findings 15, Turnstone `5536ffe7`); the viewer pane is open. MP8 is next.
+- 2026-11-26: viewer pane and MP8 surveyed (Findings 16); D45 to D47 ruled; MP7b and MP7c added.

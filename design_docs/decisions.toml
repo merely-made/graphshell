@@ -1004,6 +1004,29 @@ area = "The stack"
 summary = "Routing reads a parser's media types from mod.toml, and check refuses a component that claims others."
 plans = ["mod-projects"]
 
+[decisions."mod-projects D45"]
+title = "Each viewer is its own pane kind; one Mod viewer pane is the step there (Mark, 2026-11-26)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "Every installed viewer becomes its own pane kind; a single Mod viewer pane comes first only as the step toward that."
+amends = ["mod-projects D34"]
+plans = ["mod-projects"]
+
+[decisions."mod-projects D46"]
+title = "A wasmtime-free admission module answers per target, tested on wasm32 (Mark, 2026-11-26)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "One wasmtime-free table says which mod kinds each target loads, and its refusals are tested in a wasm32 build."
+amends = ["mod-projects D11"]
+plans = ["mod-projects"]
+
+[decisions."mod-projects D47"]
+title = "The browser table states what loads today and marks what is planned (Mark, 2026-11-26)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "The browser refuses every kind it cannot load today, with a reason, and the table marks what a browser engine would open."
+plans = ["mod-projects"]
+
 [decisions."primitive-representations D1"]
 title = "The brief's scope (Mark, 2026-11-13)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
