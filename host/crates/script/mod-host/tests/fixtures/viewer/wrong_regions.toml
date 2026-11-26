@@ -1,0 +1,8 @@
+name = "regions that do not match show the diff"
+
+[graph]
+json = '{"snapshot":{"nodes":[{"label":"A"}]},"facets":{}}'
+
+[expect]
+regions = ["Node A", "Node B"]
+height = [500.0, 600.0]

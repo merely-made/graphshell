@@ -236,6 +236,11 @@ fn diff(expected: &[String], found: &[String]) -> Option<String> {
     Some(out)
 }
 
+/// [`diff`] for the other fixture forms (mod-host's parser and viewer fixtures).
+pub fn diff_lines(expected: &[String], found: &[String]) -> Option<String> {
+    diff(expected, found)
+}
+
 fn lines(text: &str) -> Vec<String> {
     text.lines().map(str::to_string).collect()
 }

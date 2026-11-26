@@ -1,0 +1,7 @@
+name = "a node the guest cannot draw traps it"
+
+[graph]
+json = '{"snapshot":{"nodes":[{"label":"TRAP"}]},"facets":{}}'
+
+[expect]
+fails = "trapped"

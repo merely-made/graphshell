@@ -1,0 +1,11 @@
+name = "an outline that does not match shows the diff"
+
+[input]
+media_type = "application/x-fixture-notes"
+text = "# One\n"
+
+[expect]
+title = "One"
+outline = """
+heading 2: One
+"""

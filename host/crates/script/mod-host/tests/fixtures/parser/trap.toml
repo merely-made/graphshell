@@ -1,0 +1,8 @@
+name = "the guest traps; the run ends"
+
+[input]
+media_type = "application/x-fixture-trap"
+text = "anything"
+
+[expect]
+fails = "trapped"

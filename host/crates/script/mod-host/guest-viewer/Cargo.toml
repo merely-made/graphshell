@@ -1,0 +1,27 @@
+# The viewer-guest test fixture: a viewer that draws one region per node of the graph.
+# Standalone workspace with its own toolchain pin, built to wasm32-wasip2 by the host's
+# build.rs; the host tests load the artifact. A Mere-built fixture.
+[workspace]
+
+[package]
+rust-version = "1.97.1"
+name = "viewer-fixture-guest"
+version = "0.0.1"
+edition = "2021"
+license = "MPL-2.0"
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+wit-bindgen = "0.58"
+sceno = { git = "https://github.com/merely-made/graphshell.git", branch = "main" }
+vector-sheet = { git = "https://github.com/merely-made/graphshell.git", branch = "main" }
+cbor-core = { version = "0.10", features = ["serde"] }
+serde_json = "1"
+
+[profile.release]
+opt-level = "s"
+strip = true
+panic = "abort"

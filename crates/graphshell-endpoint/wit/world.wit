@@ -393,6 +393,99 @@ world block-guest {
     export block-adapter;
 }
 
+/// A parser mod: bytes and their media type in, one portable document out (mod projects
+/// D10, D36, D40). The guest is pure: its world imports only `log` and `caps`.
+///
+/// The document is inker's `EngineDocument` as a version byte then canonical CBOR, at most
+/// 1 MiB. The host decodes it strictly and overwrites its address, provenance and trust,
+/// so a guest cannot claim a source or a trust level. Diagnostics travel as a WIT list
+/// beside it, not inside the document.
+interface parser {
+    enum severity {
+        info,
+        warning,
+        error,
+    }
+
+    /// A byte range of the input the diagnostic is about.
+    record span {
+        start: u32,
+        end: u32,
+    }
+
+    record diagnostic {
+        severity: severity,
+        span: option<span>,
+        message: string,
+    }
+
+    /// What the guest claims. Called once at mount.
+    record claim {
+        /// The media types it parses (`application/x-notes`), lowercase, no parameters.
+        media-types: list<string>,
+    }
+
+    record parsed {
+        /// `EngineDocument`, versioned CBOR.
+        document: list<u8>,
+        diagnostics: list<diagnostic>,
+    }
+
+    describe: func() -> claim;
+    /// `bytes` is the fetched body as received; `media-type` the page's own, parameters
+    /// removed. `err` is a refusal, shown to the user under the mod's name.
+    parse: func(bytes: list<u8>, media-type: string) -> result<parsed, string>;
+}
+
+/// A parser mod component (see `parser`).
+world parser-guest {
+    import log;
+    import caps;
+    export parser;
+}
+
+/// A viewer mod: the graph in, a scene and a vector sheet out, which the host paints in a
+/// pane the mod contributes (mod projects D10, D34). The guest is pure: `log` and `caps`
+/// only. The graph travels as bytes in the format the guest declares, today
+/// `mere.graph-snapshot-and-facets/json`, as `domain-authority` reads it.
+///
+/// The result is `block-adapter`'s `view-result`: a `sceno` scene naming the regions and a
+/// `vector-sheet`, each a version byte then CBOR, at most 1 MiB. The scene carries no
+/// rendered content.
+interface viewer {
+    record claim {
+        /// The pane's title.
+        title: string,
+        /// The graph format `view` reads.
+        graph-format: string,
+    }
+
+    record view-ask {
+        width: f32,
+    }
+
+    record view-result {
+        /// `sceno::Scene`, versioned CBOR.
+        scene: list<u8>,
+        /// `vector_sheet::VectorSheet`, versioned CBOR.
+        sheet: list<u8>,
+        width: f32,
+        height: f32,
+        /// One line for the view's accessible label.
+        description: string,
+    }
+
+    describe: func() -> claim;
+    view: func(graph: list<u8>, ask: view-ask) -> result<view-result, string>;
+}
+
+/// A viewer mod component (see `viewer`).
+world viewer-guest {
+    import log;
+    import caps;
+    export viewer;
+}
+
 /// A domain's authority: the gate every candidate graph of one Mere domain passes before
 /// the resident applies, saves or loads it (cycle breaks D15 (h), P3). Unlike a view guest,
 /// whose result the host re-applies, this guest is the gate: a lying validator admits
