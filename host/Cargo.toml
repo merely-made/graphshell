@@ -33,6 +33,7 @@ members = [
     "crates/graphshell/graphshell-host",
     "crates/graphshell/graphshell-rdf-trail",
     "crates/incipit",
+    "crates/incipit/graph",
     "crates/platen/platen",
     "crates/script/app-host",
     "crates/script/authority-host",

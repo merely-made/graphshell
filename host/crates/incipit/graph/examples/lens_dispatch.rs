@@ -46,8 +46,8 @@ use mere::profile::resolve::{Offered, PackRef, PackSource};
 use mere::query::{IndexedDataset, View, sparql_on};
 use strum::IntoEnumIterator;
 
-const WORKSPACE: &str = include_str!("../../engine/src/profile/fixtures/workspace.toml");
-const WORKSPACE_LENS: &str = include_str!("../../engine/src/profile/fixtures/workspace_lens.toml");
+const WORKSPACE: &str = include_str!("fixtures/workspace.toml");
+const WORKSPACE_LENS: &str = include_str!("fixtures/workspace_lens.toml");
 /// Traversal's IRI, minted in the stand-in only (D13); the test support's constant.
 const TRAVERSAL_IRI: &str = "https://mere.computer/ns/test/workspace#traversal";
 const FAMILY_NS: &str = "https://mere.computer/ns/family#";

@@ -1,16 +1,17 @@
 [package]
-name = "mere-kernel"
-version = "0.0.3"
+name = "incipit-graph"
+version = "0.1.0"
 authors = ["@mark-ik"]
 license.workspace = true
+repository.workspace = true
 edition = "2024"
-# Publishable from 2026-08-14: pandect (now pandect) is going to
-# crates.io and this is in its dependency closure. Bare `kernel` belongs to
-# a stranger (Abstract Reactive Streams), hence the mere- prefix.
+# Publishable, like incipit: incipit's `graph` feature takes this crate once
+# the consumers flip (engine split D211). Consumers name it `kernel`. Bare
+# `kernel` on crates.io belongs to a stranger (Abstract Reactive Streams).
 publish = true
 
 rust-version = "1.97.1"
-description = "Portable identity, authority, and mutation kernel for the Mere browser. Renamed from graphshell-core."
+description = "Portable identity, authority, and mutation kernel for the Mere browser: the surface graph over the engine. Moved from Mere's mere-kernel (engine split D211), which was renamed from graphshell-core."
 
 [features]
 test-utils = []
@@ -32,7 +33,8 @@ path = "src/lib.rs"
 [dependencies]
 # The engine: the assertion model and resource graph this surface graph is
 # composed over, and the RDF projection's resource half (engine split P5 L3).
-mere = { version = "0.1.0", path = "../engine", default-features = false }
+# The workspace row takes mere.git with default features off.
+mere.workspace = true
 # The surface half of the RDF projection (`rdf`, the legacy snapshot adapter).
 oxrdf = { version = "0.3", features = ["rdf-12"] }
 # The shared command ids ActionId types (Scenograph editor plan, SE50).
@@ -111,6 +113,10 @@ tempfile = "3"
 # Block on the journal's async muniment save/load in tests (matches the substrate
 # crates' test harness).
 pollster = "1"
+# The session probe (tests/pandect_session.rs): pandect holds this crate's
+# Graph through its generic path, over muniment's directory backend.
+pandect.workspace = true
+muniment = { workspace = true, features = ["directory"] }
 
 [lints]
 workspace = true
