@@ -56,7 +56,8 @@ pub use self::view::{View, ViewMarker};
 pub use self::view_ctx::{ViewId, ViewPathTracker};
 pub use self::view_sequence::{Count, ViewSequence};
 pub use self::views::{
-    Lens, MapMessage, MapState, OrphanView, lens, map_action, map_message_result, map_state,
+    Lens, MapMessage, MapState, Memoize, OrphanView, lens, map_action, map_message_result,
+    map_state, memoize,
 };
 
 // TODO - Remove this re-export and rewrite code importing it

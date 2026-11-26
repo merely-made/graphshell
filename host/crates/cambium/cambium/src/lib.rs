@@ -310,7 +310,7 @@ pub use splice::GenetChildrenSplice as ServalChildrenSplice;
 // `View`/`MessageResult` core traits come along so `impl View<…, GenetCtx, …>`
 // return types and the action path can be named from this crate alone.
 pub use meristem::{
-    AnyView, Lens, MessageResult, View, lens, map_action, map_message_result, map_state,
+    AnyView, Lens, MessageResult, View, lens, map_action, map_message_result, map_state, memoize,
 };
 
 /// The HTML namespace. Cambium views build elements in this namespace, matching

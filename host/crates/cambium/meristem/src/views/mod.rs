@@ -11,10 +11,12 @@ mod impl_rc;
 mod lens;
 mod map_message;
 mod map_state;
+mod memoize;
 mod orphan;
 
 pub use self::any_view::*;
 pub use self::lens::*;
 pub use self::map_message::*;
 pub use self::map_state::*;
+pub use self::memoize::*;
 pub use self::orphan::*;

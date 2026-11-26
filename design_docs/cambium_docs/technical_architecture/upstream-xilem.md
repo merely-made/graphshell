@@ -76,6 +76,17 @@ dependency. The [composition plan](../implementation_strategy/2026-10-29_cambium
 owns the first-consumer scope and qualification. This patch does not import an
 upstream scheduler, environment or effect protocol.
 
+### 2026-11-26 `Memoize` restored
+
+`views/memoize.rs` returns from the 2026-08-12 cut with a consumer: the data
+grid's banded rows, memoized so an unchanged row is neither built nor diffed
+([table plan](../../graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md)
+D82). `Frozen` stays cut. One semantic patch over upstream: when equal data
+arrives at a different view path (the subtree was adopted elsewhere), the
+retained view is rebuilt against itself so its
+event wrappers re-register at the new path; `init_view` is not called.
+Upstream's skip would leave their stored paths stale.
+
 ## xilem_web derivatives in Cambium
 
 Cambium's Genet backend was templated on Linebender's Apache-2.0 `xilem_web`
