@@ -1,11 +1,11 @@
 # Mod projects plan
 
-**Status:** 2026-11-25: in progress; MP0 to MP5 met. Cut from GB6 P2 to P5 and their tails in
+**Status:** 2026-11-25: in progress; MP0 to MP5b met. Cut from GB6 P2 to P5 and their tails in
 `2026-10-28_graph_behaviors_plan.md`; P1 landed as `2026-11-24_command_packs_plan.md`. D1 to D28
 settle building, admission, reload, `.cwasm`, the first host, fixtures, signing, network, the
 authoring loop, the parser and viewer worlds, the browser table, grants, pins on reload, live
-pages and traps. MP5 is met on project documents;
-MP5b (live pages) is next.
+pages and traps. MP5 and MP5b (live pages) are met;
+MP6 (the authoring loop) is next.
 
 **For:** Wasm component mods a person (or any agent working in the same folder) can create, check,
 build, attach to a document, exercise against fixtures and reload without a restart, holding no
@@ -93,10 +93,11 @@ build where an adapter exists, attach to a document, run fixtures, reload, and r
 ### MP5b. Mods on live pages
 
 A mod attaches to a live Livery page in Turnstone, not only to its project's own document (D14,
-D15): it runs on a copy of the page made with `outer_html`, with stable ids stamped on the copy,
-and each applied turn is replayed into the page through `apply_host_mutations`, refused when the
-page has moved since the copy. Genet widens `HostMutationOp` with set-text, remove and
-insert-before; Graphshell's document-host emits the replay; Turnstone attaches from the page.
+D15): it runs on a copy of the page, mapped to the page node by node (D22), and each applied turn
+is replayed into the page through `apply_host_mutations` by node identity, refused as
+`PageMoved` when the page has changed since the copy (D24, D28). Genet widens `HostMutationOp`
+with set-text, remove, insert-before and append-node (D23, D27); Graphshell's document-host emits
+the replay; Turnstone attaches to the focused page and detaches on navigation (D25).
 
 - Done when: a headed receipt attaches a mod to an open page, a turn changes what the page shows
   through the engine's restyle path, a turn against a page that changed underneath is refused as a
@@ -457,6 +458,23 @@ stated reason (D11).
    a rule depended on the removed node. The only exhaustive match on `HostMutationOp` is the Livery
    impl.
 
+10. MP5b, 2026-11-25 (genet `eea33cb1c71`, `ffd90dabf97`; Graphshell `4a940526`, `6b54afe9`;
+   Turnstone `5ca294c6`): `HostMutation` targets `HostTarget::Id` or `HostTarget::Node(u64)`, and
+   `HostMutationOp` adds `Remove`, `InsertBefore`, `SetText` and `AppendNode`. Document-host's
+   `PageScript` copies the page through `inner_html`, maps copy to page by a parallel walk
+   (attach refused when the shapes differ), replays each batch to the page before the copy, and
+   subtracts its own replays from the page's mutation count; `attach_pinned` checks the install
+   record as the document attach does (D4). Image loads, focus and typing do not advance the
+   count. Turnstone's `mod-attach-page` attaches to the focused Livery page; `reconcile_mod_pages`
+   detaches on close, reload or a replaced session and the row says why; a page-attached project
+   refuses reload. Restyle per turn: a set-text restyled 1 element, an insert into the styled
+   page 6, and a remove with no dependent selector 0. The headed receipt
+   (`scenarios/mod_projects_mp5b.scn`, six frames in `Code/testing/turnstone/mod-projects-pages/`)
+   sets text, inserts through a `p:empty` rule, refuses a turn as page moved after a second mod's
+   change, keeps the last turn on detach, and detaches on reload. Following a link or `open` makes
+   a new node, so reload is the only in-place replacement a scenario drives; close is covered by
+   unit tests only. `wasmparser 0.228` carries a skip row in both repos (D26).
+
 ## Progress
 
 - 2026-11-25: cut from GB6 P2 to P5 and their tails; D1 to D11 ruled.
@@ -466,3 +484,4 @@ stated reason (D11).
 - 2026-11-25: MP5 met on project documents (Findings 8); D21 ruled. MP5b is next.
 - 2026-11-25: MP5b surveyed (Findings 9); D22 to D25 ruled.
 - 2026-11-25: genet's identity targets pushed (`eea33cb1c71`); D26 to D28 ruled.
+- 2026-11-25: MP5b met (Findings 10). MP6 is next.
