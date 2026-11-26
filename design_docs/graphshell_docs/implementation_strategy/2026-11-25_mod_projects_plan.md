@@ -1,7 +1,7 @@
 # Mod projects plan
 
 **Status:** 2026-11-25: in progress; MP0 to MP5b met. Cut from GB6 P2 to P5 and their tails in
-`2026-10-28_graph_behaviors_plan.md`; P1 landed as `2026-11-24_command_packs_plan.md`. D1 to D28
+`2026-10-28_graph_behaviors_plan.md`; P1 landed as `2026-11-24_command_packs_plan.md`. D1 to D32
 settle building, admission, reload, `.cwasm`, the first host, fixtures, signing, network, the
 authoring loop, the parser and viewer worlds, the browser table, grants, pins on reload, live
 pages and traps. MP5 and MP5b (live pages) are met;
@@ -371,6 +371,39 @@ stated reason (D11).
 
   Links: area The stack · amends mod-projects D24 · plans mod-projects MP5b · summary A turn refused because the page changed reads PageMoved, apart from a stale revision.
 
+- **D29. The diff is a line diff against a snapshot of the last pass (Mark, 2026-11-26):**
+  Evidence (Findings 11): Turnstone keeps only `last-good.wasm`, a binary, and some projects carry
+  no `src/`; `similar` is already in Turnstone's and Graphshell's graphs. Offered: snapshot the
+  project's text files into `last-good/` at each pass and show a line diff with `similar`, plus
+  whether the component's hash changed (recommended); changed file names only; a git repository
+  per project. Answer: "Snapshot text, line diff (Recommended)". Outcome: new.
+
+  Links: area The stack · plans mod-projects MP6 · summary A pass snapshots the project's text files, and the pane shows a line diff against that snapshot.
+
+- **D30. Rollback restores the component only (Mark, 2026-11-26):** Evidence: D19 has rollback
+  restore `last-good.wasm`; an agent's source edits may sit beside the broken component. Offered:
+  the component only, the source left as edited and still in the diff (recommended); component and
+  source; component, with a separate action for the files. Answer: "Component only
+  (Recommended)". Outcome: refines D19.
+
+  Links: area The stack · amends mod-projects D19 · plans mod-projects MP6 · summary Rollback puts last-good.wasm back over component.wasm and leaves every edited file as it is.
+
+- **D31. A rollback reloads an attached mod through the pin (Mark, 2026-11-26):** Evidence: a
+  reload moves the pin only after a successful swap (D18), and a page-attached project refuses
+  reload. Offered: restore, then reload a document-attached mod the way Reload does, a
+  page-attached one refused with "detach it first" (recommended); restore the file only; detach,
+  then restore. Answer: "Reload through the pin (Recommended)". Outcome: new.
+
+  Links: area The stack · plans mod-projects MP6 · summary Rollback reloads a document-attached mod as Reload does, and a page-attached one must detach first.
+
+- **D32. A row notices outside edits on actions and pane open (Mark, 2026-11-26):** Evidence: D9
+  makes Check, Build and Run explicit, and an agent edits the folder while the app runs. Offered:
+  a hash scan when the pane opens and on each action, the row reading "changed since the last
+  pass: N files" (recommended); a live file watcher; explicit actions only. Answer: "On actions
+  and pane open (Recommended)". Outcome: refines D9.
+
+  Links: area The stack · amends mod-projects D9 · plans mod-projects MP6 · summary A project's row counts files changed since the last pass, scanned on pane open and each action, with no watcher.
+
 ## Open questions
 
 - MP7's world shapes: the parser's block and diagnostic types, and the viewer's scene or lens
@@ -475,6 +508,13 @@ stated reason (D11).
    a new node, so reload is the only in-place replacement a scenario drives; close is covered by
    unit tests only. `wasmparser 0.228` carries a skip row in both repos (D26).
 
+11. MP6 survey, 2026-11-26 (Turnstone `5ca294c6`): a project already keeps the last
+   `LOG_TAIL` (6) guest log lines, its last trap, and `last-good.wasm`, written by `promote` when
+   check and every fixture pass (or check alone with no fixtures). Nothing restores it, and nothing
+   records the project's text at a pass. Check names a refused import (MP5's receipt refused
+   `mere:script/net`). The `similar` diff crate resolves in both Turnstone's and Graphshell's
+   graphs.
+
 ## Progress
 
 - 2026-11-25: cut from GB6 P2 to P5 and their tails; D1 to D11 ruled.
@@ -485,3 +525,4 @@ stated reason (D11).
 - 2026-11-25: MP5b surveyed (Findings 9); D22 to D25 ruled.
 - 2026-11-25: genet's identity targets pushed (`eea33cb1c71`); D26 to D28 ruled.
 - 2026-11-25: MP5b met (Findings 10). MP6 is next.
+- 2026-11-26: MP6 surveyed (Findings 11); D29 to D32 ruled.

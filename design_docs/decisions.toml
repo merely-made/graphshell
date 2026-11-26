@@ -884,6 +884,36 @@ summary = "A turn refused because the page changed reads PageMoved, apart from a
 amends = ["mod-projects D24"]
 plans = ["mod-projects"]
 
+[decisions."mod-projects D29"]
+title = "The diff is a line diff against a snapshot of the last pass (Mark, 2026-11-26)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "A pass snapshots the project's text files, and the pane shows a line diff against that snapshot."
+plans = ["mod-projects"]
+
+[decisions."mod-projects D30"]
+title = "Rollback restores the component only (Mark, 2026-11-26)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "Rollback puts last-good.wasm back over component.wasm and leaves every edited file as it is."
+amends = ["mod-projects D19"]
+plans = ["mod-projects"]
+
+[decisions."mod-projects D31"]
+title = "A rollback reloads an attached mod through the pin (Mark, 2026-11-26)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "Rollback reloads a document-attached mod as Reload does, and a page-attached one must detach first."
+plans = ["mod-projects"]
+
+[decisions."mod-projects D32"]
+title = "A row notices outside edits on actions and pane open (Mark, 2026-11-26)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "A project's row counts files changed since the last pass, scanned on pane open and each action, with no watcher."
+amends = ["mod-projects D9"]
+plans = ["mod-projects"]
+
 [decisions."primitive-representations D1"]
 title = "The brief's scope (Mark, 2026-11-13)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
