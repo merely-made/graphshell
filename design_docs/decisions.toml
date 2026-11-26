@@ -831,6 +831,36 @@ summary = "A dev-mode mod takes the same grant toggles, and its row says a grant
 amends = ["mod-projects D2"]
 plans = ["mod-projects"]
 
+[decisions."mod-projects D22"]
+title = "A replayed turn targets page nodes by identity (Mark, 2026-11-25)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "Replay names page nodes by identity through a copy-to-page map, never by stamped ids."
+amends = ["mod-projects D15"]
+plans = ["mod-projects"]
+
+[decisions."mod-projects D23"]
+title = "A mod edits text nodes themselves (Mark, 2026-11-25)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "Set-text, remove and insert-before reach text nodes and comments on a live page."
+plans = ["mod-projects"]
+
+[decisions."mod-projects D24"]
+title = "Any DOM change but the mod's own is a conflict (Mark, 2026-11-25)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "A page mod's turn is refused when the page's DOM changed since the copy, its own replays aside."
+amends = ["mod-projects D15"]
+plans = ["mod-projects"]
+
+[decisions."mod-projects D25"]
+title = "A mod attaches to the focused page and detaches on navigation (Mark, 2026-11-25)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "Attach takes the focused Livery page, and navigating or closing it detaches the mod."
+plans = ["mod-projects"]
+
 [decisions."primitive-representations D1"]
 title = "The brief's scope (Mark, 2026-11-13)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"

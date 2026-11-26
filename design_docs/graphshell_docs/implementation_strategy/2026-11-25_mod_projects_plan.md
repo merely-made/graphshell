@@ -1,7 +1,7 @@
 # Mod projects plan
 
 **Status:** 2026-11-25: in progress; MP0 to MP5 met. Cut from GB6 P2 to P5 and their tails in
-`2026-10-28_graph_behaviors_plan.md`; P1 landed as `2026-11-24_command_packs_plan.md`. D1 to D21
+`2026-10-28_graph_behaviors_plan.md`; P1 landed as `2026-11-24_command_packs_plan.md`. D1 to D25
 settle building, admission, reload, `.cwasm`, the first host, fixtures, signing, network, the
 authoring loop, the parser and viewer worlds, the browser table, grants, pins on reload, live
 pages and traps. MP5 is met on project documents;
@@ -308,6 +308,43 @@ stated reason (D11).
 
   Links: area The stack · amends mod-projects D2 · plans mod-projects MP5 · summary A dev-mode mod takes the same grant toggles, and its row says a grant reaches whatever component is on disk.
 
+- **D22. A replayed turn targets page nodes by identity (Mark, 2026-11-25):** Evidence (Findings
+  9): `apply_host_mutations` finds its target by `id` attribute, first match winning, and most page
+  elements carry none; a copy made with `outer_html` gets a fresh arena, so its node ids never equal
+  the page's. Offered: a `Node(u64)` target beside `Id(String)`, resolved with `NodeId::from_raw`
+  and `is_live`, the copy mapped to the page by a parallel walk and an attach refused when the
+  shapes differ (recommended); stamp ids into the page; a hybrid. Answer: "Target nodes by identity
+  (Recommended)". Outcome: refines D15.
+
+  Links: area The stack · amends mod-projects D15 · plans mod-projects MP5b · summary Replay names page nodes by identity through a copy-to-page map, never by stamped ids.
+
+- **D23. A mod edits text nodes themselves (Mark, 2026-11-25):** Evidence: the mod's `set-text`
+  targets a `#text` node, and genet's page mutations reach elements only. Offered: real text-node
+  targets, with remove and insert-before also taking text nodes and comments (recommended); set the
+  parent element's text; elements only for now. Answer: "Real text-node targets (Recommended)".
+  Outcome: new.
+
+  Links: area The stack · plans mod-projects MP5b · summary Set-text, remove and insert-before reach text nodes and comments on a live page.
+
+- **D24. Any DOM change but the mod's own is a conflict (Mark, 2026-11-25):** Evidence:
+  `ScriptedDom::pending_mutations` gives a monotonic count of every DOM change, readable without a
+  genet change; the structure-only epoch is private; whether image loads or hover add to the count
+  is unmeasured. Offered: any change but the mod's own replays, measured first (recommended);
+  structure changes only; only nodes the turn touches. Answer: "Any DOM change but the mod's own
+  (Recommended)". Outcome: refines D15.
+
+  Links: area The stack · amends mod-projects D15 · plans mod-projects MP5b · summary A page mod's turn is refused when the page's DOM changed since the copy, its own replays aside.
+
+- **D25. A mod attaches to the focused page and detaches on navigation (Mark, 2026-11-25):**
+  Evidence: Turnstone already finds the focused node's Livery session
+  (`shell_focused_saved_reader_node.rs`), and the pelt controller's `session_identity` changes when
+  the page is replaced. Offered: the focused page, detaching on navigate or close (recommended);
+  pick from open pages; the focused page, re-copied on navigate. Answer: "Focused page, detach on
+  navigate (Recommended)". What follows: the row says why it detached; the page keeps the last
+  applied turn. Outcome: new.
+
+  Links: area The stack · plans mod-projects MP5b · summary Attach takes the focused Livery page, and navigating or closing it detaches the mod.
+
 ## Open questions
 
 - MP7's world shapes: the parser's block and diagnostic types, and the viewer's scene or lens
@@ -386,6 +423,15 @@ stated reason (D11).
    changed behaviour, refuses `mere:script/net` by name, keeps the old instance answering, then
    grants net and reloads it in. The settings pane clips long rows at its width.
 
+9. MP5b survey, 2026-11-25 (genet `main`): `NodeId` is a u64, the top 24 bits an arena and the
+   low 40 a serial never reused, so `is_live` refuses a node removed since the copy. Document-host's
+   WIT mutations already name raw `NodeId`s, text nodes included. `apply_host_mutations` resolves
+   targets with `element_with_id`, a document-order walk, elements only. Genet branch
+   `mp5b/host-mutation-ops` (`825707757fd`, unpushed) adds `Remove` and `InsertBefore`; a remove
+   with no dependent selector repaints with `restyled_elements == 0`, so restyle counts only where
+   a rule depended on the removed node. The only exhaustive match on `HostMutationOp` is the Livery
+   impl.
+
 ## Progress
 
 - 2026-11-25: cut from GB6 P2 to P5 and their tails; D1 to D11 ruled.
@@ -393,3 +439,4 @@ stated reason (D11).
 - 2026-11-25: MP2 to MP4 met (Findings 4 to 6); D12 and D13 ruled.
 - 2026-11-25: MP5's forks ruled, D14 to D20 (Findings 7); live pages split out as MP5b.
 - 2026-11-25: MP5 met on project documents (Findings 8); D21 ruled. MP5b is next.
+- 2026-11-25: MP5b surveyed (Findings 9); D22 to D25 ruled.
