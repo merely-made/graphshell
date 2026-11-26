@@ -2,7 +2,7 @@
 
 **Status:** 2026-11-26: in progress; MP0 to MP8 met; MP7b and MP7c remain. Cut from GB6 P2 to P5
 and their tails in `2026-10-28_graph_behaviors_plan.md`; P1 landed as
-`2026-11-24_command_packs_plan.md`. D1 to D49 settle building, admission, reload, `.cwasm`, the
+`2026-11-24_command_packs_plan.md`. D1 to D52 settle building, admission, reload, `.cwasm`, the
 first host, fixtures, signing, network, the authoring loop, the parser and viewer worlds, the
 browser table, grants, pins on reload, live pages and traps. MP5, MP5b (live pages), MP6 (the
 authoring loop), MP7 (parser and viewer mods) and MP8 (the browser table) are met; MP7b and MP7c
@@ -593,6 +593,38 @@ stated reason (D11).
 
   Links: area The stack · plans mod-projects MP8 · summary Turnstone asks mod-targets once a target first loads mods, not before.
 
+- **D50. The sheet painter moves into its own Graphshell crate (Mark, 2026-11-26):** Evidence
+  (Findings 18): the only `VectorSheet` painter is `SheetLeaf` (477 lines, Turnstone
+  `ports/graphshell/src/block_editing/sheet_leaf.rs`), needing sprigging, vector-sheet and a
+  cartography theme type, behind the graphshell crate's `editable-blocks` feature, which would pull
+  web, illume, block-adapter, netrender and wgpu into Turnstone. Offered: a small crate beside
+  vector-sheet in Graphshell's host, used by the block pane and the Mod viewer (recommended); a
+  narrow feature in `ports/graphshell`; region labels now and the sheet later. Answer: "Own small
+  crate in Graphshell (Recommended)". Outcome: new.
+
+  Links: area The stack · plans mod-projects MP7b · summary One vector-sheet painter lives in its own Graphshell crate, shared by the block pane and viewer mods.
+
+- **D51. The Mod viewer is a contributed surface (Mark, 2026-11-26):** Evidence (Findings 18): a
+  built-in pane touches about twelve renderer arms plus a11y and input; a contributed pane
+  (`SurfaceProvider`, as personae and distillery) already paints leaves, takes a per-pane source,
+  dedups by kind and source, and registers providers at runtime, though each kind keeps one static
+  registry row. Offered: one Mod viewer provider opened with the mod id as its source
+  (recommended); a built-in renderer like frozen-projection. Answer: "Contributed SurfaceProvider
+  (Recommended)". What follows: MP7c makes each viewer its own provider and kind. Outcome: new.
+
+  Links: area The stack · plans mod-projects MP7b · summary The Mod viewer pane is a contributed surface opened with the mod id, the route MP7c extends to a kind per viewer.
+
+- **D52. MP7b's smaller choices take the recommendations (Mark, 2026-11-26):** Evidence (Findings
+  18). Answer: "yep, i'll accept the recommendations unless there are significant forks". Taken:
+  the viewer re-runs when the graph's revision or the pane width changes, not every frame; the feed
+  is the full snapshot-and-facets contract (`encode_candidate`'s shape); the width asked is the
+  pane's logical width; mod-host's `first_line` reports a trap's cause rather than the backtrace
+  header, for parsers, viewers and fixtures alike; a viewer's refusal reaches the row as a trap
+  does; the fixture viewer reads a node's `title`, then `label`, and centres its items on their
+  translate as block-adapter's `regions()` reads it. Outcome: new.
+
+  Links: area The stack · plans mod-projects MP7b · summary The viewer re-runs on graph change, gets the full graph contract and the pane width, and its failures reach the row with their real cause.
+
 ## Open questions
 
 None open.
@@ -811,6 +843,20 @@ None open.
    cannot resolve here; the runner rejects cargo's `-q` (passed on as `--quiet`). Nothing calls
    `admit` yet: Turnstone's desktop and web builds do not link the crate (D49).
 
+18. MP7b survey, 2026-11-26 (Turnstone `5536ffe7`, Graphshell `d746ca8f`): `VectorSheet`
+   (`crates/vector-sheet`) is width, height and `Op`s (fill, stroke, text) painted in theme roles,
+   capped at 1 MiB and 50,000 ops. Its one painter, `SheetLeaf`, is a sprigging leaf that fills and
+   strokes non-zero paths and hands text runs to the host as DOM spans (`block_pane.rs`); netrender
+   and mere never name the sheet. Scene and sheet are independent payloads; `FrozenScene::freeze`
+   reads no regions and paints no leaves, while `ContributedSurfacePane` paints leaves through
+   `scene_scrolled_with_leaves`. The feed's shape is `{"snapshot", "facets"}`, and Graphshell's
+   `mere-resident` `encode_candidate` writes it from a `Graph` (a Turnstone dev-dependency only).
+   A live snapshot's nodes carry `title`, not the `label` the fixture viewer reads. Panes render
+   every frame; `Graph::revision()` exists to gate recomputation. A pane's parameter travels as its
+   `PaneSpec` source (`Action::SummonContributedPane`); providers register at startup beside a
+   static registry row. A viewer's trap reaches the row as mod-host's `first_line`, the backtrace
+   header; a refusal reaches it not at all.
+
 ## Progress
 
 - 2026-11-25: cut from GB6 P2 to P5 and their tails; D1 to D11 ruled.
@@ -831,3 +877,4 @@ None open.
 - 2026-11-26: MP7 met (Findings 15, Turnstone `5536ffe7`); the viewer pane is open. MP8 is next.
 - 2026-11-26: viewer pane and MP8 surveyed (Findings 16); D45 to D47 ruled; MP7b and MP7c added.
 - 2026-11-26: MP8 met (Findings 17); D48 and D49 ruled. MP7b is next.
+- 2026-11-26: MP7b surveyed (Findings 18); D50 to D52 ruled.

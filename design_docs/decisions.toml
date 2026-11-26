@@ -1041,6 +1041,27 @@ area = "The stack"
 summary = "Turnstone asks mod-targets once a target first loads mods, not before."
 plans = ["mod-projects"]
 
+[decisions."mod-projects D50"]
+title = "The sheet painter moves into its own Graphshell crate (Mark, 2026-11-26)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "One vector-sheet painter lives in its own Graphshell crate, shared by the block pane and viewer mods."
+plans = ["mod-projects"]
+
+[decisions."mod-projects D51"]
+title = "The Mod viewer is a contributed surface (Mark, 2026-11-26)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "The Mod viewer pane is a contributed surface opened with the mod id, the route MP7c extends to a kind per viewer."
+plans = ["mod-projects"]
+
+[decisions."mod-projects D52"]
+title = "MP7b's smaller choices take the recommendations (Mark, 2026-11-26)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "The viewer re-runs on graph change, gets the full graph contract and the pane width, and its failures reach the row with their real cause."
+plans = ["mod-projects"]
+
 [decisions."primitive-representations D1"]
 title = "The brief's scope (Mark, 2026-11-13)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
