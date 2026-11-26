@@ -217,6 +217,10 @@ reason = "held by cipher 0.4.4; gone when its holders move to inout 0.2.6 (ciphe
 
 
 [[bans.skip]]
+crate = "itertools@0.12.1"
+reason = "held by prost-derive 0.14.6; gone when its holders move to itertools 0.15.0 (prost-derive 0.14.6 is its latest release)"
+
+[[bans.skip]]
 crate = "itertools@0.14.0"
 reason = "held by lalrpop 0.22.2, oxc_semantic 0.124.0, rav1e 0.8.1, wasmtime-internal-cranelift 45.0.3 +4 more; gone when its holders move to itertools 0.15.0 (lalrpop 0.22.2 in the graph, 0.23.2 newest; oxc_semantic 0.124.0 in the graph, 0.158.0 newest)"
 
@@ -420,6 +424,14 @@ crate = "universal-hash@0.5.1"
 reason = "held by polyval 0.6.2; gone when its holders move to universal-hash 0.6.1 (polyval 0.6.2 in the graph, 0.7.3 newest)"
 
 [[bans.skip]]
+crate = "unicode-width@0.1.14"
+reason = "held by codespan-reporting 0.13.1; gone when its holders move to unicode-width 0.2.3 (codespan-reporting 0.13.1 is its latest release)"
+
+[[bans.skip]]
+crate = "wasmparser@0.228.0"
+reason = "held by wasmi 2.0.3 (genet-wasm, through genet-documents' scripted feature since genet cbe8d3ed5d5); no wasmi release or upstream main moves past wasmparser 0.228, so the way out is a patch-only wasmi fork onto the latest wasmparser (0.263.0 in the graph through wasmtime 51)"
+
+[[bans.skip]]
 crate = "wast@35.0.2"
 reason = "held by witx 0.9.1; gone when its holders move to wast 263.0.0 (witx 0.9.1 is its latest release)"
 
@@ -458,6 +470,10 @@ reason = "held by dirs-sys 0.4.1; gone when its holders move to windows-sys 0.61
 [[bans.skip]]
 crate = "windows-sys@0.52.0"
 reason = "held by ring 0.17.14, winit 0.30.13; gone when its holders move to windows-sys 0.61.2 (ring 0.17.14 is its latest release; winit 0.30.13 is its latest release)"
+
+[[bans.skip]]
+crate = "windows-sys@0.59.0"
+reason = "held by dirs-sys 0.5.0, errno 0.3.15, nu-ansi-term 0.50.3, quinn-udp 0.5.16 +4 more; gone when its holders move to windows-sys 0.61.2 (quinn-udp 0.5.16 in the graph, 0.6.3 newest; every other holder is at its latest release)"
 
 [[bans.skip]]
 crate = "windows-targets@0.42.2"

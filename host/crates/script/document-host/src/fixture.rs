@@ -309,5 +309,6 @@ fn outcome_words(outcome: &TurnOutcome) -> String {
         TurnOutcome::Conflict(rev) => format!("conflict, current rev {rev}"),
         TurnOutcome::UnknownNode(id) => format!("unknown node {id}"),
         TurnOutcome::Refused(why) => format!("refused ({why})"),
+        TurnOutcome::PageMoved => "page moved".to_string(),
     }
 }

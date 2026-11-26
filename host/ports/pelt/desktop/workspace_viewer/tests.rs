@@ -3226,13 +3226,13 @@ fn native_document_action_prepares_layout_before_revalidating_captured_revision(
         .controller_mut(TileId(1))
         .unwrap()
         .session_mut()
-        .apply_host_mutations(&[inker::session_engine::HostMutation {
-            target_id: "spacer".into(),
-            op: inker::session_engine::HostMutationOp::SetAttribute {
+        .apply_host_mutations(&[inker::session_engine::HostMutation::new(
+            "spacer",
+            inker::session_engine::HostMutationOp::SetAttribute {
                 name: "style".into(),
                 value: "height:100px".into(),
             },
-        }])
+        )])
         .unwrap();
     assert_eq!(mutation.applied, 1);
     assert!(

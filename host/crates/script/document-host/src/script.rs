@@ -50,6 +50,10 @@ pub enum TurnOutcome {
     UnknownNode(u64),
     /// The script declined the event, or the host refused the batch. Carries why.
     Refused(String),
+    /// A page mod's turn was refused: the page's DOM changed, other than by this
+    /// mod's own replays, since the copy or the last replay (mod projects D24).
+    /// Nothing applied to the copy or the page.
+    PageMoved,
 }
 
 /// Run `fut` to completion under an epoch watchdog: a thread bumps `engine`'s epoch
@@ -295,6 +299,19 @@ impl DocumentScript {
     /// runaway or memory-bomb) — the host survives and the DOM is unchanged; the
     /// caller should detach the script.
     pub fn deliver_event(&mut self, kind: &str, payload: &str) -> wasmtime::Result<TurnOutcome> {
+        Ok(match self.call_event(kind, payload)? {
+            Ok(batch) => self.commit_batch(batch),
+            Err(e) => Self::turn_error(e),
+        })
+    }
+
+    /// Run the guest's `handle-event` under the guards and return its batch
+    /// without applying it.
+    pub(crate) fn call_event(
+        &mut self,
+        kind: &str,
+        payload: &str,
+    ) -> wasmtime::Result<Result<ApplyBatch, TurnError>> {
         let ev = Event {
             kind: kind.to_string(),
             payload: payload.to_string(),
@@ -303,21 +320,24 @@ impl DocumentScript {
         self.store.data_mut().fetches_this_turn = 0; // fresh per-turn fetch budget (§A6)
         let engine = self.store.engine().clone();
         let turn = self.bindings.call_handle_event(&mut self.store, &ev);
-        let result = guarded_block_on(engine, turn)?;
-        Ok(match result {
-            Ok(batch) => {
-                let h = self.store.data_mut();
-                match dom_view::apply(&mut h.dom, &mut h.revision, batch) {
-                    Ok(rev) => TurnOutcome::Applied(rev),
-                    Err(TurnError::RevisionConflict(c)) => TurnOutcome::Conflict(c),
-                    Err(TurnError::UnknownNode(id)) => TurnOutcome::UnknownNode(id),
-                    Err(TurnError::Refused(w)) => TurnOutcome::Refused(w),
-                }
-            },
-            Err(TurnError::RevisionConflict(c)) => TurnOutcome::Conflict(c),
-            Err(TurnError::UnknownNode(id)) => TurnOutcome::UnknownNode(id),
-            Err(TurnError::Refused(w)) => TurnOutcome::Refused(w),
-        })
+        guarded_block_on(engine, turn)
+    }
+
+    /// Apply a batch to the held DOM against its revision.
+    pub(crate) fn commit_batch(&mut self, batch: ApplyBatch) -> TurnOutcome {
+        let h = self.store.data_mut();
+        match dom_view::apply(&mut h.dom, &mut h.revision, batch) {
+            Ok(rev) => TurnOutcome::Applied(rev),
+            Err(e) => Self::turn_error(e),
+        }
+    }
+
+    pub(crate) fn turn_error(e: TurnError) -> TurnOutcome {
+        match e {
+            TurnError::RevisionConflict(c) => TurnOutcome::Conflict(c),
+            TurnError::UnknownNode(id) => TurnOutcome::UnknownNode(id),
+            TurnError::Refused(w) => TurnOutcome::Refused(w),
+        }
     }
 
     /// The live (possibly script-mutated) page DOM, for the caller to render.
