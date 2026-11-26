@@ -27,12 +27,14 @@
 //! `grid-body`, `grid-row`, `grid-row-even` / `-odd`, `grid-cell`); inline
 //! styles carry only geometry.
 
+use std::rc::Rc;
+
 use sprigging::{GridSpec, Placement};
 
 use crate::pod::GenetElement;
 use crate::{
     AnyView, GenetCtx, Key, KeyEvent, Keyed, Modifiers, NamedKey, PointerClick,
-    arrangement::placed_with, el, on_click, on_key, request_focus,
+    arrangement::placed_with, el, memoize, on_click, on_key, request_focus,
 };
 
 mod heading;
@@ -118,7 +120,7 @@ where
     State: 'static,
     Action: 'static,
 {
-    data_grid_banded(
+    data_grid_unmemoized(
         spec,
         total_rows,
         viewport_height,
@@ -154,7 +156,7 @@ where
     State: 'static,
     Action: 'static,
 {
-    data_grid_banded(
+    data_grid_unmemoized(
         spec,
         total_rows,
         viewport_height,
@@ -173,17 +175,184 @@ where
     )
 }
 
+/// A body cell's comparable inputs, for [`data_grid_banded`]'s memoized
+/// rows: a row whose cells, geometry, focus stop and class equal the last
+/// frame's is neither built nor diffed again (table D82).
+pub trait GridCell<State, Action>: PartialEq + 'static {
+    /// The cell's content view.
+    fn view(&self) -> GridView<State, Action>;
+}
+
 /// [`data_grid_with`] with group headings: `band(row)` says whether a body
 /// row is a row or a heading, with the key it is kept by, and `on_heading(row)`
 /// hears a press on a heading. A header press carries its modifier keys, so
-/// Shift can add a sort key.
+/// Shift can add a sort key. `cell(row, col)` gives each cell's inputs
+/// ([`GridCell`]), so an unchanged row is skipped rather than rebuilt.
 #[allow(clippy::too_many_arguments)]
-pub fn data_grid_banded<State, Action>(
+pub fn data_grid_banded<State, Action, C>(
+    spec: &GridSpec,
+    total_rows: usize,
+    viewport_height: f32,
+    scroll: f32,
+    cell: impl Fn(usize, usize) -> C,
+    band: impl Fn(usize) -> GridBand,
+    on_header: impl Fn(&mut State, usize, Modifiers) + Clone + 'static,
+    on_heading: impl Fn(&mut State, usize) + Clone + 'static,
+    row_class: impl Fn(usize) -> Option<String>,
+    options: &GridOptions,
+    on_key_event: impl Fn(&mut State, KeyEvent) + 'static,
+) -> GridView<State, Action>
+where
+    State: 'static,
+    Action: 'static,
+    C: GridCell<State, Action>,
+{
+    let columns = spec.columns.len();
+    grid_frame(
+        spec,
+        total_rows,
+        viewport_height,
+        scroll,
+        |r, shape| {
+            let cells = (0..columns).map(|c| cell(r, c)).collect();
+            Box::new(memoize(
+                MemoRow { shape, cells },
+                memo_row::<State, Action, C>,
+            )) as GridView<State, Action>
+        },
+        band,
+        on_header,
+        on_heading,
+        row_class,
+        options,
+        on_key_event,
+    )
+}
+
+/// The banded grid with every cell's view built each frame, for the entry
+/// points whose callers give views rather than comparable inputs.
+#[allow(clippy::too_many_arguments)]
+fn data_grid_unmemoized<State, Action>(
     spec: &GridSpec,
     total_rows: usize,
     viewport_height: f32,
     scroll: f32,
     cell: impl Fn(usize, usize) -> GridView<State, Action>,
+    band: impl Fn(usize) -> GridBand,
+    on_header: impl Fn(&mut State, usize, Modifiers) + Clone + 'static,
+    on_heading: impl Fn(&mut State, usize) + Clone + 'static,
+    row_class: impl Fn(usize) -> Option<String>,
+    options: &GridOptions,
+    on_key_event: impl Fn(&mut State, KeyEvent) + 'static,
+) -> GridView<State, Action>
+where
+    State: 'static,
+    Action: 'static,
+{
+    let columns = spec.columns.len();
+    grid_frame(
+        spec,
+        total_rows,
+        viewport_height,
+        scroll,
+        |r, shape| assemble_row(&shape, (0..columns).map(|c| cell(r, c))),
+        band,
+        on_header,
+        on_heading,
+        row_class,
+        options,
+        on_key_event,
+    )
+}
+
+/// What a body row's frame reads besides its cells.
+#[derive(Clone, Debug, PartialEq)]
+struct RowShape {
+    row: usize,
+    row_height: f32,
+    width: f32,
+    /// Each column's x and width.
+    columns: Rc<[(f32, f32)]>,
+    /// `None` without a roving focus; else this row's focused column and
+    /// whether focus is requested, or `None` when the row holds no tab stop.
+    focus: Option<Option<(usize, bool)>>,
+    class: String,
+}
+
+/// A memoized body row's inputs.
+#[derive(PartialEq)]
+struct MemoRow<C> {
+    shape: RowShape,
+    cells: Vec<C>,
+}
+
+fn memo_row<State: 'static, Action: 'static, C: GridCell<State, Action>>(
+    row: &MemoRow<C>,
+) -> GridView<State, Action> {
+    assemble_row(&row.shape, row.cells.iter().map(GridCell::view))
+}
+
+/// A body row: its placed cells, the tab stop and the row's ARIA.
+fn assemble_row<State: 'static, Action: 'static>(
+    shape: &RowShape,
+    cells: impl Iterator<Item = GridView<State, Action>>,
+) -> GridView<State, Action> {
+    let row_height = shape.row_height;
+    let cells: Vec<GridView<State, Action>> = cells
+        .zip(shape.columns.iter())
+        .enumerate()
+        .map(|(c, (content, &(x, col_width)))| {
+            let placed = placed_with(
+                Placement::new(x, 0.0),
+                format!("width: {col_width}px; height: {row_height}px;"),
+                content,
+            )
+            .attr("class", "grid-cell")
+            .attr("role", "gridcell")
+            .attr("aria-colindex", (c + 1).to_string());
+            match shape.focus {
+                // A passive key listener makes the tab stop focusable; its
+                // keys bubble to the grid's handler.
+                Some(here) => {
+                    let (tab_stop, requested) = match here {
+                        Some((col, requested)) if col == c => (true, requested),
+                        _ => (false, false),
+                    };
+                    Box::new(request_focus(
+                        on_key(
+                            placed.attr("tabindex", if tab_stop { "0" } else { "-1" }),
+                            |_: &mut State, _: KeyEvent| {},
+                        )
+                        .focusable(tab_stop),
+                        requested,
+                    )) as GridView<State, Action>
+                },
+                None => Box::new(placed) as GridView<State, Action>,
+            }
+        })
+        .collect();
+    let r = shape.row;
+    Box::new(
+        placed_with(
+            Placement::new(0.0, r as f32 * row_height),
+            format!("width: {}px; height: {row_height}px;", shape.width),
+            cells,
+        )
+        .attr("class", shape.class.clone())
+        .attr("role", "row")
+        .attr("aria-rowindex", (r + 2).to_string())
+        .attr("data-row", r.to_string()),
+    )
+}
+
+/// The grid around its body rows: `row(r, shape)` makes body row `r`.
+#[allow(clippy::too_many_arguments)]
+fn grid_frame<State, Action>(
+    spec: &GridSpec,
+    total_rows: usize,
+    viewport_height: f32,
+    scroll: f32,
+    row: impl Fn(usize, RowShape) -> GridView<State, Action>,
     band: impl Fn(usize) -> GridBand,
     on_header: impl Fn(&mut State, usize, Modifiers) + Clone + 'static,
     on_heading: impl Fn(&mut State, usize) + Clone + 'static,
@@ -320,6 +489,9 @@ where
     // windows are not rewritten. A heading is kept by its group, so a
     // collapse or a regrouping moves it rather than building it again.
     let window = spec.window(total_rows, viewport_height, scroll);
+    let columns: Rc<[(f32, f32)]> = (0..spec.columns.len())
+        .map(|c| (spec.col_x(c), spec.columns[c].width))
+        .collect();
     let rows: Keyed<GridRowKey, GridView<State, Action>> = window
         .range()
         .map(|r| {
@@ -339,35 +511,6 @@ where
                 GridBand::Row(key) => GridRowKey::Row(key),
                 GridBand::Id(id) => GridRowKey::Id(id),
             };
-            let cells: Vec<GridView<State, Action>> = spec
-                .columns
-                .iter()
-                .enumerate()
-                .map(|(c, col)| {
-                    let placed = placed_with(
-                        Placement::new(spec.col_x(c), 0.0),
-                        format!("width: {}px; height: {}px;", col.width, spec.row_height),
-                        cell(r, c),
-                    )
-                    .attr("class", "grid-cell")
-                    .attr("role", "gridcell")
-                    .attr("aria-colindex", (c + 1).to_string());
-                    match stop(Some(r), c) {
-                        // A passive key listener makes the tab stop focusable;
-                        // its keys bubble to the grid's handler.
-                        Some((tabindex, requested)) => Box::new(request_focus(
-                            on_key(
-                                placed.attr("tabindex", tabindex),
-                                |_: &mut State, _: KeyEvent| {},
-                            )
-                            .focusable(tabindex == "0"),
-                            requested,
-                        ))
-                            as GridView<State, Action>,
-                        None => Box::new(placed) as GridView<State, Action>,
-                    }
-                })
-                .collect();
             let zebra = if r % 2 == 0 {
                 "grid-row grid-row-even"
             } else {
@@ -379,18 +522,16 @@ where
                 Some(extra) => format!("{zebra} {extra}"),
                 None => zebra.to_string(),
             };
-            let row = Box::new(
-                placed_with(
-                    Placement::new(0.0, r as f32 * spec.row_height),
-                    format!("width: {width}px; height: {}px;", spec.row_height),
-                    cells,
-                )
-                .attr("class", class)
-                .attr("role", "row")
-                .attr("aria-rowindex", (r + 2).to_string())
-                .attr("data-row", r.to_string()),
-            ) as GridView<State, Action>;
-            (key, row)
+            let shape = RowShape {
+                row: r,
+                row_height: spec.row_height,
+                width,
+                columns: Rc::clone(&columns),
+                focus: focus
+                    .map(|focus| (focus.row == Some(r)).then_some((focus.col, focus.requested))),
+                class,
+            };
+            (key, row(r, shape))
         })
         .collect();
     let strip = placed_with(

@@ -320,3 +320,93 @@ fn a_keyed_plain_grid_keeps_row_nodes_across_a_reorder() {
         .count();
     assert_eq!(written, 0, "no row's text is written again");
 }
+
+thread_local! {
+    static CELL_VIEWS: std::cell::Cell<usize> = const { std::cell::Cell::new(0) };
+}
+
+/// A cell that counts how often its view is made.
+#[derive(PartialEq)]
+struct CountedCell(String);
+
+impl GridCell<Banded, ()> for CountedCell {
+    fn view(&self) -> GridView<Banded, ()> {
+        CELL_VIEWS.with(|n| n.set(n.get() + 1));
+        Box::new(el::<_, Banded, ()>("span", self.0.clone()))
+    }
+}
+
+struct Banded {
+    scroll: f32,
+    edited: Option<usize>,
+}
+
+fn banded(state: &Banded) -> GridView<Banded, ()> {
+    let edited = state.edited;
+    data_grid_banded(
+        &spec(),
+        100,
+        300.0,
+        state.scroll,
+        |r, c| {
+            let mark = if edited == Some(r) { "!" } else { "" };
+            CountedCell(format!("r{r}c{c}{mark}"))
+        },
+        |r| GridBand::Id(format!("row{r}")),
+        |_: &mut Banded, _, _: Modifiers| {},
+        |_: &mut Banded, _| {},
+        |_| None,
+        &GridOptions::default(),
+        |_: &mut Banded, _: KeyEvent| {},
+    )
+}
+
+fn cell_views() -> usize {
+    CELL_VIEWS.with(|n| n.replace(0))
+}
+
+/// A banded grid's rows are memoized (table D82): a scroll that keeps the
+/// window builds no cell, a one-row shift builds only the entering row's
+/// cells, and an edit rebuilds only the edited row.
+#[test]
+fn a_banded_grid_rebuilds_only_rows_that_changed() {
+    let columns = spec().columns.len();
+    let dom: DomHandle = Rc::new(RefCell::new(ScriptedDom::new()));
+    let mut runner = GenetAppRunner::<_, _, _, ()>::new(
+        dom.clone(),
+        banded as fn(&Banded) -> GridView<Banded, ()>,
+        Banded {
+            scroll: 0.0,
+            edited: None,
+        },
+    );
+    let root = runner.root();
+    let built = cell_views();
+    assert!(
+        built > 0 && built % columns == 0,
+        "the window is built: {built}"
+    );
+    let rows_before = {
+        let mut rows = Vec::new();
+        find_all(&dom.borrow(), root, "grid-row", &mut rows);
+        rows
+    };
+
+    // Inside one row's height the window does not move.
+    runner.update(|s| s.scroll = 5.0);
+    assert_eq!(cell_views(), 0, "no unchanged row is rebuilt");
+    let mut rows_after = Vec::new();
+    find_all(&dom.borrow(), root, "grid-row", &mut rows_after);
+    assert_eq!(rows_before, rows_after, "the rows keep their nodes");
+
+    // One more row enters at the bottom.
+    runner.update(|s| s.scroll = 24.0);
+    assert_eq!(cell_views(), columns, "only the entering row is built");
+
+    // An edit to a row in the window rebuilds that row alone.
+    runner.update(|s| s.edited = Some(3));
+    assert_eq!(cell_views(), columns, "only the edited row is rebuilt");
+    let mut text = String::new();
+    texts_under(&dom.borrow(), root, &mut text);
+    assert!(text.contains("r3c0!"), "the edit is drawn: {text}");
+}

@@ -153,7 +153,7 @@ pub use graph_canvas::{
     graph_canvas_with_wheel,
 };
 pub use grid::{
-    GridBand, GridFocus, GridHeading, GridOptions, GridRowKey, GridView, data_grid,
+    GridBand, GridCell, GridFocus, GridHeading, GridOptions, GridRowKey, GridView, data_grid,
     data_grid_banded, data_grid_keyed, data_grid_with,
 };
 pub use hest::catalogue;

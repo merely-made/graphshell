@@ -1335,3 +1335,12 @@ Left from the headed pages (T4):
   work under `Host::submit_native` was 39.7k samples: emit 13.8k, relayout 11.9k (box
   tree rebuild 9.2k inside it: style update 3.6k, scroll-batch layout 3.7k, geometry walk
   2.2k), the table's view rebuild 7.1k, accessibility sync 5.1k, raster 3.5k.
+- 2026-11-26: the table's rows memoized (D82, view rebuild). Each banded grid row is
+  built through meristem's restored `memoize` from its comparable inputs (cell
+  contents, band index, geometry, focus stop, class; `cambium::GridCell`), so a row
+  whose inputs did not change is neither built nor diffed; rows stay keyed by
+  occurrence id (D41). Release, 10,000 rows, no rustc running, one run against the
+  2026-11-25 baseline (`stages-1`): one-row frames 17.7 to 15.0 ms, two-row 19.4 to
+  16.4, no-change 3.40 to 2.58; scroll p95 20.2 to 16.6 ms, sort p95 114 to 93 ms,
+  idle p95 5.2 to 5.8. The receipt passes the gate (`testing/graphshell/
+  frame-cost/viewmemo-1/`).

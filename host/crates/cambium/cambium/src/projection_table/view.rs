@@ -10,7 +10,7 @@
 
 use sprigging::{GridColumn, GridSpec};
 
-use crate::grid::{GridBand, GridHeading, GridOptions, GridView, data_grid_banded};
+use crate::grid::{GridBand, GridCell, GridHeading, GridOptions, GridView, data_grid_banded};
 use crate::{KeyEvent, Modifiers, PointerClick, WheelEvent, el, on_click, on_wheel};
 
 use super::{CellContent, ProjectionTable, TableBandView};
@@ -40,6 +40,21 @@ pub const PROJECTION_TABLE_CSS: &str = "\
 .cell-bar-track { height: 8px; } \
 .cell-bar-fill { height: 8px; } \
 .cell-check { display: inline-block; width: 12px; height: 12px; box-sizing: border-box; }";
+
+/// What one cell's view reads: equal inputs keep its row unbuilt (D82).
+#[derive(Clone, Debug, PartialEq)]
+struct TableCell {
+    content: CellContent,
+    width: f32,
+    band: usize,
+    col: usize,
+}
+
+impl<Action: 'static> GridCell<ProjectionTable, Action> for TableCell {
+    fn view(&self) -> GridView<ProjectionTable, Action> {
+        cell_view(self.content.clone(), self.width, self.band, self.col)
+    }
+}
 
 fn cell_view<Action: 'static>(
     content: CellContent,
@@ -191,7 +206,12 @@ pub fn projection_table<Action: 'static>(
         table.scroll,
         |band, col| {
             let rank = table.band_row(band).unwrap_or(usize::MAX);
-            cell_view(table.cell(rank, col), widths[col], band, col)
+            TableCell {
+                content: table.cell(rank, col),
+                width: widths[col],
+                band,
+                col,
+            }
         },
         // A row is kept by its occurrence id, so a sort, a filter or a
         // collapse moves it rather than rewriting it (table D41).
