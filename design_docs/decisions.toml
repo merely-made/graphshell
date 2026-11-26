@@ -861,6 +861,29 @@ area = "The stack"
 summary = "Attach takes the focused Livery page, and navigating or closing it detaches the mod."
 plans = ["mod-projects"]
 
+[decisions."mod-projects D26"]
+title = "wasmparser 0.228 is skipped until wasmi is forked (Mark, 2026-11-25)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "A skip row carries the duplicate wasmparser until a wasmi fork reaches the latest."
+plans = ["mod-projects"]
+
+[decisions."mod-projects D27"]
+title = "Genet appends any node to a live page (Mark, 2026-11-25)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "AppendNode replays a mod's append of an element, text node or comment."
+amends = ["mod-projects D23"]
+plans = ["mod-projects"]
+
+[decisions."mod-projects D28"]
+title = "A moved page is its own turn outcome (Mark, 2026-11-25)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "A turn refused because the page changed reads PageMoved, apart from a stale revision."
+amends = ["mod-projects D24"]
+plans = ["mod-projects"]
+
 [decisions."primitive-representations D1"]
 title = "The brief's scope (Mark, 2026-11-13)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"

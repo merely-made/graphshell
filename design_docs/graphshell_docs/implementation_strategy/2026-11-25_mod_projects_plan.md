@@ -1,7 +1,7 @@
 # Mod projects plan
 
 **Status:** 2026-11-25: in progress; MP0 to MP5 met. Cut from GB6 P2 to P5 and their tails in
-`2026-10-28_graph_behaviors_plan.md`; P1 landed as `2026-11-24_command_packs_plan.md`. D1 to D25
+`2026-10-28_graph_behaviors_plan.md`; P1 landed as `2026-11-24_command_packs_plan.md`. D1 to D28
 settle building, admission, reload, `.cwasm`, the first host, fixtures, signing, network, the
 authoring loop, the parser and viewer worlds, the browser table, grants, pins on reload, live
 pages and traps. MP5 is met on project documents;
@@ -345,6 +345,31 @@ stated reason (D11).
 
   Links: area The stack · plans mod-projects MP5b · summary Attach takes the focused Livery page, and navigating or closing it detaches the mod.
 
+- **D26. wasmparser 0.228 is skipped until wasmi is forked (Mark, 2026-11-25):** Evidence: genet
+  `cbe8d3ed5d5` made the `scripted` feature pull `genet-bole/wasm`, so `genet-wasm`'s wasmi 2.0.3
+  brings wasmparser 0.228 beside wasmtime 51's 0.263, and Graphshell's bans check refuses every
+  fresh resolve; wasmi 2.0.3 is its latest release and wasmi's main still asks for 0.228. Offered:
+  a `[[bans.skip]]` now, a patch-only wasmi fork onto the latest wasmparser as the way out
+  (recommended); fork wasmi now; genet splits WebAssembly in pages into its own feature. Answer:
+  "Skip now, fork wasmi later (Recommended)". What follows: the skip rows name the holder; the
+  wasmi fork is open work outside this plan. Outcome: applies the one-version ruling's stopgap.
+
+  Links: area The stack · plans mod-projects MP5b · summary A skip row carries the duplicate wasmparser until a wasmi fork reaches the latest.
+
+- **D27. Genet appends any node to a live page (Mark, 2026-11-25):** Evidence: a mod's
+  append-child of a text node had no genet operation to replay through; `AppendChild` builds
+  elements only. Offered: an `AppendNode` taking any new node (recommended); refuse the turn by
+  name. Answer: "Add AppendNode in genet (Recommended)". Outcome: refines D23.
+
+  Links: area The stack · amends mod-projects D23 · plans mod-projects MP5b · summary AppendNode replays a mod's append of an element, text node or comment.
+
+- **D28. A moved page is its own turn outcome (Mark, 2026-11-25):** Evidence: document-host could
+  report a moved page as `Conflict(rev)`, the stale-revision outcome, or as a new variant. Offered:
+  `TurnOutcome::PageMoved` (recommended); reuse `Conflict`. Answer: "Its own PageMoved
+  (Recommended)". Outcome: refines D24.
+
+  Links: area The stack · amends mod-projects D24 · plans mod-projects MP5b · summary A turn refused because the page changed reads PageMoved, apart from a stale revision.
+
 ## Open questions
 
 - MP7's world shapes: the parser's block and diagnostic types, and the viewer's scene or lens
@@ -440,3 +465,4 @@ stated reason (D11).
 - 2026-11-25: MP5's forks ruled, D14 to D20 (Findings 7); live pages split out as MP5b.
 - 2026-11-25: MP5 met on project documents (Findings 8); D21 ruled. MP5b is next.
 - 2026-11-25: MP5b surveyed (Findings 9); D22 to D25 ruled.
+- 2026-11-25: genet's identity targets pushed (`eea33cb1c71`); D26 to D28 ruled.
