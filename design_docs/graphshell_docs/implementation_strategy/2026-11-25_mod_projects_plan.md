@@ -1,7 +1,7 @@
 # Mod projects plan
 
 **Status:** 2026-11-26: in progress; MP0 to MP6 met. Cut from GB6 P2 to P5 and their tails in
-`2026-10-28_graph_behaviors_plan.md`; P1 landed as `2026-11-24_command_packs_plan.md`. D1 to D42
+`2026-10-28_graph_behaviors_plan.md`; P1 landed as `2026-11-24_command_packs_plan.md`. D1 to D44
 settle building, admission, reload, `.cwasm`, the first host, fixtures, signing, network, the
 authoring loop, the parser and viewer worlds, the browser table, grants, pins on reload, live
 pages and traps. MP5, MP5b (live pages) and MP6 (the
@@ -503,6 +503,25 @@ stated reason (D11).
 
   Links: area The stack · amends mod-projects D40 · plans mod-projects MP7 · summary The fetched bytes reach a parser mod through a body_bytes field on genet's SessionSpawnRequest; inker is unchanged.
 
+- **D43. A mod-parsed page loads images from its own origin, others only with the grant (Mark,
+  2026-11-26):** Evidence: a parser returns `Image` blocks whose URLs it chose, and Turnstone
+  fetches inline images for parsed pages under the inline-media caps (8 images, 8 MiB encoded,
+  64 MiB decoded), so a mod without the network grant (D17) could make the browser fetch any URL;
+  Graphshell `e78fbfc0`'s host leaves them as given. Offered: the page's origin loads, other
+  origins only when the mod holds the network grant, alt text otherwise (recommended); only with
+  the grant; as the packs do. Answer: "Page's origin; others need the grant (Recommended)".
+  Outcome: refines D17.
+
+  Links: area The stack · amends mod-projects D17 · plans mod-projects MP7 · summary A mod-parsed page's images load from the page's own origin, and from elsewhere only under the mod's network grant.
+
+- **D44. A parser's media types are declared in mod.toml and checked against the guest (Mark,
+  2026-11-26):** Evidence: the parser world's `describe()` reports media types, and `mod.toml`
+  declares them too, so the two can disagree. Offered: `mod.toml` declares them, and check refuses
+  a component that reports different ones, naming both lists (recommended); the guest only;
+  `mod.toml` only. Answer: "mod.toml, checked against the guest (Recommended)". Outcome: new.
+
+  Links: area The stack · plans mod-projects MP7 · summary Routing reads a parser's media types from mod.toml, and check refuses a component that claims others.
+
 ## Open questions
 
 None open.
@@ -673,3 +692,4 @@ None open.
 - 2026-11-26: parser blocks and routing read (Findings 14); D36 and D37 ruled.
 - 2026-11-26: MP7's routing forks ruled, D38 to D41.
 - 2026-11-26: D42 ruled (the spawn request is genet's).
+- 2026-11-26: genet `d2b4a55d3b5` (body bytes) and Graphshell `e78fbfc0` (parser and viewer worlds, mod-host) pushed; D43 and D44 ruled.

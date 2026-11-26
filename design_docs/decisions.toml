@@ -989,6 +989,21 @@ summary = "The fetched bytes reach a parser mod through a body_bytes field on ge
 amends = ["mod-projects D40"]
 plans = ["mod-projects"]
 
+[decisions."mod-projects D43"]
+title = "A mod-parsed page loads images from its own origin, others only with the grant (Mark, 2026-11-26)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "A mod-parsed page's images load from the page's own origin, and from elsewhere only under the mod's network grant."
+amends = ["mod-projects D17"]
+plans = ["mod-projects"]
+
+[decisions."mod-projects D44"]
+title = "A parser's media types are declared in mod.toml and checked against the guest (Mark, 2026-11-26)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "Routing reads a parser's media types from mod.toml, and check refuses a component that claims others."
+plans = ["mod-projects"]
+
 [decisions."primitive-representations D1"]
 title = "The brief's scope (Mark, 2026-11-13)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
