@@ -408,3 +408,7 @@ reason = "Graph residency. Existing source-size debt; a responsibility split mus
 [[exception]]
 path = "host/crates/incipit/session/tests/live_graph.rs"
 reason = "Live graph. Existing source-size debt; a responsibility split must preserve LiveNow, Session and existing module visibility."
+
+[[exception]]
+path = "host/crates/incipit/session/tests/merge.rs"
+reason = "Session merge-in: branches round-trip, picks and picks of picks merge back, conflicts take each side, deletions merge three-way, and resource facets with a rule merge as Compose. Existing source-size debt; a responsibility split must preserve existing entry points, fixture identity and module visibility."
