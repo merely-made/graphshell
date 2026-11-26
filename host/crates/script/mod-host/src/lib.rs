@@ -154,8 +154,10 @@ pub(crate) fn admit_bytes(
     Ok(())
 }
 
-/// The first line of a trap, which names the cause; the backtrace stays out of the status.
+/// What a trap says went wrong: the root cause's first line (`wasm trap: wasm `unreachable`
+/// instruction executed`, `wasm trap: interrupt`), not the "error while executing at wasm
+/// backtrace" header wasmtime puts first. The backtrace stays out of the status.
 pub(crate) fn first_line(trap: &wasmtime::Error) -> String {
-    let full = format!("{trap:#}");
-    full.lines().next().unwrap_or("trap").to_string()
+    let cause = trap.root_cause().to_string();
+    cause.lines().next().filter(|line| !line.is_empty()).unwrap_or("trap").to_string()
 }

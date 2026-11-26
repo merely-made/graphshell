@@ -1,0 +1,9 @@
+name = "a node's title is its name, ahead of its label"
+
+[graph]
+json = '{"snapshot":{"nodes":[{"title":"Alpha","label":"ignored"},{"label":"Beta"},{}]},"facets":{}}'
+
+[expect]
+regions = ["Node Alpha", "Node Beta", "Node 3"]
+width = [100.0, 400.0]
+height = [100.0, 100.0]

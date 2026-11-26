@@ -126,11 +126,16 @@ fn a_trap_and_a_spin_end_as_trapped_without_taking_the_host() {
     let (mut host, _engine, _dog) = parser(100);
     let trap = host.parse(b"x", "application/x-fixture-trap", &ctx()).unwrap_err();
     assert!(matches!(trap, ParseFailure::Trapped(_)) && trap.drops_instance(), "{trap:?}");
+    let ParseFailure::Trapped(cause) = &trap else { unreachable!() };
+    assert!(cause.contains("unreachable"), "the cause, not the backtrace header: {cause}");
+    assert!(!cause.contains("backtrace"), "{cause}");
 
     let (mut host, _engine, _dog) = parser(5);
     let started = std::time::Instant::now();
     let spin = host.parse(b"x", "application/x-fixture-spin", &ctx()).unwrap_err();
     assert!(matches!(spin, ParseFailure::Trapped(_)), "{spin:?}");
+    let ParseFailure::Trapped(cause) = &spin else { unreachable!() };
+    assert!(cause.contains("interrupt"), "a spin names the interrupt: {cause}");
     assert!(started.elapsed() < std::time::Duration::from_secs(5), "the watchdog ended it");
 }
 
@@ -201,9 +206,26 @@ fn a_viewer_refusal_a_trap_and_a_spin_are_values() {
     assert!(matches!(host.view(b"not json", 100.0).unwrap_err(), ViewFailure::Refused(_)));
     let trap = host.view(br#"{"snapshot":{"nodes":[{"label":"TRAP"}]}}"#, 100.0).unwrap_err();
     assert!(matches!(trap, ViewFailure::Trapped(_)) && trap.drops_instance(), "{trap:?}");
+    let ViewFailure::Trapped(cause) = &trap else { unreachable!() };
+    assert!(cause.contains("unreachable"), "the cause, not the backtrace header: {cause}");
+    assert!(!cause.contains("backtrace"), "{cause}");
     let (mut host, _dog) = viewer(5);
     let spin = host.view(br#"{"snapshot":{"nodes":[{"label":"SPIN"}]}}"#, 100.0).unwrap_err();
     assert!(matches!(spin, ViewFailure::Trapped(_)), "{spin:?}");
+}
+
+#[test]
+fn the_viewers_items_are_centred_on_their_translate_and_a_title_trap_traps() {
+    let (mut host, _dog) = viewer(100);
+    let view = host
+        .view(br#"{"snapshot":{"nodes":[{"title":"A"},{"title":"B"}]},"facets":{}}"#, 320.0)
+        .unwrap();
+    let centres: Vec<(f32, f32)> =
+        view.scene.items.iter().map(|i| (i.transform.translate.x, i.transform.translate.y)).collect();
+    assert_eq!(centres, [(20.0, 20.0), (20.0, 50.0)], "the 20-square at (10, 10) is centred at (20, 20)");
+    assert!(view.sheet.ops.iter().any(|op| matches!(op, vector_sheet::Op::Text { text, .. } if text == "B")));
+    let trap = host.view(br#"{"snapshot":{"nodes":[{"title":"TRAP"}]}}"#, 100.0).unwrap_err();
+    assert!(matches!(trap, ViewFailure::Trapped(_)), "{trap:?}");
 }
 
 #[test]
@@ -247,7 +269,7 @@ fn a_trapping_parser_fixture_is_kept_as_the_records_last_trap() {
 
 #[test]
 fn viewer_fixtures_expect_regions_and_a_size_range() {
-    for name in ["nodes.toml", "trap.toml"] {
+    for name in ["nodes.toml", "titles.toml", "trap.toml"] {
         let outcome = viewer_outcome(name);
         assert!(outcome.passed(), "{name}: {}", outcome.words());
     }
