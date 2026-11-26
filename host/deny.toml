@@ -79,6 +79,10 @@ crate = "cipher@0.4.4"
 reason = "held by aes 0.8.4, aes-gcm 0.10.3, blowfish 0.9.1, cbc 0.1.2 +4 more; gone when its holders move to cipher 0.5.2 (aes 0.8.4 in the graph, 0.9.4 newest; aes-gcm 0.10.3 in the graph, 0.11.1 newest)"
 
 [[bans.skip]]
+crate = "constant_time_eq@0.4.2"
+reason = "held by blake2b_simd 1.0.5, blake2s_simd 1.0.5 (both latest; master still 0.4.2), iroh-blobs 0.103.1 (main caps <0.6.2 for MSRV); blake3 1.8.8 takes 0.6.2. Stopgap until patch-only forks (mod projects D58)"
+
+[[bans.skip]]
 crate = "convert_case@0.10.0"
 reason = "held by derive_more-impl 2.1.1; gone when its holders move to convert_case 0.12.0 (derive_more-impl 2.1.1 is its latest release)"
 

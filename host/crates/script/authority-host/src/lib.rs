@@ -74,6 +74,24 @@ pub const MAX_COMPONENT_BYTES: usize = 16 * 1024 * 1024;
 /// The candidate format the resident encodes today.
 pub const GRAPH_SNAPSHOT_AND_FACETS: &str = "mere.graph-snapshot-and-facets/json";
 
+/// A graph in [`GRAPH_SNAPSHOT_AND_FACETS`]: one JSON object, `{"snapshot": ..., "facets": ...}`,
+/// the kernel's snapshot and its facet store (a snapshot alone does not carry the facets).
+/// The resident encodes candidates with it and a viewer pane feeds a viewer mod with it.
+///
+/// # Errors
+///
+/// The graph could not be serialised.
+pub fn encode_graph_feed(graph: &kernel::graph::Graph) -> Result<Vec<u8>, String> {
+    #[derive(serde::Serialize)]
+    struct Feed<'a, S: serde::Serialize> {
+        snapshot: &'a S,
+        facets: &'a kernel::graph::NodeFacetStore,
+    }
+    let snapshot = graph.to_snapshot_at(0);
+    serde_json::to_vec(&Feed { snapshot: &snapshot, facets: graph.facets() })
+        .map_err(|error| format!("candidate encoding: {error}"))
+}
+
 /// What one call may spend. The defaults come from the P3 spike over the corpus of the seven
 /// moving tests plus 571 tampers (Findings, "P3 spike"), with headroom for graphs larger than
 /// the corpus: the corpus peaked at 1.74e9 fuel (about 101 ms), 6.6 MiB of memory and a

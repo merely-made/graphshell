@@ -64,17 +64,7 @@ fn hex(bytes: &[u8]) -> String {
 /// Encode a complete candidate graph in the declared format. The cost of this is the
 /// resident's, counted in [`GuestStats::encode`].
 pub fn encode_candidate(graph: &Graph) -> Result<Vec<u8>, String> {
-    #[derive(Serialize)]
-    struct Candidate<'a, S: Serialize> {
-        snapshot: &'a S,
-        facets: &'a kernel::graph::NodeFacetStore,
-    }
-    let snapshot = graph.to_snapshot_at(0);
-    serde_json::to_vec(&Candidate {
-        snapshot: &snapshot,
-        facets: graph.facets(),
-    })
-    .map_err(|error| format!("candidate encoding: {error}"))
+    authority_host::encode_graph_feed(graph)
 }
 
 /// What the running guest has cost, for status and for the measurements the plan records.
