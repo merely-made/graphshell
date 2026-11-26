@@ -23,6 +23,7 @@ use inker::session_engine::{HostMutation, HostMutationOp, HostMutationReport, Ho
 use layout_dom_api::{LayoutDom, NodeKind};
 
 use crate::mere::script::document::{AppendArgs, InsertArgs, Mutation, SetTextArgs};
+use crate::mod_loader::InstallRecord;
 use crate::{
     ApplyBatch, DocumentScript, Grant, NetFetcher, Quota, ReloadError, TurnOutcome, mod_loader,
 };
@@ -215,6 +216,36 @@ impl PageScript {
         let (copy, link) = PageLink::copy(page)?;
         let script = DocumentScript::attach(component_path, copy, grant, quota, fetcher, net_origins)
             .map_err(|e| format!("{e:#}"))?;
+        Ok(Self { script, link })
+    }
+
+    /// [`attach`](Self::attach) against an install record: the component must hash
+    /// to the build the record names, as [`DocumentScript::attach_pinned`] requires
+    /// (mod projects D4).
+    ///
+    /// # Errors
+    ///
+    /// As `attach`, and a refusal when the file does not match the record.
+    pub fn attach_pinned(
+        component_path: &Path,
+        record: &InstallRecord,
+        page: &ScriptedDom,
+        grant: &Grant,
+        quota: Quota,
+        fetcher: Option<std::sync::Arc<dyn NetFetcher>>,
+        net_origins: Vec<String>,
+    ) -> Result<Self, String> {
+        let (copy, link) = PageLink::copy(page)?;
+        let script = DocumentScript::attach_pinned(
+            component_path,
+            record,
+            copy,
+            grant,
+            quota,
+            fetcher,
+            net_origins,
+        )
+        .map_err(|e| format!("{e:#}"))?;
         Ok(Self { script, link })
     }
 

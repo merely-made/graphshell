@@ -215,3 +215,52 @@ fn a_refused_turn_changes_neither_page_nor_copy() {
     assert!(page.applied.is_empty());
     assert_eq!(script.revision(), 0);
 }
+
+#[test]
+fn a_pinned_attach_takes_a_record_and_a_cwasm_needs_one() {
+    use document_host::mod_loader::{
+        AdmissionLevel, ModCapability, ModManifest, ModType, admit_wasm, hash_bytes,
+    };
+    let cwasm = document_host::precompile_to_cwasm(&doc_wasm()).expect("precompile");
+    let path = std::env::temp_dir().join(format!("page-pin-{}.cwasm", std::process::id()));
+    std::fs::write(&path, &cwasm).expect("write cwasm");
+    let manifest = ModManifest::new("pin", "pin", ModType::Wasm, vec![], vec![], vec![]);
+    let mut record = admit_wasm(
+        &manifest,
+        "0",
+        &doc_wasm(),
+        AdmissionLevel::Conformant,
+        &[ModCapability::Network],
+        None,
+    )
+    .expect("admit");
+    let mut page = Page::new(HTML);
+
+    let unrecorded = PageScript::attach(
+        &path,
+        &page.dom,
+        &Grant::allow_all(),
+        Quota::default(),
+        None,
+        Vec::new(),
+    );
+    assert!(unrecorded.is_err(), "an unrecorded .cwasm is refused");
+
+    record.note_build(hash_bytes(&cwasm));
+    let mut script = PageScript::attach_pinned(
+        &path,
+        &record,
+        &page.dom,
+        &Grant::allow_all(),
+        Quota::default(),
+        None,
+        Vec::new(),
+    )
+    .expect("attach against the record");
+    assert_eq!(
+        script.deliver_event(&mut page, "set", "pinned").unwrap(),
+        TurnOutcome::Applied(1)
+    );
+    script.detach().expect("detach");
+    std::fs::remove_file(&path).ok();
+}
