@@ -908,6 +908,36 @@ Left from the headed pages (T4):
 
   *Applies D81; settles D56.*
 
+- **D83. Table rows skip their rebuild through meristem's Memoize (Mark, 2026-11-26):**
+  "compare a & b. B being cut just means it's waiting in git instead of sitting unused in
+  main. Determine which is better on the merits." Of a memoized component per row (A)
+  and Xilem's Memoize view restored (B), B was chosen on the merits: it compares the
+  row's data, rebuilds on a data change or a requested rebuild, and routes messages to the
+  inner view with the app state, so cells keep their closures on the table; A would give
+  every stateless row a component boundary, a local-state slot and an event vocabulary
+  for the same saving. Memoize returns to meristem (cut 2026-08-12 as unused), without
+  Frozen. Caching cell views in the table model (C) was not taken.
+
+  Links: summary Unchanged table rows skip view construction, diff and drop through meristem's restored Memoize.
+
+  *New.*
+
+- **D84. Entering rows' boxes are spliced through two Buckram methods (Mark, 2026-11-26):**
+  "A: two new Buckram methods" and "Refuse outside the proved conditions, plus a debug
+  check". On Genet's scroll fixture regenerating and reconciling the box tree is 2.59 ms
+  of the 6.35 ms route. Buckram's box tree gains `remove_subtree` and
+  `insert_generated_child`, keeping its locality rules beside its child fixups; livery
+  splices a copy and installs it once proved (D57). The splice refuses outside the
+  conditions it can prove (the all-absolute block parent the route admits, fresh absolute
+  entering rows of one box, no ancestor whose whitespace answer can change, no reused node
+  ids) and regenerates instead; debug builds also regenerate and assert equality.
+  Rebuilding the tree in livery without Buckram (B) and regenerating the parent's subtree
+  (C) were not taken.
+
+  Links: summary Rows entering a scrolled table splice their boxes into the box tree, refusing to full regeneration outside proved conditions.
+
+  *Settles D56.*
+
 ## Findings
 
 - 2026-11-15: adding a slot to a recipe type breaks every repository that builds one as a

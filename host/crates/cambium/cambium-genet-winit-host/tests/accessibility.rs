@@ -100,6 +100,29 @@ fn node_named<'a>(
         .map(|(id, node)| (*id, node))
 }
 
+/// A native node's bounds in window coordinates: its own bounds plus every
+/// ancestor's parent-relative translate (table plan D71).
+fn window_bounds(tree: &accesskit::TreeUpdate, id: accesskit::NodeId) -> Option<accesskit::Rect> {
+    let node = |id: accesskit::NodeId| tree.nodes.iter().find(|(n, _)| *n == id).map(|(_, n)| n);
+    let parent = |child: accesskit::NodeId| {
+        tree.nodes
+            .iter()
+            .find(|(_, node)| node.children().contains(&child))
+            .map(|(id, _)| *id)
+    };
+    let bounds = node(id)?.bounds()?;
+    let (mut x, mut y, mut at) = (0.0, 0.0, Some(id));
+    while let Some(current) = at.and_then(node) {
+        if let Some(transform) = current.transform() {
+            let [_, _, _, _, dx, dy] = transform.as_coeffs();
+            x += dx;
+            y += dy;
+        }
+        at = at.and_then(parent);
+    }
+    Some(accesskit::Rect::new(bounds.x0 + x, bounds.y0 + y, bounds.x1 + x, bounds.y1 + y))
+}
+
 /// The projection carries the roles and names a reader announces, and a box for
 /// each control so a virtual cursor can land on it.
 #[test]
@@ -279,9 +302,9 @@ fn native_and_neutral_projections_share_the_hosts_scrolled_bounds() {
         .iter()
         .find(|node| node.name.as_deref() == Some("Cancel"))
         .unwrap();
-    let (_, platform) = node_named(&native, "Cancel").unwrap();
+    let (id, _) = node_named(&native, "Cancel").unwrap();
     let bounds = semantic.bounds.unwrap();
-    let native = platform.bounds().unwrap();
+    let native = window_bounds(&native, id).unwrap();
     assert_eq!(
         (
             native.x0,
