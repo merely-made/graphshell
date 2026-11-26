@@ -1,12 +1,12 @@
 # Mod projects plan
 
-**Status:** 2026-11-26: in progress; MP0 to MP7 met. Cut from GB6 P2 to P5 and their tails in
-`2026-10-28_graph_behaviors_plan.md`; P1 landed as `2026-11-24_command_packs_plan.md`. D1 to D47
-settle building, admission, reload, `.cwasm`, the first host, fixtures, signing, network, the
-authoring loop, the parser and viewer worlds, the browser table, grants, pins on reload, live
-pages and traps. MP5, MP5b (live pages), MP6 (the
-authoring loop) and MP7 (parser and viewer mods) are met; MP8 (the browser table), then MP7b and MP7c (viewer
-panes), are next.
+**Status:** 2026-11-26: in progress; MP0 to MP8 met; MP7b and MP7c remain. Cut from GB6 P2 to P5
+and their tails in `2026-10-28_graph_behaviors_plan.md`; P1 landed as
+`2026-11-24_command_packs_plan.md`. D1 to D49 settle building, admission, reload, `.cwasm`, the
+first host, fixtures, signing, network, the authoring loop, the parser and viewer worlds, the
+browser table, grants, pins on reload, live pages and traps. MP5, MP5b (live pages), MP6 (the
+authoring loop), MP7 (parser and viewer mods) and MP8 (the browser table) are met; MP7b and MP7c
+(viewer panes) are next.
 
 **For:** Wasm component mods a person (or any agent working in the same folder) can create, check,
 build, attach to a document, exercise against fixtures and reload without a restart, holding no
@@ -575,6 +575,24 @@ stated reason (D11).
 
   Links: area The stack · plans mod-projects MP8 · summary The browser refuses every kind it cannot load today, with a reason, and the table marks what a browser engine would open.
 
+- **D48. The browser's Lua row reads planned until a pack loader exists (Mark, 2026-11-26):**
+  Evidence (Findings 17): script-didge (piccolo 0.3.3) passes `cargo check --target
+  wasm32-unknown-unknown`, a type check that links and runs nothing, and the browser build has no
+  pack loader. Offered: planned until a loader exists (recommended); allowed as written. Answer:
+  "Planned until a loader exists (Recommended)". Outcome: applies D47.
+
+  Links: area The stack · plans mod-projects MP8 · summary A Lua pack reads as planned in the browser until the browser build can load one.
+
+- **D49. Turnstone calls the admission table when a target gets a mods surface (Mark,
+  2026-11-26):** Evidence: on desktop every kind is allowed, so a call there shows nothing; the
+  browser build has no mods UI and refuses by compiling `mod_projects`, `mod_parser` and
+  `command_packs` out (`src/lib.rs:38-43`). Offered: not yet, wired with a loader (recommended); a
+  browser-support line on each desktop row; a browser mods notice too. Answer: "Not yet; wire with
+  a loader (Recommended)". What follows: MP8 closes on the crate, its wasm32 test and the table.
+  Outcome: new.
+
+  Links: area The stack · plans mod-projects MP8 · summary Turnstone asks mod-targets once a target first loads mods, not before.
+
 ## Open questions
 
 None open.
@@ -774,23 +792,24 @@ None open.
 
    | kind | desktop | browser |
    |---|---|---|
-   | Lua pack | allowed | allowed: script-didge builds for wasm32 |
+   | Lua pack | allowed | planned: script-didge builds for wasm32; the browser build has no pack loader yet |
    | document-script | allowed | planned: no Wasm engine in the browser build yet; Wasmtime on Pulley runs this guest in a page (guest-runtime P7) but is not built in |
    | parser | allowed | planned: no Wasm engine in the browser build yet; Wasmtime on Pulley runs this guest in a page (guest-runtime P7) but is not built in |
    | viewer | allowed | planned: no Wasm engine in the browser build yet; Wasmtime on Pulley runs this guest in a page (guest-runtime P7) but is not built in |
    | .cwasm | allowed: only when the host built it and its hash matches (D4) | refused: machine code built for the host's CPU |
    | native | allowed: compiled into that binary only | refused: a native mod is a function compiled into the binary; the browser build loads none at runtime |
-   The Lua row is on evidence, not on wiring. A throwaway crate outside any workspace depending on
+
+   The Lua row reads planned (D48). A throwaway crate outside any workspace depending on
    script-didge (the inker `main` git row, `>=0.0.1`) passed `cargo check --target
    wasm32-unknown-unknown`, 40 s, resolving inker `6bd98cb3`, script-didge 0.0.1 and piccolo 0.3.3 from
    didgeridoo `7ed3b9fd`. That is a type check of the VM for wasm32, not a link or a run, and the
-   browser build has no pack loader, so no Lua pack loads there until one is wired. The wasm32 test
+   browser build has no pack loader. The wasm32 test
    is `tests/wasm.rs` run under Node: `CARGO_TARGET_WASM32_UNKNOWN_UNKNOWN_RUNNER=wasm-bindgen-test-runner
    cargo test -p mod-targets --target wasm32-unknown-unknown --test wasm` from `host/`. The runner is
    0.2.129 and the workspace pins wasm-bindgen `=0.2.129` (tabard-workshop), so the crate takes
    `wasm-bindgen-test >=0.3.79`, which resolves to 0.3.79; 0.3.80 needs wasm-bindgen 0.2.130 and
-   cannot resolve here. Nothing calls `admit` yet: Turnstone's desktop and web builds do not link
-   the crate.
+   cannot resolve here; the runner rejects cargo's `-q` (passed on as `--quiet`). Nothing calls
+   `admit` yet: Turnstone's desktop and web builds do not link the crate (D49).
 
 ## Progress
 
@@ -811,3 +830,4 @@ None open.
 - 2026-11-26: genet `d2b4a55d3b5` (body bytes) and Graphshell `e78fbfc0` (parser and viewer worlds, mod-host) pushed; D43 and D44 ruled.
 - 2026-11-26: MP7 met (Findings 15, Turnstone `5536ffe7`); the viewer pane is open. MP8 is next.
 - 2026-11-26: viewer pane and MP8 surveyed (Findings 16); D45 to D47 ruled; MP7b and MP7c added.
+- 2026-11-26: MP8 met (Findings 17); D48 and D49 ruled. MP7b is next.

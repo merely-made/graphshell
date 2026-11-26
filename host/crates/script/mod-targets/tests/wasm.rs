@@ -47,8 +47,10 @@ fn browser_does_not_load_wasm_components_yet() {
 }
 
 #[wasm_bindgen_test]
-fn browser_allows_a_lua_pack() {
-    assert!(admit(Kind::LuaPack, Target::Browser).loads());
+fn browser_plans_lua_packs_until_a_loader() {
+    assert!(!admit(Kind::LuaPack, Target::Browser).loads());
+    let msg = refusal(Kind::LuaPack, Target::Browser).expect("not loaded");
+    assert!(msg.contains("no pack loader yet"), "{msg}");
 }
 
 #[wasm_bindgen_test]

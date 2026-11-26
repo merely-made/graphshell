@@ -126,9 +126,9 @@ pub const TABLE: [(Kind, [Admission; 2]); 6] = [
         Kind::LuaPack,
         [
             Admission::Allowed(""),
-            // script-didge passes `cargo check --target wasm32-unknown-unknown` (Findings 17).
-            // That is a statement about the VM; the browser build wires no pack loader yet.
-            Admission::Allowed("script-didge builds for wasm32"),
+            // script-didge passes `cargo check --target wasm32-unknown-unknown` (Findings 17),
+            // but nothing in the browser build loads a pack yet (D48).
+            Admission::Planned("script-didge builds for wasm32; the browser build has no pack loader yet"),
         ],
     ),
     (
@@ -243,16 +243,19 @@ mod tests {
             assert!(!a.reason().is_empty(), "{kind:?}");
             assert!(refusal(kind, Target::Browser).is_some());
         }
-        assert!(admit(Kind::LuaPack, Target::Browser).loads());
-        assert!(refusal(Kind::LuaPack, Target::Browser).is_none());
+        assert!(!admit(Kind::LuaPack, Target::Browser).loads());
+        assert!(refusal(Kind::LuaPack, Target::Browser).is_some());
     }
 
     #[test]
-    fn only_wasm_components_are_planned() {
+    fn components_and_lua_packs_are_planned() {
         for kind in Kind::ALL {
             let planned = matches!(admit(kind, Target::Browser), Admission::Planned(_));
-            let component = matches!(kind, Kind::DocumentScript | Kind::Parser | Kind::Viewer);
-            assert_eq!(planned, component, "{kind:?}");
+            let expected = matches!(
+                kind,
+                Kind::LuaPack | Kind::DocumentScript | Kind::Parser | Kind::Viewer
+            );
+            assert_eq!(planned, expected, "{kind:?}");
         }
     }
 

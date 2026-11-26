@@ -1027,6 +1027,20 @@ area = "The stack"
 summary = "The browser refuses every kind it cannot load today, with a reason, and the table marks what a browser engine would open."
 plans = ["mod-projects"]
 
+[decisions."mod-projects D48"]
+title = "The browser's Lua row reads planned until a pack loader exists (Mark, 2026-11-26)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "A Lua pack reads as planned in the browser until the browser build can load one."
+plans = ["mod-projects"]
+
+[decisions."mod-projects D49"]
+title = "Turnstone calls the admission table when a target gets a mods surface (Mark, 2026-11-26)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "Turnstone asks mod-targets once a target first loads mods, not before."
+plans = ["mod-projects"]
+
 [decisions."primitive-representations D1"]
 title = "The brief's scope (Mark, 2026-11-13)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
