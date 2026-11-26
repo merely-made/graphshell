@@ -1,7 +1,7 @@
 # Mod projects plan
 
 **Status:** 2026-11-26: in progress; MP0 to MP6 met. Cut from GB6 P2 to P5 and their tails in
-`2026-10-28_graph_behaviors_plan.md`; P1 landed as `2026-11-24_command_packs_plan.md`. D1 to D35
+`2026-10-28_graph_behaviors_plan.md`; P1 landed as `2026-11-24_command_packs_plan.md`. D1 to D37
 settle building, admission, reload, `.cwasm`, the first host, fixtures, signing, network, the
 authoring loop, the parser and viewer worlds, the browser table, grants, pins on reload, live
 pages and traps. MP5, MP5b (live pages) and MP6 (the
@@ -119,7 +119,8 @@ scene or lens contribution out) worlds in graphshell-endpoint's WIT, each with a
 MP3's, packaged and installed through the same section (D10).
 
 - Done when: a fixture parser and a fixture viewer pass their fixtures and install from the
-  section.
+  section, and a page of the parser's declared media type opens in Turnstone parsed by the mod
+  (D37).
 
 ### MP8. What a browser can load (GB6 P5)
 
@@ -431,12 +432,34 @@ stated reason (D11).
 
   Links: area The stack · plans mod-projects MP7 · summary A viewer fixture expects named regions and a size range, not bytes or pixels.
 
+- **D36. A parser returns inker's EngineDocument as versioned CBOR (Mark, 2026-11-26):**
+  Evidence (Findings 14): Fleece's blocks carry no serde and their anchors are minted only from a
+  DOM; the reader lowers Fleece to `EngineDocument`, dropping anchors and table spans.
+  `EngineDocument` is what every reader-style page renders from, is serde throughout, already
+  crosses a process boundary as JSON from the smolweb packs, and its `Block` is non_exhaustive.
+  Djot reaches it only through nematic's knot lowering, which drops footnotes and math. Mark first
+  asked for a closer look at Fleece ("The question of blocks deserves more scrutiny even if we go
+  with 2. Analyze 1 more"). Offered: `EngineDocument` as a version byte and CBOR, with WIT
+  diagnostics, capped, strictly decoded, address, provenance and trust overwritten by the host
+  (recommended); `EngineDocument` as JSON; Djot text; Fleece blocks. Answer: "EngineDocument,
+  versioned CBOR (Recommended)". Outcome: refines D10.
+
+  Links: area The stack · amends mod-projects D10 · plans mod-projects MP7 · summary A parser mod returns an EngineDocument as versioned CBOR, and the host fixes its address, provenance and trust.
+
+- **D37. MP7 routes installed parsers into browsing (Mark, 2026-11-26):** Evidence (Findings 14):
+  MP7's parser world, host and fixtures come to roughly 550 to 900 lines in Graphshell; routing adds
+  roughly 600 to 1,200 in Turnstone (estimates), with forks on the registry, rule order against
+  built-ins, a bytes body and the visible receipt. Mark asked to note the routing step and how much
+  larger it was ("Note the latter step. How much larger?"). Offered: its own phase after MP7
+  (recommended); inside MP7; after MP8. Answer: "Inside MP7". What follows: MP7's done-condition
+  adds a routed page. Outcome: refines D10.
+
+  Links: area The stack · amends mod-projects D10 · plans mod-projects MP7 · summary An installed parser mod handles pages of its declared media types within MP7, not as a later step.
+
 ## Open questions
 
-- MP7's parser blocks: Fleece reader blocks, Djot text, or another form; Mark asked for a closer
-  look at Fleece before ruling (2026-11-26).
-- Routing an installed parser into browsing: noted as a step after MP7's fixtures and install;
-  Mark asked how much larger doing it in MP7 would be (2026-11-26).
+- MP7 routing: the engine registry, a mod rule's order against built-ins, a bytes body, and the
+  visible receipt (Findings 14).
 
 ## Findings
 
@@ -573,6 +596,21 @@ stated reason (D11).
    topology or host a window and produce no scene. WIT variants cannot nest, so a block tree
    crosses as a payload or flattened.
 
+14. MP7 parser blocks and routing, 2026-11-26 (inker `a25e408`, genet `9d57062`): genet's
+   `components/fleece` is canonical for extraction (inker's `mere-fleece` re-exports it and adds
+   clip and bridges). Fleece `Block` and `Inline` have no serde; its `wire` feature carries only
+   canonical text with anchors; anchors are `TextAnchor`s over `FleeceDomTextV1`, minted from a
+   `LayoutDom`. `lower_article` turns a Fleece article into `EngineDocument` and is anchor-blind.
+   `EngineDocument` (`inker/src/document.rs:72`) is serde throughout, `Block` non_exhaustive; the
+   smolweb packs return it as JSON under a 16 MiB reply cap and a 3 s timeout, and
+   `SmolwebDocument::from_document_with_theme` renders it. A guest can set provenance, trust,
+   image URLs and colours. `EngineRoutePolicy.rules` is a plain `Vec` on `Shell` and takes rules at
+   runtime; `content_engines` is built once at startup, keyed by engine id; pack engines are reached
+   only by a viewer override, never auto-routed. Spawn bodies are UTF-8 `String`s
+   (`FetchedDocument` holds bytes); the trail capture annotator parses every body as HTML. Turnstone
+   reads no `Presentation` contribution. `PackParser` (`src/engine_pack.rs`) is the in-process
+   template for a session engine around a parser.
+
 ## Progress
 
 - 2026-11-25: cut from GB6 P2 to P5 and their tails; D1 to D11 ruled.
@@ -586,3 +624,4 @@ stated reason (D11).
 - 2026-11-26: MP6 surveyed (Findings 11); D29 to D32 ruled.
 - 2026-11-26: MP6 met (Findings 12); D33 ruled. MP7 is next.
 - 2026-11-26: MP7 surveyed (Findings 13); D34 and D35 ruled; the parser's blocks and reach are open.
+- 2026-11-26: parser blocks and routing read (Findings 14); D36 and D37 ruled.

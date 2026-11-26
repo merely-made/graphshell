@@ -936,6 +936,22 @@ area = "The stack"
 summary = "A viewer fixture expects named regions and a size range, not bytes or pixels."
 plans = ["mod-projects"]
 
+[decisions."mod-projects D36"]
+title = "A parser returns inker's EngineDocument as versioned CBOR (Mark, 2026-11-26)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "A parser mod returns an EngineDocument as versioned CBOR, and the host fixes its address, provenance and trust."
+amends = ["mod-projects D10"]
+plans = ["mod-projects"]
+
+[decisions."mod-projects D37"]
+title = "MP7 routes installed parsers into browsing (Mark, 2026-11-26)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "An installed parser mod handles pages of its declared media types within MP7, not as a later step."
+amends = ["mod-projects D10"]
+plans = ["mod-projects"]
+
 [decisions."primitive-representations D1"]
 title = "The brief's scope (Mark, 2026-11-13)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
