@@ -9,11 +9,13 @@
 //! D171). The counting backend records every batch a store applies or commits.
 #![cfg(not(target_arch = "wasm32"))]
 
+use incipit_session::IncipitSessions;
+use incipit_session::addressable_graph::{AddressableGraphStore, GraphAddress, ResidencyRoots};
 use kernel::graph::Graph;
 use kernel::graph::apply::{self, GraphDelta, apply_graph_delta};
+use kernel::graph::{Author, CapturedDelta};
 use muniment::{Backend, MemoryBackend, StoreError, TransactFn, WriteOp};
-use pandect::addressable_graph::{AddressableGraphStore, GraphAddress, ResidencyRoots};
-use pandect::{Author, CapturedDelta, MereSessions};
+type MereSessions<B> = pandect::MereSessions<B, kernel::graph::Graph>;
 use std::collections::BTreeSet;
 use std::sync::{Arc, Mutex};
 use std::time::SystemTime;
@@ -109,14 +111,15 @@ fn expected_writes(graph_id: Uuid, before: &Graph, after: &Graph) -> BTreeSet<St
             keys.insert(format!("{}nodes/{layer}/{id}/{digest}", prefix(graph_id)));
         }
     }
-    let chunks = |p: &pandect::addressable_graph::PreparedGraphPublication| -> BTreeSet<String> {
-        (p.ops().iter())
-            .filter_map(|op| match op {
-                WriteOp::Put { key, .. } if key.contains("/chunks/") => Some(key.clone()),
-                _ => None,
-            })
-            .collect()
-    };
+    let chunks =
+        |p: &incipit_session::addressable_graph::PreparedGraphPublication| -> BTreeSet<String> {
+            (p.ops().iter())
+                .filter_map(|op| match op {
+                    WriteOp::Put { key, .. } if key.contains("/chunks/") => Some(key.clone()),
+                    _ => None,
+                })
+                .collect()
+        };
     keys.extend(chunks(&new).difference(&chunks(&old)).cloned());
     keys
 }

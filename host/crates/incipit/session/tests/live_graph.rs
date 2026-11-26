@@ -4,9 +4,13 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 // SPDX-License-Identifier: MPL-2.0
 
+use incipit_session::{
+    IncipitSession, IncipitSessions, addressable_graph::GraphAddress, live_graph::*,
+};
 use kernel::graph::{Author, Graph, apply::add_node};
 use muniment::MemoryBackend;
-use pandect::{MereSessions, addressable_graph::GraphAddress, live_graph::*};
+type MereSessions<B> = pandect::MereSessions<B, kernel::graph::Graph>;
+type GraphSession<B> = pandect::GraphSession<B, kernel::graph::Graph>;
 use uuid::Uuid;
 
 /// The lane's tests drove an in-memory `edit_live_now`. Here the same calls run
@@ -20,7 +24,7 @@ trait LiveNow {
         commands: Vec<ObservedCommand>,
     ) -> Result<LiveApplied, LiveEditError>;
 }
-impl LiveNow for pandect::GraphSession<MemoryBackend> {
+impl LiveNow for GraphSession<MemoryBackend> {
     fn edit_live_now(
         &mut self,
         author: Author,
@@ -115,12 +119,12 @@ fn later_missing_target_rejects_entire_batch_and_capture() {
     assert_eq!(session.graph().node_count(), 1);
 }
 
+use incipit_session::addressable_graph::AddressableGraphStore;
 use kernel::graph::{
     ArrangementSubKind, ContainmentSubKind, EdgeAssertion, SemanticSubKind, Seq,
     apply::{GraphDelta, apply_graph_delta},
 };
-use pandect::addressable_graph::AddressableGraphStore;
-use pandect::{ChangeKind, GraphId, GraphSession, GraphSessionManifest, SessionError, SessionId};
+use pandect::{ChangeKind, GraphId, GraphSessionManifest, SessionError, SessionId};
 use serde_json::{Value, json};
 use std::{
     collections::BTreeSet,
@@ -850,7 +854,7 @@ fn placement_readonly_and_validator_refusals_do_not_leak_capture() {
     ));
     let mut manifest = GraphSessionManifest::new(SessionId::new(), GraphId::new());
     manifest.codicil_read_only = true;
-    let mut readonly = GraphSession::new_recorded(
+    let mut readonly = GraphSession::new_recorded_with(
         MemoryBackend::new(),
         manifest,
         Some(baseline.clone()),
@@ -924,19 +928,28 @@ fn placement_readonly_and_validator_refusals_do_not_leak_capture() {
 fn qualified_legacy_session_accepts_live_edit_reopen_and_undo() {
     pollster::block_on(async {
         let backend = MemoryBackend::new();
-        let sessions = MereSessions::new(backend);
-        let mut graph = Graph::new();
+        // Only mere-kernel's sessions qualify a legacy session (its legacy
+        // translation is kernel-only), so the session is written by that path,
+        // as stored sessions are today, and continues over incipit-graph.
         let id = Uuid::from_u128(3300);
-        add_node(
-            &mut graph,
-            Some(id),
-            "https://legacy.test/".into(),
-            Default::default(),
-        );
-        let mut session = sessions.begin(Author::user(), Some(graph));
-        session.flush(std::time::UNIX_EPOCH).await.unwrap();
-        let mut session = sessions.open(session.id()).await.unwrap();
-        session.qualify_legacy(Seq(0), vec![]).await.unwrap();
+        let stored = {
+            let kernel_sessions = pandect::MereSessions::new(backend.clone());
+            let mut graph = mere_kernel::graph::Graph::new();
+            mere_kernel::graph::apply::add_node(
+                &mut graph,
+                Some(id),
+                "https://legacy.test/".into(),
+                Default::default(),
+            );
+            let mut session = kernel_sessions.begin(Author::user(), Some(graph));
+            session.flush(std::time::UNIX_EPOCH).await.unwrap();
+            let mut session = kernel_sessions.open(session.id()).await.unwrap();
+            session.qualify_legacy(Seq(0), vec![]).await.unwrap();
+            session.flush(std::time::UNIX_EPOCH).await.unwrap();
+            session.id()
+        };
+        let sessions = MereSessions::new(backend);
+        let mut session = sessions.open(stored).await.unwrap();
         let before = whole(session.graph());
         let checks = record_checks(session.graph(), id, false);
         session

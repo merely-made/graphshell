@@ -321,7 +321,6 @@ pub async fn apply_consolidation(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use async_trait::async_trait;
     use euclid::default::Point2D;
     use kernel::graph::Graph;
     use kernel::graph::fixtures::GraphFixtures;

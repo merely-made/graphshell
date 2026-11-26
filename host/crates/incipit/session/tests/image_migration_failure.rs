@@ -62,9 +62,11 @@ fn refused_write_and_retry(role: kernel::types::ImageRole) {
         assert_eq!(snapshot.legacy_image_count(), 1);
         let mut failing = RefuseWrites::default();
         assert!(
-            pandect::image_store::migrate_legacy_images(&mut snapshot, &mut failing, |_, _, _| {
-                Some(vec![137, 80, 78, 71])
-            })
+            incipit_session::image_store::migrate_legacy_images(
+                &mut snapshot,
+                &mut failing,
+                |_, _, _| { Some(vec![137, 80, 78, 71]) }
+            )
             .await
             .is_err()
         );
@@ -75,7 +77,7 @@ fn refused_write_and_retry(role: kernel::types::ImageRole) {
         );
         assert!(!snapshot.nodes[0].images.contains_key(&role));
         let mut recovered = MemoryBackend::new();
-        let written = pandect::image_store::migrate_legacy_images(
+        let written = incipit_session::image_store::migrate_legacy_images(
             &mut snapshot,
             &mut recovered,
             |_, _, _| Some(vec![137, 80, 78, 71]),

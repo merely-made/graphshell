@@ -1,0 +1,63 @@
+[package]
+name = "incipit-session"
+version = "0.1.0"
+authors = ["@mark-ik"]
+license.workspace = true
+repository.workspace = true
+edition = "2024"
+# Publishable, like incipit-graph.
+publish = true
+
+rust-version = "1.97.1"
+description = "The surface-reading half of Mere's sessions over incipit-graph: the addressable store and incipit's publication, legacy and codicil hooks, live edits, access, memory levels, images, the furnace, snapshot merge and the personal-sync fold. Copied from pandect (engine split D256), which keeps the generic session core."
+
+[features]
+# The furnace's graph passes (forgetting, consolidation), as pandect's.
+furnace = []
+# The personal graph's fold for device synchronization (engine split D259);
+# the protocol stays pandect's.
+personal-sync = ["pandect/personal-sync", "dep:stickleback"]
+
+[lib]
+name = "incipit_session"
+path = "src/lib.rs"
+
+[dependencies]
+# The surface graph, named `kernel` as its consumers name it (D211).
+kernel = { package = "incipit-graph", version = "0.1.0", path = "../graph" }
+# The generic session core (D244, D257): sessions, hooks and codicils.
+pandect.workspace = true
+mere.workspace = true
+eidetic.workspace = true
+muniment.workspace = true
+hodograph.workspace = true
+portolan.workspace = true
+async-trait = "0.1"
+blake3 = "1.5"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+uuid = { version = "1", features = ["serde", "v5"] }
+stickleback = { workspace = true, optional = true }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+uuid = { version = "1", features = ["serde", "v4"] }
+
+[dev-dependencies]
+kernel = { package = "incipit-graph", version = "0.1.0", path = "../graph", features = ["fixtures"] }
+# The cross-read tests write with mere-kernel's path and read with incipit's.
+mere_kernel = { package = "mere-kernel", version = ">=0.0.3", git = "https://github.com/merely-made/mere.git", branch = "main" }
+euclid = "0.22"
+pollster = "1"
+tempfile = "3"
+
+[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
+muniment = { workspace = true, features = ["directory", "fjall", "redb"] }
+# The personal-sync tests: identities, a joined space over the transport.
+identity.workspace = true
+murm-sync.workspace = true
+transport = { workspace = true, features = ["test-identity"] }
+tokio = { version = "1", features = ["macros", "rt", "rt-multi-thread", "time"] }
+p2panda-core = { package = "p2mere-core", version = "0.12.1" }
+
+[lints]
+workspace = true

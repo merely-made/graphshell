@@ -9,9 +9,13 @@
 //! for storage that refuses, or that commits and then reports an error.
 #![cfg(not(target_arch = "wasm32"))]
 
+use incipit_session::addressable_graph::ResidencyRoots;
+use incipit_session::{IncipitSession, IncipitSessions};
+use kernel::graph::{Author, CapturedDelta};
 use muniment::{Backend, MemoryBackend, StoreError, TransactFn, WriteOp};
-use pandect::addressable_graph::ResidencyRoots;
-use pandect::{Author, CapturedDelta, MereSessions, SessionError};
+use pandect::SessionError;
+type MereSessions<B> = pandect::MereSessions<B, kernel::graph::Graph>;
+type GraphSession<B> = pandect::GraphSession<B, kernel::graph::Graph>;
 use std::collections::BTreeMap;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU8, Ordering};
@@ -97,10 +101,7 @@ fn add(n: u128) -> Vec<kernel::graph::apply::GraphDelta> {
 
 async fn durable(
     backend: &FaultBackend,
-) -> (
-    pandect::GraphSession<FaultBackend>,
-    MereSessions<FaultBackend>,
-) {
+) -> (GraphSession<FaultBackend>, MereSessions<FaultBackend>) {
     let sessions = MereSessions::new(backend.clone());
     let mut session = sessions.begin_recorded(author(), None);
     session.flush(SystemTime::UNIX_EPOCH).await.unwrap();
@@ -137,7 +138,7 @@ fn an_edit_and_its_publication_commit_together_or_not_at_all() {
         assert!(applied.end > applied.first);
         assert!(!session.has_unstored());
         let view = sessions
-            .open_resident_graph(session.id(), ResidencyRoots::default())
+            .open_resident_graph(&backend, session.id(), ResidencyRoots::default())
             .await
             .unwrap();
         assert_eq!(view.generation(), generation);
@@ -149,7 +150,7 @@ fn an_edit_and_its_publication_commit_together_or_not_at_all() {
             .unwrap();
         assert_ne!(second, generation);
         let view = sessions
-            .open_resident_graph(session.id(), ResidencyRoots::default())
+            .open_resident_graph(&backend, session.id(), ResidencyRoots::default())
             .await
             .unwrap();
         assert_eq!(view.generation(), second);
@@ -192,7 +193,7 @@ fn a_commit_that_reports_an_error_is_refused_on_retry_and_never_repeated() {
         assert_eq!(reopened.graph().node_count(), 1);
         assert_eq!(reopened.changes().len(), changes + 1);
         let view = sessions
-            .open_resident_graph(id, ResidencyRoots::default())
+            .open_resident_graph(&backend, id, ResidencyRoots::default())
             .await
             .unwrap();
         assert_eq!(view.graph().node_count(), 1);
@@ -264,7 +265,7 @@ fn undo_and_redo_publish_with_the_history_they_move() {
         assert!(reverted.is_some());
         assert_ne!(undone, edited);
         let view = sessions
-            .open_resident_graph(session.id(), ResidencyRoots::default())
+            .open_resident_graph(&backend, session.id(), ResidencyRoots::default())
             .await
             .unwrap();
         assert_eq!(view.generation(), undone);
@@ -291,9 +292,9 @@ fn undo_and_redo_publish_with_the_history_they_move() {
     });
 }
 
-fn pin(surface: Uuid, digest: &str) -> pandect::live_graph::ObservedCommand {
-    use pandect::addressable_graph::GraphAddress;
-    use pandect::live_graph::{LiveCheck, LiveCommand, ObservedCommand};
+fn pin(surface: Uuid, digest: &str) -> incipit_session::live_graph::ObservedCommand {
+    use incipit_session::addressable_graph::GraphAddress;
+    use incipit_session::live_graph::{LiveCheck, LiveCommand, ObservedCommand};
     ObservedCommand {
         command: LiveCommand::SetPinned {
             surface,
@@ -318,11 +319,13 @@ fn a_live_edit_is_observed_published_and_refused_whole_on_any_fault() {
             .unwrap();
         // The observation is read from the published reader, as a display would.
         let view = sessions
-            .open_resident_graph(session.id(), ResidencyRoots::default())
+            .open_resident_graph(&backend, session.id(), ResidencyRoots::default())
             .await
             .unwrap();
         let digest = view
-            .record_digest(pandect::addressable_graph::GraphAddress::Surface(id))
+            .record_digest(incipit_session::addressable_graph::GraphAddress::Surface(
+                id,
+            ))
             .unwrap()
             .to_string();
         let before = bytes(&backend.inner).await;
@@ -336,7 +339,7 @@ fn a_live_edit_is_observed_published_and_refused_whole_on_any_fault() {
             .await
             .unwrap_err();
         assert!(
-            matches!(stale, pandect::live_graph::LiveEditError::Stale(_)),
+            matches!(stale, incipit_session::live_graph::LiveEditError::Stale(_)),
             "{stale:?}"
         );
         // A storage refusal leaves the session, history and storage alone.
@@ -362,7 +365,7 @@ fn a_live_edit_is_observed_published_and_refused_whole_on_any_fault() {
         let key = session.graph().get_node_key_by_id(id).unwrap();
         assert_eq!(session.graph().node_is_pinned(key), Some(true));
         let view = sessions
-            .open_resident_graph(session.id(), ResidencyRoots::default())
+            .open_resident_graph(&backend, session.id(), ResidencyRoots::default())
             .await
             .unwrap();
         assert_eq!(view.generation(), generation);
@@ -372,7 +375,7 @@ fn a_live_edit_is_observed_published_and_refused_whole_on_any_fault() {
             .await
             .unwrap_err();
         assert!(
-            matches!(replay, pandect::live_graph::LiveEditError::Stale(_)),
+            matches!(replay, incipit_session::live_graph::LiveEditError::Stale(_)),
             "{replay:?}"
         );
     });
