@@ -2,7 +2,7 @@
 
 **Status:** 2026-11-26: in progress; MP0 to MP8 met; MP7b and MP7c remain. Cut from GB6 P2 to P5
 and their tails in `2026-10-28_graph_behaviors_plan.md`; P1 landed as
-`2026-11-24_command_packs_plan.md`. D1 to D52 settle building, admission, reload, `.cwasm`, the
+`2026-11-24_command_packs_plan.md`. D1 to D57 settle building, admission, reload, `.cwasm`, the
 first host, fixtures, signing, network, the authoring loop, the parser and viewer worlds, the
 browser table, grants, pins on reload, live pages and traps. MP5, MP5b (live pages), MP6 (the
 authoring loop), MP7 (parser and viewer mods) and MP8 (the browser table) are met; MP7b and MP7c
@@ -625,6 +625,52 @@ stated reason (D11).
 
   Links: area The stack · plans mod-projects MP7b · summary The viewer re-runs on graph change, gets the full graph contract and the pane width, and its failures reach the row with their real cause.
 
+- **D53. sheet-leaf takes its theme as plain colours; Turnstone adapts its surface theme once
+  (Mark, 2026-11-26):** Evidence: `SheetLeaf`'s theme type came from cartography, which would pull
+  the canvas stack into the painter crate D50 made small. Taken under D52's answer ("yep, i'll
+  accept the recommendations unless there are significant forks"): sheet-leaf carries its own
+  `SheetTheme` of `ColorF`s, and one adapter in `ports/graphshell` (`sheet_theme.rs`) maps the
+  surface theme onto it, with the two contrast tests beside it. Outcome: refines D50.
+
+  Links: area The stack · amends mod-projects D50 · plans mod-projects MP7b · summary The painter crate names no canvas theme; Turnstone maps its theme onto the painter in one place.
+
+- **D54. The viewer feed is encoded once, beside the format's name (Mark, 2026-11-26):**
+  Evidence: Turnstone's pane carried a 12-line copy of mere-resident's `encode_candidate`, held
+  byte-equal by a test, because mere-resident brings custody, personae and sync;
+  `GRAPH_SNAPSHOT_AND_FACETS` already lives once in authority-host, which Turnstone links through
+  mod-host. Offered: move the encoder beside the constant (recommended); keep the tested copy.
+  Answer: "Move it beside the constant (Recommended)". What follows: authority-host gains
+  `encode_graph_feed` and mere-kernel; mere-resident and Turnstone call it. Outcome: new.
+
+  Links: area The stack · plans mod-projects MP7b · summary One function in authority-host writes the graph feed that the resident and viewer panes both send.
+
+- **D55. A viewer re-runs on a structural or content change and on width (Mark, 2026-11-26):**
+  Evidence: `Graph::revision()` moves only on structural edits, so a retitle left the fixture
+  viewer stale; facet edits move neither revision. Taken under D52's answer: the gate keys on
+  `(revision, content_revision)` and the logical width rounded to whole pixels; a facet-only edit
+  does not re-run a viewer. Outcome: refines D52.
+
+  Links: area The stack · amends mod-projects D52 · plans mod-projects MP7b · summary A viewer re-runs when the graph's structure or content changes, or the pane's width does.
+
+- **D56. A stale requirement elsewhere is bumped where it is named (Mark, 2026-11-26):**
+  Evidence: Turnstone's web workspace failed its bans check on a fresh resolve of `origin/main`
+  (`5536ffe7`): `constant_time_eq` at 0.4.2, which dramatis's personae and castellan ask for, and
+  at 0.6.2, which blake3 1.8.8 brings. Offered: bump dramatis to `>=0.6` (recommended); a skip
+  row in the web `deny.toml`; leave it for dramatis's owner. Answer: "Bump dramatis to 0.6
+  (Recommended)". Outcome: applies engine-split D137.
+
+  Links: area The stack · plans mod-projects MP7b · summary dramatis takes constant_time_eq 0.6, so one version of it is left in the browser build.
+
+- **D57. castellan takes totp-rs from its master until the 0.6 move ships (Mark, 2026-11-26):**
+  Evidence: after D56, dramatis's own bans still failed: totp-rs 6.0.0 (latest release,
+  2026-08-06) asks for constant_time_eq ^0.4, while totp-rs master took 0.6 on 2026-10-30 (PR #92,
+  `f1bccbb6`). Offered: a patch row to upstream master (recommended); a patch-only fork under
+  mark-ik; a skip row until release. Answer: "Patch to upstream master (Recommended)". What
+  follows: dramatis `2e1c1a5` carries the patch row; bans pass, personae 82 tests and castellan's
+  364 (all features) pass; the row leaves when totp-rs releases. Outcome: applies D56.
+
+  Links: area The stack · plans mod-projects MP7b · summary dramatis builds totp-rs from upstream master so constant_time_eq has one version, until a release carries it.
+
 ## Open questions
 
 None open.
@@ -878,3 +924,4 @@ None open.
 - 2026-11-26: viewer pane and MP8 surveyed (Findings 16); D45 to D47 ruled; MP7b and MP7c added.
 - 2026-11-26: MP8 met (Findings 17); D48 and D49 ruled. MP7b is next.
 - 2026-11-26: MP7b surveyed (Findings 18); D50 to D52 ruled.
+- 2026-11-26: Graphshell `ae2e7c62` (sheet-leaf, trap causes, fixture viewer titles) pushed; dramatis `2e1c1a5` (one constant_time_eq) pushed; D53 to D57 ruled.
