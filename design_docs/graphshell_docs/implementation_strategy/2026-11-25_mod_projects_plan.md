@@ -1,7 +1,7 @@
 # Mod projects plan
 
 **Status:** 2026-11-26: in progress; MP0 to MP6 met. Cut from GB6 P2 to P5 and their tails in
-`2026-10-28_graph_behaviors_plan.md`; P1 landed as `2026-11-24_command_packs_plan.md`. D1 to D33
+`2026-10-28_graph_behaviors_plan.md`; P1 landed as `2026-11-24_command_packs_plan.md`. D1 to D35
 settle building, admission, reload, `.cwasm`, the first host, fixtures, signing, network, the
 authoring loop, the parser and viewer worlds, the browser table, grants, pins on reload, live
 pages and traps. MP5, MP5b (live pages) and MP6 (the
@@ -414,10 +414,29 @@ stated reason (D11).
 
   Links: area The stack · plans mod-projects MP6 · summary Knot's crates moved to similar 3 so the mod diff adds no duplicate.
 
+- **D34. A viewer takes a graph and returns a scene and a sheet (Mark, 2026-11-26):** Evidence
+  (Findings 13): "lens" in the code is a topology choice (`ProjectionLens`), a UI combinator or a
+  window, none producing a scene; block-adapter's view returns a `sceno` scene and a
+  `vector-sheet` the host paints; domain-authority takes a graph as
+  `mere.graph-snapshot-and-facets/json`. Offered: the graph snapshot-and-facets payload in, a scene
+  and sheet out, contributed as a Pane (recommended); a graph or a document in; a document only.
+  Answer: "Graph in, scene+sheet out (Recommended)". Outcome: refines D10.
+
+  Links: area The stack · amends mod-projects D10 · plans mod-projects MP7 · summary A viewer mod reads the graph snapshot with its facets and returns a scene and sheet the host paints in a pane.
+
+- **D35. A viewer fixture asserts the scene's structure (Mark, 2026-11-26):** Evidence: today's
+  fixtures are document-shaped (a document tree in, a DOM outline expected). Offered: the scene's
+  named regions, their count and labels, and its size range (recommended); a hash of the payload
+  bytes; a rendered image compared. Answer: "Scene structure (Recommended)". Outcome: new.
+
+  Links: area The stack · plans mod-projects MP7 · summary A viewer fixture expects named regions and a size range, not bytes or pixels.
+
 ## Open questions
 
-- MP7's world shapes: the parser's block and diagnostic types, and the viewer's scene or lens
-  contribution, are read from graphshell-endpoint's existing types when MP7 starts.
+- MP7's parser blocks: Fleece reader blocks, Djot text, or another form; Mark asked for a closer
+  look at Fleece before ruling (2026-11-26).
+- Routing an installed parser into browsing: noted as a step after MP7's fixtures and install;
+  Mark asked how much larger doing it in MP7 would be (2026-11-26).
 
 ## Findings
 
@@ -541,6 +560,19 @@ stated reason (D11).
    detaches with the trap kept, rolls back, attaches and runs again. The diff is a capped list,
    not a collapsible one, and only the settings pane's summon triggers the open scan.
 
+13. MP7 survey, 2026-11-26 (Graphshell `e91638e1`, Turnstone `894cec4d`): `ModType` is
+   `Native`, `Wasm` or `Lua` (`document-host/src/mod_loader/loader/types.rs`), and Turnstone's
+   `manifest.rs` sets `Wasm` for every project; a project is document-world only (attach, turn,
+   check). `block-host` hosts `block-guest` with `bindgen!`, an epoch watchdog and store limits,
+   tested in `block-host/tests/host.rs`; no world but the document world has a TOML fixture form
+   (`document-host/src/fixture.rs`). Turnstone has no block type of its own: its reader and clip
+   use Fleece's `Block` (serde under Fleece's `wire` feature); gemtext and Markdown are parsed by
+   the smolweb pack engines into `SmolwebDocument`, routed by inker's `EngineRoutePolicy`, which
+   `route_policy()` builds and nothing registers into at runtime. No WIT type carries a diagnostic;
+   the nearest Rust one with severity and span is genet's `WebGlDiagnostic`. Lens types choose a
+   topology or host a window and produce no scene. WIT variants cannot nest, so a block tree
+   crosses as a payload or flattened.
+
 ## Progress
 
 - 2026-11-25: cut from GB6 P2 to P5 and their tails; D1 to D11 ruled.
@@ -553,3 +585,4 @@ stated reason (D11).
 - 2026-11-25: MP5b met (Findings 10). MP6 is next.
 - 2026-11-26: MP6 surveyed (Findings 11); D29 to D32 ruled.
 - 2026-11-26: MP6 met (Findings 12); D33 ruled. MP7 is next.
+- 2026-11-26: MP7 surveyed (Findings 13); D34 and D35 ruled; the parser's blocks and reach are open.

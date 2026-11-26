@@ -921,6 +921,21 @@ area = "The stack"
 summary = "Knot's crates moved to similar 3 so the mod diff adds no duplicate."
 plans = ["mod-projects"]
 
+[decisions."mod-projects D34"]
+title = "A viewer takes a graph and returns a scene and a sheet (Mark, 2026-11-26)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "A viewer mod reads the graph snapshot with its facets and returns a scene and sheet the host paints in a pane."
+amends = ["mod-projects D10"]
+plans = ["mod-projects"]
+
+[decisions."mod-projects D35"]
+title = "A viewer fixture asserts the scene's structure (Mark, 2026-11-26)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "A viewer fixture expects named regions and a size range, not bytes or pixels."
+plans = ["mod-projects"]
+
 [decisions."primitive-representations D1"]
 title = "The brief's scope (Mark, 2026-11-13)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
