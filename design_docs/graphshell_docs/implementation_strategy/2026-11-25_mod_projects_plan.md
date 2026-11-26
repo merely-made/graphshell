@@ -1,7 +1,7 @@
 # Mod projects plan
 
 **Status:** 2026-11-26: in progress; MP0 to MP6 met. Cut from GB6 P2 to P5 and their tails in
-`2026-10-28_graph_behaviors_plan.md`; P1 landed as `2026-11-24_command_packs_plan.md`. D1 to D37
+`2026-10-28_graph_behaviors_plan.md`; P1 landed as `2026-11-24_command_packs_plan.md`. D1 to D41
 settle building, admission, reload, `.cwasm`, the first host, fixtures, signing, network, the
 authoring loop, the parser and viewer worlds, the browser table, grants, pins on reload, live
 pages and traps. MP5, MP5b (live pages) and MP6 (the
@@ -456,10 +456,44 @@ stated reason (D11).
 
   Links: area The stack · amends mod-projects D10 · plans mod-projects MP7 · summary An installed parser mod handles pages of its declared media types within MP7, not as a later step.
 
+- **D38. One dispatching engine serves every parser mod (Mark, 2026-11-26):** Evidence (Findings
+  14): Turnstone's content-engine registry is built once at startup, keyed by engine id; the packs
+  register every known id at startup and check availability at spawn. Offered: one "mod parser"
+  engine registered at startup that finds the installed parser for the page's media type at spawn
+  (recommended); a mutable registry with an engine per mod; register at the next startup. Answer:
+  "One dispatching engine (Recommended)". What follows: installing a parser takes effect without a
+  restart. Outcome: new.
+
+  Links: area The stack · plans mod-projects MP7 · summary A single startup-registered engine dispatches each page to the installed parser for its media type.
+
+- **D39. A parser mod takes unclaimed media types, and claimed ones on opt-in (Mark, 2026-11-26):**
+  Evidence: built-ins claim `text/gemini`, `text/markdown` and HTML, and routing decides
+  content-type first. Offered: unclaimed types by default, a claimed type only when the user turns
+  it on in the project's row (recommended); built-ins always win; mods always win. Answer:
+  "Unclaimed types; opt in for more (Recommended)". Outcome: new.
+
+  Links: area The stack · plans mod-projects MP7 · summary A parser mod reads only media types no built-in claims unless the user hands it a claimed one.
+
+- **D40. A parser reads bytes, carried through inker (Mark, 2026-11-26):** Evidence: the spawn
+  request and engine input carry the body as a UTF-8 `String`; `FetchedDocument` holds the bytes.
+  Offered: bytes and the media type in the parser world, with a bytes field added to inker's spawn
+  request (recommended); text only for now; bytes in the world and fixtures, text when routed.
+  Answer: "Bytes now, through inker (Recommended)". What follows: an inker change before
+  Turnstone's routing. Outcome: refines D10.
+
+  Links: area The stack · amends mod-projects D10 · plans mod-projects MP7 · summary A parser mod is handed the fetched bytes and their media type, through a new field in inker's spawn request.
+
+- **D41. A mod-parsed page names its parser, and HTML capture skips it (Mark, 2026-11-26):**
+  Evidence: no page says which parser made it; pack errors open a status page; the trail capture
+  annotator parses every body as HTML. Offered: the parser named in the page's status line and
+  inspector, an error page naming the mod on a trap or refusal, and HTML capture skipped for pages
+  that are not HTML (recommended); name it on errors only; name it and leave capture alone. Answer:
+  "Say the parser, skip HTML capture (Recommended)". Outcome: new.
+
+  Links: area The stack · plans mod-projects MP7 · summary A page parsed by a mod says so, a failing mod names itself, and only HTML goes through HTML capture.
+
 ## Open questions
 
-- MP7 routing: the engine registry, a mod rule's order against built-ins, a bytes body, and the
-  visible receipt (Findings 14).
 
 ## Findings
 
@@ -625,3 +659,4 @@ stated reason (D11).
 - 2026-11-26: MP6 met (Findings 12); D33 ruled. MP7 is next.
 - 2026-11-26: MP7 surveyed (Findings 13); D34 and D35 ruled; the parser's blocks and reach are open.
 - 2026-11-26: parser blocks and routing read (Findings 14); D36 and D37 ruled.
+- 2026-11-26: MP7's routing forks ruled, D38 to D41.

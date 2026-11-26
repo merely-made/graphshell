@@ -952,6 +952,35 @@ summary = "An installed parser mod handles pages of its declared media types wit
 amends = ["mod-projects D10"]
 plans = ["mod-projects"]
 
+[decisions."mod-projects D38"]
+title = "One dispatching engine serves every parser mod (Mark, 2026-11-26)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "A single startup-registered engine dispatches each page to the installed parser for its media type."
+plans = ["mod-projects"]
+
+[decisions."mod-projects D39"]
+title = "A parser mod takes unclaimed media types, and claimed ones on opt-in (Mark, 2026-11-26)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "A parser mod reads only media types no built-in claims unless the user hands it a claimed one."
+plans = ["mod-projects"]
+
+[decisions."mod-projects D40"]
+title = "A parser reads bytes, carried through inker (Mark, 2026-11-26)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "A parser mod is handed the fetched bytes and their media type, through a new field in inker's spawn request."
+amends = ["mod-projects D10"]
+plans = ["mod-projects"]
+
+[decisions."mod-projects D41"]
+title = "A mod-parsed page names its parser, and HTML capture skips it (Mark, 2026-11-26)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "A page parsed by a mod says so, a failing mod names itself, and only HTML goes through HTML capture."
+plans = ["mod-projects"]
+
 [decisions."primitive-representations D1"]
 title = "The brief's scope (Mark, 2026-11-13)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
