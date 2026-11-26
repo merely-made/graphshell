@@ -1,9 +1,10 @@
 # Mod projects plan
 
 **Status:** 2026-11-25: in progress; MP0 to MP4 met. Cut from GB6 P2 to P5 and their tails in
-`2026-10-28_graph_behaviors_plan.md`; P1 landed as `2026-11-24_command_packs_plan.md`. D1 to D13
+`2026-10-28_graph_behaviors_plan.md`; P1 landed as `2026-11-24_command_packs_plan.md`. D1 to D20
 settle building, admission, reload, `.cwasm`, the first host, fixtures, signing, network, the
-authoring loop, the parser and viewer worlds, and the browser table. MP5 is next.
+authoring loop, the parser and viewer worlds, the browser table, grants, pins on reload, live
+pages and traps. MP5 is landing; MP5b (live pages) follows.
 
 **For:** Wasm component mods a person (or any agent working in the same folder) can create, check,
 build, attach to a document, exercise against fixtures and reload without a restart, holding no
@@ -87,6 +88,18 @@ build where an adapter exists, attach to a document, run fixtures, reload, and r
 - Done when: a headed receipt creates a project from a fixture, checks it, attaches it, runs a
   fixture to a pass, edits it, reloads to changed behaviour without a restart, and shows a refused
   import by name.
+
+### MP5b. Mods on live pages
+
+A mod attaches to a live Livery page in Turnstone, not only to its project's own document (D14,
+D15): it runs on a copy of the page made with `outer_html`, with stable ids stamped on the copy,
+and each applied turn is replayed into the page through `apply_host_mutations`, refused when the
+page has moved since the copy. Genet widens `HostMutationOp` with set-text, remove and
+insert-before; Graphshell's document-host emits the replay; Turnstone attaches from the page.
+
+- Done when: a headed receipt attaches a mod to an open page, a turn changes what the page shows
+  through the engine's restyle path, a turn against a page that changed underneath is refused as a
+  conflict, and detaching leaves the page as the last applied turn made it.
 
 ### MP6. The authoring loop (GB6 P3)
 
@@ -226,6 +239,65 @@ stated reason (D11).
 
   Links: area The stack · plans mod-projects MP2 · summary The cargo adapter's build test skips, saying why, where the toolchain is absent.
 
+- **D14. Mods attach to live pages (Mark, 2026-11-25):** Evidence: MP5 attaches a mod to its
+  project's own document, parsed from `document.txt`, because a Turnstone page is genet's
+  `LiveryDocumentSession`, which keeps its `ScriptedDom` private (`pub(crate) doc`), and
+  `DocumentScript::attach` takes the DOM by value. Offered: the project's document now and pages
+  as later pelt work (recommended); pages required; project documents only. Answer: "Pages are
+  required". What follows: MP5b. Outcome: new.
+
+  Links: area The stack · plans mod-projects MP5b · summary A mod in Turnstone must be able to run on a live page, not only on its project's own document.
+
+- **D15. A page mod runs on a copy and its turns are replayed (Mark, 2026-11-25):** Evidence
+  (Findings 7): the shipped way into a live page is `DocumentSession::apply_host_mutations`, whose
+  four operations (set and remove an attribute, append a child, remove the last child) already
+  restyle and repaint; `ScriptedDom` serializes (`outer_html`) and is not `Clone`. Offered: copy
+  and replay, widening the operations in genet and gating on revision (recommended); genet lends
+  the DOM out and takes it back; `DocumentScript` generic over a borrowed DOM. Answer: "Copy and
+  replay (Recommended)". What follows: MP5b across genet, Graphshell and Turnstone. Outcome: new.
+
+  Links: area The stack · plans mod-projects MP5b · summary A page mod runs on an outer_html copy, and each applied turn replays into the page through apply_host_mutations.
+
+- **D16. MP5 lands on project documents; pages follow as MP5b (Mark, 2026-11-25):** Evidence: the
+  project-document build passed its gates and headed receipt (Turnstone `40b4dbad`), and D17 to D19
+  are small changes to it. Offered: land now with pages as MP5b (recommended); hold until pages
+  work. Answer: "Land now, pages as MP5b (Recommended)". Outcome: new.
+
+  Links: area The stack · plans mod-projects MP5, mod-projects MP5b · summary MP5 lands on project documents, and live pages are their own step before MP6.
+
+- **D17. Grants are per-project toggles (Mark, 2026-11-25):** Evidence: MP5 granted nothing, so a
+  mod importing `net` was always refused, with no control to change it. Offered: a toggle per
+  declared capability on the project's row, kept in `installed.json` and enforced by linking
+  (recommended); dev mode grants what it declares; nothing granted for now. Answer: "Per-project
+  grant toggles (Recommended)". What follows: a changed toggle takes effect on the next attach or
+  reload, at both levels. Outcome: new.
+
+  Links: area The stack · plans mod-projects MP0, mod-projects MP5 · summary The user grants a mod's declared capabilities one toggle at a time, and linking enforces them.
+
+- **D18. A reload's pin moves only when the swap succeeds (Mark, 2026-11-25):** Evidence: MP5
+  re-admitted the edited component before swapping, so a swap that failed at activation left the
+  old instance running under a pin naming the component that failed. Offered: pin after a
+  successful swap, restoring the old admission otherwise (recommended); the pin follows the file on
+  disk. Answer: "Only after the swap succeeds (Recommended)". Outcome: refines D12.
+
+  Links: area The stack · amends mod-projects D12 · plans mod-projects MP5 · summary The pin always names the component that is running; a failed reload restores the old admission.
+
+- **D19. A build overwrites the component and keeps the last passing one (Mark, 2026-11-25):**
+  Evidence: MP5's build copies its artifact over `component.wasm`; MP6 (D9) rolls back to the last
+  passing build. Offered: overwrite and keep `last-good.wasm` (recommended); overwrite only; a
+  separate build slot chosen at attach. Answer: "Overwrite, keep last passing (Recommended)". What
+  follows: MP6's rollback restores `last-good.wasm`. Outcome: new.
+
+  Links: area The stack · plans mod-projects MP5, mod-projects MP6 · summary A build replaces component.wasm, and the last passing component stays beside it as last-good.wasm.
+
+- **D20. A trapped turn detaches the mod (Mark, 2026-11-25):** Evidence: document-host's contract
+  leaves the document unchanged on a trap and tells the caller to detach (`script.rs`,
+  `deliver_event`). Offered: detach and keep the trap (recommended); restart on the same document
+  up to a limit; detach and roll back to the last passing build. Answer: "Detach, keep the trap
+  (Recommended)". Outcome: new.
+
+  Links: area The stack · plans mod-projects MP5 · summary A turn that traps detaches the mod, the page keeps its last good state, and the trap is the project's last trap.
+
 ## Open questions
 
 - MP7's world shapes: the parser's block and diagnostic types, and the viewer's scene or lens
@@ -283,8 +355,19 @@ stated reason (D11).
    (`*.com`, `*.co.uk`, `*.github.io`) and origins with a scheme, port, path or `@`; admission
    refuses a bad origin as `WasmRefusal::BadOrigin`.
 
+7. MP5 forks, read 2026-11-25 (genet and Graphshell `main`): a Livery page is
+   `LiveryDocumentSession { pub(crate) doc: LiveryDocument<ScriptedDom> }`
+   (`genet-documents/src/engines/livery.rs`), reached from Turnstone through pelt-core's
+   `session_as_any_ref`, which yields only `&ScriptedDom`. `apply_host_mutations` targets elements
+   by `id` attribute with `HostMutationOp::{SetAttribute, RemoveAttribute, AppendChild,
+   RemoveLastChild}` (`document-session-api/src/session_engine.rs`) and runs inside
+   `LiveryDocument::mutate_dom`, which restyles incrementally and marks layout and paint dirty.
+   `ScriptedDom` has `outer_html` (`genet-scripted-dom/serialize.rs`) and no `Clone`. Outside tests,
+   no live page runs a `DocumentScript` today.
+
 ## Progress
 
 - 2026-11-25: cut from GB6 P2 to P5 and their tails; D1 to D11 ruled.
 - 2026-11-25: MP0 and MP1 met (Findings 2, 3).
 - 2026-11-25: MP2 to MP4 met (Findings 4 to 6); D12 and D13 ruled.
+- 2026-11-25: MP5's forks ruled, D14 to D20 (Findings 7); live pages split out as MP5b.

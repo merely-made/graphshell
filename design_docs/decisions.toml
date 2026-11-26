@@ -773,6 +773,56 @@ area = "The stack"
 summary = "The cargo adapter's build test skips, saying why, where the toolchain is absent."
 plans = ["mod-projects"]
 
+[decisions."mod-projects D14"]
+title = "Mods attach to live pages (Mark, 2026-11-25)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "A mod in Turnstone must be able to run on a live page, not only on its project's own document."
+plans = ["mod-projects"]
+
+[decisions."mod-projects D15"]
+title = "A page mod runs on a copy and its turns are replayed (Mark, 2026-11-25)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "A page mod runs on an outer_html copy, and each applied turn replays into the page through apply_host_mutations."
+plans = ["mod-projects"]
+
+[decisions."mod-projects D16"]
+title = "MP5 lands on project documents; pages follow as MP5b (Mark, 2026-11-25)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "MP5 lands on project documents, and live pages are their own step before MP6."
+plans = ["mod-projects"]
+
+[decisions."mod-projects D17"]
+title = "Grants are per-project toggles (Mark, 2026-11-25)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "The user grants a mod's declared capabilities one toggle at a time, and linking enforces them."
+plans = ["mod-projects"]
+
+[decisions."mod-projects D18"]
+title = "A reload's pin moves only when the swap succeeds (Mark, 2026-11-25)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "The pin always names the component that is running; a failed reload restores the old admission."
+amends = ["mod-projects D12"]
+plans = ["mod-projects"]
+
+[decisions."mod-projects D19"]
+title = "A build overwrites the component and keeps the last passing one (Mark, 2026-11-25)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "A build replaces component.wasm, and the last passing component stays beside it as last-good.wasm."
+plans = ["mod-projects"]
+
+[decisions."mod-projects D20"]
+title = "A trapped turn detaches the mod (Mark, 2026-11-25)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "A turn that traps detaches the mod, the page keeps its last good state, and the trap is the project's last trap."
+plans = ["mod-projects"]
+
 [decisions."primitive-representations D1"]
 title = "The brief's scope (Mark, 2026-11-13)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
