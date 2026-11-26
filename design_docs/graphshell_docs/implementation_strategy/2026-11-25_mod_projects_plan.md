@@ -1,7 +1,7 @@
 # Mod projects plan
 
 **Status:** 2026-11-26: in progress; MP0 to MP6 met. Cut from GB6 P2 to P5 and their tails in
-`2026-10-28_graph_behaviors_plan.md`; P1 landed as `2026-11-24_command_packs_plan.md`. D1 to D41
+`2026-10-28_graph_behaviors_plan.md`; P1 landed as `2026-11-24_command_packs_plan.md`. D1 to D42
 settle building, admission, reload, `.cwasm`, the first host, fixtures, signing, network, the
 authoring loop, the parser and viewer worlds, the browser table, grants, pins on reload, live
 pages and traps. MP5, MP5b (live pages) and MP6 (the
@@ -492,8 +492,20 @@ stated reason (D11).
 
   Links: area The stack · plans mod-projects MP7 · summary A page parsed by a mod says so, a failing mod names itself, and only HTML goes through HTML capture.
 
+- **D42. The bytes ride genet's spawn request, not inker (Mark, 2026-11-26):** Evidence: D40 put
+  the bytes field in inker's spawn request, but `SessionSpawnRequest` (`body: Option<String>`) is
+  genet's (`document-session-api/src/session_engine.rs:100`) and inker only re-exports it; an
+  additive `bytes` on inker's `EngineInput` (inker `803522b`, unpushed) never reaches a Turnstone
+  session engine, and D38's engine calls the parser from the spawn request without an
+  `EngineInput`. Offered: an additive `body_bytes` on genet's request, the inker change dropped
+  (recommended); genet and inker both; a Turnstone table keyed by address; text only. Answer:
+  "Genet spawn request, drop inker change (Recommended)". Outcome: refines D40.
+
+  Links: area The stack · amends mod-projects D40 · plans mod-projects MP7 · summary The fetched bytes reach a parser mod through a body_bytes field on genet's SessionSpawnRequest; inker is unchanged.
+
 ## Open questions
 
+None open.
 
 ## Findings
 
@@ -660,3 +672,4 @@ stated reason (D11).
 - 2026-11-26: MP7 surveyed (Findings 13); D34 and D35 ruled; the parser's blocks and reach are open.
 - 2026-11-26: parser blocks and routing read (Findings 14); D36 and D37 ruled.
 - 2026-11-26: MP7's routing forks ruled, D38 to D41.
+- 2026-11-26: D42 ruled (the spawn request is genet's).
