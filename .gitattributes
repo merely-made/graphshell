@@ -15,3 +15,7 @@ host/crates/canvas/cartography/src/canvas/tests/data/** text eol=lf
 host/ports/mere-resident/tests/fixtures/pre_p4_policy_root/** -text
 host/crates/graphshell/graphshell-host/tests/fixtures/pre_c7_views/** -text
 host/crates/graphshell/graphshell-host/tests/fixtures/pre_c7_live_view.json -text
+
+# The kernel's wire fixtures (now incipit-graph's) are byte-compared; never
+# convert them (carried over from Mere's rule for crates/graph/graph-kernel).
+host/crates/incipit/graph/tests/fixtures/wire/** -text

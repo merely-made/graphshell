@@ -191,6 +191,14 @@ path = "host/crates/graphshell/graphshell-host/src/webrtc_door.rs"
 reason = "The WebRTC door: how a browser holding an invitation becomes an admitted Personae subject, and every way that does not happen. Existing source-size debt; a responsibility split must preserve InviteTerms, SignedInviteDescriptor, RedemptionState and existing module visibility."
 
 [[exception]]
+path = "host/crates/incipit/graph/src/graph/apply.rs"
+reason = "Apply. Existing source-size debt; a responsibility split must preserve GraphDelta, GraphDeltaResult and existing module visibility."
+
+[[exception]]
+path = "host/crates/incipit/graph/src/graph/capture.rs"
+reason = "Stable-id graph-delta capture/replay helpers. Existing source-size debt; a responsibility split must preserve CapturedDelta, GraphTableStats, ReplayAttribution and existing module visibility."
+
+[[exception]]
 path = "host/crates/incipit/src/roster.rs"
 reason = "Neutral roster snapshot vocabulary and pure helpers, shared by host data builders and views. Existing source-size debt; a responsibility split must preserve RosterTab, RosterSubject, FacetSubject and existing module visibility."
 
