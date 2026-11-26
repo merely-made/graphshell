@@ -225,7 +225,7 @@ hest = { version = ">=0.3.0", path = "../crates/hest" }
 backstep = { version = ">=0.2.1", path = "crates/cambium/backstep" }
 meristem = { version = ">=0.3.0", path = "crates/cambium/meristem" }
 sprigging = { version = ">=0.4.0", path = "crates/cambium/sprigging" }
-sheet-leaf = { version = "0.0.1", path = "crates/cambium/sheet-leaf" }
+sheet-leaf = { version = ">=0.0.1", path = "crates/cambium/sheet-leaf" }
 # The three engine adapters, unpublished, from merely-made/inker.
 scrying-engine = { version = "0.2.0", git = "https://github.com/merely-made/inker.git", branch = "main" }
 graft-engine = { version = "0.2.0", git = "https://github.com/merely-made/inker.git", branch = "main" }
