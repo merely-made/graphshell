@@ -823,6 +823,14 @@ area = "The stack"
 summary = "A turn that traps detaches the mod, the page keeps its last good state, and the trap is the project's last trap."
 plans = ["mod-projects"]
 
+[decisions."mod-projects D21"]
+title = "A dev-mode mod can be granted (Mark, 2026-11-25)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "A dev-mode mod takes the same grant toggles, and its row says a grant reaches whatever component is on disk."
+amends = ["mod-projects D2"]
+plans = ["mod-projects"]
+
 [decisions."primitive-representations D1"]
 title = "The brief's scope (Mark, 2026-11-13)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"

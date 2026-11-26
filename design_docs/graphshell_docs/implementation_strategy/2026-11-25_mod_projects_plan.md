@@ -1,10 +1,11 @@
 # Mod projects plan
 
-**Status:** 2026-11-25: in progress; MP0 to MP4 met. Cut from GB6 P2 to P5 and their tails in
-`2026-10-28_graph_behaviors_plan.md`; P1 landed as `2026-11-24_command_packs_plan.md`. D1 to D20
+**Status:** 2026-11-25: in progress; MP0 to MP5 met. Cut from GB6 P2 to P5 and their tails in
+`2026-10-28_graph_behaviors_plan.md`; P1 landed as `2026-11-24_command_packs_plan.md`. D1 to D21
 settle building, admission, reload, `.cwasm`, the first host, fixtures, signing, network, the
 authoring loop, the parser and viewer worlds, the browser table, grants, pins on reload, live
-pages and traps. MP5 is landing; MP5b (live pages) follows.
+pages and traps. MP5 is met on project documents;
+MP5b (live pages) is next.
 
 **For:** Wasm component mods a person (or any agent working in the same folder) can create, check,
 build, attach to a document, exercise against fixtures and reload without a restart, holding no
@@ -298,6 +299,15 @@ stated reason (D11).
 
   Links: area The stack · plans mod-projects MP5 · summary A turn that traps detaches the mod, the page keeps its last good state, and the trap is the project's last trap.
 
+- **D21. A dev-mode mod can be granted (Mark, 2026-11-25):** Evidence: D2 carried the command packs'
+  rule that dev mode never grants; D17's offered toggle said both levels work the same, and
+  Turnstone `a12f2c44` built it so. Offered: dev mode takes grants, the row saying a grant reaches
+  the unpinned component (recommended); dev mode never grants; a dev grant asks again after any
+  change on disk. Answer: "Dev mode can be granted (Recommended)". What follows: the grants line
+  says so when a dev-mode project holds a grant (Turnstone `6ab1aff7`). Outcome: refines D2.
+
+  Links: area The stack · amends mod-projects D2 · plans mod-projects MP5 · summary A dev-mode mod takes the same grant toggles, and its row says a grant reaches whatever component is on disk.
+
 ## Open questions
 
 - MP7's world shapes: the parser's block and diagnostic types, and the viewer's scene or lens
@@ -365,9 +375,21 @@ stated reason (D11).
    `ScriptedDom` has `outer_html` (`genet-scripted-dom/serialize.rs`) and no `Clone`. Outside tests,
    no live page runs a `DocumentScript` today.
 
+8. MP5, 2026-11-25 (Turnstone `40b4dbad`, `a12f2c44`, `6ab1aff7`): projects live under
+   `<data_root>/mod-projects/<mod_id>/` (`mod.toml`, `component.wasm`, `document.txt`,
+   `fixtures/*.toml`, and `Cargo.toml` with `src/` where it builds), with `installed.json` keeping
+   each root, level and granted capabilities. The section sits after Command packs; refusals join
+   the pack status view. A reload admits the new component with `admit_wasm` and moves the pin only
+   when `script.reload` succeeds; `last-good.wasm` is written when check and every fixture pass.
+   The headed receipt (`scenarios/mod_projects_mp5.scn`, seven frames in
+   `Code/testing/turnstone/mod-projects/`) creates, checks, attaches, passes a fixture, reloads to
+   changed behaviour, refuses `mere:script/net` by name, keeps the old instance answering, then
+   grants net and reloads it in. The settings pane clips long rows at its width.
+
 ## Progress
 
 - 2026-11-25: cut from GB6 P2 to P5 and their tails; D1 to D11 ruled.
 - 2026-11-25: MP0 and MP1 met (Findings 2, 3).
 - 2026-11-25: MP2 to MP4 met (Findings 4 to 6); D12 and D13 ruled.
 - 2026-11-25: MP5's forks ruled, D14 to D20 (Findings 7); live pages split out as MP5b.
+- 2026-11-25: MP5 met on project documents (Findings 8); D21 ruled. MP5b is next.
