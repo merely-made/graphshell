@@ -1,0 +1,20 @@
+# Which mod kinds each target can load, and why not (mod projects MP8, D11, D46, D47).
+# No wasmtime, no Lua: the browser build can link it, and its refusals are tested on wasm32.
+[package]
+name = "mod-targets"
+version = "0.0.1"
+edition = "2021"
+
+rust-version = "1.97.1"
+license.workspace = true
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[dev-dependencies]
+# The wasm32 test (`tests/wasm.rs`); run under Node with wasm-bindgen-test-runner.
+wasm-bindgen-test = ">=0.3.79"
+
+[lints]
+workspace = true

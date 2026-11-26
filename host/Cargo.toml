@@ -41,6 +41,7 @@ members = [
     "crates/script/block-adapter",
     "crates/script/block-host",
     "crates/script/mod-host",
+    "crates/script/mod-targets",
     "crates/system/djinn-testkit",
     "crates/system/fetch",
     "crates/system/fetch/ipfs",

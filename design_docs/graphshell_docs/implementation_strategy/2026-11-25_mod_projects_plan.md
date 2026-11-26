@@ -764,6 +764,34 @@ None open.
    guest-runtime probes run wasm32 through JS harnesses. `NativeModRuntime` is an in-binary
    function table, not a dylib loader. script-didge's source is not checked out locally.
 
+17. What each target loads, MP8, 2026-11-26 (Graphshell `b8e4037e` plus the `mod-targets` crate): the
+   answer lives in `host/crates/script/mod-targets` (`Kind`, `Target`, `admit`, `refusal`), a crate with no
+   wasmtime and no Lua VM, so the browser build can link it. Its `TABLE` is the data; this table is
+   its `markdown()` pasted, and `tests/plan_table.rs` fails when the two differ. "Planned" does not
+   load: `admit(..).loads()` is false and `refusal` words it "not yet loadable". The kinds line up with
+   `ModType` (Native, Wasm, Lua) and Turnstone's `ModKind` (Document, Parser, Viewer) by name only; the
+   crate depends on neither.
+
+   | kind | desktop | browser |
+   |---|---|---|
+   | Lua pack | allowed | allowed: script-didge builds for wasm32 |
+   | document-script | allowed | planned: no Wasm engine in the browser build yet; Wasmtime on Pulley runs this guest in a page (guest-runtime P7) but is not built in |
+   | parser | allowed | planned: no Wasm engine in the browser build yet; Wasmtime on Pulley runs this guest in a page (guest-runtime P7) but is not built in |
+   | viewer | allowed | planned: no Wasm engine in the browser build yet; Wasmtime on Pulley runs this guest in a page (guest-runtime P7) but is not built in |
+   | .cwasm | allowed: only when the host built it and its hash matches (D4) | refused: machine code built for the host's CPU |
+   | native | allowed: compiled into that binary only | refused: a native mod is a function compiled into the binary; the browser build loads none at runtime |
+   The Lua row is on evidence, not on wiring. A throwaway crate outside any workspace depending on
+   script-didge (the inker `main` git row, `>=0.0.1`) passed `cargo check --target
+   wasm32-unknown-unknown`, 40 s, resolving inker `6bd98cb3`, script-didge 0.0.1 and piccolo 0.3.3 from
+   didgeridoo `7ed3b9fd`. That is a type check of the VM for wasm32, not a link or a run, and the
+   browser build has no pack loader, so no Lua pack loads there until one is wired. The wasm32 test
+   is `tests/wasm.rs` run under Node: `CARGO_TARGET_WASM32_UNKNOWN_UNKNOWN_RUNNER=wasm-bindgen-test-runner
+   cargo test -p mod-targets --target wasm32-unknown-unknown --test wasm` from `host/`. The runner is
+   0.2.129 and the workspace pins wasm-bindgen `=0.2.129` (tabard-workshop), so the crate takes
+   `wasm-bindgen-test >=0.3.79`, which resolves to 0.3.79; 0.3.80 needs wasm-bindgen 0.2.130 and
+   cannot resolve here. Nothing calls `admit` yet: Turnstone's desktop and web builds do not link
+   the crate.
+
 ## Progress
 
 - 2026-11-25: cut from GB6 P2 to P5 and their tails; D1 to D11 ruled.
