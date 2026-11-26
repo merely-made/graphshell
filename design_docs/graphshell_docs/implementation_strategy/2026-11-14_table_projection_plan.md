@@ -891,6 +891,23 @@ Left from the headed pages (T4):
 
   *New.*
 
+- **D82. Cut the per-frame whole-document work the profile names (Mark, 2026-11-26):**
+  "Stop the per-frame waste, Bridge delta only when needed, Table view rebuild, Box tree
+  splice (D56). All authorized. Delegate as needed." A sampled profile of one table run
+  (xperf, 0.125 ms) shows relayout's fixed cost is mostly work riding along each frame:
+  whole hash maps cloned (`OwnedLayout::presented_input` and layout, 5.1k samples), the
+  whole-document geometry walk done twice (relayout's leaf boxes and accessibility's
+  painted facts, 3.2k), a second layout pass when rows move under a still pointer (1.7k)
+  and the box tree regenerated from the DOM (1.0k); outside it, the table app's whole
+  view rebuilt and diffed (7.1k) and the AccessKit bridge recomputing a tree delta on
+  every action drain (2.7k). All six are cut: the Graphshell waste, the bridge delta only
+  when an update is undelivered, rows memoized in the table view, and boxes spliced for
+  entering rows (settling D56).
+
+  Links: summary The table's row-change frame stops cloning maps, walking geometry twice, relaying out on hover, rediffing the whole view, recomputing the bridge delta and regenerating the box tree.
+
+  *Applies D81; settles D56.*
+
 ## Findings
 
 - 2026-11-15: adding a slot to a recipe type breaks every repository that builds one as a
@@ -1282,3 +1299,9 @@ Left from the headed pages (T4):
   hook 0.75, leaf boxes 0.4, clear 0.2 and about 2.8 ms no field names; then collect 2.5
   and accessibility 2.9. The earlier unlogged 8 ms was collect, the unnamed part of
   submit, and the hook, leaf and clear stages (`testing/graphshell/frame-cost/stages-1/`).
+- 2026-11-26: a sampled profile of one 10,000-row table run (xperf, 0.125 ms, line-table
+  symbols; `testing/graphshell/frame-cost/profile-1/`). 76% of samples were the run's own
+  per-frame profile print to a redirected stderr, after each frame's timing; the frame
+  work under `Host::submit_native` was 39.7k samples: emit 13.8k, relayout 11.9k (box
+  tree rebuild 9.2k inside it: style update 3.6k, scroll-batch layout 3.7k, geometry walk
+  2.2k), the table's view rebuild 7.1k, accessibility sync 5.1k, raster 3.5k.

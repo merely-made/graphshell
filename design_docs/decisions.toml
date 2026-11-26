@@ -1710,6 +1710,11 @@ title = "Cut the fixed cost of a row change (Mark, 2026-11-25)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
 summary = "A row entering the table's window costs about what it changes, not a fixed whole-document 14 ms."
 
+[decisions."table-projection D82"]
+title = "Cut the per-frame whole-document work the profile names (Mark, 2026-11-26)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_table_projection_plan.md"
+summary = "The table's row-change frame stops cloning maps, walking geometry twice, relaying out on hover, rediffing the whole view, recomputing the bridge delta and regenerating the box tree."
+
 [decisions."uxtree-spine D1"]
 title = "The spine is federated (Mark, 2026-11-11)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-11_uxtree_spine_plan.md"
