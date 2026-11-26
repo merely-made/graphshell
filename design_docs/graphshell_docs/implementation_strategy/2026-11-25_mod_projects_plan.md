@@ -1,11 +1,11 @@
 # Mod projects plan
 
-**Status:** 2026-11-25: in progress; MP0 to MP5b met. Cut from GB6 P2 to P5 and their tails in
-`2026-10-28_graph_behaviors_plan.md`; P1 landed as `2026-11-24_command_packs_plan.md`. D1 to D32
+**Status:** 2026-11-26: in progress; MP0 to MP6 met. Cut from GB6 P2 to P5 and their tails in
+`2026-10-28_graph_behaviors_plan.md`; P1 landed as `2026-11-24_command_packs_plan.md`. D1 to D33
 settle building, admission, reload, `.cwasm`, the first host, fixtures, signing, network, the
 authoring loop, the parser and viewer worlds, the browser table, grants, pins on reload, live
-pages and traps. MP5 and MP5b (live pages) are met;
-MP6 (the authoring loop) is next.
+pages and traps. MP5, MP5b (live pages) and MP6 (the
+authoring loop) are met; MP7 (parser and viewer mods) is next.
 
 **For:** Wasm component mods a person (or any agent working in the same folder) can create, check,
 build, attach to a document, exercise against fixtures and reload without a restart, holding no
@@ -404,6 +404,16 @@ stated reason (D11).
 
   Links: area The stack · amends mod-projects D9 · plans mod-projects MP6 · summary A project's row counts files changed since the last pass, scanned on pane open and each action, with no watcher.
 
+- **D33. Knot moves to similar 3 rather than Turnstone carrying a skip (Mark, 2026-11-26):**
+  Evidence: D29's diff made `similar` a direct Turnstone dependency, resolving to 3.2.1, while
+  knot-editor and knot-sync asked for 2.7, so the bans check refused the graph; knot-sync's one use
+  (`djot_merge` `line_edits`) builds unchanged on 3. Offered: bump knot to similar 3 and land MP6
+  without a skip (recommended); skip now and bump later; Turnstone asks for similar 2.x. Answer:
+  "Bump knot to similar 3 (Recommended)". What follows: knot-editor `db15eb1`. Outcome: applies
+  the one-version ruling.
+
+  Links: area The stack · plans mod-projects MP6 · summary Knot's crates moved to similar 3 so the mod diff adds no duplicate.
+
 ## Open questions
 
 - MP7's world shapes: the parser's block and diagnostic types, and the viewer's scene or lens
@@ -515,6 +525,22 @@ stated reason (D11).
    `mere:script/net`). The `similar` diff crate resolves in both Turnstone's and Graphshell's
    graphs.
 
+12. MP6, 2026-11-26 (Turnstone `263c9a8b`, `894cec4d`; knot-editor `db15eb1`):
+   `src/mod_projects/authoring.rs` snapshots `mod.toml`, `Cargo.toml`, the manifest's document,
+   `src/` and `fixtures/` into `last-good/` at each pass, line endings normalised, and diffs against
+   it with `similar`. The row reads "Changed since the last pass: N files", whether
+   `component.wasm` matches `last-good.wasm`, and up to ten diff lines with a count of the rest.
+   The scan runs when the settings pane is summoned and after each action; the per-frame listing
+   reads no disk. `mod-rollback` and a Roll back button (shown once `last-good.wasm` exists)
+   restore the component, keep sources and the last trap, and reload through Reload's own path;
+   a page attachment is refused with "detach it first". The headed receipt
+   (`scenarios/mod_projects_mp6.scn`, nine frames in `Code/testing/turnstone/mod-projects-authoring/`)
+   passes and attaches, takes an outside edit into a refused import (`mere:script/net` named in the
+   status view) and shows its diff, rolls back and runs a turn on the same document, takes an
+   outside edit into a component that traps on its first turn (fixture `alt/trap_turn.wasm`),
+   detaches with the trap kept, rolls back, attaches and runs again. The diff is a capped list,
+   not a collapsible one, and only the settings pane's summon triggers the open scan.
+
 ## Progress
 
 - 2026-11-25: cut from GB6 P2 to P5 and their tails; D1 to D11 ruled.
@@ -526,3 +552,4 @@ stated reason (D11).
 - 2026-11-25: genet's identity targets pushed (`eea33cb1c71`); D26 to D28 ruled.
 - 2026-11-25: MP5b met (Findings 10). MP6 is next.
 - 2026-11-26: MP6 surveyed (Findings 11); D29 to D32 ruled.
+- 2026-11-26: MP6 met (Findings 12); D33 ruled. MP7 is next.

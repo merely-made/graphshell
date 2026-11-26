@@ -914,6 +914,13 @@ summary = "A project's row counts files changed since the last pass, scanned on 
 amends = ["mod-projects D9"]
 plans = ["mod-projects"]
 
+[decisions."mod-projects D33"]
+title = "Knot moves to similar 3 rather than Turnstone carrying a skip (Mark, 2026-11-26)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "Knot's crates moved to similar 3 so the mod diff adds no duplicate."
+plans = ["mod-projects"]
+
 [decisions."primitive-representations D1"]
 title = "The brief's scope (Mark, 2026-11-13)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
