@@ -1062,6 +1062,50 @@ area = "The stack"
 summary = "The viewer re-runs on graph change, gets the full graph contract and the pane width, and its failures reach the row with their real cause."
 plans = ["mod-projects"]
 
+[decisions."mod-projects D53"]
+title = "sheet-leaf takes its theme as plain colours; Turnstone adapts its surface theme once (Mark, 2026-11-26)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "The painter crate names no canvas theme; Turnstone maps its theme onto the painter in one place."
+amends = ["mod-projects D50"]
+plans = ["mod-projects"]
+
+[decisions."mod-projects D54"]
+title = "The viewer feed is encoded once, beside the format's name (Mark, 2026-11-26)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "One function in authority-host writes the graph feed that the resident and viewer panes both send."
+plans = ["mod-projects"]
+
+[decisions."mod-projects D55"]
+title = "A viewer re-runs on a structural or content change and on width (Mark, 2026-11-26)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "A viewer re-runs when the graph's structure or content changes, or the pane's width does."
+amends = ["mod-projects D52"]
+plans = ["mod-projects"]
+
+[decisions."mod-projects D56"]
+title = "A stale requirement elsewhere is bumped where it is named (Mark, 2026-11-26)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "dramatis takes constant_time_eq 0.6, so one version of it is left in the browser build."
+plans = ["mod-projects"]
+
+[decisions."mod-projects D57"]
+title = "castellan takes totp-rs from its master until the 0.6 move ships (Mark, 2026-11-26)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "dramatis builds totp-rs from upstream master so constant_time_eq has one version, until a release carries it."
+plans = ["mod-projects"]
+
+[decisions."mod-projects D58"]
+title = "Graphshell's host skips constant_time_eq 0.4 until patch-only forks land (Mark, 2026-11-26)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "Graphshell's host carries a constant_time_eq 0.4 skip as a stopgap until blake2_simd and iroh-blobs are forked onto 0.6."
+plans = ["mod-projects"]
+
 [decisions."primitive-representations D1"]
 title = "The brief's scope (Mark, 2026-11-13)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"

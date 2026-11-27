@@ -2,8 +2,9 @@
 # gate a domain's authority runs behind (cycle breaks P3, D15 (h)). A sibling of app-host,
 # document-host and block-host over the same `mere:script` contract (one WIT package, in the
 # Graphshell repository, materialised at `crates/script/wit` by build.rs). It is
-# domain-agnostic: it moves a copied candidate across the boundary and knows no domain and no
-# Mere type. The resident (`mere-resident`) wraps it in `Authority::Guest`.
+# domain-agnostic: it moves a copied candidate across the boundary and knows no domain; the one
+# Mere type it names is the kernel `Graph`, which `encode_graph_feed` writes. The resident
+# (`mere-resident`) wraps it in `Authority::Guest`.
 [package]
 name = "authority-host"
 version = "0.0.1"
@@ -30,6 +31,10 @@ wasmtime = "51"
 wasmtime-wasi = "51"
 # The deterministic generator behind the guest's WASI random (the trait wasmtime-wasi names).
 rand = { version = "0.10", default-features = false }
+# The graph the candidate encoding reads, and its JSON form (`encode_graph_feed`).
+kernel = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
 
 [lints]
 workspace = true
