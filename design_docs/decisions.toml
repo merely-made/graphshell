@@ -1099,6 +1099,13 @@ area = "The stack"
 summary = "dramatis builds totp-rs from upstream master so constant_time_eq has one version, until a release carries it."
 plans = ["mod-projects"]
 
+[decisions."mod-projects D58"]
+title = "Graphshell's host skips constant_time_eq 0.4 until patch-only forks land (Mark, 2026-11-26)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "Graphshell's host carries a constant_time_eq 0.4 skip as a stopgap until blake2_simd and iroh-blobs are forked onto 0.6."
+plans = ["mod-projects"]
+
 [decisions."primitive-representations D1"]
 title = "The brief's scope (Mark, 2026-11-13)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"

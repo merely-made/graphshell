@@ -2,7 +2,7 @@
 
 **Status:** 2026-11-26: in progress; MP0 to MP8 met; MP7b and MP7c remain. Cut from GB6 P2 to P5
 and their tails in `2026-10-28_graph_behaviors_plan.md`; P1 landed as
-`2026-11-24_command_packs_plan.md`. D1 to D57 settle building, admission, reload, `.cwasm`, the
+`2026-11-24_command_packs_plan.md`. D1 to D58 settle building, admission, reload, `.cwasm`, the
 first host, fixtures, signing, network, the authoring loop, the parser and viewer worlds, the
 browser table, grants, pins on reload, live pages and traps. MP5, MP5b (live pages), MP6 (the
 authoring loop), MP7 (parser and viewer mods) and MP8 (the browser table) are met; MP7b and MP7c
@@ -671,6 +671,18 @@ stated reason (D11).
 
   Links: area The stack · plans mod-projects MP7b · summary dramatis builds totp-rs from upstream master so constant_time_eq has one version, until a release carries it.
 
+- **D58. Graphshell's host skips constant_time_eq 0.4 until patch-only forks land (Mark,
+  2026-11-26):** Evidence: with dramatis moved (D56, D57), a fresh resolve of Graphshell's host
+  still carried 0.4.2 beside blake3 1.8.8's 0.6.2, held by blake2b_simd and blake2s_simd 1.0.5
+  (master unchanged) and iroh-blobs 0.103.1, whose `main` caps `"<0.6.2"` for its MSRV. Offered: a
+  skip row now with forks as a follow-up (recommended); patch-only forks of blake2_simd and
+  iroh-blobs now, with patch rows in every workspace that links them; a skip with no forks.
+  Answer: "Skip row now, forks as follow-up (Recommended)". What follows: the skip row in
+  `host/deny.toml` (`90412d1d`) and mere's upstream ledger item 16 (`649b2269e`); the forks are
+  their own follow-up. Outcome: applies D56.
+
+  Links: area The stack · plans mod-projects MP7b · summary Graphshell's host carries a constant_time_eq 0.4 skip as a stopgap until blake2_simd and iroh-blobs are forked onto 0.6.
+
 ## Open questions
 
 None open.
@@ -925,3 +937,4 @@ None open.
 - 2026-11-26: MP8 met (Findings 17); D48 and D49 ruled. MP7b is next.
 - 2026-11-26: MP7b surveyed (Findings 18); D50 to D52 ruled.
 - 2026-11-26: Graphshell `ae2e7c62` (sheet-leaf, trap causes, fixture viewer titles) pushed; dramatis `2e1c1a5` (one constant_time_eq) pushed; D53 to D57 ruled.
+- 2026-11-26: Graphshell `90412d1d` (`encode_graph_feed` in authority-host, the constant_time_eq skip) pushed; D58 ruled.
