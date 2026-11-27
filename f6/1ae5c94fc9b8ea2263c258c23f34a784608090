@@ -4991,6 +4991,7 @@ dependencies = [
 [[package]]
 name = "catchment"
 version = "0.2.0"
+source = "git+https://github.com/merely-made/mere.git?branch=main#a5baf7f3f7c7e807c06048659eceec708f44733f"
 dependencies = [
  "async-trait",
  "dirs 7.0.0",
@@ -5333,7 +5334,7 @@ checksum = "af491d569909a7e4dee0ad7db7f5341fef5c614d5b8ec8cf765732aba3cff681"
 dependencies = [
  "serde",
  "termcolor",
- "unicode-width 0.1.14",
+ "unicode-width 0.2.3",
 ]
 
 [[package]]
@@ -7033,7 +7034,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c54e03a951783e8b327515db3f2a2fd0e3bed362a96b066f341ce66ed49b4ead"
 dependencies = [
  "data-encoding",
- "syn 1.0.109",
+ "syn 3.0.10",
 ]
 
 [[package]]
@@ -12377,6 +12378,7 @@ dependencies = [
 [[package]]
 name = "mere"
 version = "0.1.0"
+source = "git+https://github.com/merely-made/mere.git?branch=main#a5baf7f3f7c7e807c06048659eceec708f44733f"
 dependencies = [
  "eidetic",
  "getrandom 0.4.3",
@@ -12483,6 +12485,7 @@ dependencies = [
 [[package]]
 name = "mere-facts"
 version = "0.1.0"
+source = "git+https://github.com/merely-made/mere.git?branch=main#a5baf7f3f7c7e807c06048659eceec708f44733f"
 dependencies = [
  "blake3",
  "dramatis",
@@ -12702,6 +12705,7 @@ dependencies = [
 [[package]]
 name = "mere-ontology"
 version = "0.1.0"
+source = "git+https://github.com/merely-made/mere.git?branch=main#a5baf7f3f7c7e807c06048659eceec708f44733f"
 dependencies = [
  "eidetic",
  "mere",
@@ -12757,6 +12761,7 @@ dependencies = [
 [[package]]
 name = "mere-rdfc"
 version = "0.1.0"
+source = "git+https://github.com/merely-made/mere.git?branch=main#a5baf7f3f7c7e807c06048659eceec708f44733f"
 dependencies = [
  "getrandom 0.4.3",
  "oxrdf",
@@ -12872,6 +12877,7 @@ dependencies = [
 [[package]]
 name = "mere-shacl"
 version = "0.1.0"
+source = "git+https://github.com/merely-made/mere.git?branch=main#a5baf7f3f7c7e807c06048659eceec708f44733f"
 dependencies = [
  "eidetic",
  "mere",
@@ -15424,6 +15430,7 @@ checksum = "6e6eb142958d64335fb0e345c5b9ead2ecd6fc438c307e9d7d3c4fd428dbaf12"
 [[package]]
 name = "pandect"
 version = "0.2.0"
+source = "git+https://github.com/merely-made/mere.git?branch=main#a5baf7f3f7c7e807c06048659eceec708f44733f"
 dependencies = [
  "async-trait",
  "blake3",
@@ -16166,9 +16173,9 @@ dependencies = [
 
 [[package]]
 name = "plist"
-version = "1.10.4"
+version = "1.10.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d86a77b7d9cdebd9643c180c158748db7d894b24a3935ed4b5843e698ae086eb"
+checksum = "cb7a42747bbcc4374e6922a15040dccacf720e4ce48a77e668f7116b9aa19a0a"
 dependencies = [
  "base64 0.23.1",
  "indexmap",
