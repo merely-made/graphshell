@@ -11,9 +11,9 @@
 use super::*;
 use attention::decode_view;
 use incipit::view::{AttentionState, CameraSnapshot, VIEW_INTENT_SCHEMA_V1};
+use incipit_session::access::AccessContext;
 use kernel::graph::{CapturedDelta, Seq};
 use muniment::{Backend, DirectoryBackend, MemoryBackend};
-use pandect::access::AccessContext;
 use std::path::Path;
 
 const FOCUS: &str = "https://secret.test/focus";

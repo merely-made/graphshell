@@ -17,6 +17,7 @@
 // pandect's graph-generic types over this crate's graph, one alias each (engine split D244).
 pub(crate) type DroppedChoice = pandect::DroppedChoice<kernel::graph::Graph>;
 pub(crate) type GraphAdmissionValidator = pandect::GraphAdmissionValidator<kernel::graph::Graph>;
+pub(crate) type GraphCandidate = pandect::graph_codicil::GraphCandidate<kernel::graph::Graph>;
 pub(crate) type GraphValidator = pandect::GraphValidator<kernel::graph::Graph>;
 pub(crate) type MereSessions<B> = pandect::MereSessions<B, kernel::graph::Graph>;
 pub(crate) type PendingMerge = pandect::PendingMerge<kernel::graph::Graph>;

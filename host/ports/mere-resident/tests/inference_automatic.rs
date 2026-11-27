@@ -104,10 +104,10 @@ async fn exercise(native: bool) {
 
 async fn exercise_inner(native: bool) {
     use mere_resident::door::app_broker::{AppEndpointCatalog, serve_app_broker};
-    use pandect::personal_sync::{SyncRoster, SyncSelection};
     use djinn::door::app_admission::{AllowedAppRoutes, AppRouteGrants};
     use ostiary::app_admission::AppId;
     use graphshell_host::endpoint_catalog::ResidentEndpointCatalog;
+    use incipit_session::personal_sync::{SyncRoster, SyncSelection};
 
     let started = std::time::Instant::now();
     let mut results = Vec::new();

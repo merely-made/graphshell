@@ -28,7 +28,6 @@ use mere::model::{AssertionBasis, AssertionMethod, GraphScope};
 use muniment::Backend;
 use serde_json::json;
 
-use pandect::access::{AccessContext, record_access};
 use crate::mere_host::{
     FIXTURE_DEVICE_ONE_ADDRESS, FIXTURE_DEVICE_TWO_ADDRESS, FIXTURE_FILE_ADDRESS,
     FIXTURE_GRANT_ADDRESS, FIXTURE_KEY_ADDRESS, FIXTURE_NON_WEB_ADDRESS, FIXTURE_PERSONA_ADDRESS,
@@ -36,6 +35,7 @@ use crate::mere_host::{
     LINK_REST_A1_ADDRESS, LINK_REST_A2_ADDRESS, LINK_REST_B1_ADDRESS, LINK_REST_B2_ADDRESS,
     MereHost, MereHostError, SelectedPersonaRef, UNKNOWN_FIXTURE_FACET,
 };
+use incipit_session::access::{AccessContext, record_access};
 
 const LINK_REST_SOURCE: &str = "urn:graphshell:fixture:link-rest";
 const LINK_FAMILY_SOURCE: &str = "urn:graphshell:fixture:link-family-assertions";

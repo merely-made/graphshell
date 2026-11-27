@@ -5,6 +5,7 @@
 // SPDX-License-Identifier: MPL-2.0
 
 //! Attached application writes install only after storage acknowledgement.
+use incipit_session::IncipitSession;
 use super::*;
 
 impl<B: pandect::graph_session::LegacyTransactionBackend + Clone> MereHost<B> {
@@ -74,8 +75,8 @@ impl<B: pandect::graph_session::LegacyTransactionBackend + Clone> MereHost<B> {
     pub async fn apply_observed_commands(
         &mut self,
         via: &str,
-        commands: Vec<pandect::live_graph::ObservedCommand>,
-    ) -> Result<pandect::live_graph::LiveApplied, MereHostError> {
+        commands: Vec<incipit_session::live_graph::ObservedCommand>,
+    ) -> Result<incipit_session::live_graph::LiveApplied, MereHostError> {
         if !self.resident_publication {
             return Err(MereHostError::OwnershipUnproven);
         }
@@ -129,7 +130,8 @@ impl<B: pandect::graph_session::LegacyTransactionBackend + Clone> MereHost<B> {
 
 #[cfg(all(test, not(target_arch = "wasm32"), feature = "native"))]
 mod tests {
-    use super::*;
+    use incipit_session::IncipitSessions;
+use super::*;
     use muniment::{MemoryBackend, StoreError, TransactFn, WriteOp};
     use std::sync::{
         Arc,
@@ -427,8 +429,8 @@ mod tests {
     }
     #[test]
     fn observed_commands_need_the_admitted_host_and_carry_its_persona() {
-        use pandect::addressable_graph::GraphAddress;
-        use pandect::live_graph::{LiveCheck, LiveCommand, ObservedCommand};
+        use incipit_session::addressable_graph::GraphAddress;
+        use incipit_session::live_graph::{LiveCheck, LiveCommand, ObservedCommand};
         pollster::block_on(async {
             let store = RefusingBackend {
                 inner: MemoryBackend::new(),
@@ -487,7 +489,7 @@ mod tests {
             assert!(matches!(
                 host.apply_observed_commands("task2", stale).await,
                 Err(MereHostError::Live(
-                    pandect::live_graph::LiveEditError::Stale(_)
+                    incipit_session::live_graph::LiveEditError::Stale(_)
                 ))
             ));
         });

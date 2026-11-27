@@ -79,6 +79,7 @@ coop = [
     "graphshell-door/declaration",
     "graphshell-client/pump",
     "dep:kernel",
+    "dep:incipit-session",
     "dep:muniment",
     "dep:pollster",
 ]
@@ -107,6 +108,7 @@ mere-host = [
     "dep:mere-overmap",
     "dep:muniment",
     "dep:pandect",
+    "dep:incipit-session",
     "dep:cartography",
     "cartography/canvas",
     "dep:scenograph",
@@ -177,6 +179,9 @@ pollster = { version = "1", optional = true }
 # `native`'s session store, and the session `mere-host` serves in the browser
 # too, so it is not in the native-only table.
 pandect = { workspace = true, optional = true }
+# Sessions over the kernel graph with incipit's hooks, and the surface readers
+# (engine split D256, D267).
+incipit-session = { workspace = true, optional = true }
 # The engine (default features off): `mere-host` names the Resource digest's
 # refusal, in the browser too, so it is not in the native-only table.
 mere = { workspace = true, optional = true }
@@ -201,6 +206,7 @@ getrandom = { version = "0.4", features = ["wasm_js"], optional = true }
 [dev-dependencies]
 # The kernel's test graph builders (`graph::fixtures`), dev-only.
 kernel = { workspace = true, features = ["fixtures"] }
+incipit-session.workspace = true
 muniment = { workspace = true, features = ["directory"] }
 pollster = "1"
 uuid.workspace = true

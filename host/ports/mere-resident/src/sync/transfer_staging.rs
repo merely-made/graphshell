@@ -27,8 +27,8 @@ use muniment::{Backend, BlobStore};
 use transport::BlobHash;
 
 use crate::sync::personal_sync_host::{PersonalSyncHost, PersonalSyncHostError};
+use incipit_session::transfer_offer::{OfferError, TransferOfferV1, offer_events, offer_for};
 use pandect::transfer::{TransferManifestV1, TransferOperation};
-use pandect::transfer_offer::{OfferError, TransferOfferV1, offer_events, offer_for};
 
 #[derive(Debug, thiserror::Error)]
 pub enum StagingError {
@@ -261,17 +261,17 @@ mod tests {
         Codicil, ModerationState, PrivacyClass, ProvenanceOrigin, ProvenanceRecord, TimeBounds,
         Timestamp, TrustEnvelope, TrustLevel, TypedPayload, validate_payload,
     };
+    use incipit_session::personal_sync::{SyncRoster, SyncSelection};
+    use incipit_session::transfer_offer::TRANSFER_OFFER_FACET;
     use kernel::geometry::PortablePoint;
     use kernel::graph::Graph;
     use kernel::graph::apply::add_node;
     use muniment::MemoryBackend;
-    use pandect::personal_sync::{SyncRoster, SyncSelection};
     use pandect::product_codicil::{PRODUCT_CODICIL_SCHEMA, TransferScope, product_codicil_schema};
     use pandect::transfer::{
         AccessTransferPolicy, TRANSFER_MANIFEST_SCHEMA, TransferBlobV1, TransferEndpointV1,
         TransferRouteV1,
     };
-    use pandect::transfer_offer::TRANSFER_OFFER_FACET;
     use personae::{IdentityProvider, InMemoryProvider};
     use uuid::Uuid;
 

@@ -12,8 +12,8 @@ use std::io::{self, BufRead, Write};
 use std::sync::Arc;
 use std::time::Instant;
 
+use incipit_session::personal_sync::{SyncRoster, SyncSelection};
 use mere_resident::sync::personal_sync_host::{PersonalSyncHost, PersonalSyncHostConfig};
-use pandect::personal_sync::{SyncRoster, SyncSelection};
 use personae::{IdentityProvider, InMemoryProvider, UnassociatedKeypair};
 use transport::{
     BlobReadAuthorizer, BlobScope, BlobStore, P2pandaHostPolicy, P2pandaOverlayHost,

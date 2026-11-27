@@ -24,7 +24,7 @@ use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
 
-use pandect::personal_sync::PersonalGraphEvent;
+use incipit_session::personal_sync::PersonalGraphEvent;
 
 /// Where the resident host looks for receipts waiting to be authored.
 pub fn inbox_dir(data_root: &Path) -> PathBuf {

@@ -6,6 +6,7 @@
 //! One explicitly chosen holder-owned graph. Admission and transport are the
 //! Graphshell host's; Pandect owns the graph journal and acknowledged writes.
 //! This module never opens a vault or accepts an author from an edit payload.
+use incipit_session::IncipitSession;
 use chirograph::*;
 use crate::GraphSession;
 use graphshell_endpoint::{

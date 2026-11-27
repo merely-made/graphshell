@@ -29,14 +29,14 @@ use uuid::Uuid;
 
 use crate::door::browser_host::now_ms;
 use crate::sync::graph_keys::{GraphKeyError, GraphKeyGroup};
-use pandect::transfer_offer::{TransferOfferV1, offers_in, transfer_offer_rule};
+use incipit_session::transfer_offer::{TransferOfferV1, offers_in, transfer_offer_rule};
 
 use crate::door::identity_endpoint::{
     SupplementalCard, TRANSFER_ACCEPT_INTENT, TRANSFER_ACCEPT_SCHEMA,
 };
 use crate::door::identity_projection::IdentityProjectionAction;
-use pandect::personal_sync::{
-    KeyAgreementEvent, KeyAgreementStep, PersonalGraphError, PersonalGraphEvent, PersonalGraphExt,
+use incipit_session::personal_sync::{
+    IncipitFold, KeyAgreementEvent, KeyAgreementStep, PersonalGraphError, PersonalGraphEvent, PersonalGraphExt,
     PersonalGraphIdentityError, PersonalGraphReplica, SyncRoster, SyncSelection, accept_into,
     personal_graph_identity_salt,
 };
@@ -233,7 +233,7 @@ impl PersonalSyncHost {
         // before anything is projected, because until it does this device may
         // hold sealed operations it has the key for and does not know it.
         let caught_up =
-            pandect::personal_sync::key_agreement(&replica.sync_store(), config.graph)
+            incipit_session::personal_sync::key_agreement(&replica.sync_store(), config.graph)
                 .await
                 .map_err(PersonalSyncHostError::Graph)?;
         if !caught_up.is_empty() {
@@ -593,7 +593,7 @@ impl PersonalSyncHost {
         self.blob_authority.retain(self.blob_scope, hash);
         let blob = hash.to_bytes();
         self.author(vec![PersonalGraphEvent::ObserveBlobAvailability {
-            observation: pandect::personal_sync::BlobAvailabilityObservation {
+            observation: incipit_session::personal_sync::BlobAvailabilityObservation {
                 record_id: Uuid::new_v4(),
                 container_id: container,
                 blob,
@@ -621,7 +621,7 @@ impl PersonalSyncHost {
         &self,
         blob: [u8; 32],
     ) -> Result<Vec<[u8; 32]>, PersonalSyncHostError> {
-        let projection = self.replica.lock().await.projection().await?;
+        let projection = self.replica.lock().await.projection_with(&IncipitFold).await?;
         let mut observations = projection
             .blob_availability
             .iter()
@@ -821,12 +821,12 @@ impl PersonalSyncHost {
     pub async fn key_group_exists(&self) -> Result<bool, PersonalSyncHostError> {
         let steps = {
             let replica = self.replica.lock().await;
-            pandect::personal_sync::key_agreement(&replica.sync_store(), self.graph).await?
+            incipit_session::personal_sync::key_agreement(&replica.sync_store(), self.graph).await?
         };
         Ok(steps.iter().any(|step| {
             matches!(
                 step.step,
-                pandect::personal_sync::KeyAgreementEvent::Dispatch(_)
+                incipit_session::personal_sync::KeyAgreementEvent::Dispatch(_)
             )
         }))
     }
@@ -883,7 +883,7 @@ impl PersonalSyncHost {
             let mut group = self.key_group.lock().await;
             let replica = self.replica.lock().await;
             let steps =
-                pandect::personal_sync::key_agreement(&replica.sync_store(), self.graph).await?;
+                incipit_session::personal_sync::key_agreement(&replica.sync_store(), self.graph).await?;
             group
                 .absorb_admitted(&steps, replica.roster())
                 .map_err(key_error)?;
@@ -907,7 +907,7 @@ impl PersonalSyncHost {
         // has to see the lane's events in any particular sequence.
         let readers = {
             let replica = self.replica.lock().await;
-            replica.projection().await?.readers
+            replica.projection_with(&IncipitFold).await?.readers
         };
         let seated = self.key_group_members().await?;
         let mine = self.key_group.lock().await.member();
@@ -1091,7 +1091,7 @@ impl PersonalSyncHost {
         };
         let steps = {
             let replica = self.replica.lock().await;
-            pandect::personal_sync::key_agreement(&replica.sync_store(), self.graph).await?
+            incipit_session::personal_sync::key_agreement(&replica.sync_store(), self.graph).await?
         };
         let (current_roots, historical_roots) =
             sealing_roots(self.graph, &steps, &members, mine, self.own_root);
@@ -1126,7 +1126,7 @@ impl PersonalSyncHost {
     /// display boundary, not a confidentiality one: the personal lane is
     /// plaintext to every device the roster admits.
     pub async fn offers(&self) -> Result<Vec<TransferOfferV1>, PersonalSyncHostError> {
-        let projection = self.replica.lock().await.projection().await?;
+        let projection = self.replica.lock().await.projection_with(&IncipitFold).await?;
         Ok(offers_in(&projection))
     }
 
@@ -1169,7 +1169,7 @@ impl PersonalSyncHost {
 
     /// Public, read-only cards added to the already-admitted device surface.
     pub async fn supplemental_cards(&self) -> Result<Vec<SupplementalCard>, PersonalSyncHostError> {
-        let projection = self.replica.lock().await.projection().await?;
+        let projection = self.replica.lock().await.projection_with(&IncipitFold).await?;
         let mut cards = vec![SupplementalCard {
             adapter: "graphshell.personal-sync".into(),
             source_id: hex(&self.graph),
@@ -1483,8 +1483,8 @@ mod roster_tests;
 
 #[cfg(test)]
 mod tests {
+    use incipit_session::transfer_offer::TRANSFER_OFFER_FACET;
     use super::*;
-    use pandect::transfer_offer::TRANSFER_OFFER_FACET;
     use personae::{IdentityProvider, InMemoryProvider};
     use uuid::Uuid;
 
@@ -1513,7 +1513,7 @@ mod tests {
                 title: "Resident graph node".into(),
             },
             PersonalGraphEvent::ObserveBlobAvailability {
-                observation: pandect::personal_sync::BlobAvailabilityObservation {
+                observation: incipit_session::personal_sync::BlobAvailabilityObservation {
                     record_id: Uuid::from_u128(0x64),
                     container_id: node,
                     blob: [0x65; 32],
@@ -1822,7 +1822,7 @@ mod tests {
             offered_at_ms: now_ms(),
         };
         hosts[0]
-            .author(pandect::transfer_offer::offer_events(&offer).unwrap())
+            .author(incipit_session::transfer_offer::offer_events(&offer).unwrap())
             .await
             .unwrap();
 
@@ -2471,7 +2471,7 @@ mod tests {
             blob_bytes: 44,
             offered_at_ms: 1_700_000_000_000,
         };
-        host.author(pandect::transfer_offer::offer_events(&offer).unwrap())
+        host.author(incipit_session::transfer_offer::offer_events(&offer).unwrap())
             .await
             .unwrap();
 

@@ -37,10 +37,10 @@ use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use uuid::Uuid;
 
-use pandect::personal_sync::{BlobAvailabilityObservation, PersonalGraphEvent};
 use crate::sync::receipts::manifest::{
     FACET_ARTIFACTS, FACET_RUN, RECEIPT_NAMESPACE, ReceiptError, ReceiptManifest,
 };
+use incipit_session::personal_sync::{BlobAvailabilityObservation, PersonalGraphEvent};
 
 /// What one ingest produced.
 #[derive(Clone, Debug)]

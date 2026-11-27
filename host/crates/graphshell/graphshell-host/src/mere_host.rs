@@ -6,6 +6,7 @@
 
 //! Mere graph truth adapted to Graphshell's portable endpoint vocabulary.
 
+use incipit_session::IncipitSessions;
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::time::{Duration, SystemTime};
 
@@ -34,7 +35,7 @@ pub use incipit::view::ViewIntent as SessionViewIntent;
 use incipit::view::{VIEW_INTENT_SCHEMA, ViewIntent};
 use attention::decode_view;
 use crate::{GraphSession, MereSessions, Pending, Reverted};
-use pandect::graph_placement::{PlacementProfile, materialize_snapshot};
+use pandect::graph_placement::{PlacementProfile, materialize_snapshot_with};
 use pandect::graph_session::{CommitExtra, LegacyTransactionBackend};
 use pandect::{SessionError, SessionId, ViewKey, ViewState};
 use sceno::{
@@ -47,7 +48,9 @@ use scenotime::{Revision, SceneEpoch, SceneSnapshot};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use pandect::access::{AccessContext, AccessError, AccessHistory, access_history, record_access};
+use incipit_session::access::{
+    AccessContext, AccessError, AccessHistory, access_history, record_access,
+};
 use mere_overmap::wire;
 
 /// The session item's instance in resident mode (§7 item 31).
@@ -111,7 +114,7 @@ pub enum MereHostError {
     /// A resident edit reached a host its composition root has not proven it
     /// owns. Only the one shared host of a session may publish.
     OwnershipUnproven,
-    Live(pandect::live_graph::LiveEditError),
+    Live(incipit_session::live_graph::LiveEditError),
     Settings(crate::resident_host::ResidentSettingsError),
     /// The live graph is shown; a Resource digest is a pin's (engine binding D2).
     NotPinned,
@@ -158,8 +161,8 @@ impl From<SessionError> for MereHostError {
     }
 }
 
-impl From<pandect::live_graph::LiveEditError> for MereHostError {
-    fn from(value: pandect::live_graph::LiveEditError) -> Self {
+impl From<incipit_session::live_graph::LiveEditError> for MereHostError {
+    fn from(value: incipit_session::live_graph::LiveEditError) -> Self {
         Self::Live(value)
     }
 }
@@ -420,7 +423,7 @@ impl<B: Backend + Clone> MereHost<B> {
                     // The old host's own load, so the first baseline is the
                     // graph it would have opened.
                     let mut graph =
-                        materialize_snapshot(&saved.graph, saved.placement).map_err(|error| {
+                        materialize_snapshot_with::<Graph>(&saved.graph, saved.placement).map_err(|error| {
                             MereHostError::InvalidSnapshot(format!("{HOST_SLOT}: {error}"))
                         })?;
                     graph.overlay_facets(saved.facets).map_err(|error| {
@@ -1098,7 +1101,7 @@ impl<B: Backend> MereHost<B> {
 
     /// Record the codicil returned by the reservoir's owner under the admitted app.
     pub async fn archive_receipt(&mut self, via: &str, id: String) -> Result<(), MereHostError> {
-        let id = pandect::graph_codicil::parse_codicil_id(&id)
+        let id = incipit_session::graph_codicil::parse_codicil_id(&id)
             .map_err(pandect::SessionError::Corrupt)?;
         self.graph_session
             .archived(author_of(&self.selected_persona, via), id)

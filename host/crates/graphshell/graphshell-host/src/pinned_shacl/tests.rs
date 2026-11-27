@@ -4,6 +4,7 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 // SPDX-License-Identifier: MPL-2.0
 
+use incipit_session::{IncipitSession, IncipitSessions};
 use std::time::SystemTime;
 
 use crate::MereSessions;

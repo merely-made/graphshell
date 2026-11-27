@@ -27,7 +27,7 @@ use stickleback::{
     GroupSessionId,
 };
 
-use pandect::personal_sync::{
+use incipit_session::personal_sync::{
     KeyAgreementEvent, KeyAgreementStep, PersonalGraphEvent, SyncRoster,
 };
 

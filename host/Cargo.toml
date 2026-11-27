@@ -92,7 +92,9 @@ wgpu-cue = { git = "https://github.com/merely-made/wgpu-cue.git", branch = "main
 # carriage is selected at the owning crate.
 seiche = { version = ">=0.0.6", git = "https://github.com/merely-made/seiche.git", branch = "main", default-features = false }
 cartography = { package = "mere-cartography", version = "0.0.2", path = "crates/canvas/cartography" }
-kernel = { package = "mere-kernel", version = ">=0.0.3", git = "https://github.com/merely-made/mere.git", branch = "main" }
+# The surface graph, moved from Mere's mere-kernel (engine split D211) and
+# named `kernel` as before; consumers flip to it in lane 3 of the kernel move.
+kernel = { package = "incipit-graph", version = "0.1.0", path = "crates/incipit/graph" }
 # The graph-canvas content-root (was `orrery`; that name retired to the Merely
 # product tier ladder, 2026-07-09 — see the boundary pass plan amendments).
 pictograph = { version = "0.2.0", git = "https://github.com/merely-made/emblem.git", branch = "main", default-features = false }
@@ -176,6 +178,9 @@ fetch = { package = "mere-fetch", version = "0.0.1", path = "crates/system/fetch
 page-load = { package = "mere-pageload", version = ">=0.0.1", git = "https://github.com/merely-made/inker.git", branch = "main" }
 proofs = { package = "mere-proofs", version = "0.1.0", git = "https://github.com/merely-made/eidetic.git", branch = "main" }
 incipit = { version = ">=0.3.0", path = "crates/incipit" }
+# The surface-reading half of the sessions over incipit-graph, with its hooks
+# and the extension traits that keep pandect's names (engine split D256, D267).
+incipit-session = { version = "0.1.0", path = "crates/incipit/session" }
 comms = { package = "mere-comms", version = ">=0.0.1", git = "https://github.com/merely-made/murm.git", branch = "main" }
 # The reservoir service, split from pandect (engine split P4, D3, D9).
 catchment = { version = ">=0.1.0", git = "https://github.com/merely-made/mere.git", branch = "main" }

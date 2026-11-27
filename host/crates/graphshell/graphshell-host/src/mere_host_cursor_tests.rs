@@ -19,8 +19,8 @@ use crate::mere_host::{
 };
 use kernel::graph::CapturedDelta;
 use muniment::MemoryBackend;
-use pandect::access::AccessContext;
 use crate::mere_host::FIXTURE_DEVICE_TWO_ADDRESS;
+use incipit_session::access::AccessContext;
 use pandect::ViewKey;
 
 fn persona() -> SelectedPersonaRef {

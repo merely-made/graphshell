@@ -24,9 +24,9 @@ use std::{fs, io};
 use muniment::{Backend, JsonSlots, StoreError};
 use serde::{Deserialize, Serialize};
 
+use incipit_session::memory_levels::EvictionPolicy;
 use sporran::PERSONAS_DIR;
 use pandect::PersonaId;
-use pandect::memory_levels::EvictionPolicy;
 
 /// Subdirectory under a persona holding persona settings.
 pub const PERSONA_SETTINGS_DIR: &str = "settings";

@@ -16,10 +16,10 @@ use chirograph::{
 use scenotime::SceneOp;
 use graphshell_client::{ClientState, DiffApplication, MountedScene, ResumeApplication};
 use graphshell_endpoint::ProjectionSource;
+use incipit_session::access::AccessContext;
 use kernel::graph::CapturedDelta;
 use mere::model::SemanticStatementSpec;
 use muniment::MemoryBackend;
-use pandect::access::AccessContext;
 
 use crate::mere_host::{
     FIXTURE_DEVICE_TWO_ADDRESS, FIXTURE_PERSONA_ADDRESS, MereHost, SelectedPersonaRef,

@@ -7,8 +7,10 @@
 //! Per-graph resident settings and the union of what every open pane needs
 //! resident. The complete writer stays authoritative (resident host plan,
 //! Task 4): nothing here is truth, only what to present.
+use incipit_session::addressable_graph::{
+    GraphAddress, ResidencyPolicy, ResidencyRoots, ResidentGraph,
+};
 use pandect::ViewKey;
-use pandect::addressable_graph::{GraphAddress, ResidencyPolicy, ResidencyRoots, ResidentGraph};
 use std::collections::{BTreeMap, BTreeSet};
 use uuid::Uuid;
 

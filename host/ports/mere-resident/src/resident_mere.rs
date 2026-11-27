@@ -21,6 +21,7 @@
 //! revision bell. The application an edit comes through is the one the door
 //! admitted, never the client's claim.
 
+use incipit_session::IncipitSessions;
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -38,7 +39,6 @@ use chirograph::{
     ResourceRequest, ResourceResponse, ResumeReply, ResumeRequest, SemanticRole,
 };
 use crate::MereSessions;
-use pandect::access::AccessContext;
 use graphshell_host::handlers::HandlerRegistry;
 use graphshell_host::mere_host::{MereHost, MereHostError, SelectedPersonaRef};
 use djinn::door::app_admission::AppRouteGrants;
@@ -49,6 +49,7 @@ use graphshell_endpoint::{
     ResumableProjectionSource,
 };
 use graphshell_host::lifecycle::AdmittedEndpointContext;
+use incipit_session::access::AccessContext;
 use mere_overmap::wire::{
     self as session_item, ARCHIVE_SCHEMA, ARCHIVE_SOURCE, ATTACH_SESSION_INTENT, ApplyEditsV1,
     ArchiveActionV1, BRANCH_SESSION_INTENT, CANCEL_MERGE_INTENT, COMPOSE_CODICILS_INTENT,
@@ -873,7 +874,7 @@ impl MereShared {
         self.validator.is_some()
     }
 
-    fn validate(&self, graph: &pandect::graph_codicil::GraphCandidate) -> Result<(), String> {
+    fn validate(&self, graph: &crate::GraphCandidate) -> Result<(), String> {
         if let Some(validator) = &self.validator {
             validator(graph)?;
         }
@@ -903,9 +904,9 @@ impl MereShared {
             return sessions.clone();
         }
         let mut sessions = Vec::new();
-        if let Ok(parsed) = pandect::graph_codicil::parse_codicil_id(id)
+        if let Ok(parsed) = incipit_session::graph_codicil::parse_codicil_id(id)
             && let Ok(Some(codicil)) =
-                pandect::graph_codicil::load_profiled_graph_codicil_sealed(store, None, parsed)
+                incipit_session::graph_codicil::load_profiled_graph_codicil_sealed(store, None, parsed)
                     .await
         {
             sessions = codicil
@@ -1416,7 +1417,7 @@ impl MereEndpoint {
         let shared = Arc::clone(&self.shared);
         run(async move {
             let mut store = shared.archive.clone();
-            let mut manifests = pandect::graph_codicil::list_graph_codicils(&mut store)
+            let mut manifests = incipit_session::graph_codicil::list_graph_codicils(&mut store)
                 .await
                 .map_err(|e| e.to_string())?;
             manifests.sort_by_key(|manifest| (manifest.created_at, manifest.id.to_string()));
@@ -1450,7 +1451,7 @@ impl MereEndpoint {
                         value: session.as_uuid().to_string(),
                     });
                 let card = PortableCardV1 {
-                    title: format!("Codicil {}", pandect::graph_codicil::codicil_short_id(&id)),
+                    title: format!("Codicil {}", incipit_session::graph_codicil::codicil_short_id(&id)),
                     values: vec![
                         CardValueV1 {
                             label: "Codicil".into(),
@@ -1502,7 +1503,7 @@ impl MereEndpoint {
             let ids = payload
                 .codicils
                 .iter()
-                .map(|id| pandect::graph_codicil::parse_codicil_id(id))
+                .map(|id| incipit_session::graph_codicil::parse_codicil_id(id))
                 .collect::<Result<Vec<_>, _>>()?;
             let shared = Arc::clone(&self.shared);
             let app = self.app.clone();
@@ -1514,10 +1515,10 @@ impl MereEndpoint {
                         let host = shared.host(id).await?;
                         let mut host = host.lock().await;
                         let payload = host.graph_session().profiled_codicil_payload();
-                        let id = pandect::graph_codicil::save_profiled_session_codicil_checked(
+                        let id = incipit_session::graph_codicil::save_profiled_session_codicil_checked(
                             &mut store,
                             payload,
-                            pandect::graph_codicil::archive_timestamp(),
+                            incipit_session::graph_codicil::archive_timestamp(),
                             |graph| shared.validate(graph),
                         )
                         .await
@@ -1544,10 +1545,10 @@ impl MereEndpoint {
                         )));
                     },
                     COMPOSE_CODICILS_INTENT if payload.session.is_none() && ids.len() >= 2 => {
-                        if pandect::graph_codicil::compose_graph_codicils_checked(
+                        if incipit_session::graph_codicil::compose_graph_codicils_checked(
                             &mut store,
                             &ids,
-                            pandect::graph_codicil::archive_timestamp(),
+                            incipit_session::graph_codicil::archive_timestamp(),
                             |graph| shared.validate(graph),
                         )
                         .await
@@ -2622,7 +2623,7 @@ mod tests {
             .find(|(_, n)| n.id == Uuid::from_u128(1))
             .unwrap()
             .0;
-        let history = pandect::access::access_history(&material, key).unwrap();
+        let history = incipit_session::access::access_history(&material, key).unwrap();
         assert_eq!(history.records.len(), 1);
         assert_eq!(history.records[0].handler, handler.id);
         assert!(history.records[0].at_ms > 0);
@@ -2650,7 +2651,7 @@ mod tests {
             .unwrap()
             .0;
         assert_eq!(
-            pandect::access::access_history(&material, key).unwrap(),
+            incipit_session::access::access_history(&material, key).unwrap(),
             history
         );
     }

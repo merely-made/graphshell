@@ -7,9 +7,10 @@
 //! The host's partial presentation (resident host plan, Task 4). The complete
 //! writer stays the truth; settings and pane roots only choose what a reader
 //! keeps resident, and `graph()` stays Full.
+use incipit_session::{IncipitSession, IncipitSessions};
 use super::*;
 use crate::resident_host::{PaneRoots, ResidentSettings};
-use pandect::addressable_graph::{GraphAddress, ResidencyPolicy};
+use incipit_session::addressable_graph::{GraphAddress, ResidencyPolicy};
 
 impl<B: pandect::graph_session::LegacyTransactionBackend + Clone> MereHost<B> {
     pub fn resident_settings(&self) -> &ResidentSettings {

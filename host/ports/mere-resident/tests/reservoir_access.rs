@@ -6,6 +6,7 @@
 
 //! V4 durable access decisions reloaded by a fresh resident process.
 
+use incipit_session::IncipitSessions;
 use std::path::Path;
 use std::process::Command;
 

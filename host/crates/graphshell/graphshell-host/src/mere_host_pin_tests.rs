@@ -13,8 +13,8 @@ use super::*;
 use crate::handlers::{OpenAddressV1, intent_id};
 use crate::mere_host::{FIXTURE_DEVICE_TWO_ADDRESS, FIXTURE_PERSONA_ADDRESS, fixture_handlers};
 use chirograph::IntentResult;
+use incipit_session::access::AccessContext;
 use muniment::MemoryBackend;
-use pandect::access::AccessContext;
 
 const HANDLER: &str = "system.default";
 

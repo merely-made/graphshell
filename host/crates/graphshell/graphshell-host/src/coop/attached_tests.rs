@@ -19,7 +19,7 @@ use uuid::Uuid;
 fn attached_ordinary_host_is_the_only_writer_and_reopens_with_guest_authorship() {
     use crate::handlers::HandlerRegistry;
     use crate::mere_host::{MereHost, SelectedPersonaRef};
-    use pandect::access::AccessContext;
+    use incipit_session::access::AccessContext;
     struct Attached(Arc<Mutex<MereHost<muniment::MemoryBackend>>>);
     impl GraphAuthority for Attached {
         fn read(&self) -> GraphReading {

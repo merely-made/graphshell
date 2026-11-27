@@ -94,7 +94,7 @@ async fn cancelling_a_blocked_roster_update_leaves_roster_unchanged() {
     drop(replica_guard);
 
     let intake_roster = host.roster().await;
-    let projection = host.replica.lock().await.projection().await;
+    let projection = host.replica.lock().await.projection_with(&IncipitFold).await;
     assert_eq!(intake_roster, initial);
     assert!(
         projection.is_ok(),
@@ -135,13 +135,13 @@ async fn intake_queued_before_roster_update_uses_old_policy_then_retries_after_a
         Err(stickleback::ProcessError::Rejected(ref reject))
             if reject.code == "personal-graph-writer-not-admitted"
     ));
-    let before_retry = host.replica.lock().await.projection().await.unwrap();
+    let before_retry = host.replica.lock().await.projection_with(&IncipitFold).await.unwrap();
     assert!(!projection_has_node(&before_retry, node));
     let retry = accept_incoming(&host.replica, &host.keys, [0xE2; 32], &operation)
         .await
         .unwrap();
     assert!(retry, "the same operation is accepted after admission");
-    let projection = host.replica.lock().await.projection().await.unwrap();
+    let projection = host.replica.lock().await.projection_with(&IncipitFold).await.unwrap();
     assert!(projection_has_node(&projection, node));
     host.close().await.unwrap();
     drop(directory);
@@ -173,7 +173,7 @@ async fn roster_update_queued_before_intake_admits_and_projects_new_writer() {
 
     let ((), accepted) = tokio::join!(update, incoming);
     assert!(accepted.unwrap());
-    let projection = host.replica.lock().await.projection().await.unwrap();
+    let projection = host.replica.lock().await.projection_with(&IncipitFold).await.unwrap();
     assert!(projection_has_node(&projection, node));
     host.close().await.unwrap();
     drop(directory);
@@ -199,7 +199,7 @@ async fn removed_writer_is_refused_without_poisoning_owner_projection() {
         Err(stickleback::ProcessError::Rejected(ref reject))
             if reject.code == "personal-graph-writer-not-admitted"
     ));
-    let projection = host.replica.lock().await.projection().await.unwrap();
+    let projection = host.replica.lock().await.projection_with(&IncipitFold).await.unwrap();
     assert_eq!(projection.graph.node_count(), 0);
     assert!(!projection_has_node(&projection, node));
     host.close().await.unwrap();

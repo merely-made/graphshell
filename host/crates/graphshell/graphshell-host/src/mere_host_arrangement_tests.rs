@@ -10,11 +10,11 @@
 
 use super::*;
 use crate::mere_host::{FIXTURE_DEVICE_TWO_ADDRESS, FIXTURE_PERSONA_ADDRESS, fixture_handlers};
+use incipit_session::access::AccessContext;
 use kernel::graph::apply::assert_relation;
 use mere::model::{ArrangementSubKind, EdgeAssertion, SemanticStatementSpec};
 use mere::projection::RdfSource;
 use muniment::MemoryBackend;
-use pandect::access::AccessContext;
 use std::collections::BTreeSet;
 
 fn host() -> MereHost<MemoryBackend> {
