@@ -31,7 +31,7 @@ fn triangle_graph() -> (Graph, [NodeKey; 3]) {
 
 #[test]
 fn coverage_refreshes_without_recomputing_channels_or_geometry() {
-    use kernel::graph::{CoverageLayer, CoverageLimit, CoverageNote};
+    use mere::model::coverage::{CoverageLayer, CoverageLimit, CoverageNote};
     let (mut graph, _) = triangle_graph();
     let mut registry = ChannelRegistry::new();
     for id in ["phyllotaxis.default", "grid.default", "kanban.default"] {

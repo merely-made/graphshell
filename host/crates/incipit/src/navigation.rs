@@ -9,7 +9,8 @@
 //! Direction and kind are retained even when several relations share a member.
 pub mod browser;
 
-use kernel::graph::{Graph, RelationKind, SemanticSubKind};
+use kernel::graph::Graph;
+use mere::model::{RelationKind, SemanticSubKind};
 
 /// A bounded, live one-hop neighborhood over canonical projected relations.
 /// A missing root is refused; an isolated root remains a one-member scope.
@@ -181,10 +182,8 @@ fn words(value: &str) -> String {
 mod tests {
     use super::*;
     use kernel::graph::fixtures::GraphFixtures;
-    use kernel::graph::{
-        EdgeAssertion, SemanticSubKind,
-        apply::{add_node, assert_relation},
-    };
+    use kernel::graph::apply::{add_node, assert_relation};
+    use mere::model::{EdgeAssertion, SemanticSubKind};
     #[test]
     fn shared_rows_keep_predicate_direction_graph_and_access_identity() {
         let mut graph = Graph::new();

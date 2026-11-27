@@ -7,8 +7,9 @@
 //! Selection, tagging, semantic relations, and node-state setters.
 
 use kernel::graph::apply::{GraphDelta, GraphDeltaResult, apply_graph_delta};
-use kernel::graph::{EdgeFamily, Graph, Retraction, SemanticStatement};
-use kernel::types::GraphScope;
+use kernel::graph::{Graph, Retraction};
+use mere::model::GraphScope;
+use mere::model::{EdgeFamily, SemanticStatement};
 
 use super::*;
 

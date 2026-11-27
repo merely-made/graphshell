@@ -9,7 +9,8 @@
 use super::*;
 use kernel::graph::apply::{self, GraphDelta, apply_graph_delta};
 use kernel::graph::fixtures::GraphFixtures;
-use kernel::graph::{Graph, SemanticStatementSpec};
+use kernel::graph::Graph;
+use mere::model::SemanticStatementSpec;
 use muniment::MemoryBackend;
 
 /// Surfaces in a chain with edges back to the first and a self relation,
@@ -26,11 +27,11 @@ pub(super) fn linked(count: u128) -> Graph {
             )
         })
         .collect();
-    let author = kernel::graph::Author::person("links-author");
+    let author = mere::model::author::Author::person("links-author");
     for predicate in ["urn:test:next", "urn:test:first", "urn:test:itself"] {
         graph
             .write_as(author.clone(), |g| {
-                g.declare_predicate(predicate, kernel::graph::GraphStratum::Surface)
+                g.declare_predicate(predicate, mere::model::GraphStratum::Surface)
             })
             .unwrap();
     }

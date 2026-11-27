@@ -10,7 +10,8 @@
 use std::collections::{BTreeSet, HashMap};
 
 use crate::AxisValue;
-use kernel::graph::{Graph, NodeKey, RelationKind};
+use kernel::graph::{Graph, NodeKey};
+use mere::model::RelationKind;
 
 /// The Provenance column for sources.
 pub const SOURCES_COLUMN: &str = "sources";
@@ -107,7 +108,7 @@ mod tests {
     use super::*;
     use kernel::geometry::PortablePoint;
     use kernel::graph::fixtures::GraphFixtures;
-    use kernel::graph::{EdgeAssertion, ProvenanceSubKind};
+    use mere::model::{EdgeAssertion, ProvenanceSubKind};
 
     fn node(graph: &mut Graph, name: &str) -> NodeKey {
         graph.add_node(format!("https://{name}.example"), PortablePoint::zero())

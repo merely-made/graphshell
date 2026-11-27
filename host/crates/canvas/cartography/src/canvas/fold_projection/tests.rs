@@ -5,9 +5,8 @@
 // SPDX-License-Identifier: MPL-2.0
 
 use euclid::default::Point2D;
-use kernel::graph::{
-    ArrangementSubKind, ContainmentSubKind, EdgeAssertion, SemanticSubKind, fixtures::GraphFixtures,
-};
+use kernel::graph::fixtures::GraphFixtures;
+use mere::model::{ArrangementSubKind, ContainmentSubKind, EdgeAssertion, SemanticSubKind};
 
 use super::*;
 use crate::canvas::Canvas;

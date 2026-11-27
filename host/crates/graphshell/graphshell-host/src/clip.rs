@@ -14,8 +14,9 @@
 
 use fleece::clip::{ClipFragment, clip_title};
 use incipit::forme::GraphMemberId;
-use kernel::graph::{EdgeAssertion, Graph, NodeKey, ProvenanceSubKind};
+use kernel::graph::{Graph, NodeKey};
 use kernel::types::{ImageRef, ImageRole};
+use mere::model::{EdgeAssertion, ProvenanceSubKind};
 
 /// Insert an already formatted clip and relate it to its source node.
 ///
@@ -84,7 +85,8 @@ pub fn write_clip_node(
 mod tests {
     use super::*;
     use kernel::graph::fixtures::GraphFixtures;
-    use kernel::graph::{RelationKey, RelationSelector};
+    use kernel::graph::RelationKey;
+    use mere::model::RelationSelector;
 
     #[test]
     fn clip_insertion_keeps_receiving_format_relation_and_thumbnail() {

@@ -10,7 +10,7 @@
 use super::*;
 use crate::canvas::physics_controls::{FREE_ARRANGEMENT, apply_arrangement};
 use crate::canvas::scene_axes::SOURCES_COLUMN;
-use kernel::graph::{EdgeAssertion, ProvenanceSubKind};
+use mere::model::{EdgeAssertion, ProvenanceSubKind};
 
 const VIEW: (u32, u32) = (800, 600);
 

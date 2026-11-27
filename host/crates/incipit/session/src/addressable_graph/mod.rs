@@ -187,20 +187,20 @@ pub struct ResidentGraph<B, G: mere::session::SessionGraph = Graph> {
     policy: ResidencyPolicy,
     footprint: ResidentFootprint,
     available_digest: String,
-    residency_coverage: kernel::graph::CoverageNote,
-    host_coverage: kernel::graph::CoverageNote,
+    residency_coverage: mere::model::coverage::CoverageNote,
+    host_coverage: mere::model::coverage::CoverageNote,
 }
 impl<B: Backend> ResidentGraph<B> {
     /// Host observations compose with calculated residency without editing truth.
-    pub fn set_host_coverage(&mut self, note: kernel::graph::CoverageNote) {
+    pub fn set_host_coverage(&mut self, note: mere::model::coverage::CoverageNote) {
         self.host_coverage = note;
         self.graph
             .set_known_coverage(self.composed_coverage(&self.residency_coverage));
     }
     fn composed_coverage(
         &self,
-        residency: &kernel::graph::CoverageNote,
-    ) -> kernel::graph::CoverageNote {
+        residency: &mere::model::coverage::CoverageNote,
+    ) -> mere::model::coverage::CoverageNote {
         let mut note = residency.clone();
         for limit in &self.host_coverage.limits {
             note.push(limit.clone());

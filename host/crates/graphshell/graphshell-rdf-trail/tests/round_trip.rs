@@ -8,9 +8,9 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use kernel::geometry::PortablePoint;
-use kernel::graph::{
-    ArrangementSubKind, Author, EdgeAssertion, Graph, NavigationTrigger, NodeKey, apply,
-};
+use kernel::graph::{Graph, NodeKey, apply};
+use mere::model::author::Author;
+use mere::model::{ArrangementSubKind, EdgeAssertion, NavigationTrigger};
 use uuid::Uuid;
 
 const ALICE: &str = "urn:test:alice";

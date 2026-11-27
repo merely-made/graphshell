@@ -9,7 +9,8 @@
 
 use chirograph::Revision;
 use super::{Contact, GraphAuthority, GraphReading, Operation, Owner, TERMS, hex, now_ms};
-use kernel::graph::{Author, apply::GraphDelta};
+use kernel::graph::apply::GraphDelta;
+use mere::model::author::Author;
 use personae::{IdentityProvider, InMemoryProvider};
 use std::sync::{Arc, Mutex};
 use uuid::Uuid;
@@ -111,8 +112,8 @@ fn attached_ordinary_host_is_the_only_writer_and_reopens_with_guest_authorship()
             kernel::graph::CapturedDelta::ReplayAssertRelationByIds {
                 from_id: first.to_string(),
                 to_id: second.to_string(),
-                assertion: kernel::graph::EdgeAssertion::Semantic {
-                    sub_kind: kernel::graph::SemanticSubKind::Cites,
+                assertion: mere::model::EdgeAssertion::Semantic {
+                    sub_kind: mere::model::SemanticSubKind::Cites,
                     label: None,
                 },
             },

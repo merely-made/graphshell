@@ -39,7 +39,8 @@ use crate::{
     ProjectionRequest, TargetSize, ViewIntent,
 };
 use kernel::geometry::PortablePoint;
-use kernel::graph::{EdgeAssertion, Graph, NodeKey, SemanticSubKind};
+use kernel::graph::{Graph, NodeKey};
+use mere::model::{EdgeAssertion, SemanticSubKind};
 
 use crate::signals::ChannelRegistry;
 
@@ -176,7 +177,7 @@ pub const CANVAS_LAYOUT_STRATEGIES: &[(&str, &str)] = &[
 pub struct CanvasStrategyProjection {
     pub positions: Vec<(NodeKey, PortablePoint)>,
     pub score: Option<sceno::Score>,
-    pub coverage: kernel::graph::CoverageNote,
+    pub coverage: mere::model::coverage::CoverageNote,
     /// Regions a bounded arrangement draws (Partition, Sets).
     pub regions: Vec<crate::ProjectedRegion>,
 }

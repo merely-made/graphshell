@@ -16,7 +16,8 @@ use chirograph::{
 use scenotime::SceneOp;
 use graphshell_client::{ClientState, DiffApplication, MountedScene, ResumeApplication};
 use graphshell_endpoint::ProjectionSource;
-use kernel::graph::{CapturedDelta, SemanticStatementSpec};
+use kernel::graph::CapturedDelta;
+use mere::model::SemanticStatementSpec;
 use muniment::MemoryBackend;
 use pandect::access::AccessContext;
 

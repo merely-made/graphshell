@@ -20,7 +20,8 @@
 
 use std::collections::BTreeMap;
 
-use kernel::graph::{EdgeFamily, Graph};
+use kernel::graph::Graph;
+use mere::model::EdgeFamily;
 
 /// Crate version.
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -228,7 +229,8 @@ mod tests {
     use super::*;
     use euclid::default::Point2D;
     use kernel::graph::fixtures::GraphFixtures;
-    use kernel::graph::{EdgeAssertion, Graph, SemanticSubKind};
+    use kernel::graph::Graph;
+    use mere::model::{EdgeAssertion, SemanticSubKind};
 
     fn p() -> Point2D<f32> {
         Point2D::new(0.0, 0.0)

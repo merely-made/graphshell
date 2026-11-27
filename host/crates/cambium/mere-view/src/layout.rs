@@ -10,8 +10,9 @@ use cartography::adapters::{channels_read, project_graph_only};
 use cartography::{Projection, ProjectionRequest, TargetSize, ViewIntent};
 use kernel::geometry::PortablePoint;
 use kernel::graph::apply::{add_node, assert_relation};
-use kernel::graph::{EdgeAssertion, Graph, SemanticSubKind};
+use kernel::graph::Graph;
 use cartography::signals::ChannelRegistry;
+use mere::model::{EdgeAssertion, SemanticSubKind};
 use uuid::Uuid;
 
 use crate::model::GraphModel;

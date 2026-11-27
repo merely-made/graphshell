@@ -11,8 +11,10 @@ use crate::{
     Applied, SessionError,
     addressable_graph::{GraphAddress, PreparedGraphPublication},
 };
-use kernel::graph::{Author, EdgeAssertion, Graph, GraphStratum, RelationKind, apply::GraphDelta};
+use kernel::graph::{Graph, apply::GraphDelta};
+use mere::model::author::Author;
 use mere::model::built_in_relation_stratum;
+use mere::model::{EdgeAssertion, GraphStratum, RelationKind};
 use std::collections::BTreeSet;
 use uuid::Uuid;
 

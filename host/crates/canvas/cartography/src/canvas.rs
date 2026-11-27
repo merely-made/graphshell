@@ -40,7 +40,8 @@ use euclid::default::{Box2D, Point2D};
 use genet_livery::LiveryDocument;
 use genet_scripted_dom::{NodeId as DomNodeId, ScriptedDom};
 use kernel::geometry::PortablePoint;
-use kernel::graph::{EdgeAssertion, FieldId, Graph, NodeKey, RelationSelector, SemanticSubKind};
+use kernel::graph::{FieldId, Graph, NodeKey};
+use mere::model::{EdgeAssertion, RelationSelector, SemanticSubKind};
 use scenograph::link::LinkKey;
 use seiche::{AffinitySpring, LayoutSnapshot, LayoutView};
 /// The declarative scene catalog, re-exported so hosts (and the standalone bin) can load
@@ -421,7 +422,7 @@ struct FoldViewState {
 
 /// A host's rule for the pair gesture: whether one held statement may be
 /// withdrawn. Installed with [`Canvas::set_withdraw_policy`].
-pub type WithdrawPolicy = Box<dyn Fn(&kernel::graph::SemanticStatement) -> bool + Send + Sync>;
+pub type WithdrawPolicy = Box<dyn Fn(&mere::model::SemanticStatement) -> bool + Send + Sync>;
 
 /// The canvas content-root: the graph, its physics, the camera, and the abs-pos
 /// node-children pool. Window-agnostic — see the module docs.

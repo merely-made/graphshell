@@ -5,7 +5,8 @@
 // SPDX-License-Identifier: MPL-2.0
 
 use super::*;
-use kernel::graph::{SemanticStatementSpec, apply};
+use kernel::graph::apply;
+use mere::model::SemanticStatementSpec;
 
 fn source(prefix: &str) -> (Graph, uuid::Uuid, uuid::Uuid, String) {
     let mut graph = Graph::new();
@@ -153,7 +154,8 @@ fn invalid_query_preserves_roster_and_never_caches_refusal_then_spec_edit_recove
 
 #[test]
 fn coverage_refreshes_without_re_evaluation_and_unavailable_freeze_refuses() {
-    use kernel::graph::{CoverageLayer, CoverageLimit, CoverageNote, ResourceNode};
+    use mere::model::coverage::{CoverageLayer, CoverageLimit, CoverageNote};
+    use mere::model::resource::ResourceNode;
     let (mut graph, _, _, _) = source("coverage");
     let missing = ResourceNode::for_term("urn:missing:member").id();
     let mut query = spec();

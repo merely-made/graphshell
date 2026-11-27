@@ -5,7 +5,7 @@
 // SPDX-License-Identifier: MPL-2.0
 
 use crate::canvas::Canvas;
-use kernel::graph::{RelationKind, RelationSelector, SemanticSubKind};
+use mere::model::{RelationKind, RelationSelector, SemanticSubKind};
 
 #[test]
 fn member_addressed_relation_editing_targets_one_relation_cell() {

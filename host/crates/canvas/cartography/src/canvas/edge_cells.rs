@@ -9,7 +9,8 @@
 use std::collections::HashSet;
 
 use euclid::default::{Box2D, Point2D};
-use kernel::graph::{EdgeFamily, Graph, NodeKey, RelationKind, RelationSelector};
+use kernel::graph::{Graph, NodeKey};
+use mere::model::{EdgeFamily, RelationKind, RelationSelector};
 use paint_list_api::{ColorF, PaintCmd};
 use scenograph::link::{
     LinkAssertion, LinkKey, LinkLegacyMember, LinkPairReading, LinkSource, LinkStratum,

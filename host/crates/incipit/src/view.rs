@@ -54,7 +54,7 @@ pub const VIEW_INTENT_SCHEMA: &str = "mere.view-intent/v2";
 pub const VIEW_INTENT_SCHEMA_V1: &str = "mere.view-intent/v1";
 
 /// One entry in [`ViewIntent::hidden_relations`]. Keyed by stable
-/// node UUIDs and the [`kernel::graph::RelationKind::tag`]
+/// node UUIDs and the [`mere::model::RelationKind::tag`]
 /// ordinal so a Hyperlink line and a Cites line on the same node
 /// pair persist independently.
 #[derive(Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]

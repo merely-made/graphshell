@@ -13,8 +13,10 @@
 use eidetic::PrivacyClass;
 use identity::{IdentityProvider, InMemoryProvider};
 use incipit_session::personal_sync::*;
-use kernel::graph::{Author, EdgeAssertion, Graph};
-use kernel::graph::{EdgeFamily, RelationKind, SemanticSubKind};
+use kernel::graph::Graph;
+use mere::model::EdgeAssertion;
+use mere::model::author::Author;
+use mere::model::{EdgeFamily, RelationKind, SemanticSubKind};
 use muniment::{MemoryBackend, RedbBackend};
 use murm_sync::JoinedSpace;
 use p2panda_core::SigningKey;
@@ -109,7 +111,7 @@ async fn assertion_fixture() -> (PersonalGraphReplica<MemoryBackend>, String, St
 
 fn assertion_statements(
     projection: &SyncProjection<Graph>,
-) -> Vec<kernel::graph::SemanticStatement> {
+) -> Vec<mere::model::SemanticStatement> {
     let from = projection.graph.get_node_key_by_id(A).unwrap();
     let to = projection.graph.get_node_key_by_id(B).unwrap();
     projection

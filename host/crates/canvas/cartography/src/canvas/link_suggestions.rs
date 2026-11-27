@@ -20,7 +20,7 @@ use kernel::graph::NodeKey;
 
 use euclid::default::Point2D;
 use kernel::graph::apply::{self as graph_apply, GraphDelta, apply_graph_delta};
-use kernel::graph::{RelationSelector, SemanticSubKind};
+use mere::model::{RelationSelector, SemanticSubKind};
 
 use super::Canvas;
 use super::build::hyperlink;

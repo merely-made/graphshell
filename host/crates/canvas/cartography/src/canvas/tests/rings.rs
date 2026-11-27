@@ -24,7 +24,7 @@ fn set_address(canvas: &mut Canvas, key: NodeKey, url: &str) {
 
 #[test]
 fn strategy_cache_tracks_visible_payload_and_resource_rebinding() {
-    use kernel::graph::SemanticStatementSpec;
+    use mere::model::SemanticStatementSpec;
     let (graph, [a, alias_a, b, _, unbound]) = crate::canvas::build_tests::shown_content_graph();
     let mut canvas = Canvas::with_graph(graph);
     canvas.note_strategy_computed("kanban.default", 800, 600, None);
@@ -255,15 +255,15 @@ fn strategy_cache_tracks_replayed_raw_predicate_edits_with_identical_classifier_
 
 #[test]
 fn strategy_cache_tracks_exact_assertion_insertions_and_retractions() {
-    use kernel::graph::SemanticStatement;
+    use mere::model::SemanticStatement;
     let (graph, [a, _, b, _, _]) = crate::canvas::build_tests::shown_content_graph();
     let mut canvas = Canvas::with_graph(graph);
     let exact = |id: &str| SemanticStatement {
         statement_id: id.into(),
-        predicate: kernel::graph::predicate_iri(SemanticSubKind::UserGrouped).into(),
+        predicate: mere::model::predicate_iri(SemanticSubKind::UserGrouped).into(),
         recognized_sub_kind: Some(SemanticSubKind::UserGrouped),
         label: Some(id.into()),
-        basis: kernel::types::AssertionBasis {
+        basis: mere::model::AssertionBasis {
             note: Some(id.into()),
             ..Default::default()
         },

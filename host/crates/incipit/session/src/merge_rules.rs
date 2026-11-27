@@ -17,16 +17,16 @@
 use std::collections::{HashMap, HashSet};
 
 use kernel::graph::legacy_content_migration::{LEGACY_CONTENT_ORIGINS, LegacyContentOrigin};
-use kernel::graph::predicate_declarations::{
+use kernel::graph::resource_properties::merge_resource_properties;
+use kernel::persistence::{GraphSnapshot, PersistedNode};
+use mere::model::NodeProperty;
+use mere::model::predicate_declarations::{
     PREDICATE_DECLARATIONS_FACET, merge_predicate_declarations,
 };
-use kernel::graph::resource_classifications::{
-    ClassificationVariant, merge_classification_variants,
-};
-use kernel::graph::resource_content::{RESOURCE_CLASSIFICATIONS, RESOURCE_PROPERTIES};
-use kernel::graph::resource_properties::merge_resource_properties;
-use kernel::persistence::{GraphSnapshot, PersistedEdge, PersistedNode, PersistedResourceRecord};
-use kernel::types::NodeProperty;
+use mere::model::resource_content::ClassificationVariant;
+use mere::model::resource_content::{RESOURCE_CLASSIFICATIONS, RESOURCE_PROPERTIES};
+use mere::model::resource_rules::merge_classification_variants;
+use mere::model::{PersistedEdge, PersistedResourceRecord};
 use serde_json::Value;
 
 /// What merging one facet's two values came to.
@@ -225,8 +225,8 @@ mod tests {
     use euclid::default::Point2D;
     use kernel::graph::Graph;
     use kernel::graph::fixtures::GraphFixtures;
-    use kernel::persistence::{PersistedEdgeFamily, PersistedSemanticStatement};
-    use kernel::types::{AssertionBasis, GraphScope};
+    use mere::model::{AssertionBasis, GraphScope};
+    use mere::model::{PersistedEdgeFamily, PersistedSemanticStatement};
 
     #[test]
     fn a_facet_without_a_rule_merges_only_when_both_sides_agree() {

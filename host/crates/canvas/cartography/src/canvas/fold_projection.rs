@@ -18,7 +18,8 @@ use std::collections::{BTreeMap, BTreeSet, VecDeque};
 
 use incipit::curation::{FoldDirection, FoldId, FoldRecord, FoldStandIn};
 use kernel::geometry::PortablePoint;
-use kernel::graph::{EdgeFamily, Graph, NodeKey};
+use kernel::graph::{Graph, NodeKey};
+use mere::model::EdgeFamily;
 
 /// The synthetic summary body's radius in Canvas world pixels. It deliberately
 /// reads larger than an ordinary node because it stands for several members.

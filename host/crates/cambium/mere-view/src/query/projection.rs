@@ -4,9 +4,10 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 // SPDX-License-Identifier: MPL-2.0
 
+use mere::model::coverage::CoverageNote;
+use mere::model::resource::TAGGED_WITH_IRI;
+use mere::model::{EdgePayload, GraphStratum, SemanticStatement};
 use super::*;
-use kernel::graph::resource::TAGGED_WITH_IRI;
-use kernel::graph::{CoverageNote, EdgePayload, GraphStratum, SemanticStatement};
 use std::collections::BTreeSet;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]

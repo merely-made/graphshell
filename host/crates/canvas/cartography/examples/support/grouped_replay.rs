@@ -9,10 +9,11 @@
 
 use kernel::geometry::PortablePoint;
 use kernel::graph::apply::{GraphDelta, GraphDeltaResult, apply_graph_delta};
-use kernel::graph::{EdgeAssertion, Graph, NodeKey, SemanticSubKind};
+use kernel::graph::{Graph, NodeKey};
 use cartography::canvas::Canvas;
 use cartography::canvas::dynamics_spec::{DynamicsSpec, Node as DynamicsNode};
 use cartography::canvas::physics_catalog::PhysicsKindSource;
+use mere::model::{EdgeAssertion, SemanticSubKind};
 use seiche::Role;
 use serde::Deserialize;
 use serde_json::json;

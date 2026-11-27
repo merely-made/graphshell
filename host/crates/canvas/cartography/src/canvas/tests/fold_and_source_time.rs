@@ -127,8 +127,8 @@ fn two_hierarchies() -> (Canvas, [uuid::Uuid; 5]) {
         graph.assert_relation(
             from,
             to,
-            kernel::graph::EdgeAssertion::Containment {
-                sub_kind: kernel::graph::ContainmentSubKind::Domain,
+            mere::model::EdgeAssertion::Containment {
+                sub_kind: mere::model::ContainmentSubKind::Domain,
             },
         );
     }
@@ -146,7 +146,7 @@ fn two_hierarchies() -> (Canvas, [uuid::Uuid; 5]) {
 #[test]
 fn several_folds_stand_in_as_members_with_badges_and_undo_as_a_set() {
     use crate::canvas::fold_projection::FoldTraversalDirection;
-    use kernel::graph::EdgeFamily;
+    use mere::model::EdgeFamily;
 
     let (mut canvas, [root, x, y, other, z]) = two_hierarchies();
     let key = |canvas: &Canvas, id| canvas.graph().get_node_key_by_id(id).unwrap();
@@ -251,7 +251,7 @@ fn several_folds_stand_in_as_members_with_badges_and_undo_as_a_set() {
 #[test]
 fn a_collapse_absorbs_a_fold_inside_it_and_restore_refuses_stale_or_overlapping_records() {
     use crate::canvas::fold_projection::FoldTraversalDirection;
-    use kernel::graph::EdgeFamily;
+    use mere::model::EdgeFamily;
 
     let (mut canvas, [root, x, y, ..]) = two_hierarchies();
     let key = |canvas: &Canvas, id| canvas.graph().get_node_key_by_id(id).unwrap();
@@ -516,7 +516,7 @@ fn source_time_canvas_scrubs_every_canvas_arrangement_without_rewriting_live_tru
 fn shared_fold_routes_count_cross_fold_cells_once_in_each_direction() {
     use crate::canvas::fold_projection::FoldTraversalDirection;
     use crate::canvas::{FoldEndpoint, FoldRoute};
-    use kernel::graph::EdgeFamily;
+    use mere::model::EdgeFamily;
     let (mut canvas, [root, x, y, other, z]) = two_hierarchies();
     assert!(canvas.assert_relation_between_members(x, other, SemanticSubKind::Cites));
     assert!(canvas.assert_relation_between_members(y, z, SemanticSubKind::Quotes));

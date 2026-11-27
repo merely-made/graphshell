@@ -10,7 +10,7 @@ use std::sync::{Mutex, PoisonError};
 
 use incipit::forme::{SubgraphKind, SubgraphSpec};
 use kernel::graph::Graph;
-use linked_data::query::{IndexedDataset, sparql_resource_members_on};
+use mere::query::{IndexedDataset, sparql_resource_members_on};
 
 use super::DerivedMembers;
 

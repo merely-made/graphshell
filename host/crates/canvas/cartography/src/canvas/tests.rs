@@ -14,8 +14,9 @@ use super::*;
 use crate::canvas::edge_cells::selector_for_relation_kind;
 use kernel::geometry::PortablePoint;
 use kernel::graph::fixtures::GraphFixtures;
-use kernel::graph::{Graph, RelationKind, RelationSelector, SemanticSubKind};
+use kernel::graph::Graph;
 use layout_dom_api::{LayoutDom, LocalName, Namespace};
+use mere::model::{RelationKind, RelationSelector, SemanticSubKind};
 use std::collections::HashMap;
 pub(crate) use through_view::ThroughView;
 

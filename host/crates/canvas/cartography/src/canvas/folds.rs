@@ -13,7 +13,8 @@
 
 use incipit::curation::{FoldId, FoldRecord, FoldRule, FoldStandIn};
 use kernel::geometry::PortablePoint;
-use kernel::graph::{EdgeFamily, NodeKey};
+use kernel::graph::NodeKey;
+use mere::model::EdgeFamily;
 
 use super::fold_projection::{
     FOLD_SUMMARY_RADIUS, FoldProjection, FoldTraversalDirection, edge_family_name, fold_keys,

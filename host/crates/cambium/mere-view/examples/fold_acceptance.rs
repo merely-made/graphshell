@@ -14,14 +14,12 @@ use cambium::{
 use cambium_genet_winit_host::{
     AppCtx, HostHooks, HostOptions, Init, SceneProducer, inert_hooks, run,
 };
-use kernel::{
-    geometry::PortablePoint,
-    graph::{EdgeFamily, NodeKey, SemanticSubKind},
-};
+use kernel::{geometry::PortablePoint, graph::NodeKey};
 use layout_dom_api::{LayoutDom, LocalName, Namespace};
 use mandrake::{CaptureRecord, Lane, LaneConfig, Product};
 use cartography::canvas::fold_projection::FoldTraversalDirection;
 use cartography::canvas::{CameraView, Canvas, FoldEndpoint, PointerButton};
+use mere::model::{EdgeFamily, SemanticSubKind};
 use sprigging::ColorF;
 use std::{cell::RefCell, collections::BTreeSet, rc::Rc};
 use taproot::ProbeSnapshot;
@@ -71,8 +69,8 @@ impl App {
                 &mut graph,
                 keys[from],
                 keys[to],
-                kernel::graph::EdgeAssertion::Containment {
-                    sub_kind: kernel::graph::ContainmentSubKind::Domain,
+                mere::model::EdgeAssertion::Containment {
+                    sub_kind: mere::model::ContainmentSubKind::Domain,
                 },
             );
         }

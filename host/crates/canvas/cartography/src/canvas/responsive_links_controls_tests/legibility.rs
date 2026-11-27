@@ -379,7 +379,8 @@ fn overlapping_endpoint_faces_keep_resting_paths_and_count_presentation_fallback
 fn compatibility_only_cohort_drops_more_than_sixty_four_unselected_readings() {
     use kernel::geometry::PortablePoint;
     use kernel::graph::apply::add_node;
-    use kernel::graph::{Graph, GraphStratum, SemanticStatementSpec, SemanticSubKind};
+    use kernel::graph::Graph;
+    use mere::model::{GraphStratum, SemanticStatementSpec, SemanticSubKind};
 
     const PAIRS: usize = 65;
     let mut graph = Graph::new();

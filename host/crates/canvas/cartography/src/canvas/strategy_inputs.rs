@@ -17,7 +17,7 @@ struct StrategyGraphInputs {
         Option<kernel::graph::SurfaceNodeLifetime>,
     )>,
     relations: Vec<(kernel::graph::RelationKey, kernel::graph::RelationView)>,
-    payloads: Vec<(kernel::graph::RelationKey, kernel::graph::EdgePayload)>,
+    payloads: Vec<(kernel::graph::RelationKey, mere::model::EdgePayload)>,
 }
 
 pub(super) struct StrategyGraphMemo {

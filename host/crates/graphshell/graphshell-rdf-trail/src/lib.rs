@@ -13,8 +13,9 @@
 use std::collections::{BTreeMap, HashMap};
 
 use kernel::geometry::PortablePoint;
-use kernel::graph::{ArrangementSubKind, EdgeAssertion, Graph, SharedNavigationMemory, apply};
+use kernel::graph::{Graph, SharedNavigationMemory, apply};
 use mere::dataset::View;
+use mere::model::{ArrangementSubKind, EdgeAssertion};
 use oxrdf::vocab::rdf;
 use oxrdf::{Literal, NamedNode, Quad, Term};
 use uuid::Uuid;

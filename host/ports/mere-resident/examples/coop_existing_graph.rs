@@ -408,8 +408,8 @@ async fn main() {
                 CapturedDelta::ReplayAssertRelationByIds {
                     from_id: from,
                     to_id: added.to_string(),
-                    assertion: kernel::graph::EdgeAssertion::Semantic {
-                        sub_kind: kernel::graph::SemanticSubKind::Cites,
+                    assertion: mere::model::EdgeAssertion::Semantic {
+                        sub_kind: mere::model::SemanticSubKind::Cites,
                         label: None,
                     },
                 },

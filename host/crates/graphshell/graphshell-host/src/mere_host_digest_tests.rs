@@ -11,8 +11,8 @@
 use super::*;
 use crate::mere_host::{FIXTURE_DEVICE_TWO_ADDRESS, FIXTURE_PERSONA_ADDRESS, fixture_handlers};
 use kernel::graph::apply::assert_relation;
-use kernel::graph::{ArrangementSubKind, EdgeAssertion, SemanticStatementSpec};
 use mere::formats::canon::SortedNQuadsError;
+use mere::model::{ArrangementSubKind, EdgeAssertion, SemanticStatementSpec};
 use mere::projection::RdfSource;
 use muniment::MemoryBackend;
 use pandect::access::AccessContext;

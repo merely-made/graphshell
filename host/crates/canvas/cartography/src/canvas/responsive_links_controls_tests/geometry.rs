@@ -7,8 +7,9 @@
 use super::*;
 use kernel::geometry::PortablePoint;
 use kernel::graph::apply::add_node;
-use kernel::graph::{Graph, GraphStratum, SemanticStatementSpec, SemanticSubKind, predicate_iri};
-use kernel::types::AssertionBasis;
+use kernel::graph::Graph;
+use mere::model::AssertionBasis;
+use mere::model::{GraphStratum, SemanticStatementSpec, SemanticSubKind, predicate_iri};
 use uuid::Uuid;
 
 pub(super) fn alias_graph() -> (Graph, [Uuid; 4], Vec<(String, Uuid, Uuid)>) {

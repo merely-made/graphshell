@@ -11,7 +11,8 @@
 
 use incipit_session::addressable_graph::ResidencyRoots;
 use incipit_session::{IncipitSession, IncipitSessions};
-use kernel::graph::{Author, CapturedDelta};
+use kernel::graph::CapturedDelta;
+use mere::model::author::Author;
 use muniment::{Backend, MemoryBackend, StoreError, TransactFn, WriteOp};
 use pandect::SessionError;
 type MereSessions<B> = pandect::MereSessions<B, kernel::graph::Graph>;

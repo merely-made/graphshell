@@ -10,8 +10,9 @@
 //! read, where it cannot hold the graph.
 
 use portolan::Labeled;
-use kernel::graph::resource::TAGGED_WITH_IRI;
-use kernel::graph::{Graph, RelationKind};
+use kernel::graph::Graph;
+use mere::model::RelationKind;
+use mere::model::resource::TAGGED_WITH_IRI;
 use std::collections::{BTreeMap, BTreeSet};
 use uuid::Uuid;
 

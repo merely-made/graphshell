@@ -5,8 +5,9 @@
 // SPDX-License-Identifier: MPL-2.0
 
 use super::*;
-use kernel::graph::{CoverageLayer, CoverageLimit, CoverageNote};
-use kernel::persistence::{PersistedEdge, PersistedShownResource};
+use kernel::persistence::PersistedShownResource;
+use mere::model::PersistedEdge;
+use mere::model::coverage::{CoverageLayer, CoverageLimit, CoverageNote};
 use std::collections::btree_map::Entry;
 /// Resident edges by `(from, to)` pair: the pair's edges as its records list
 /// them, and the endpoints whose records listed them.
@@ -80,7 +81,7 @@ pub(super) async fn materialize<B: Backend>(
                 admit(id, edges, &addresses, true, &mut surface_edges)?;
             },
             (GraphAddress::Resource(id), StoredNode::Resource { record, edges }) => {
-                if kernel::graph::ResourceNode::for_term(&record.canonical_iri).id() != id {
+                if mere::model::resource::ResourceNode::for_term(&record.canonical_iri).id() != id {
                     return Err(fail("Resource address mismatch"));
                 }
                 footprint.resources += 1;

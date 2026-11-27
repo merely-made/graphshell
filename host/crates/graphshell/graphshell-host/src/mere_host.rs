@@ -23,11 +23,11 @@ use crate::handlers::{
 };
 use crate::session_item;
 use kernel::graph::apply::{GraphDelta, apply_graph_delta};
-use kernel::graph::{
-    Author, CapturedDelta, Graph, NodeFacetStore, NodeKey, RelationKey, RelationKind,
-};
+use kernel::graph::{CapturedDelta, Graph, NodeFacetStore, NodeKey, RelationKey};
 use kernel::persistence::GraphSnapshot;
 use kernel::time::wall_clock_now;
+use mere::model::RelationKind;
+use mere::model::author::Author;
 use muniment::{Backend, JsonSlots, StoreError};
 /// The view types a host writes through [`MereHost::set_view_now`].
 pub use incipit::view::ViewIntent as SessionViewIntent;
@@ -1554,9 +1554,7 @@ impl<B: pandect::graph_session::LegacyTransactionBackend + Clone> MereHost<B> {
 /// in products (`test-support`).
 #[cfg(any(test, feature = "test-support"))]
 pub fn placement_test_graph() -> Graph {
-    use kernel::persistence::{
-        PersistedEdge, PersistedEdgeFamily, PersistedSemanticStatement,
-    };
+    use mere::model::{PersistedEdge, PersistedEdgeFamily, PersistedSemanticStatement};
     let mut graph = Graph::new();
     let ids = [uuid::Uuid::from_u128(1), uuid::Uuid::from_u128(2)];
     for (id, iri) in ids
@@ -1581,11 +1579,11 @@ pub fn placement_test_graph() -> Graph {
             predicate: "urn:mere:profile:held-custom".into(),
             recognized_sub_kind: None,
             label: Some("held Surface claim".into()),
-            basis: kernel::types::AssertionBasis {
+            basis: mere::model::AssertionBasis {
                 note: Some("held Surface claim".into()),
                 ..Default::default()
             },
-            graph_scope: kernel::types::GraphScope::Default,
+            graph_scope: mere::model::GraphScope::Default,
             provenance_iri: Some("urn:mere:profile:source".into()),
             asserted_at_ms: Some(42),
             first_asserted_ms: Some(42),
@@ -1916,7 +1914,7 @@ mod tests {
             let surface_id = uuid::Uuid::from_u128(1);
             let key = original.get_node_key_by_id(surface_id).unwrap();
             let mut resource_property =
-                kernel::types::NodeProperty::new("urn:test:predicate".into(), "exact".into())
+                mere::model::NodeProperty::new("urn:test:predicate".into(), "exact".into())
                     .with_metadata(Some("urn:test:source".into()), Some(42));
             resource_property.statement_id = "resource-literal-handle".into();
             assert!(original.append_node_properties(key, vec![resource_property.clone()]));
@@ -2172,7 +2170,7 @@ mod tests {
     #[test]
     fn hosted_projection_lifts_content_and_resource_badges_across_aliases() {
         use kernel::graph::apply::assert_relation;
-        use kernel::graph::{EdgeAssertion, SemanticSubKind};
+        use mere::model::{EdgeAssertion, SemanticSubKind};
         let mut host = MereHost::empty(
             MemoryBackend::new(),
             selected_persona(),
@@ -2528,9 +2526,9 @@ mod tests {
             document
                 .graph
                 .resources
-                .push(kernel::persistence::PersistedResourceRecord {
+                .push(mere::model::PersistedResourceRecord {
                     canonical_iri: "https://invalid.test/resource".into(),
-                    facets: vec![kernel::persistence::PersistedResourceFacet {
+                    facets: vec![mere::model::PersistedResourceFacet {
                         facet: "test.data".into(),
                         value_json: "invalid JSON".into(),
                     }],

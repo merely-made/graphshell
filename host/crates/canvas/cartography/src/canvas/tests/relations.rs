@@ -15,7 +15,7 @@ fn selector_hides_classify_exact_nonsemantic_assertions_by_canonical_predicate()
     let b = canvas.open_member_as_new_node(None, "https://containment-hide-b.test");
     let ak = canvas.graph().get_node_by_id(a).unwrap().0;
     let bk = canvas.graph().get_node_by_id(b).unwrap().0;
-    let predicate = RelationKind::Containment(kernel::graph::ContainmentSubKind::CollectionMember)
+    let predicate = RelationKind::Containment(mere::model::ContainmentSubKind::CollectionMember)
         .predicate_iri()
         .unwrap();
     canvas.ingest_graph(|graph| {
@@ -23,13 +23,13 @@ fn selector_hides_classify_exact_nonsemantic_assertions_by_canonical_predicate()
             .try_assert_persisted_relation_statement(
                 ak,
                 bk,
-                kernel::graph::SemanticStatement {
+                mere::model::SemanticStatement {
                     statement_id: "urn:containment:hide-test".into(),
                     predicate: predicate.into(),
                     recognized_sub_kind: None,
                     label: None,
-                    basis: kernel::types::AssertionBasis::default(),
-                    graph_scope: kernel::types::GraphScope::Default,
+                    basis: mere::model::AssertionBasis::default(),
+                    graph_scope: mere::model::GraphScope::Default,
                     provenance_iri: Some("urn:author:test".into()),
                     first_asserted_ms: Some(1),
                     asserted_at_ms: Some(1),
@@ -44,7 +44,7 @@ fn selector_hides_classify_exact_nonsemantic_assertions_by_canonical_predicate()
     let cell = first_edge_cell_between(&canvas, ak, bk);
     assert_eq!(
         cell.selector,
-        RelationSelector::Containment(kernel::graph::ContainmentSubKind::CollectionMember)
+        RelationSelector::Containment(mere::model::ContainmentSubKind::CollectionMember)
     );
     canvas.hidden_edges.insert(cell);
     assert!(canvas.visible_link_appearances().is_empty());
@@ -299,8 +299,9 @@ fn retract_selected_relation_removes_the_user_relation() {
 
 #[test]
 fn pair_unrelate_withdraws_a_resource_relation_the_policy_allows_and_leaves_what_it_refuses() {
-    use kernel::graph::{Retraction, SemanticStatementSpec, predicate_iri};
-    use kernel::types::GraphScope;
+    use kernel::graph::Retraction;
+    use mere::model::GraphScope;
+    use mere::model::{SemanticStatementSpec, predicate_iri};
 
     let mut canvas = Canvas::new();
     let a = canvas.open_member_as_new_node(None, "https://pair-a.test");

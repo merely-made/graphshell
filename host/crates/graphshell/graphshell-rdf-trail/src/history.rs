@@ -8,7 +8,7 @@
 //! outlive evicted events (D196). A session is shared or deleted by filtering
 //! on `browsingSession`.
 
-use kernel::graph::edge_data::Traversal;
+use mere::model::edge_data::Traversal;
 use mere::model::{
     PersistedEdge, PersistedEdgeFamily, PersistedTraversalEdgeData, PersistedTraversalMetrics,
 };

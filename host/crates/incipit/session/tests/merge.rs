@@ -15,8 +15,9 @@
 
 use incipit_session::{IncipitSession, IncipitSessions};
 use kernel::graph::apply::GraphDelta;
-use kernel::graph::{Author, Graph};
+use kernel::graph::Graph;
 use kernel::time::wall_clock_now;
+use mere::model::author::Author;
 use mere::session::MergeGraph;
 use muniment::Backend;
 use muniment::{StoreError, WriteOp};
@@ -27,10 +28,11 @@ use std::time::SystemTime;
 use uuid::Uuid;
 type MereSessions<B> = pandect::MereSessions<B, Graph>;
 type GraphSession<B> = pandect::GraphSession<B, Graph>;
-use kernel::graph::resource_content::RESOURCE_PROPERTIES;
-use kernel::graph::{CapturedDelta, Part, ProvenanceSubKind};
-use kernel::persistence::{PersistedResourceFacet, PersistedResourceRecord};
+use kernel::graph::{CapturedDelta, Part};
 use kernel::types::NodeDerivation;
+use mere::model::ProvenanceSubKind;
+use mere::model::resource_content::RESOURCE_PROPERTIES;
+use mere::model::{PersistedResourceFacet, PersistedResourceRecord};
 use muniment::MemoryBackend;
 
 fn person() -> Author {
@@ -85,8 +87,8 @@ fn relate(from: Uuid, to: Uuid) -> CapturedDelta {
     CapturedDelta::ReplayAssertRelationByIds {
         from_id: from.to_string(),
         to_id: to.to_string(),
-        assertion: kernel::graph::EdgeAssertion::Semantic {
-            sub_kind: kernel::graph::SemanticSubKind::Cites,
+        assertion: mere::model::EdgeAssertion::Semantic {
+            sub_kind: mere::model::SemanticSubKind::Cites,
             label: None,
         },
     }
@@ -1723,7 +1725,7 @@ mod refused {
             .edit_now(person(), |graph| {
                 let key = |n| graph.get_node_key_by_id(id(n)).unwrap();
                 let (from, to) = (key(1), key(2));
-                let spec = kernel::graph::SemanticStatementSpec {
+                let spec = mere::model::SemanticStatementSpec {
                     predicate: "https://merge.test/vocab#next".into(),
                     ..Default::default()
                 };

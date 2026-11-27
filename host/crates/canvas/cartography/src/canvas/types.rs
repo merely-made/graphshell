@@ -4,7 +4,8 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 // SPDX-License-Identifier: MPL-2.0
 
-use kernel::graph::{NodeKey, RelationSelector};
+use kernel::graph::NodeKey;
+use mere::model::RelationSelector;
 use scenograph::link::{LinkKey, LinkMarks};
 
 /// A legacy exact directed row filter. This remains for persisted

@@ -15,7 +15,7 @@ publish = true
 # Subgraph derivation (moved from `mere`, D54) needs incipit's forme and Serde;
 # off, mere-view's cone stays free of taffy and petgraph.
 subgraph = ["incipit/arrangement", "dep:serde", "dep:serde_json"]
-query = ["subgraph", "dep:linked-data", "linked-data/query"]
+query = ["subgraph", "mere/query", "mere/bundled-contexts"]
 # Editable query UI is absent from ordinary mere views and the site viewer.
 query-editor = ["query"]
 workbench-editor = ["dep:platen", "platen/workspace-editor"]
@@ -33,7 +33,6 @@ gloss = [
 ]
 
 [dependencies]
-linked-data = { workspace = true, optional = true }
 platen = { path = "../../platen/platen", default-features = false, optional = true }
 cambium = { workspace = true }
 # Graph-only layouts by strategy id, over a kernel graph built from the model,
@@ -42,6 +41,9 @@ cambium = { workspace = true }
 cartography = { workspace = true, features = ["signals"] }
 incipit = { workspace = true }
 kernel = { workspace = true }
+# The engine: the names the kernel re-exported, at their home (engine split
+# D141), and its SPARQL query under `query`, which named it `linked-data`.
+mere.workspace = true
 # The paint leaf's colour type; hosts supply the palette.
 sprigging = { workspace = true }
 uuid = { workspace = true }

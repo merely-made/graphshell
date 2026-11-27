@@ -7,10 +7,12 @@
 use incipit_session::addressable_graph::*;
 use kernel::graph::fixtures::GraphFixtures;
 use kernel::graph::{
-    CoverageLayer, Graph, SemanticStatementSpec,
+    Graph,
     apply::{self, GraphDelta, apply_graph_delta},
 };
-use kernel::persistence::PersistedResourceFacet;
+use mere::model::PersistedResourceFacet;
+use mere::model::SemanticStatementSpec;
+use mere::model::coverage::CoverageLayer;
 use muniment::Backend;
 #[cfg(not(target_arch = "wasm32"))]
 use muniment::MemoryBackend;
@@ -94,7 +96,7 @@ fn source(count: usize) -> (Graph, Vec<Uuid>, Vec<Uuid>) {
                     label: Some("exact retained claim".into()),
                     provenance_iri: Some("urn:test:author".into()),
                     asserted_at_ms: Some(123),
-                    graph_scope: kernel::types::GraphScope::Custom("urn:test:scope".into()),
+                    graph_scope: mere::model::GraphScope::Custom("urn:test:scope".into()),
                     ..Default::default()
                 },
             )
@@ -228,7 +230,7 @@ async fn session_controls<B: ProbeBackend + Clone>(backend: B) {
     let sessions = MereSessions::new(backend.clone());
     let (graph, surfaces, resources) = source(32);
     let mut session = sessions.begin_recorded(
-        kernel::graph::Author::person("resident-author"),
+        mere::model::author::Author::person("resident-author"),
         Some(graph),
     );
     let id = session.id();
@@ -257,7 +259,7 @@ async fn session_controls<B: ProbeBackend + Clone>(backend: B) {
         view.status(GraphAddress::Resource(resources[20])),
         ResidencyStatus::NotLoaded
     );
-    let mut legacy = sessions.begin(kernel::graph::Author::person("legacy"), Some(Graph::new()));
+    let mut legacy = sessions.begin(mere::model::author::Author::person("legacy"), Some(Graph::new()));
     assert!(legacy.publish_resident_checkpoint().await.is_err());
 }
 #[cfg(not(target_arch = "wasm32"))]
@@ -328,15 +330,15 @@ async fn identity_and_refusal_controls<B: ProbeBackend + Clone>(backend: B) {
             is_pinned: true,
         },
     );
-    let author = kernel::graph::Author::person("schema-author");
+    let author = mere::model::author::Author::person("schema-author");
     for (predicate, layer) in [
         (
             "urn:test:surface-custom",
-            kernel::graph::GraphStratum::Surface,
+            mere::model::GraphStratum::Surface,
         ),
         (
             "urn:test:resource-custom",
-            kernel::graph::GraphStratum::Resource,
+            mere::model::GraphStratum::Resource,
         ),
     ] {
         graph
@@ -351,7 +353,7 @@ async fn identity_and_refusal_controls<B: ProbeBackend + Clone>(backend: B) {
             a,
             b,
             "urn:test:surface-custom".into(),
-            kernel::types::GraphScope::Custom("surface-scope".into())
+            mere::model::GraphScope::Custom("surface-scope".into())
         )
         .is_some()
     );
@@ -367,7 +369,7 @@ async fn identity_and_refusal_controls<B: ProbeBackend + Clone>(backend: B) {
                 b,
                 SemanticStatementSpec {
                     predicate: "urn:test:next".into(),
-                    graph_scope: kernel::types::GraphScope::Custom(scope.into()),
+                    graph_scope: mere::model::GraphScope::Custom(scope.into()),
                     provenance_iri: Some("urn:second-author".into()),
                     asserted_at_ms: Some(77),
                     ..Default::default()
@@ -428,13 +430,13 @@ async fn identity_and_refusal_controls<B: ProbeBackend + Clone>(backend: B) {
         view.graph()
             .effective_predicate_stratum("urn:test:surface-custom")
             .unwrap(),
-        kernel::graph::GraphStratum::Surface
+        mere::model::GraphStratum::Surface
     );
     assert_eq!(
         view.graph()
             .effective_predicate_stratum("urn:test:resource-custom")
             .unwrap(),
-        kernel::graph::GraphStratum::Resource
+        mere::model::GraphStratum::Resource
     );
     assert_eq!(
         view.demand(GraphAddress::Resource(frozen)).await.unwrap(),
@@ -764,10 +766,10 @@ fn live_allocation_scoped_partial_vs_full() {
 
 async fn p3_context_and_cache_controls<B: ProbeBackend + Clone>(backend: B) {
     use incipit_session::{IncipitSession, IncipitSessions};
-    use kernel::graph::{
-        CoverageLimit, CoverageNote, PendingLink, PendingLinkRetention, ResourceNode,
-    };
-    use kernel::persistence::PersistedResourceRecord;
+    use kernel::graph::{PendingLink, PendingLinkRetention};
+    use mere::model::PersistedResourceRecord;
+    use mere::model::coverage::{CoverageLimit, CoverageNote};
+    use mere::model::resource::ResourceNode;
     let (mut graph, surfaces, resources) = source(32);
     graph.set_pending_link_retention(PendingLinkRetention::UntilPurged);
     for target in [
@@ -786,7 +788,7 @@ async fn p3_context_and_cache_controls<B: ProbeBackend + Clone>(backend: B) {
     }
     let sessions = MereSessions::new(backend.clone());
     let mut session =
-        sessions.begin_recorded(kernel::graph::Author::person("pending-owner"), Some(graph));
+        sessions.begin_recorded(mere::model::author::Author::person("pending-owner"), Some(graph));
     let id = session.id();
     let graph_id = *session.manifest().root_graph_id.as_uuid();
     session.publish_resident_checkpoint().await.unwrap();
@@ -850,7 +852,7 @@ async fn p3_context_and_cache_controls<B: ProbeBackend + Clone>(backend: B) {
     let mut writer = sessions.open(id).await.unwrap();
     writer
         .apply_deltas(
-            kernel::graph::Author::person("editor"),
+            mere::model::author::Author::person("editor"),
             vec![GraphDelta::SetNodeBody {
                 key: writer.graph().get_node_key_by_id(surfaces[20]).unwrap(),
                 body: Some("unloaded-only edit".into()),
@@ -874,7 +876,7 @@ async fn p3_context_and_cache_controls<B: ProbeBackend + Clone>(backend: B) {
     let missing = resource.id();
     writer
         .apply_deltas(
-            kernel::graph::Author::person("editor"),
+            mere::model::author::Author::person("editor"),
             vec![GraphDelta::ReplaySetResourceRecordById {
                 resource_id: missing,
                 record: Some(PersistedResourceRecord {
@@ -907,7 +909,7 @@ async fn p3_context_and_cache_controls<B: ProbeBackend + Clone>(backend: B) {
     let key = writer.graph().get_node_key_by_id(surfaces[0]).unwrap();
     writer
         .apply_deltas(
-            kernel::graph::Author::person("editor"),
+            mere::model::author::Author::person("editor"),
             vec![GraphDelta::SetNodeBody {
                 key,
                 body: Some("resident edit".into()),
@@ -935,7 +937,7 @@ async fn p3_context_and_cache_controls<B: ProbeBackend + Clone>(backend: B) {
     let old_revision = view.graph().revision();
     let old_observation = view.graph().semantic_observation_revision();
     writer
-        .edit_now(kernel::graph::Author::person("purger"), |g| {
+        .edit_now(mere::model::author::Author::person("purger"), |g| {
             g.purge_pending_links()
         })
         .unwrap();

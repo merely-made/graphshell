@@ -50,7 +50,7 @@ pub const BRIDGE_CHANNEL: &str = "bridge";
 #[derive(Clone, Debug, PartialEq)]
 pub struct CoveredScene {
     pub scene: Scene,
-    pub coverage: kernel::graph::CoverageNote,
+    pub coverage: mere::model::coverage::CoverageNote,
 }
 
 impl std::ops::Deref for CoveredScene {

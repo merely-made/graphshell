@@ -7,7 +7,8 @@
 use incipit_session::{
     IncipitSession, IncipitSessions, addressable_graph::GraphAddress, live_graph::*,
 };
-use kernel::graph::{Author, Graph, apply::add_node};
+use kernel::graph::{Graph, apply::add_node};
+use mere::model::author::Author;
 use muniment::MemoryBackend;
 type MereSessions<B> = pandect::MereSessions<B, kernel::graph::Graph>;
 type GraphSession<B> = pandect::GraphSession<B, kernel::graph::Graph>;
@@ -121,9 +122,10 @@ fn later_missing_target_rejects_entire_batch_and_capture() {
 
 use incipit_session::addressable_graph::AddressableGraphStore;
 use kernel::graph::{
-    ArrangementSubKind, ContainmentSubKind, EdgeAssertion, SemanticSubKind, Seq,
+    Seq,
     apply::{GraphDelta, apply_graph_delta},
 };
+use mere::model::{ArrangementSubKind, ContainmentSubKind, EdgeAssertion, SemanticSubKind};
 use pandect::{ChangeKind, GraphId, GraphSessionManifest, SessionError, SessionId};
 use serde_json::{Value, json};
 use std::{
@@ -188,15 +190,15 @@ fn fixture() -> (Graph, Uuid, Uuid) {
             .try_assert_semantic_statement_by_resource_ids(
                 ra,
                 rb,
-                kernel::graph::SemanticStatementSpec {
-                    predicate: kernel::graph::predicate_iri(SemanticSubKind::Cites).into(),
+                mere::model::SemanticStatementSpec {
+                    predicate: mere::model::predicate_iri(SemanticSubKind::Cites).into(),
                     recognized_sub_kind: Some(SemanticSubKind::Cites),
                     label: Some(label.into()),
-                    basis: kernel::types::AssertionBasis {
+                    basis: mere::model::AssertionBasis {
                         note: Some(label.into()),
                         ..Default::default()
                     },
-                    graph_scope: kernel::types::GraphScope::Custom("urn:scope:retained".into()),
+                    graph_scope: mere::model::GraphScope::Custom("urn:scope:retained".into()),
                     provenance_iri: Some(Author::person("bob").asserter_iri()),
                     asserted_at_ms: Some(55),
                 },

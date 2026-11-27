@@ -31,7 +31,9 @@ use incipit::forme::{
     GraphMemberId, SubgraphBinding, SubgraphId, SubgraphKind, SubgraphMemberDelta, SubgraphRef,
     SubgraphSpec,
 };
-use kernel::graph::{CoverageNote, EdgeFamily, Graph, RelationSelector};
+use kernel::graph::Graph;
+use mere::model::coverage::CoverageNote;
+use mere::model::{EdgeFamily, RelationSelector};
 use serde::{Deserialize, Serialize};
 
 pub mod classifier;
@@ -462,7 +464,7 @@ pub fn try_derive_members(graph: &Graph, spec: &SubgraphSpec) -> Result<DerivedM
         #[cfg(feature = "query")]
         {
             let result =
-                linked_data::query::sparql_resource_members(graph, query, member_variable)?;
+                mere::query::sparql_resource_members(graph, query, member_variable)?;
             return Ok(DerivedMembers {
                 members: result.members,
                 missing_resources: result.missing_resources,

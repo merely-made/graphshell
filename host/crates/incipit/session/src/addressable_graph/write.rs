@@ -5,8 +5,10 @@
 // SPDX-License-Identifier: MPL-2.0
 
 use super::*;
-use kernel::graph::{CoverageLayer, ResourceNode};
-use kernel::persistence::{GraphSnapshot, PersistedEdge, PersistedShownResource};
+use kernel::persistence::{GraphSnapshot, PersistedShownResource};
+use mere::model::PersistedEdge;
+use mere::model::coverage::CoverageLayer;
+use mere::model::resource::ResourceNode;
 use muniment::WriteOp;
 use std::collections::HashMap;
 
@@ -261,7 +263,7 @@ impl<B: Backend> AddressableGraphStore<B> {
             let id = ResourceNode::for_term(&record.canonical_iri).id();
             let edges = links.resource_edges(&id.to_string());
             let declaration = record.facets.iter().any(|f| {
-                f.facet == kernel::graph::predicate_declarations::PREDICATE_DECLARATIONS_FACET
+                f.facet == mere::model::predicate_declarations::PREDICATE_DECLARATIONS_FACET
             });
             self.append_node(
                 &mut catalog,

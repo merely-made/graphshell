@@ -2316,7 +2316,7 @@ mod tests {
     use djinn::door::app_admission::AllowedAppRoutes;
     use ostiary::app_admission::{AppHello, AppRouteId};
     use graphshell_host::endpoint_catalog::{ResidentEndpointCatalog, ResidentEndpointSession};
-    use kernel::graph::{ContainmentSubKind, EdgeAssertion, SemanticSubKind};
+    use mere::model::{ContainmentSubKind, EdgeAssertion, SemanticSubKind};
     use mere_overmap::route as mere_route;
     use mere_view::{MereViewModel, MereViewRequest, SessionStep};
     use pandect::{Change, ChangeKind, mere_dir};
@@ -5090,17 +5090,17 @@ mod tests {
         let source_kinds: Vec<_> = material.relations().map(|r| r.kind).collect();
         assert_eq!(source_kinds.len(), 3);
         assert!(
-            source_kinds.contains(&kernel::graph::RelationKind::Containment(
+            source_kinds.contains(&mere::model::RelationKind::Containment(
                 ContainmentSubKind::UserFolder
             ))
         );
         assert!(
-            source_kinds.contains(&kernel::graph::RelationKind::Semantic(
+            source_kinds.contains(&mere::model::RelationKind::Semantic(
                 SemanticSubKind::Hyperlink
             ))
         );
         assert!(
-            source_kinds.contains(&kernel::graph::RelationKind::Semantic(
+            source_kinds.contains(&mere::model::RelationKind::Semantic(
                 SemanticSubKind::UserGrouped
             ))
         );

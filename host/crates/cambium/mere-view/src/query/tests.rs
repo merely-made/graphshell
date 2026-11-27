@@ -5,11 +5,12 @@
 // SPDX-License-Identifier: MPL-2.0
 use super::*;
 use kernel::graph::apply::add_node;
-use kernel::graph::{
-    ContainmentSubKind, CoverageLayer, CoverageLimit, EdgeAssertion, GraphStratum, RelationKind,
-    SemanticStatementSpec, SemanticSubKind,
+use mere::model::coverage::{CoverageLayer, CoverageLimit};
+use mere::model::{
+    ContainmentSubKind, EdgeAssertion, GraphStratum, RelationKind, SemanticStatementSpec,
+    SemanticSubKind,
 };
-use kernel::types::{AssertionBasis, GraphScope};
+use mere::model::{AssertionBasis, GraphScope};
 
 fn fixture() -> (Graph, Uuid, Uuid, Uuid) {
     let mut graph = Graph::new();
@@ -246,7 +247,7 @@ fn unavailable_and_empty_membership_keep_coverage_and_do_not_mint_appearances() 
         member_variable: "member".into(),
     };
     let empty_id = save_spec(&mut graph, None, None, Uuid::from_u128(13), &empty).unwrap();
-    graph.set_known_coverage(kernel::graph::CoverageNote {
+    graph.set_known_coverage(mere::model::coverage::CoverageNote {
         limits: vec![CoverageLimit::new(
             CoverageLayer::Synchronization,
             "Receiver is not synchronized",
@@ -333,7 +334,7 @@ fn source_identity_parallel_assertions_tags_navigation_and_reopen_survive_projec
         .tag_resource_with_concept(
             resource,
             "urn:tag:alice",
-            kernel::graph::resource_tags::TagConcept {
+            mere::model::resource_content::TagConcept {
                 owner_iri: "urn:author:alice".into(),
                 label: "Music".into(),
             },
@@ -343,7 +344,7 @@ fn source_identity_parallel_assertions_tags_navigation_and_reopen_survive_projec
         .tag_resource_with_concept(
             resource,
             "urn:tag:bob",
-            kernel::graph::resource_tags::TagConcept {
+            mere::model::resource_content::TagConcept {
                 owner_iri: "urn:author:bob".into(),
                 label: "Music".into(),
             },
@@ -356,7 +357,7 @@ fn source_identity_parallel_assertions_tags_navigation_and_reopen_survive_projec
         .find(|edge| {
             edge.retained_assertions()
                 .iter()
-                .any(|assertion| assertion.predicate != kernel::graph::resource::TAGGED_WITH_IRI)
+                .any(|assertion| assertion.predicate != mere::model::resource::TAGGED_WITH_IRI)
         })
         .unwrap();
     let mut parallel = original.clone();
@@ -534,7 +535,7 @@ fn receiver_member_column_and_owner_scoped_tag_filters_keep_their_meaning() {
         .tag_resource_with_concept(
             resource,
             "urn:tag:alice",
-            kernel::graph::resource_tags::TagConcept {
+            mere::model::resource_content::TagConcept {
                 owner_iri: "urn:author:alice".into(),
                 label: "Music".into(),
             },
@@ -562,7 +563,7 @@ fn receiver_member_column_and_owner_scoped_tag_filters_keep_their_meaning() {
         "Alice Music",
         format!(
             "SELECT ?member WHERE {{ ?member <{}> ?tag . FILTER(STR(?tag) = \"urn:tag:alice\") }}",
-            kernel::graph::resource::TAGGED_WITH_IRI
+            mere::model::resource::TAGGED_WITH_IRI
         ),
     );
     let tag_owner = save_spec(&mut graph, None, None, Uuid::from_u128(35), &tag_query).unwrap();

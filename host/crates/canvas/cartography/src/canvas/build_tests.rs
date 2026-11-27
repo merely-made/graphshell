@@ -11,10 +11,9 @@ use kernel::graph::fixtures::GraphFixtures;
 use std::collections::{HashMap, HashSet};
 
 use euclid::default::Point2D;
-use kernel::graph::{
-    ContainmentSubKind, EdgeAssertion, Graph, NodeKey, RelationSelector, SemanticSubKind,
-};
+use kernel::graph::{Graph, NodeKey};
 use layout_dom_api::{LayoutDom, LayoutDomMut};
+use mere::model::{ContainmentSubKind, EdgeAssertion, RelationSelector, SemanticSubKind};
 
 use crate::canvas::build::*;
 use crate::canvas::seiche_bridge::{build_simulation, visible_relation_edges};
@@ -256,12 +255,12 @@ fn ticking_moves_nodes_from_the_seed() {
 
 #[test]
 fn independent_assertions_group_into_one_drawn_link() {
-    use kernel::graph::SemanticStatementSpec;
+    use mere::model::SemanticStatementSpec;
     let mut graph = Graph::new();
     let a = graph.add_node("https://a.test/".into(), Default::default());
     let b = graph.add_node("https://b.test/".into(), Default::default());
     let assertion = |asserter: &str| SemanticStatementSpec {
-        predicate: kernel::graph::predicate_iri(SemanticSubKind::Cites).into(),
+        predicate: mere::model::predicate_iri(SemanticSubKind::Cites).into(),
         recognized_sub_kind: Some(SemanticSubKind::Cites),
         provenance_iri: Some(asserter.into()),
         ..Default::default()
@@ -289,10 +288,11 @@ fn independent_assertions_group_into_one_drawn_link() {
 }
 
 pub(super) fn shown_content_graph() -> (Graph, [NodeKey; 5]) {
-    use kernel::graph::ResourceNode;
-    use kernel::persistence::{
+    use kernel::persistence::PersistedShownResource;
+    use mere::model::resource::ResourceNode;
+    use mere::model::{
         PersistedEdge, PersistedEdgeFamily, PersistedResourceRecord, PersistedSemanticEdgeData,
-        PersistedSemanticStatement, PersistedSemanticSubKind, PersistedShownResource,
+        PersistedSemanticStatement, PersistedSemanticSubKind,
     };
     let mut graph = Graph::new();
     let keys = ["a", "alias-a", "b", "alias-b", "unbound"].map(|suffix| {
@@ -327,14 +327,14 @@ pub(super) fn shown_content_graph() -> (Graph, [NodeKey; 5]) {
         .collect();
     let claim = |id: &str, kind| PersistedSemanticStatement {
         statement_id: id.into(),
-        predicate: kernel::graph::predicate_iri(kind).into(),
+        predicate: mere::model::predicate_iri(kind).into(),
         recognized_sub_kind: Some(match kind {
             SemanticSubKind::Cites => PersistedSemanticSubKind::Cites,
             SemanticSubKind::Quotes => PersistedSemanticSubKind::Quotes,
             _ => unreachable!(),
         }),
         label: Some(id.into()),
-        basis: kernel::types::AssertionBasis {
+        basis: mere::model::AssertionBasis {
             note: Some(id.into()),
             ..Default::default()
         },

@@ -18,10 +18,9 @@ use std::sync::Arc;
 
 use kernel::geometry::PortablePoint;
 use kernel::graph::apply::{GraphDelta, add_node, apply_graph_delta};
-use kernel::graph::{
-    EdgeAssertion, EdgeFamily, Graph, RelationKind, RelationSelector, SemanticStatement,
-};
-use kernel::types::{AssertionBasis, GraphScope};
+use kernel::graph::Graph;
+use mere::model::{AssertionBasis, GraphScope};
+use mere::model::{EdgeAssertion, EdgeFamily, RelationKind, RelationSelector, SemanticStatement};
 use muniment::Backend;
 use pandect::SAVED_SCENE_FACET_V3;
 use pandect::access::{ACCESS_HISTORY_FACET, AccessHistory};

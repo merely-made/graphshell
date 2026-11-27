@@ -16,7 +16,8 @@ use incipit_session::addressable_graph::{AddressableGraphStore, ResidencyPolicy,
 use incipit_session::{IncipitSession, IncipitSessions};
 use kernel::graph::Graph;
 use kernel::graph::apply::GraphDelta;
-use kernel::graph::{Author, CapturedDelta};
+use kernel::graph::CapturedDelta;
+use mere::model::author::Author;
 use muniment::{Backend, MemoryBackend, StoreError, TransactFn, WriteOp};
 type MereSessions<B> = pandect::MereSessions<B, kernel::graph::Graph>;
 type GraphSession<B> = pandect::GraphSession<B, kernel::graph::Graph>;

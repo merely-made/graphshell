@@ -5,7 +5,8 @@
 // SPDX-License-Identifier: MPL-2.0
 //! The exact relation-cell input seam shared by the controller and inspector.
 //! Cell multiplicity is not assertion multiplicity or a measured force value.
-use kernel::graph::{EdgeFamily, Graph, GraphStratum, NodeKey, RelationKind, RelationSelector};
+use kernel::graph::{Graph, NodeKey};
+use mere::model::{EdgeFamily, GraphStratum, RelationKind, RelationSelector};
 use scenograph::link::{LinkKey, LinkLegacyMember, LinkSource};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};

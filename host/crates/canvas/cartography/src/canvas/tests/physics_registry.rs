@@ -13,7 +13,8 @@
 
 use std::collections::BTreeSet;
 
-use kernel::graph::{EdgeFamily, NodeKey, RelationSelector, SemanticSubKind};
+use kernel::graph::NodeKey;
+use mere::model::{EdgeFamily, RelationSelector, SemanticSubKind};
 
 use super::arrangement_goldens::topic_fixture;
 use crate::canvas::Canvas;

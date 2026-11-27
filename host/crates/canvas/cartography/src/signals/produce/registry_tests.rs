@@ -16,7 +16,8 @@ use crate::{LayoutStrategy, ORDER_TIMELINE, ProjectionRequest, TargetSize, ViewI
 use kernel::geometry::PortablePoint;
 use kernel::graph::apply::{GraphDelta, add_node, apply_graph_delta};
 use kernel::graph::fixtures::GraphFixtures;
-use kernel::graph::{EdgeAssertion, Graph, NodeKey, SemanticSubKind};
+use kernel::graph::{Graph, NodeKey};
+use mere::model::{EdgeAssertion, SemanticSubKind};
 use uuid::Uuid;
 
 use super::{BridgeMetric, ChannelRegistry, ImportanceMetric, RegistryRuns, recency};

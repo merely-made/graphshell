@@ -153,7 +153,7 @@ pub(crate) fn visible_relation_topology_with_assertion_hides(
         });
     let traversals = graph
         .projected_relations()
-        .filter(|(_, relation)| relation.kind == kernel::graph::RelationKind::Traversal)
+        .filter(|(_, relation)| relation.kind == mere::model::RelationKind::Traversal)
         .map(|(key, relation)| (key, relation, VisibleRelationOrigin::Traversal));
     let rows = assertions
         .chain(traversals)
@@ -469,9 +469,9 @@ mod tests {
 
 #[cfg(test)]
 mod assertion_hide_controls {
+    use mere::model::AssertionBasis;
+    use mere::model::{ContainmentSubKind, RelationKind, SemanticStatementSpec};
     use super::*;
-    use kernel::graph::{ContainmentSubKind, RelationKind, SemanticStatementSpec};
-    use kernel::types::AssertionBasis;
 
     #[test]
     fn exact_hide_removes_one_reason_spring_without_hiding_its_same_kind_sibling() {

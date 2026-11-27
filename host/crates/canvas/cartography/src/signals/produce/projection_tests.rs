@@ -6,9 +6,8 @@
 
 use super::*;
 use kernel::graph::apply::{GraphDelta, apply_graph_delta};
-use kernel::graph::{
-    CapturedDelta, EdgeAssertion, NavigationTrigger, ProvenanceSubKind, SemanticSubKind,
-};
+use kernel::graph::CapturedDelta;
+use mere::model::{EdgeAssertion, NavigationTrigger, ProvenanceSubKind, SemanticSubKind};
 
 #[test]
 fn projected_signal_buckets_keep_surface_edges_aliases_and_numerical_parity() {

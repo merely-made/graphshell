@@ -7,8 +7,9 @@
 //! Resource-owned query definitions and read-only projections of held strata.
 use incipit::forme::{SubgraphKind, SubgraphSpec};
 use kernel::graph::apply::{GraphDelta, apply_graph_delta};
-use kernel::graph::{Graph, ResourceNode};
-use kernel::persistence::{PersistedResourceFacet, PersistedResourceRecord};
+use kernel::graph::Graph;
+use mere::model::resource::ResourceNode;
+use mere::model::{PersistedResourceFacet, PersistedResourceRecord};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 

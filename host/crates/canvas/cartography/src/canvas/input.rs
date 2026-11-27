@@ -195,7 +195,7 @@ impl Canvas {
 
     /// Open `url` as a **brand-new node** (a new browsing surface) linked back to
     /// `origin` (the source node, by member id) with a navigated-from
-    /// [`Semantic::Hyperlink`](kernel::graph::EdgeAssertion) edge. Unlike in-place
+    /// [`Semantic::Hyperlink`](mere::model::EdgeAssertion) edge. Unlike in-place
     /// navigation this always mints a node (no URL dedup — duplicates are welcome
     /// in the node-identity model); unlike [`visit`](Self::visit) the origin is
     /// explicit (the focused tile in Tree, the selection in Cartography). An

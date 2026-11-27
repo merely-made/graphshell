@@ -107,7 +107,7 @@ fn lifted_billboard_center_remains_marquee_selectable() {
         .graph
         .declare_predicate(
             "urn:test:marquee-height",
-            kernel::graph::GraphStratum::Surface,
+            mere::model::GraphStratum::Surface,
         )
         .unwrap();
     canvas
@@ -115,7 +115,7 @@ fn lifted_billboard_center_remains_marquee_selectable() {
         .try_assert_semantic_statement(
             key,
             keys[1],
-            kernel::graph::SemanticStatementSpec {
+            mere::model::SemanticStatementSpec {
                 predicate: "urn:test:marquee-height".into(),
                 ..Default::default()
             },

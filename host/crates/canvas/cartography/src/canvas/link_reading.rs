@@ -9,8 +9,10 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use kernel::graph::{CoverageLayer, EdgeFamily, EdgePayload, Graph, GraphStratum, RelationKey};
-use kernel::types::GraphScope;
+use kernel::graph::{Graph, RelationKey};
+use mere::model::GraphScope;
+use mere::model::coverage::CoverageLayer;
+use mere::model::{EdgeFamily, EdgePayload, GraphStratum};
 use scenograph::link::{
     LinkAssertion, LinkAssertionBasis, LinkAssertionMethod, LinkBucket, LinkCoverage,
     LinkCoverageLayer, LinkCoverageLimit, LinkEndpoint, LinkGraphScope, LinkKey, LinkLegacyFamily,
@@ -255,12 +257,12 @@ pub fn read_link_with_options(
                 projected_endpoint_id(&source_to, portable_stratum),
             );
             let mut assertions = Vec::new();
-            let mut add_assertion = |statement: &kernel::graph::SemanticStatement| {
+            let mut add_assertion = |statement: &mere::model::SemanticStatement| {
                 assertions.push(LinkAssertion {
                     id: statement.statement_id.clone(),
                     predicate: statement.predicate.clone(),
                     recognized_kind: match statement.relation_kind() {
-                        kernel::graph::RelationKind::Semantic(kind) => Some(serialized_name(&kind)),
+                        mere::model::RelationKind::Semantic(kind) => Some(serialized_name(&kind)),
                         _ => None,
                     },
                     label: statement.label.clone(),

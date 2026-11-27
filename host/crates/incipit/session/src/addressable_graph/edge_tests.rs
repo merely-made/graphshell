@@ -10,8 +10,8 @@
 //! D175).
 use super::tests::linked;
 use super::*;
-use kernel::graph::SemanticStatementSpec;
 use kernel::graph::apply::{self, GraphDelta, apply_graph_delta};
+use mere::model::SemanticStatementSpec;
 use muniment::MemoryBackend;
 use std::collections::BTreeSet;
 
@@ -325,7 +325,7 @@ fn an_insert_between_existing_nodes_writes_only_its_two_records() {
     // A new pair from the Resource that sorts first, so version 1's index
     // shifts for nearly every edge after it.
     let mut ids: Vec<Uuid> = (snapshot.resources.iter())
-        .map(|r| kernel::graph::ResourceNode::for_term(&r.canonical_iri).id())
+        .map(|r| mere::model::resource::ResourceNode::for_term(&r.canonical_iri).id())
         .collect();
     ids.sort();
     let pairs: BTreeSet<(String, String)> = (snapshot.resource_edges.iter())

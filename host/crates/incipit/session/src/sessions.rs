@@ -20,8 +20,10 @@
 
 use std::time::SystemTime;
 
-use kernel::graph::{Author, CoverageLayer, Graph};
+use kernel::graph::Graph;
 use kernel::persistence::GraphSnapshot;
+use mere::model::author::Author;
+use mere::model::coverage::CoverageLayer;
 use muniment::Backend;
 use pandect::graph_session::LegacyTransactionBackend;
 use pandect::{

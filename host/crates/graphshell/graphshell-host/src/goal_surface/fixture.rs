@@ -11,7 +11,8 @@
 use super::RetainedPages;
 use eidetic::PageTextStore;
 use kernel::graph::apply::{GraphDelta, add_node, apply_graph_delta, assert_relation};
-use kernel::graph::{EdgeAssertion, Graph, SemanticSubKind};
+use kernel::graph::Graph;
+use mere::model::{EdgeAssertion, SemanticSubKind};
 use muniment::MemoryBackend;
 
 pub const OWNER: &str = "graphshell-goal-fixture";

@@ -150,6 +150,8 @@ graphshell-host = { workspace = true, features = ["native", "coop", "mere-host",
 mere-overmap.workspace = true
 # Exact signed Knot relation intake into durable Mere sessions.
 kernel.workspace = true
+# The names the kernel re-exported from the engine, at their home (engine split D141).
+mere.workspace = true
 # The resident's own native dialogs (`src/identity_ui.rs`), moved from
 # graphshell with the keeper adapters (dramatis repo plan, D15).
 # The checked Linux confirmation API belongs to this vendored supplier. Keep it

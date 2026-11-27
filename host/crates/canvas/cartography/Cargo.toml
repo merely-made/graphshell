@@ -123,6 +123,8 @@ canvas = [
 
 [dependencies]
 kernel.workspace = true
+# The names the kernel re-exported from the engine, at their home (engine split D141).
+mere.workspace = true
 sceno.workspace = true
 scenomise.workspace = true
 serde = { version = "1.0", features = ["derive"] }

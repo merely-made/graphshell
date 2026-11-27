@@ -10,7 +10,8 @@
 use crate::subgraph::*;
 use incipit::forme::{SubgraphBinding, SubgraphKind, SubgraphSpec};
 use kernel::graph::fixtures::GraphFixtures;
-use kernel::graph::{EdgeFamily, Graph};
+use kernel::graph::Graph;
+use mere::model::EdgeFamily;
 
 #[test]
 fn default_session_seeds_one_subgraph() {
@@ -85,7 +86,7 @@ fn add_member_grows_the_roster_and_dedups() {
 #[test]
 fn linked_component_subgraph_derives_and_reconciles_on_drift() {
     use euclid::default::Point2D;
-    use kernel::graph::{EdgeAssertion, SemanticSubKind};
+    use mere::model::{EdgeAssertion, SemanticSubKind};
     let mut graph = Graph::new();
     let a = graph.add_node("https://a".to_string(), Point2D::new(0.0, 0.0));
     let b = graph.add_node("https://b".to_string(), Point2D::new(1.0, 0.0));
@@ -138,7 +139,7 @@ fn linked_component_subgraph_derives_and_reconciles_on_drift() {
 #[test]
 fn linked_ego_subgraph_is_radius_bounded() {
     use euclid::default::Point2D;
-    use kernel::graph::{EdgeAssertion, SemanticSubKind};
+    use mere::model::{EdgeAssertion, SemanticSubKind};
     let mut graph = Graph::new();
     let a = graph.add_node("https://a".to_string(), Point2D::new(0.0, 0.0));
     let b = graph.add_node("https://b".to_string(), Point2D::new(1.0, 0.0));
@@ -175,7 +176,7 @@ fn linked_ego_subgraph_is_radius_bounded() {
 #[test]
 fn reconcile_all_updates_linked_rosters_on_drift() {
     use euclid::default::Point2D;
-    use kernel::graph::{EdgeAssertion, SemanticSubKind};
+    use mere::model::{EdgeAssertion, SemanticSubKind};
     let mut graph = Graph::new();
     let a = graph.add_node("https://a".to_string(), Point2D::new(0.0, 0.0));
     let b = graph.add_node("https://b".to_string(), Point2D::new(1.0, 0.0));
@@ -252,7 +253,7 @@ fn toggle_family_selector_mutates_a_linked_specs_selectors_and_is_a_noop_elsewhe
 #[test]
 fn toggle_family_selector_narrows_a_linked_subgraphs_derivation() {
     use euclid::default::Point2D;
-    use kernel::graph::{ContainmentSubKind, EdgeAssertion, SemanticSubKind};
+    use mere::model::{ContainmentSubKind, EdgeAssertion, SemanticSubKind};
     let mut graph = Graph::new();
     let a = graph.add_node("https://a".to_string(), Point2D::new(0.0, 0.0));
     let b = graph.add_node("https://b".to_string(), Point2D::new(1.0, 0.0));
@@ -315,7 +316,7 @@ fn ab_graph_with_isolated_c() -> (
 }
 
 fn hyperlink(g: &mut Graph, x: kernel::graph::NodeKey, y: kernel::graph::NodeKey) {
-    use kernel::graph::{EdgeAssertion, SemanticSubKind};
+    use mere::model::{EdgeAssertion, SemanticSubKind};
     g.assert_relation(
         x,
         y,

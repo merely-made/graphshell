@@ -342,7 +342,7 @@ fn relation_tag_round_trips_through_disk() {
     let from = Uuid::from_u128(1);
     let to = Uuid::from_u128(2);
     let cites_tag =
-        kernel::graph::RelationKind::Semantic(kernel::graph::SemanticSubKind::Cites).tag();
+        mere::model::RelationKind::Semantic(mere::model::SemanticSubKind::Cites).tag();
     original
         .hidden_relations
         .insert(HiddenRelationRecord::new(from, to, cites_tag));
@@ -350,9 +350,9 @@ fn relation_tag_round_trips_through_disk() {
     let restored = load_view_intent(&dir, &frame, 1).unwrap().unwrap();
     let record = restored.hidden_relations.iter().next().unwrap();
     assert_eq!(
-        kernel::graph::RelationKind::from_tag(record.relation_tag),
-        Some(kernel::graph::RelationKind::Semantic(
-            kernel::graph::SemanticSubKind::Cites,
+        mere::model::RelationKind::from_tag(record.relation_tag),
+        Some(mere::model::RelationKind::Semantic(
+            mere::model::SemanticSubKind::Cites,
         )),
     );
     fs::remove_dir_all(&dir).ok();

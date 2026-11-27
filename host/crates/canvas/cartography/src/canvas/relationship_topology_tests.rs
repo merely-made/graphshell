@@ -5,11 +5,11 @@
 // SPDX-License-Identifier: MPL-2.0
 use super::*;
 use kernel::graph::apply::{GraphDelta, add_node, apply_graph_delta};
-use kernel::graph::{
+use mere::model::GraphScope;
+use mere::model::{
     ContainmentSubKind, RelationKind, SemanticStatement, SemanticStatementSpec, SemanticSubKind,
     predicate_iri,
 };
-use kernel::types::GraphScope;
 fn fixture() -> (Graph, [Uuid; 4]) {
     let mut graph = Graph::new();
     let ids = [1, 2, 3, 4].map(Uuid::from_u128);

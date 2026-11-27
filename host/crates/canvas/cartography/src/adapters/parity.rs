@@ -21,7 +21,8 @@ use std::collections::HashMap;
 
 use kernel::geometry::PortablePoint;
 use kernel::graph::fixtures::GraphFixtures;
-use kernel::graph::{EdgeAssertion, Graph, NodeKey, SemanticSubKind};
+use kernel::graph::{Graph, NodeKey};
+use mere::model::{EdgeAssertion, SemanticSubKind};
 use uuid::Uuid;
 
 use super::*;

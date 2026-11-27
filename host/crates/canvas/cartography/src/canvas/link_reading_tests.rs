@@ -4,12 +4,12 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 // SPDX-License-Identifier: MPL-2.0
 
-use super::*;
-use kernel::graph::{
+use mere::model::{
     ArrangementSubKind, ContainmentSubKind, ImportedSubKind, ProvenanceSubKind, RelationKind,
     SemanticStatement, SemanticStatementSpec, SemanticSubKind, predicate_iri,
 };
-use kernel::types::{AssertionBasis, AssertionMethod, GraphScope};
+use mere::model::{AssertionBasis, AssertionMethod, GraphScope};
+use super::*;
 
 #[test]
 fn reading_keys_each_stratum_separately_and_preserves_assertion_source_facts() {
@@ -241,8 +241,8 @@ fn explicit_history_reads_first_last_withdrawal_and_basis_but_default_is_held_on
 fn portable_link_reads_bound_held_work_and_materialize_substantial_history() {
     use std::time::{Duration, Instant};
 
-    use kernel::persistence::{PersistedEdge, PersistedEdgeFamily, PersistedSemanticStatement};
-    use kernel::types::{AssertionBasis, AssertionMethod, AssertionWithdrawal};
+    use mere::model::{AssertionBasis, AssertionMethod, AssertionWithdrawal};
+    use mere::model::{PersistedEdge, PersistedEdgeFamily, PersistedSemanticStatement};
 
     // Declared acceptance budgets for this debug portable-reader probe:
     // 16 held reads, nearest-rank p95 <100 ms; one explicit history materialization <2 s;
@@ -489,9 +489,9 @@ fn portable_link_reads_bound_held_work_and_materialize_substantial_history() {
 #[test]
 fn summary_free_read_keeps_traversal_members_without_copying_event_history() {
     let mut payload = EdgePayload::new();
-    payload.push_traversal(kernel::graph::edge_data::Traversal::at(
+    payload.push_traversal(mere::model::edge_data::Traversal::at(
         9,
-        kernel::graph::edge_taxonomy::NavigationTrigger::LinkClick,
+        mere::model::NavigationTrigger::LinkClick,
         "urn:test:recorder",
         uuid::Uuid::from_u128(0x5e55),
     ));
@@ -509,11 +509,11 @@ fn summary_free_read_keeps_traversal_members_without_copying_event_history() {
     // inputs normalized from old snapshots. These records never duplicate
     // themselves as compatibility members or family summaries.
     for assertion in [
-        kernel::graph::EdgeAssertion::Semantic {
-            sub_kind: kernel::graph::SemanticSubKind::Cites,
+        mere::model::EdgeAssertion::Semantic {
+            sub_kind: mere::model::SemanticSubKind::Cites,
             label: Some("exact note".into()),
         },
-        kernel::graph::EdgeAssertion::Containment {
+        mere::model::EdgeAssertion::Containment {
             sub_kind: ContainmentSubKind::CollectionMember,
         },
     ] {

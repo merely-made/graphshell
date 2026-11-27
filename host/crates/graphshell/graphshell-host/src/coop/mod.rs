@@ -17,7 +17,8 @@ pub use crate::invitation::{Card, Contact, Invitation, InvitationTerms, Signer};
 use insigne::delegation::{
     CapabilityScope, SignedDelegationCertificate, SignedDelegationRevocation,
 };
-use kernel::graph::{Author, apply::GraphDelta};
+use kernel::graph::apply::GraphDelta;
+use mere::model::author::Author;
 use muniment::JsonSlots;
 use pandect::SessionId;
 use personae::IdentityProvider;

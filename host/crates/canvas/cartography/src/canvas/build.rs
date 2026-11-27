@@ -17,10 +17,9 @@ use std::sync::LazyLock;
 
 use kernel::geometry::PortablePoint;
 use kernel::graph::apply::{self as graph_apply};
-use kernel::graph::{
-    EdgeAssertion, FieldExtent, FieldId, Graph, NodeKey, RelationKind, SemanticSubKind,
-};
+use kernel::graph::{FieldExtent, FieldId, Graph, NodeKey};
 use layout_dom_api::{LayoutDom, LayoutDomMut, LocalName, Namespace, QualName};
+use mere::model::{EdgeAssertion, RelationKind, SemanticSubKind};
 use paint_list_api::{
     ColorF, CommonPlacement, DashPattern, ExtendMode, GradientStop, LayoutPoint, LayoutRect,
     LayoutSize, PaintCmd, PathCommand, PathData, RadialGradientItem, RadialGradientPayload,

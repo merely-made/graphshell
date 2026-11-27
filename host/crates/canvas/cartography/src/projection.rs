@@ -7,7 +7,8 @@
 //! Projection: the output handed to canvas swatches.
 
 use kernel::geometry::{PortablePoint, PortableRect};
-use kernel::graph::{CoverageLayer, CoverageLimit, CoverageNote, EdgeKey, Graph, NodeKey};
+use kernel::graph::{EdgeKey, Graph, NodeKey};
+use mere::model::coverage::{CoverageLayer, CoverageLimit, CoverageNote};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 
@@ -198,10 +199,9 @@ mod tests {
 #[cfg(test)]
 mod coverage_tests {
     use super::*;
-    use kernel::graph::{
-        CoverageLayer, CoverageLimit, CoverageNote, Graph, SemanticStatementSpec, SemanticSubKind,
-        predicate_iri,
-    };
+    use kernel::graph::Graph;
+    use mere::model::coverage::{CoverageLayer, CoverageLimit, CoverageNote};
+    use mere::model::{SemanticStatementSpec, SemanticSubKind, predicate_iri};
 
     #[test]
     fn output_omissions_and_scene_lowering_preserve_coverage() {

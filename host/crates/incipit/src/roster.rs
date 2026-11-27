@@ -10,9 +10,10 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use crate::forme::{GraphMemberId, SubgraphBinding, SubgraphId, SubgraphKind, SubgraphRef};
-use kernel::graph::{
-    ContainmentSubKind, EdgeFamily, FieldDefinition, FieldExtent, FieldId, Graph, NodeKey,
-    ProvenanceSubKind, RelationKind, RelationSelector, SemanticSubKind,
+use kernel::graph::{FieldDefinition, FieldExtent, FieldId, Graph, NodeKey};
+use mere::model::{
+    ContainmentSubKind, EdgeFamily, ProvenanceSubKind, RelationKind, RelationSelector,
+    SemanticSubKind,
 };
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

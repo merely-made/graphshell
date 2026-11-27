@@ -9,7 +9,8 @@
 use std::collections::{BTreeMap, HashMap};
 
 use kernel::geometry::PortablePoint;
-use kernel::graph::{EdgeFamily, NodeKey};
+use kernel::graph::NodeKey;
+use mere::model::EdgeFamily;
 use paint_list_api::{
     CommonPlacement, LayoutPoint, LayoutRect, PaintCmd, PathCommand, PathData, RectItem, StrokeCap,
     StrokeItem, StrokeJoin,
@@ -169,7 +170,8 @@ mod tests {
     use super::*;
     use incipit::curation::{FoldId, FoldRecord, FoldStandIn};
     use kernel::graph::fixtures::GraphFixtures;
-    use kernel::graph::{EdgeAssertion, Graph, RelationKind, SemanticSubKind};
+    use kernel::graph::Graph;
+    use mere::model::{EdgeAssertion, RelationKind, SemanticSubKind};
 
     fn fixture(summary: bool) -> (Canvas, [NodeKey; 5]) {
         let mut graph = Graph::new();
@@ -303,7 +305,7 @@ mod tests {
             keys[1],
             keys[3],
             EdgeAssertion::Containment {
-                sub_kind: kernel::graph::ContainmentSubKind::Domain,
+                sub_kind: mere::model::ContainmentSubKind::Domain,
             },
         );
         canvas.graph.assert_relation(
@@ -316,7 +318,7 @@ mod tests {
         );
         let painted = strokes(&canvas);
         assert_eq!(painted.len(), 4);
-        let semantic = relation_family_color(kernel::graph::EdgeFamily::Semantic);
+        let semantic = relation_family_color(mere::model::EdgeFamily::Semantic);
         assert_eq!(
             painted
                 .iter()

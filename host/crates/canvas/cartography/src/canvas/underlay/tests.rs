@@ -9,9 +9,10 @@
 use super::*;
 use kernel::graph::fixtures::GraphFixtures;
 use kernel::graph::{
-    COUPLING_VOCAB, Coupling, CouplingId, CouplingResponse, EdgeAssertion, Field, FieldDefinition,
-    FieldId, NodeSelector, ScalarField, SemanticSubKind,
+    COUPLING_VOCAB, Coupling, CouplingId, CouplingResponse, Field, FieldDefinition, FieldId,
+    NodeSelector, ScalarField,
 };
+use mere::model::{EdgeAssertion, SemanticSubKind};
 use paint_list_api::{PaintCmd, PaintList};
 use uuid::Uuid;
 

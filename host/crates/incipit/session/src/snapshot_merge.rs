@@ -9,7 +9,7 @@
 //! Unions surfaces by stable id and resources by their prepared identity IRI.
 //! Pure and deterministic. It lives here, not in `graph-kernel`, so it works
 //! directly on the public `GraphSnapshot` structs without the kernel graph API:
-//! [`PersistedEdge`](kernel::persistence::PersistedEdge) keys its endpoints by
+//! [`PersistedEdge`](mere::model::PersistedEdge) keys its endpoints by
 //! `from_node_id` / `to_node_id` (stable `String`s), so a merge is plain Vec surgery (the audited
 //! `codicil_compose_merge_plan`). A kernel `Graph::merge_from` is a later, optional
 //! promotion. This is what first populates the codicil lineage
@@ -24,9 +24,10 @@ use std::collections::{HashMap, HashSet};
 
 use eidetic::{Error, Result};
 use kernel::graph::Graph;
+use kernel::persistence::GraphSnapshot;
+use mere::model::PersistedEdge;
 #[cfg(test)]
-use kernel::graph::predicate_declarations::PREDICATE_DECLARATIONS_FACET;
-use kernel::persistence::{GraphSnapshot, PersistedEdge};
+use mere::model::predicate_declarations::PREDICATE_DECLARATIONS_FACET;
 
 use crate::merge_rules::{edge_signature, layer_resource_record, layer_surface};
 
@@ -340,11 +341,12 @@ mod tests {
     use euclid::default::Point2D;
     use kernel::graph::Graph;
     use kernel::graph::fixtures::GraphFixtures;
-    use kernel::graph::predicate_declarations::{
+    use mere::model::GraphStratum;
+    use mere::model::author::Author;
+    use mere::model::predicate_declarations::{
         PredicateDeclaration, PredicateDeclarationError, PredicateDeclarations,
         parse_predicate_declarations,
     };
-    use kernel::graph::{Author, GraphStratum};
 
     /// A snapshot with one node per url (ids minted by the real graph API).
     fn snap(urls: &[&str]) -> GraphSnapshot {
@@ -468,10 +470,10 @@ mod tests {
         iri: &str,
         facet: &str,
         value: &str,
-    ) -> kernel::persistence::PersistedResourceRecord {
-        kernel::persistence::PersistedResourceRecord {
+    ) -> mere::model::PersistedResourceRecord {
+        mere::model::PersistedResourceRecord {
             canonical_iri: iri.into(),
-            facets: vec![kernel::persistence::PersistedResourceFacet {
+            facets: vec![mere::model::PersistedResourceFacet {
                 facet: facet.into(),
                 value_json: value.into(),
             }],
@@ -480,17 +482,17 @@ mod tests {
 
     fn assertion(from: &str, to: &str, handle: &str) -> PersistedEdge {
         let mut edge = edge(from, to);
-        edge.families = vec![kernel::persistence::PersistedEdgeFamily::Semantic];
-        edge.assertions = Some(vec![kernel::persistence::PersistedSemanticStatement {
+        edge.families = vec![mere::model::PersistedEdgeFamily::Semantic];
+        edge.assertions = Some(vec![mere::model::PersistedSemanticStatement {
             statement_id: handle.into(),
             predicate: "https://schema.org/citation".into(),
             recognized_sub_kind: None,
             label: Some("citation".into()),
-            basis: kernel::types::AssertionBasis {
+            basis: mere::model::AssertionBasis {
                 note: Some("citation".into()),
                 ..Default::default()
             },
-            graph_scope: kernel::types::GraphScope::Default,
+            graph_scope: mere::model::GraphScope::Default,
             provenance_iri: Some("https://author.test/".into()),
             asserted_at_ms: Some(17),
             first_asserted_ms: Some(17),
@@ -510,7 +512,7 @@ mod tests {
         {
             if let Some(assertions) = edge.assertions.take() {
                 edge.semantic = (!assertions.is_empty()).then(|| {
-                    kernel::persistence::PersistedSemanticEdgeData {
+                    mere::model::PersistedSemanticEdgeData {
                         statements: assertions,
                         ..Default::default()
                     }
@@ -520,8 +522,8 @@ mod tests {
     }
 
     fn canonical_claim(id: &str, predicate: &str, evidence: &str) -> PersistedEdge {
-        use kernel::persistence::{PersistedEdgeFamily, PersistedSemanticStatement};
-        use kernel::types::{AssertionBasis, GraphScope};
+        use mere::model::{AssertionBasis, GraphScope};
+        use mere::model::{PersistedEdgeFamily, PersistedSemanticStatement};
 
         let mut edge = edge("", "");
         edge.families = vec![PersistedEdgeFamily::Containment];
@@ -545,9 +547,9 @@ mod tests {
 
     #[test]
     fn mixed_legacy_and_canonical_snapshots_merge_without_losing_claims_or_placement() {
-        use kernel::graph::{ContainmentSubKind, RelationKind};
-        use kernel::persistence::PersistedEdgeFamily;
         use mere::model::PersistedContainmentEdgeData;
+        use mere::model::PersistedEdgeFamily;
+        use mere::model::{ContainmentSubKind, RelationKind};
 
         let mut legacy = snap(&["https://sub.example.test/a", "https://target.test/"]);
         let mut canonical = legacy.clone();
@@ -659,7 +661,7 @@ mod tests {
         predicate: &str,
         variants: Vec<PredicateDeclaration>,
         selected: Option<&str>,
-    ) -> kernel::persistence::PersistedResourceRecord {
+    ) -> mere::model::PersistedResourceRecord {
         let value = serde_json::to_string(&PredicateDeclarations {
             variants,
             selected: selected.map(str::to_string),
@@ -1038,7 +1040,7 @@ mod tests {
         let mut traversal_overlap = assertion(&surface_from, &surface_to, "surface-held");
         traversal_overlap
             .families
-            .push(kernel::persistence::PersistedEdgeFamily::Traversal);
+            .push(mere::model::PersistedEdgeFamily::Traversal);
         traversal_overlap.traversal = Some(Default::default());
         surface_b.edges = vec![traversal_overlap];
         let (sidecar_merge, sidecar_report) = try_merge_snapshots(&surface_a, &surface_b).unwrap();
