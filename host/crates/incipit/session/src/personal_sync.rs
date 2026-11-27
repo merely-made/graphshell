@@ -28,7 +28,7 @@ use stickleback::{DataKeyring, MunimentStore};
 use uuid::Uuid;
 
 /// Project one retained operation set into incipit-graph, as pandect's
-/// `materialize` does into the kernel's.
+/// `materialize` did into the kernel's.
 pub async fn materialize<B: Backend + Clone + Send + Sync + 'static>(
     store: &MunimentStore<B, PersonalGraphExt>,
     graph_id: [u8; 32],

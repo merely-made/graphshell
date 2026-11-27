@@ -1808,17 +1808,15 @@ fn copied_from(graphs: &[&Graph], id: Uuid, container: Uuid) -> Option<Uuid> {
         .find_map(|graph| graph.copied_from(id, &container))
 }
 
-/// Fork the component around `seed` out of `parent`. pandect defines
-/// `fork_component` for mere-kernel's graph only (it creates the session
-/// through pandect's private path), so the pick is made by that path over the
-/// same store, as a stored pick is today, and merged back over incipit-graph.
+/// Fork the component around `seed` out of `parent`, through incipit's
+/// component copy and pandect's pick, over the same store.
 async fn fork_component(
     store: &MemoryBackend,
     parent: &GraphSession<MemoryBackend>,
     seed: Uuid,
     author: Author,
 ) -> Result<GraphSessionManifest, SessionError> {
-    let kernel = pandect::MereSessions::new(store.clone());
-    let parent = kernel.open(parent.id()).await?;
-    kernel.fork_component(&parent, seed, author).await
+    MereSessions::new(store.clone())
+        .fork_component(parent, seed, author)
+        .await
 }

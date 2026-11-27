@@ -11,9 +11,9 @@
 //! legacy translation, and how its codicils are named and redacted. These
 //! are incipit's, each the kernel's hook with this crate's graph, and
 //! [`IncipitSessions::new`] installs all three as pandect's
-//! `MereSessions::new` installs the kernel's.
+//! `MereSessions::new` installed the kernel's.
 //!
-//! The session methods pandect defines only for mere-kernel's graph are here
+//! The session methods pandect defined only for mere-kernel's graph are here
 //! as extension traits with the same names, so a caller changes its imports,
 //! not its calls. They reach the session's store through pandect's
 //! `backend()` (engine split D268), so each keeps pandect's signature.
@@ -40,7 +40,7 @@ use crate::graph_codicil::{
 };
 use crate::live_graph::{LiveApplied, LiveEditError, ObservedCommand, preflight};
 
-/// incipit-graph's publication: the addressable store's, as the kernel's is.
+/// incipit-graph's publication: the addressable store's, as the kernel's was.
 pub static INCIPIT_PUBLICATION: PublicationHook<Graph> = PublicationHook {
     check: |graph| {
         crate::addressable_graph::refuse_residency_limited(graph).map_err(SessionError::Store)
@@ -124,11 +124,11 @@ fn check_resident_publishable<B: Backend>(
 }
 
 /// A mere's sessions over incipit-graph: pandect's `MereSessions` methods
-/// that are defined only for mere-kernel's graph, over this crate's.
+/// that were defined only for mere-kernel's graph, over this crate's.
 #[allow(async_fn_in_trait)]
 pub trait IncipitSessions<B: Backend + Clone>: Sized {
     /// Sessions with incipit's publication, legacy and codicil hooks, as
-    /// pandect's `MereSessions::new` installs the kernel's.
+    /// pandect's `MereSessions::new` installed the kernel's.
     fn new(backend: B) -> Self;
 
     /// Open a session, reading a stored legacy translation through
@@ -167,6 +167,17 @@ pub trait IncipitSessions<B: Backend + Clone>: Sized {
         id: SessionId,
         roots: ResidencyRoots,
     ) -> Result<ResidentGraph<B>, SessionError>;
+
+    /// Fork the connected component around node `seed` out of `parent`
+    /// (Turnstone's tear-out), as a new session: incipit's component copy
+    /// through pandect's [`pick`](MereSessions::pick).
+    #[cfg(not(target_arch = "wasm32"))]
+    async fn fork_component(
+        &self,
+        parent: &GraphSession<B, Graph>,
+        seed: Uuid,
+        author: Author,
+    ) -> Result<GraphSessionManifest, SessionError>;
 }
 
 impl<B: Backend + Clone> IncipitSessions<B> for MereSessions<B, Graph> {
@@ -232,9 +243,28 @@ impl<B: Backend + Clone> IncipitSessions<B> for MereSessions<B, Graph> {
             .await
             .map_err(SessionError::Store)
     }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    async fn fork_component(
+        &self,
+        parent: &GraphSession<B, Graph>,
+        seed: Uuid,
+        author: Author,
+    ) -> Result<GraphSessionManifest, SessionError> {
+        let container = pandect::GraphId::new();
+        let part = crate::fork_component_graph(
+            parent.graph(),
+            *parent.manifest().root_graph_id.as_uuid(),
+            seed,
+            *container.as_uuid(),
+        )
+        .map_err(|error| SessionError::Validation(error.to_string()))?
+        .ok_or(SessionError::NoSuchNode(seed))?;
+        self.pick(parent, container, part, author).await
+    }
 }
 
-/// A session over incipit-graph: pandect's `GraphSession` methods that are
+/// A session over incipit-graph: pandect's `GraphSession` methods that were
 /// defined only for mere-kernel's graph, over this crate's.
 #[allow(async_fn_in_trait)]
 pub trait IncipitSession<B: Backend + Clone>: Sized {

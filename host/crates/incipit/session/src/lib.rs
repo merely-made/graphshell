@@ -10,11 +10,10 @@
 //! [`Graph`](kernel::graph::Graph) (engine split D256). pandect keeps the
 //! session core, generic over any [`SessionGraph`](mere::session::SessionGraph);
 //! what reads nodes, urls, tags, visits and the snapshot's columns is copied
-//! here from pandect, which keeps its mere-kernel copies until the kernel
-//! leaves.
+//! here from pandect, where it was mere-kernel's (engine split D256, lane 4).
 //!
 //! - [`sessions`]: incipit's publication, legacy and codicil hooks, the one
-//!   constructor that installs them, and the session methods pandect holds
+//!   constructor that installs them, and the session methods pandect held
 //!   only for mere-kernel's graph, as extension traits with the same names.
 //! - the modules pandect's are copied from, under the same names:
 //!   [`addressable_graph`], [`live_graph`], [`access`], [`memory_levels`],
