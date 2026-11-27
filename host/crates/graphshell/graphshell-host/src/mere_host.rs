@@ -1515,41 +1515,6 @@ impl<B: Backend> MereHost<B> {
     }
 }
 
-impl<B: pandect::graph_session::LegacyTransactionBackend + Clone> MereHost<B> {
-    /// Open retained legacy truth using its caller-supplied original mere namespace.
-    pub async fn open_legacy_session_with_content_context(
-        backend: B,
-        id: SessionId,
-        cutoff: kernel::graph::Seq,
-        origins: Vec<
-            kernel::graph::legacy_resource_migration::LegacyResourceOriginResolution,
-        >,
-        context: &kernel::graph::legacy_resource_migration::LegacyContentContext,
-        selected_persona: SelectedPersonaRef,
-        handlers: HandlerRegistry,
-        access_context: AccessContext,
-    ) -> Result<Self, MereHostError> {
-        let graph_session = GraphSession::open_legacy_with_content_context(
-            backend.clone(),
-            id,
-            cutoff,
-            origins,
-            context,
-        )
-        .await?;
-        let epoch = Self::advance_epoch(&JsonSlots::new(backend.clone()), 0).await?;
-        Ok(Self::assemble(
-            backend,
-            graph_session,
-            selected_persona,
-            handlers,
-            access_context,
-            (epoch, epoch),
-            true,
-        ))
-    }
-}
-
 /// A two-node graph with a held semantic link, for placement tests here and
 /// in products (`test-support`).
 #[cfg(any(test, feature = "test-support"))]
@@ -2112,56 +2077,6 @@ mod tests {
             assert_eq!(encoded(host.graph()), before);
             assert_eq!(
                 host.snapshot_placement(),
-                Some(PlacementProfile::RecordedStrataV1)
-            );
-        });
-    }
-
-    #[test]
-    fn explicitly_qualified_host_exports_current_recorded_placement() {
-        pollster::block_on(async {
-            let backend = MemoryBackend::new();
-            let mut session = MereSessions::new(backend.clone()).begin(
-                author_of(&selected_persona(), GRAPHSHELL),
-                Some(placement_test_graph()),
-            );
-            session.flush(saved_at(1_800_000_000)).await.unwrap();
-            let id = session.id();
-            let context = kernel::graph::legacy_resource_migration::LegacyContentContext {
-                original_mere_iri: "urn:mere:original-profile-fixture".into(),
-            };
-            let host = MereHost::open_legacy_session_with_content_context(
-                backend.clone(),
-                id,
-                kernel::graph::Seq(0),
-                vec![],
-                &context,
-                selected_persona(),
-                fixture_handlers(),
-                access_context(),
-            )
-            .await
-            .unwrap();
-            assert_eq!(
-                host.graph_session().placement().unwrap().baseline,
-                PlacementProfile::LegacySurfaceV1
-            );
-            assert_eq!(
-                host.snapshot_placement(),
-                Some(PlacementProfile::RecordedStrataV1)
-            );
-            let reopened = MereHost::open_session(
-                backend,
-                id,
-                selected_persona(),
-                fixture_handlers(),
-                access_context(),
-            )
-            .await
-            .unwrap();
-            assert_eq!(encoded(reopened.graph()), encoded(host.graph()));
-            assert_eq!(
-                reopened.snapshot_placement(),
                 Some(PlacementProfile::RecordedStrataV1)
             );
         });
