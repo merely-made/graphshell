@@ -313,3 +313,7 @@ fn retract_legacy(
     }
     true
 }
+
+#[cfg(test)]
+#[path = "personal_sync_tests.rs"]
+mod tests;

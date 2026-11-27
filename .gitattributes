@@ -22,3 +22,7 @@ host/crates/incipit/graph/tests/fixtures/wire/** -text
 # The stores mere-kernel wrote, frozen as postcard (engine split lane 4): every
 # byte is compared, so neither the stores nor their expectations are rewritten.
 host/crates/incipit/session/tests/fixtures/kernel_written/** -text
+# Stores and payloads pandect wrote before the P4 sidecar moves, copied with
+# the kernel tests that read them (engine split D272).
+host/crates/incipit/session/tests/fixtures/pre_p4_container_facets_store/** -text
+host/crates/incipit/session/tests/fixtures/pre_p4_*.json -text
