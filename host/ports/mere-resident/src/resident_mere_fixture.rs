@@ -88,7 +88,7 @@ pub struct Fixture {
 
 /// The stand-in authority for a fixture domain: refuses a candidate carrying a
 /// facet version no grammar here knows (`v999`).
-pub(super) fn standin_authority() -> pandect::GraphValidator {
+pub(super) fn standin_authority() -> crate::GraphValidator {
     Arc::new(|graph| {
         if serde_json::to_string(graph.facets()).is_ok_and(|facets| facets.contains("v999")) {
             Err("unsupported domain facet".into())
@@ -105,7 +105,7 @@ pub async fn fixture(persona_n: u128, domain: &str) -> Fixture {
 pub(super) async fn fixture_with_validator(
     persona_n: u128,
     domain: &str,
-    validator: Option<pandect::GraphValidator>,
+    validator: Option<crate::GraphValidator>,
 ) -> Fixture {
     fixture_serving(persona_n, domain, validator, None).await
 }
@@ -115,7 +115,7 @@ pub(super) async fn fixture_with_validator(
 pub(super) async fn fixture_serving(
     persona_n: u128,
     domain: &str,
-    validator: Option<pandect::GraphValidator>,
+    validator: Option<crate::GraphValidator>,
     remote: Option<graphshell_host::projection_host::SharedCatalog>,
 ) -> Fixture {
     fixture_serving_handlers(
@@ -131,7 +131,7 @@ pub(super) async fn fixture_serving(
 pub(super) async fn fixture_serving_handlers(
     persona_n: u128,
     domain: &str,
-    validator: Option<pandect::GraphValidator>,
+    validator: Option<crate::GraphValidator>,
     remote: Option<graphshell_host::projection_host::SharedCatalog>,
     handlers: HandlerRegistry,
 ) -> Fixture {
@@ -141,7 +141,7 @@ pub(super) async fn fixture_serving_handlers(
 pub(super) async fn fixture_inner(
     persona_n: u128,
     domain: &str,
-    validator: Option<pandect::GraphValidator>,
+    validator: Option<crate::GraphValidator>,
     remote: Option<graphshell_host::projection_host::SharedCatalog>,
     handlers: HandlerRegistry,
     custody: Option<crate::retained_custody::RetainedSealing>,

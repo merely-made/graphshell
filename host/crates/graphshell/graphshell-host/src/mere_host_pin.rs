@@ -10,8 +10,9 @@
 //! the pin's graph; otherwise from the live graph, as before. Either way the
 //! snapshot names the engine revision it was built from, and an intent is
 //! stale when that revision or the projection counter has moved since.
+use crate::PinnedView;
 use super::*;
-use pandect::{GraphRevision, PinnedView, ResourceDigest};
+use pandect::{GraphRevision, ResourceDigest};
 use scenotime::EngineRevision;
 
 /// The engine revision a scene was stamped with, and the projection counter

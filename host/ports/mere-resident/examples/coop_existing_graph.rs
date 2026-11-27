@@ -8,7 +8,7 @@ use chirograph::*;
 use graphshell_door::projection::AppBrokerClient;
 use mere_overmap::wire::*;
 use ostiary::app_admission::{AppId, AppRouteId};
-use pandect::CapturedDelta;
+use kernel::graph::CapturedDelta;
 use sceno::InstanceId;
 use serde_json::json;
 

@@ -50,6 +50,25 @@
 //! modules are compiled out on wasm32, but its dependencies are not meant to
 //! build there.
 
+
+// pandect's graph-generic types over this crate's graph, one alias each (engine split D244).
+#[cfg(feature = "mere-host")]
+pub(crate) type GraphAdmissionValidator = pandect::GraphAdmissionValidator<kernel::graph::Graph>;
+#[cfg(any(feature = "coop", feature = "mere-host", feature = "pinned-shacl"))]
+pub(crate) type GraphSession<B> = pandect::GraphSession<B, kernel::graph::Graph>;
+#[cfg(feature = "mere-host")]
+pub(crate) type GraphValidator = pandect::GraphValidator<kernel::graph::Graph>;
+#[cfg(any(feature = "mere-host", all(test, any(feature = "coop", feature = "pinned-shacl"))))]
+pub(crate) type MereSessions<B> = pandect::MereSessions<B, kernel::graph::Graph>;
+#[cfg(feature = "mere-host")]
+pub(crate) type Pending = pandect::Pending<kernel::graph::Graph>;
+#[cfg(feature = "mere-host")]
+pub(crate) type PendingMerge = pandect::PendingMerge<kernel::graph::Graph>;
+#[cfg(any(feature = "mere-host", feature = "pinned-shacl"))]
+pub(crate) type PinnedView = pandect::PinnedView<kernel::graph::Graph>;
+#[cfg(feature = "mere-host")]
+pub(crate) type Reverted = pandect::Reverted<kernel::graph::Graph>;
+
 pub mod accessibility;
 #[cfg(feature = "admission")]
 pub mod admission;

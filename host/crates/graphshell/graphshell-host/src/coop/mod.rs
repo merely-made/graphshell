@@ -7,6 +7,7 @@
 //! Graphshell host's; Pandect owns the graph journal and acknowledged writes.
 //! This module never opens a vault or accepts an author from an edit payload.
 use chirograph::*;
+use crate::GraphSession;
 use graphshell_endpoint::{
     IntentSink, PresentationSource, ProjectionCatalog, ProjectionNoticeSource, ProjectionSource,
     ResumableProjectionSource,
@@ -18,7 +19,7 @@ use insigne::delegation::{
 };
 use kernel::graph::{Author, apply::GraphDelta};
 use muniment::JsonSlots;
-use pandect::{GraphSession, SessionId};
+use pandect::SessionId;
 use personae::IdentityProvider;
 use serde::{Deserialize, Serialize};
 use std::{

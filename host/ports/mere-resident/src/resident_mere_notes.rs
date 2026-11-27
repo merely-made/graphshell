@@ -104,7 +104,7 @@ fn notes_in(host: &MereHost<DirectoryBackend>) -> Vec<Note> {
 }
 
 /// The edits that make `note` a node: one change, nothing else touched.
-fn note_edits(note: AppendNoteV1, at_ms: u64) -> Vec<pandect::CapturedDelta> {
+fn note_edits(note: AppendNoteV1, at_ms: u64) -> Vec<kernel::graph::CapturedDelta> {
     let id = uuid::Uuid::new_v4().to_string();
     let facet = NoteFacet {
         kind: note.kind,
@@ -112,23 +112,23 @@ fn note_edits(note: AppendNoteV1, at_ms: u64) -> Vec<pandect::CapturedDelta> {
         at_ms,
     };
     let mut edits = vec![
-        pandect::CapturedDelta::ReplayAddNodeWithIdIfMissing {
+        kernel::graph::CapturedDelta::ReplayAddNodeWithIdIfMissing {
             id: id.clone(),
             url: format!("{NOTE_SCHEME}{id}"),
             position: [0.0, 0.0],
         },
-        pandect::CapturedDelta::ReplaySetNodeTitleById {
+        kernel::graph::CapturedDelta::ReplaySetNodeTitleById {
             node_id: id.clone(),
             title: note.subject,
         },
-        pandect::CapturedDelta::ReplaySetNodeFacetById {
+        kernel::graph::CapturedDelta::ReplaySetNodeFacetById {
             node_id: id.clone(),
             facet: NOTE_FACET.into(),
             value_json: serde_json::to_string(&facet).expect("a note facet serializes"),
         },
     ];
     if !note.body.is_empty() {
-        edits.push(pandect::CapturedDelta::ReplaySetNodeBodyById {
+        edits.push(kernel::graph::CapturedDelta::ReplaySetNodeBodyById {
             node_id: id,
             body: Some(note.body),
         });

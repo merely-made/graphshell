@@ -65,7 +65,7 @@ fn attached_ordinary_host_is_the_only_writer_and_reopens_with_guest_authorship()
     let first = Uuid::new_v4();
     pollster::block_on(host.transact_edits(
         "graphshell",
-        vec![pandect::CapturedDelta::ReplayAddNodeWithIdIfMissing {
+        vec![kernel::graph::CapturedDelta::ReplayAddNodeWithIdIfMissing {
             id: first.to_string(),
             url: "https://existing.test/".into(),
             position: [0., 0.],
@@ -103,12 +103,12 @@ fn attached_ordinary_host_is_the_only_writer_and_reopens_with_guest_authorship()
     pollster::block_on(host.lock().unwrap().transact_edits(
         "graphshell",
         vec![
-            pandect::CapturedDelta::ReplayAddNodeWithIdIfMissing {
+            kernel::graph::CapturedDelta::ReplayAddNodeWithIdIfMissing {
                 id: second.to_string(),
                 url: "https://ordinary-live.test/".into(),
                 position: [1., 1.],
             },
-            pandect::CapturedDelta::ReplayAssertRelationByIds {
+            kernel::graph::CapturedDelta::ReplayAssertRelationByIds {
                 from_id: first.to_string(),
                 to_id: second.to_string(),
                 assertion: kernel::graph::EdgeAssertion::Semantic {

@@ -27,6 +27,11 @@
 //! including hosts with a local mere and no session; this crate adds the
 //! session client and chirograph only for hosts that read a route.
 
+
+// pandect's graph-generic types over this crate's graph, one alias each (engine split D244).
+pub(crate) type DroppedChoice = pandect::DroppedChoice<kernel::graph::Graph>;
+pub(crate) type MergeConflict = pandect::MergeConflict<kernel::graph::Graph>;
+
 pub mod wire;
 
 #[cfg(all(feature = "saved-views", not(target_arch = "wasm32")))]

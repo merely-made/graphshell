@@ -256,6 +256,7 @@ fn hex(bytes: &[u8; 32]) -> String {
 mod tests {
     use super::*;
     use crate::sync::personal_sync_host::PersonalSyncHostConfig;
+    use crate::{ProductCodicilV3, ProfiledProductCodicil};
     use eidetic::{
         Codicil, ModerationState, PrivacyClass, ProvenanceOrigin, ProvenanceRecord, TimeBounds,
         Timestamp, TrustEnvelope, TrustLevel, TypedPayload, validate_payload,
@@ -265,10 +266,7 @@ mod tests {
     use kernel::graph::apply::add_node;
     use muniment::MemoryBackend;
     use pandect::personal_sync::{SyncRoster, SyncSelection};
-    use pandect::product_codicil::{
-        PRODUCT_CODICIL_SCHEMA, ProductCodicilV3, ProfiledProductCodicil, TransferScope,
-        product_codicil_schema,
-    };
+    use pandect::product_codicil::{PRODUCT_CODICIL_SCHEMA, TransferScope, product_codicil_schema};
     use pandect::transfer::{
         AccessTransferPolicy, TRANSFER_MANIFEST_SCHEMA, TransferBlobV1, TransferEndpointV1,
         TransferRouteV1,

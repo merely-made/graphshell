@@ -33,11 +33,10 @@ use muniment::{Backend, JsonSlots, StoreError};
 pub use incipit::view::ViewIntent as SessionViewIntent;
 use incipit::view::{VIEW_INTENT_SCHEMA, ViewIntent};
 use attention::decode_view;
+use crate::{GraphSession, MereSessions, Pending, Reverted};
 use pandect::graph_placement::{PlacementProfile, materialize_snapshot};
 use pandect::graph_session::{CommitExtra, LegacyTransactionBackend};
-use pandect::{
-    GraphSession, MereSessions, Pending, Reverted, SessionError, SessionId, ViewKey, ViewState,
-};
+use pandect::{SessionError, SessionId, ViewKey, ViewState};
 use sceno::{
     Arrangement, Footprint, InstanceId, LinkKey, LinkStratum, ProjectedItem, Rect, Representation,
     RoutedRelation, Scene, Score, Size2, SourceInterner, SourceRef, Transform2, Vec2,
@@ -251,7 +250,7 @@ pub struct MereHost<B> {
     /// This device's attention for the graph's views, by `app/view` (D133).
     attention: BTreeMap<String, incipit::view::AttentionState>,
     /// The pinned view scenes are built from while it is shown (D187).
-    pin: Option<pandect::PinnedView>,
+    pin: Option<crate::PinnedView>,
     /// The engine revision the last scene was stamped with (D188).
     scene_engine: Option<pin::SceneEngine>,
 }
@@ -516,7 +515,7 @@ impl<B: Backend + Clone> MereHost<B> {
         selected_persona: SelectedPersonaRef,
         handlers: HandlerRegistry,
         access_context: AccessContext,
-        validator: Option<pandect::GraphValidator>,
+        validator: Option<crate::GraphValidator>,
     ) -> Result<Self, MereHostError> {
         let mut graph_session = MereSessions::new(backend.clone()).open(id).await?;
         if let Some(validator) = validator {
@@ -741,7 +740,7 @@ impl<B: Backend> MereHost<B> {
     /// Compose the product's whole-graph authority into every session write path.
     pub fn with_graph_validator(
         mut self,
-        validator: pandect::GraphValidator,
+        validator: crate::GraphValidator,
     ) -> Result<Self, MereHostError> {
         self.graph_session = self.graph_session.with_validator(validator)?;
         Ok(self)
@@ -750,7 +749,7 @@ impl<B: Backend> MereHost<B> {
     /// Add owner admission policy without rechecking historical references.
     pub fn with_graph_admission_validator(
         mut self,
-        validator: pandect::GraphAdmissionValidator,
+        validator: crate::GraphAdmissionValidator,
     ) -> Self {
         self.graph_session = self.graph_session.with_admission_validator(validator);
         self
@@ -1125,9 +1124,9 @@ impl<B: Backend> MereHost<B> {
     /// session (session merge-in note). Nothing is written.
     pub async fn plan_merge(
         &self,
-        sessions: &pandect::MereSessions<B>,
+        sessions: &crate::MereSessions<B>,
         source: &MereHost<B>,
-    ) -> Result<pandect::PendingMerge, MereHostError>
+    ) -> Result<crate::PendingMerge, MereHostError>
     where
         B: Clone,
     {
@@ -1140,9 +1139,9 @@ impl<B: Backend> MereHost<B> {
     /// each conflict, and mark `source` merged. Both projections move.
     pub async fn apply_merge(
         &mut self,
-        sessions: &pandect::MereSessions<B>,
+        sessions: &crate::MereSessions<B>,
         source: &mut MereHost<B>,
-        pending: pandect::PendingMerge,
+        pending: crate::PendingMerge,
         choices: &BTreeMap<kernel::graph::Part, pandect::MergeChoice>,
         via: &str,
     ) -> Result<(), MereHostError>

@@ -119,6 +119,8 @@ mere-host = [
 mere-query = ["native", "dep:mere", "mere/query"]
 # Read one captured source's SHACL report and gate its evidence actions.
 pinned-shacl = [
+    # The pinned session is over the host's kernel graph (engine split D244).
+    "dep:kernel",
     "dep:mere",
     "dep:mere-shacl",
     "dep:muniment",

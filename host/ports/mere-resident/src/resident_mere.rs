@@ -37,6 +37,7 @@ use chirograph::{
     ProjectionOffer, ProjectionRequest, ProjectionSession, ProjectionSnapshot, ProtocolVersion,
     ResourceRequest, ResourceResponse, ResumeReply, ResumeRequest, SemanticRole,
 };
+use crate::MereSessions;
 use pandect::access::AccessContext;
 use graphshell_host::handlers::HandlerRegistry;
 use graphshell_host::mere_host::{MereHost, MereHostError, SelectedPersonaRef};
@@ -59,8 +60,8 @@ use mere_overmap::wire::{
 };
 use muniment::{DirectoryBackend, JsonSlots, RedbBackend};
 use pandect::{
-    Author, GraphSessionManifest, MereApplicationAccess, MereId, MereRecord, MereSessions,
-    SessionId, open_mere_archive_backend, open_mere_backend,
+    Author, GraphSessionManifest, MereApplicationAccess, MereId, MereRecord, SessionId,
+    open_mere_archive_backend, open_mere_backend,
 };
 use personae::PersonaId;
 use sceno::{
@@ -410,7 +411,7 @@ impl MereRoutes {
     pub fn with_domain_validator(
         mut self,
         domain: impl Into<String>,
-        validator: pandect::GraphValidator,
+        validator: crate::GraphValidator,
     ) -> Self {
         Arc::get_mut(&mut self.inner)
             .expect("set validator before cloning or serving routes")
@@ -836,8 +837,8 @@ struct MereShared {
     attention_write: Mutex<()>,
     coop_relays: Vec<transport::p2panda_transport::RelayUrl>,
     domain: String,
-    validator: Option<pandect::GraphValidator>,
-    admission_validator: Option<pandect::GraphAdmissionValidator>,
+    validator: Option<crate::GraphValidator>,
+    admission_validator: Option<crate::GraphAdmissionValidator>,
     backend: DirectoryBackend,
     archive: RedbBackend,
     persona: PersonaId,
@@ -982,13 +983,13 @@ impl MereShared {
 /// of it left: the choices carried over and those dropped, and why.
 #[derive(Clone)]
 struct HeldMerge {
-    plan: pandect::PendingMerge,
-    carried: BTreeMap<pandect::Part, pandect::MergeChoice>,
-    dropped: Vec<pandect::DroppedChoice>,
+    plan: crate::PendingMerge,
+    carried: BTreeMap<kernel::graph::Part, pandect::MergeChoice>,
+    dropped: Vec<crate::DroppedChoice>,
 }
 
 impl HeldMerge {
-    fn new(plan: pandect::PendingMerge) -> Self {
+    fn new(plan: crate::PendingMerge) -> Self {
         Self {
             plan,
             carried: BTreeMap::new(),
@@ -2419,16 +2420,16 @@ mod tests {
     }
 
 
-    fn node(n: u128) -> pandect::CapturedDelta {
-        pandect::CapturedDelta::ReplayAddNodeWithIdIfMissing {
+    fn node(n: u128) -> kernel::graph::CapturedDelta {
+        kernel::graph::CapturedDelta::ReplayAddNodeWithIdIfMissing {
             id: Uuid::from_u128(n).to_string(),
             url: format!("https://{n}.test/"),
             position: [0.0, 0.0],
         }
     }
 
-    fn retitle(n: u128, title: &str) -> pandect::CapturedDelta {
-        pandect::CapturedDelta::ReplaySetNodeTitleById {
+    fn retitle(n: u128, title: &str) -> kernel::graph::CapturedDelta {
+        kernel::graph::CapturedDelta::ReplaySetNodeTitleById {
             node_id: Uuid::from_u128(n).to_string(),
             title: title.to_string(),
         }
@@ -2471,7 +2472,7 @@ mod tests {
 
     fn apply(
         snapshot: &ProjectionSnapshot,
-        edits: Vec<pandect::CapturedDelta>,
+        edits: Vec<kernel::graph::CapturedDelta>,
     ) -> IntentInvocation {
         on_item(
             snapshot,
@@ -2832,7 +2833,7 @@ mod tests {
                     &other_snapshot,
                     vec![
                         node(1),
-                        pandect::CapturedDelta::ReplaySetNodeFacetById {
+                        kernel::graph::CapturedDelta::ReplaySetNodeFacetById {
                             node_id: Uuid::from_u128(1).to_string(),
                             facet: "fixture.unrelated/v1".into(),
                             value_json: serde_json::json!({"retained":"exact"}).to_string(),
@@ -2893,7 +2894,7 @@ mod tests {
     async fn any_validated_domain_refuses_node_targeted_writes_and_actions() {
         // Not one of the names the resident used to hard-code: authority, not
         // the domain's name, binds its writes to complete candidates.
-        let validator: pandect::GraphValidator = Arc::new(|_| Ok(()));
+        let validator: crate::GraphValidator = Arc::new(|_| Ok(()));
         let fixture = fixture_with_validator(44, "music", Some(validator)).await;
         let mut app = fixture.attach("turnstone").await;
         let start = graph(&mut app);
@@ -4208,7 +4209,7 @@ mod tests {
             second
                 .invoke(apply(
                     &shared,
-                    vec![pandect::CapturedDelta::ReplaySetNodeFacetById {
+                    vec![kernel::graph::CapturedDelta::ReplaySetNodeFacetById {
                         node_id: id.to_string(),
                         facet: personal_facts::BIRTH_FACET.into(),
                         value_json: serde_json::to_string(&changed).unwrap()
@@ -4283,7 +4284,7 @@ mod tests {
         );
         let mut app = fixture.attach("turnstone").await;
         let initial = graph(&mut app);
-        let facet = pandect::CapturedDelta::ReplaySetNodeFacetById {
+        let facet = kernel::graph::CapturedDelta::ReplaySetNodeFacetById {
             node_id: Uuid::from_u128(1).to_string(),
             facet: "cleromancy.unknown/v999".into(),
             value_json: serde_json::json!({"tampered": true}).to_string(),
@@ -4296,7 +4297,7 @@ mod tests {
 
     #[tokio::test(flavor = "multi_thread")]
     async fn domain_authority_checks_route_batches_archive_compose_and_first_edit_forks() {
-        let validator: pandect::GraphValidator = Arc::new(|graph| {
+        let validator: crate::GraphValidator = Arc::new(|graph| {
             if graph.nodes().count() > 1 || graph.nodes().any(|(_, n)| n.title == "Forbidden") {
                 Err("domain forbids this complete candidate".into())
             } else {
@@ -4959,8 +4960,8 @@ mod tests {
         assert_eq!(label_of(&read.model, 2).as_deref(), Some("Branch two"));
     }
 
-    fn relate(from: u128, to: u128, assertion: EdgeAssertion) -> pandect::CapturedDelta {
-        pandect::CapturedDelta::ReplayAssertRelationByIds {
+    fn relate(from: u128, to: u128, assertion: EdgeAssertion) -> kernel::graph::CapturedDelta {
+        kernel::graph::CapturedDelta::ReplayAssertRelationByIds {
             from_id: Uuid::from_u128(from).to_string(),
             to_id: Uuid::from_u128(to).to_string(),
             assertion,

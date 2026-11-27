@@ -186,7 +186,7 @@ impl GuestRuntime {
         verdict.into_result()
     }
 
-    pub(crate) fn validator(self: &Arc<Self>) -> pandect::GraphValidator {
+    pub(crate) fn validator(self: &Arc<Self>) -> crate::GraphValidator {
         let runtime = self.clone();
         Arc::new(move |graph| runtime.validate(graph))
     }

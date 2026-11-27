@@ -11,7 +11,7 @@ fn one_graph_guest_attribution_revoke_and_reopen() {
         let backend = muniment::MemoryBackend::new();
         let a = InMemoryProvider::from_seed([1; 32]);
         let b = InMemoryProvider::from_seed([2; 32]);
-        let sessions = pandect::MereSessions::new(backend.clone());
+        let sessions = crate::MereSessions::new(backend.clone());
         let mut graph =
             sessions.begin(Author::person(hex(&a.master_public_key().to_bytes())), None);
         graph.flush(SystemTime::now()).await.unwrap();
@@ -78,7 +78,7 @@ pub(super) async fn fixture<B: pandect::graph_session::LegacyTransactionBackend 
     let a = InMemoryProvider::from_seed([11; 32]);
     let b = InMemoryProvider::from_seed([12; 32]);
     let mut graph =
-        pandect::MereSessions::new(backend.clone()).begin(Author::person("owner"), None);
+        crate::MereSessions::new(backend.clone()).begin(Author::person("owner"), None);
     graph.flush(SystemTime::now()).await.unwrap();
     let id = graph.id();
     (
@@ -304,7 +304,7 @@ fn private_sibling_graph_bytes_are_unchanged() {
         let backend = muniment::MemoryBackend::new();
         let (mut owner, _, _, _) = fixture(backend.clone()).await;
         let mut private =
-            pandect::MereSessions::new(backend.clone()).begin(Author::person("owner"), None);
+            crate::MereSessions::new(backend.clone()).begin(Author::person("owner"), None);
         private.flush(SystemTime::now()).await.unwrap();
         let prefix = format!("sessions/{}/", private.id().as_uuid());
         let keys = backend.list(&prefix).await.unwrap();

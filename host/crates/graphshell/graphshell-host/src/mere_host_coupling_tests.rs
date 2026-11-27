@@ -4,12 +4,12 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 // SPDX-License-Identifier: MPL-2.0
 
+use crate::MereSessions;
 use super::*;
 use crate::mere_host::{
     FIXTURE_DEVICE_TWO_ADDRESS, FIXTURE_PERSONA_ADDRESS, HOST_SLOT, MereHost, MereHostError,
     SelectedPersonaRef, fixture_handlers,
 };
-use pandect::MereSessions;
 use pandect::access::AccessContext;
 use muniment::{Backend, MemoryBackend, StoreError, TransactFn, WriteOp};
 use std::sync::{

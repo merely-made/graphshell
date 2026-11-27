@@ -12,12 +12,12 @@
 //! speaks (§7 item 37).
 
 use chirograph::{AdvertisedAction, CardValueV1, IntentEffect, PortableCardV1};
+use crate::GraphSession;
 use mere_overmap::wire::{
     APPLY_EDITS_INTENT, APPLY_EDITS_SCHEMA, REDO_INTENT, SET_ATTENTION_INTENT,
     SET_ATTENTION_SCHEMA, SET_VIEW_INTENT, SET_VIEW_SCHEMA, STEP_SCHEMA, UNDO_INTENT, advertised,
 };
 use muniment::Backend;
-use pandect::GraphSession;
 
 /// What the session item offers.
 pub fn actions() -> Vec<AdvertisedAction> {

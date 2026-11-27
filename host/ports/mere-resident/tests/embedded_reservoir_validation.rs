@@ -37,10 +37,14 @@ use graphshell_door::projection::AppBrokerClient;
 use dramatis::view::VaultProtectionView;
 use graphshell_host::endpoint_catalog::ResidentEndpointCatalog;
 use mere_overmap::wire::{APPLY_EDITS_INTENT, ApplyEditsV1};
-use pandect::{CapturedDelta, DomainId, GraphValidator, MereId, mere_dir};
+use kernel::graph::CapturedDelta;
+use pandect::{DomainId, MereId, mere_dir};
 use personae::{Ed25519Keypair, PersonaId, ProfileId};
 use sceno::InstanceId;
 use uuid::Uuid;
+
+// pandect's graph-generic types over this crate's graph, one alias each (engine split D244).
+pub(crate) type GraphValidator = pandect::GraphValidator<kernel::graph::Graph>;
 
 const CHILD: &str = "child_serves_the_registered_domain";
 const DOMAIN: &str = "validated-fixture";

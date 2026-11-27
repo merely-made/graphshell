@@ -34,7 +34,7 @@ pub type ProfileLookup = Arc<dyn Fn(&ProfileId) -> Result<bool, String> + Send +
 /// Builds a domain's before/after admission check once the resident knows the
 /// facts it needs, today only the profile lookup.
 pub type AdmissionBuilder =
-    Arc<dyn Fn(Option<ProfileLookup>) -> pandect::GraphAdmissionValidator + Send + Sync>;
+    Arc<dyn Fn(Option<ProfileLookup>) -> crate::GraphAdmissionValidator + Send + Sync>;
 
 /// What refuses an edit when a domain's authority is not yet installed.
 pub const PENDING: &str = "pending: no authority installed";
@@ -132,7 +132,7 @@ pub enum Authority {
     /// Linked code: a pure, deterministic check over the complete candidate
     /// graph, and an optional before/after check.
     Graph {
-        complete: pandect::GraphValidator,
+        complete: crate::GraphValidator,
         admission: Option<AdmissionBuilder>,
     },
     /// A reviewed wasm guest. Without an installed guest, edits are refused as pending.
@@ -143,7 +143,7 @@ pub enum Authority {
 
 impl Authority {
     /// A graph authority with only the complete-candidate check.
-    pub fn graph(complete: pandect::GraphValidator) -> Self {
+    pub fn graph(complete: crate::GraphValidator) -> Self {
         Self::Graph {
             complete,
             admission: None,
@@ -163,7 +163,7 @@ impl Authority {
     /// save, open and compose, and loaded sessions. A guest authority without an
     /// installed guest, and a declared one until its interpreter lands, refuse every
     /// candidate as pending: an operation waits, it is never applied unchecked (D15 (h)).
-    pub(crate) fn validator(&self, domain: &str) -> pandect::GraphValidator {
+    pub(crate) fn validator(&self, domain: &str) -> crate::GraphValidator {
         match self {
             Self::Graph { complete, .. } => complete.clone(),
             Self::Guest(guest) => match &guest.runtime {
@@ -183,7 +183,7 @@ impl Authority {
     }
 }
 
-fn pending(domain: &str, reason: Option<&str>) -> pandect::GraphValidator {
+fn pending(domain: &str, reason: Option<&str>) -> crate::GraphValidator {
     let message = match reason {
         Some(reason) => format!("{PENDING} for {domain} ({reason})"),
         None => format!("{PENDING} for {domain}"),
@@ -373,7 +373,7 @@ pub(crate) struct Installed {
     pub owner: Option<AppId>,
     pub version: &'static str,
     pub kind: &'static str,
-    pub validator: pandect::GraphValidator,
+    pub validator: crate::GraphValidator,
     pub admission: Option<AdmissionBuilder>,
 }
 

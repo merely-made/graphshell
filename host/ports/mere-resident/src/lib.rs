@@ -13,6 +13,21 @@
 
 #![doc(html_no_source)]
 
+
+// pandect's graph-generic types over this crate's graph, one alias each (engine split D244).
+pub(crate) type DroppedChoice = pandect::DroppedChoice<kernel::graph::Graph>;
+pub(crate) type GraphAdmissionValidator = pandect::GraphAdmissionValidator<kernel::graph::Graph>;
+pub(crate) type GraphValidator = pandect::GraphValidator<kernel::graph::Graph>;
+pub(crate) type MereSessions<B> = pandect::MereSessions<B, kernel::graph::Graph>;
+pub(crate) type PendingMerge = pandect::PendingMerge<kernel::graph::Graph>;
+#[cfg(test)]
+pub(crate) type ProductCodicilV3 = pandect::product_codicil::ProductCodicilV3<kernel::graph::Graph>;
+#[cfg(test)]
+pub(crate) type ProfiledProductCodicil =
+    pandect::product_codicil::ProfiledProductCodicil<kernel::graph::Graph>;
+#[cfg(test)]
+pub(crate) type SyncProjection = pandect::personal_sync::SyncProjection<kernel::graph::Graph>;
+
 pub mod applications;
 pub mod authority_guest;
 pub mod conditions;

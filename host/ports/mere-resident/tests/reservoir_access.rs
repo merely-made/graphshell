@@ -19,11 +19,14 @@ use graphshell_endpoint::{ProjectionCatalog, ProjectionSource};
 use graphshell_host::endpoint_catalog::ResidentEndpointCatalog;
 use graphshell_host::lifecycle::AdmittedEndpointContext;
 use pandect::{
-    Author, DomainId, MereApplicationAccess, MereSessions, ReservoirStore, open_mere_backend,
+    Author, DomainId, MereApplicationAccess, ReservoirStore, open_mere_backend,
     open_reservoir_backend,
 };
 use personae::PersonaId;
 use uuid::Uuid;
+
+// pandect's graph-generic types over this crate's graph, one alias each (engine split D244).
+pub(crate) type MereSessions<B> = pandect::MereSessions<B, kernel::graph::Graph>;
 
 const ROOT: &str = "DJINN_V4_REOPEN_ROOT";
 const PARENT: &str = "DJINN_V4_PARENT_PID";

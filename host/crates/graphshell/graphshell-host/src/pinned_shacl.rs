@@ -6,12 +6,13 @@
 
 //! A native host's validation and evidence read at one kept-source revision.
 
+use crate::{GraphSession, PinnedView};
 use mere::acquire::page_claims::KeptPageClaims;
 use mere::dataset::View;
 use mere_shacl::{GraphSelector, ValidationError, ValidationReport};
 use muniment::Backend;
 use oxrdf::{Graph, NamedNode};
-use pandect::{GraphSession, PinnedView, SessionError};
+use pandect::SessionError;
 
 pub use pandect::GraphRevision as ValidationRevision;
 

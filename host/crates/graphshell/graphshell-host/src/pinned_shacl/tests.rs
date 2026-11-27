@@ -6,13 +6,14 @@
 
 use std::time::SystemTime;
 
+use crate::MereSessions;
 use kernel::graph::ResourceNode;
 use kernel::graph::apply::GraphDelta;
 use mere::ContextCache;
 use mere::acquire::page_claims::{KEPT_PAGE_CLAIMS_FACET, interpret};
 use muniment::MemoryBackend;
 use oxrdf::Triple;
-use pandect::{Author, MereSessions};
+use pandect::Author;
 
 use super::*;
 
