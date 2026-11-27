@@ -1,12 +1,12 @@
 # Mod projects plan
 
-**Status:** 2026-11-26: in progress; MP0 to MP8 and MP7b met; MP7c remains. Cut from GB6 P2 to P5
+**Status:** 2026-11-26: landed; MP0 to MP8, MP7b and MP7c met. Cut from GB6 P2 to P5
 and their tails in `2026-10-28_graph_behaviors_plan.md`; P1 landed as
 `2026-11-24_command_packs_plan.md`. D1 to D63 settle building, admission, reload, `.cwasm`, the
 first host, fixtures, signing, network, the authoring loop, the parser and viewer worlds, the
 browser table, grants, pins on reload, live pages and traps. MP5, MP5b (live pages), MP6 (the
-authoring loop), MP7 (parser and viewer mods), MP8 (the browser table) and MP7b (the Mod viewer pane) are met;
-MP7c (a pane kind per viewer) is next.
+authoring loop), MP7 (parser and viewer mods), MP8 (the browser table), MP7b (the Mod viewer pane) and MP7c (a
+pane kind per viewer) are met.
 
 **For:** Wasm component mods a person (or any agent working in the same folder) can create, check,
 build, attach to a document, exercise against fixtures and reload without a restart, holding no
@@ -997,6 +997,29 @@ None open.
    viewer's feed, gate, painter and session are kind-agnostic; its consts, provider ids and two
    tests assume one kind.
 
+21. MP7c, 2026-11-26 (Turnstone `4a9d960e`, `984daa2c`): `src/panes/registry/runtime.rs` holds
+   pane kinds defined at runtime beside `BUILTIN_PANES` (D60). `PaneDefinition` carries `Cow`
+   text and a `default_source`, and `pane_definition` returns a `DefinitionRef`, so its call sites
+   stay generic. `SurfaceProviderRegistry::unregister` and `ContributedSurfaceSessions::drop_kind`
+   exist. Each installed viewer is kind `mod:<id>` with its own provider, titled by its manifest's
+   `display_name` (a new `ProjectRow.title`); palette rows read "Open <title> pane" and join
+   `pack_rows` in `command_catalog`'s count (D63). `mod_viewer::sync_kinds`, called from the
+   shell's listing publish each frame, adds and removes kinds as projects come and go, and evicts
+   the renderers of that kind's panes in the primary tree and every lens space
+   (`App::panes_of_kind`), so a placeholder does not outlive a reinstall. `ModProjectHost::uninstall`
+   (`src/mod_projects/uninstall.rs`), the row's Uninstall button and `mod-uninstall <id>` take a
+   project off the list and out of `installed.json`, dropping grants and claims; the folder stays
+   and opening it reinstalls (D61). The document-host runtime keeps its in-memory install record
+   until the next admission replaces it; nothing observable reads it. A `mod:<id>` pane whose
+   viewer is gone reads "Viewer mod <id> is not installed" (D62). `turnstone.mod-viewer` is gone.
+   The headed receipt (`scenarios/mod_projects_mp7c.scn`, 12 frames in
+   `Code/testing/turnstone/mod-projects-pane-kinds/`) shows no entry before install, "Open Nodes
+   viewer pane" and no "Mod viewer" entry, two viewers as two kinds side by side, uninstall leaving
+   the pane reading not installed while the other draws, reinstall drawing both again, and the
+   row's Uninstall button. At 1024x600 the palette card clips at the right edge, pane tab titles
+   truncate, the placeholder text wraps against the pane edge, and the settings tab reads the raw
+   `turnstone.settings`.
+
 ## Progress
 
 - 2026-11-25: cut from GB6 P2 to P5 and their tails; D1 to D11 ruled.
@@ -1023,3 +1046,4 @@ None open.
 - 2026-11-26: D59 ruled (Turnstone carries the same stopgaps).
 - 2026-11-26: MP7b met (Findings 19, Turnstone `f4445991`). MP7c is next.
 - 2026-11-26: MP7c surveyed (Findings 20); D60 to D63 ruled.
+- 2026-11-26: MP7c met (Findings 21, Turnstone `984daa2c`). Every phase is met; the plan has landed.
