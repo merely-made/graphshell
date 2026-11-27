@@ -123,10 +123,7 @@ fn later_missing_target_rejects_entire_batch_and_capture() {
 }
 
 use incipit_session::addressable_graph::AddressableGraphStore;
-use kernel::graph::{
-    Seq,
-    apply::{GraphDelta, apply_graph_delta},
-};
+use kernel::graph::apply::{GraphDelta, apply_graph_delta};
 use mere::model::{ArrangementSubKind, ContainmentSubKind, EdgeAssertion, SemanticSubKind};
 use pandect::{ChangeKind, GraphId, GraphSessionManifest, SessionError, SessionId};
 use serde_json::{Value, json};
