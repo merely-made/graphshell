@@ -8,6 +8,6 @@
 //! whether or not the copy is identical. Checked load and both freezes ask
 //! here; none of them decides legality on its own.
 
-pub use mere::model::assertion_handles::{
-    AssertionHandleRepeat, AssertionHandles, HandleRow, validate_assertion_handles,
-};
+pub(crate) use mere::model::assertion_handles::{AssertionHandleRepeat, AssertionHandles};
+#[cfg(test)]
+pub(crate) use mere::model::assertion_handles::validate_assertion_handles;

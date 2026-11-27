@@ -8,8 +8,9 @@
 use super::resource_content::{ContentError, RESOURCE_CLASSIFICATIONS};
 use super::{Graph, NodeKey};
 use crate::types::{ClassificationScheme, ClassificationStatus, NodeClassification};
-pub use mere::model::resource_content::{ClassificationOrigin, ClassificationVariant};
-pub use mere::model::resource_rules::merge_classification_variants;
+pub(crate) use mere::model::resource_content::{ClassificationOrigin, ClassificationVariant};
+#[cfg(test)]
+pub(crate) use mere::model::resource_rules::merge_classification_variants;
 use uuid::Uuid;
 
 impl Graph {

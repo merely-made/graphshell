@@ -71,12 +71,12 @@ mod assertion_write;
 pub mod pending_links;
 pub use pending_links::{PendingLink, PendingLinkRetention, PendingLinkRetry, PendingLinkState};
 pub mod frozen_selection;
-pub use frozen_selection::OpenedFrozenSelection;
 pub mod frozen_link;
 mod handle_index;
 #[cfg(test)]
 mod handle_index_tests;
-pub use frozen_link::{FrozenLink, FrozenLinkSource, FrozenSourceRevision, OpenedFrozenLink};
+#[cfg(test)]
+pub(crate) use frozen_link::{FrozenLinkSource, FrozenSourceRevision};
 #[cfg(test)]
 mod assertion_handles_tests;
 pub mod coverage;
@@ -85,16 +85,11 @@ mod frozen_link_tests;
 #[cfg(test)]
 mod frozen_selection_tests;
 mod residency;
-pub use coverage::{CoverageLayer, CoverageLimit, CoverageNote};
+pub(crate) use coverage::{CoverageLayer, CoverageLimit, CoverageNote};
 mod edge_admission;
-/// Moved to `mere::model` (engine split P5 L3). The names other repositories
-/// name at this path stay re-exported here until the kernel moves at P8.
-pub mod edge_data {
-    pub use mere::model::edge_data::{Traversal, UNKNOWN_LEGACY_ASSERTER_IRI};
-}
-/// Moved to `mere::model` (engine split P5 L3); see [`edge_data`].
-pub mod edge_taxonomy {
-    pub use mere::model::edge_taxonomy::NavigationTrigger;
+/// Moved to `mere::model` (engine split P5 L3); the kernel names it here.
+pub(crate) mod edge_data {
+    pub(crate) use mere::model::edge_data::UNKNOWN_LEGACY_ASSERTER_IRI;
 }
 pub mod facet_projection;
 pub mod filter;
@@ -174,10 +169,10 @@ pub use edge_ops::Retraction;
 pub(crate) use mere::model::{built_in_predicate_stratum, built_in_relation_stratum};
 pub use node::{Node, SurfaceNode};
 pub use node_facets::{NodeFacetStore, VisitHistoryFacet};
-pub use predicate_declarations::{
-    PredicateDeclaration, PredicateDeclarationError, PredicateDeclarations,
-};
-pub use resource::ResourceNode;
+pub(crate) use predicate_declarations::PredicateDeclarationError;
+#[cfg(test)]
+pub(crate) use predicate_declarations::PredicateDeclarations;
+pub(crate) use resource::ResourceNode;
 
 // Node navigation history extracted to `history.rs` (2026-05-11
 // kernel-mod decomposition pass). Re-exported so external callers
@@ -195,14 +190,14 @@ pub use navigation_check::NavigationIndexError;
 // `EdgeKind`; reads go through [`RelationKind`] + [`RelationSelector`], writes
 // through [`EdgeAssertion`].
 pub use capture::{
-    CapturedDelta, DeltaRecorder, GraphTableStats, Malformed, Replay, ReplayRefused, Unwritable,
+    CapturedDelta, DeltaRecorder, GraphTableStats, Malformed, Replay, Unwritable,
     replay_captured_deltas, replay_captured_deltas_as_onto, replay_captured_deltas_onto,
     replay_captured_deltas_onto_checked, set_captured_delta_hook, with_isolated_capture,
 };
-pub use journal::{
-    AttributedDelta, Author, AuthorKind, GraphJournal, ReplayPoint, USER_AUTHOR,
-    journal_capture_hook,
-};
+#[cfg(test)]
+pub(crate) use capture::ReplayRefused;
+pub use journal::{AttributedDelta, GraphJournal, ReplayPoint, journal_capture_hook};
+pub(crate) use journal::Author;
 pub use merge::import_edits;
 pub use revert::{
     Part, Revert, Touched, part_edits, part_node, part_of, part_value, recreate_node_edits,
@@ -219,7 +214,7 @@ pub(crate) use mere::model::{
     REL_VOCAB, RelationAssertion, RelationAssertionSpec, RelationDurability, SemanticData,
     StatementAssert, Traversal, TraversalData, all_semantic_sub_kinds,
 };
-pub use mere::model::{
+pub(crate) use mere::model::{
     ArrangementSubKind, ContainmentSubKind, EdgeAssertion, EdgeFamily, EdgePayload, GraphStratum,
     ImportedSubKind, NavigationTrigger, ProvenanceSubKind, RelationKind, RelationSelector,
     SemanticStatement, SemanticStatementSpec, SemanticSubKind, predicate_iri, sub_kind_from_iri,

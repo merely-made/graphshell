@@ -8,8 +8,8 @@
 // every nested key against what their typed serialization retains instead.
 
 use super::Graph;
-pub use mere::model::frozen::{FROZEN_SELECTION, FrozenSelection};
-pub use mere::model::frozen_rules::OpenedFrozenSelection;
+pub(crate) use mere::model::frozen::{FROZEN_SELECTION, FrozenSelection};
+pub(crate) use mere::model::frozen_rules::OpenedFrozenSelection;
 pub(crate) use mere::model::frozen_rules::selection_from_record;
 use uuid::Uuid;
 

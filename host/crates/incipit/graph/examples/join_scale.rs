@@ -13,7 +13,8 @@
 //! `cargo run --release -p incipit-graph --features query --example join_scale -- 10000 100000`
 
 use kernel::graph::apply::add_node;
-use kernel::graph::{Graph, NodeKey, SemanticStatementSpec, SemanticSubKind, predicate_iri};
+use kernel::graph::{Graph, NodeKey};
+use mere::model::{SemanticStatementSpec, SemanticSubKind, predicate_iri};
 use mere::query::IndexedDataset;
 use std::time::Instant;
 use uuid::Uuid;

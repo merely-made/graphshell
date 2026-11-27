@@ -17,7 +17,8 @@ use std::time::UNIX_EPOCH;
 
 use euclid::default::Point2D;
 use kernel::graph::apply::{GraphDelta, add_node, apply_graph_delta};
-use kernel::graph::{Author, Graph};
+use kernel::graph::Graph;
+use mere::model::author::Author;
 use muniment::DirectoryBackend;
 use muniment::journal::DigestChain;
 use pandect::{GraphSession, MereSessions, SessionId};

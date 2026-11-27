@@ -9,7 +9,7 @@
 use super::{Graph, ResourceNode};
 use uuid::Uuid;
 
-pub use mere::model::coverage::{CoverageLayer, CoverageLimit, CoverageNote};
+pub(crate) use mere::model::coverage::{CoverageLayer, CoverageLimit, CoverageNote};
 
 impl Graph {
     pub fn known_coverage(&self) -> &CoverageNote {

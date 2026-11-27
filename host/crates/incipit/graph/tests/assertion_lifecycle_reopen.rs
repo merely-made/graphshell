@@ -13,10 +13,9 @@ use std::path::Path;
 use std::process::Command;
 
 use kernel::graph::apply::add_node;
-use kernel::graph::{
-    Graph, GraphStratum, SemanticStatement, SemanticStatementSpec, SemanticSubKind,
-};
-use kernel::types::{AssertionBasis, AssertionMethod, GraphScope};
+use kernel::graph::Graph;
+use mere::model::{AssertionBasis, AssertionMethod, GraphScope};
+use mere::model::{GraphStratum, SemanticStatement, SemanticStatementSpec, SemanticSubKind};
 use uuid::Uuid;
 
 const PROBE_DIR: &str = "MERE_LINK_MODEL_REOPEN_DIR";
@@ -127,7 +126,7 @@ fn write_fixture(directory: &Path) {
             to,
             SemanticStatement {
                 statement_id: "fixture:unknown-first".into(),
-                predicate: kernel::graph::predicate_iri(SemanticSubKind::Cites).into(),
+                predicate: mere::model::predicate_iri(SemanticSubKind::Cites).into(),
                 recognized_sub_kind: Some(SemanticSubKind::Cites),
                 label: None,
                 basis: Default::default(),

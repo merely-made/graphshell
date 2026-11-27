@@ -7,11 +7,10 @@
 
 use super::{CoverageNote, Graph, GraphStratum};
 use crate::persistence::{PersistedResourceFacet, PersistedResourceRecord};
-pub use mere::model::frozen::{
-    FROZEN_LINK, FrozenLink, FrozenLinkEndpoint, FrozenLinkSource, FrozenSourceBinding,
-    FrozenSourceRevision,
-};
-pub use mere::model::frozen_rules::OpenedFrozenLink;
+pub(crate) use mere::model::frozen::{FROZEN_LINK, FrozenLink, FrozenLinkEndpoint, FrozenLinkSource};
+#[cfg(test)]
+pub(crate) use mere::model::frozen::FrozenSourceRevision;
+pub(crate) use mere::model::frozen_rules::OpenedFrozenLink;
 pub(crate) use mere::model::frozen_rules::validate_frozen_link_record;
 use petgraph::visit::{EdgeRef, IntoEdgeReferences};
 use uuid::Uuid;

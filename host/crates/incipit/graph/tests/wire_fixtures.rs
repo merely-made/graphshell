@@ -19,14 +19,12 @@ use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
 use kernel::graph::apply::{GraphDelta, add_node, apply_graph_delta};
-use kernel::graph::{
-    AttributedDelta, Author, CapturedDelta, Graph, GraphStratum, NodeFacetStore,
-    SemanticStatementSpec, SemanticSubKind,
-};
+use kernel::graph::{AttributedDelta, CapturedDelta, Graph, NodeFacetStore};
 use kernel::persistence::GraphSnapshot;
-use kernel::types::{
-    AssertionBasis, AssertionMethod, FrameLayoutHint, GraphScope, NodeProperty, SplitOrientation,
-};
+use kernel::types::{FrameLayoutHint, SplitOrientation};
+use mere::model::author::Author;
+use mere::model::{AssertionBasis, AssertionMethod, GraphScope, NodeProperty};
+use mere::model::{GraphStratum, SemanticStatementSpec, SemanticSubKind};
 use uuid::Uuid;
 
 const WRITE_ENV: &str = "MERE_WRITE_WIRE_FIXTURES";
@@ -144,7 +142,7 @@ fn scenario() -> (Graph, Vec<AttributedDelta>) {
     let ra = graph.shown_resource_id(a).expect("a shows a resource");
     let rb = graph.shown_resource_id(b).expect("b shows a resource");
     let rc = graph.shown_resource_id(c).expect("c shows a resource");
-    let cites = kernel::graph::predicate_iri(SemanticSubKind::Cites);
+    let cites = mere::model::predicate_iri(SemanticSubKind::Cites);
     let (_, alice) = graph
         .try_assert_semantic_statement_by_resource_ids(
             ra,

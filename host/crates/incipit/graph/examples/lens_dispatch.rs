@@ -35,7 +35,8 @@ use eidetic::pack::{Origin, SignerReview, TrustPolicy, compile_authored};
 use eidetic::schema::TrustEnvelope;
 use identity::{Ed25519Keypair, Ed25519PublicKey};
 use kernel::graph::fixtures::GraphFixtures;
-use kernel::graph::{Graph, NodeKey, SemanticStatementSpec};
+use kernel::graph::{Graph, NodeKey};
+use mere::model::SemanticStatementSpec;
 use mere::model::{
     ArrangementSubKind, ContainmentSubKind, EdgeFamily, GraphStratum, ImportedSubKind,
     ProvenanceSubKind, RelationKind, SemanticSubKind, built_in_relation_stratum,

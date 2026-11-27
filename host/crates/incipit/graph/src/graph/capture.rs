@@ -1030,7 +1030,7 @@ impl ReplayAttribution {
 }
 
 /// A replayed entry the graph refused (the engine's, D251).
-pub use mere::session::ReplayRefused;
+pub(crate) use mere::session::ReplayRefused;
 
 /// What a replay does with an entry the graph refuses (the engine's, D251).
 pub(crate) use mere::session::OnRefusal;

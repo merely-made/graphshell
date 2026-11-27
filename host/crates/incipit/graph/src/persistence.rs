@@ -35,7 +35,7 @@ pub(crate) use mere::model::{
     PersistedProvenanceSubKind, PersistedRelationSelector, PersistedTraversalMetrics,
     PersistedTraversalRecord,
 };
-pub use mere::model::{
+pub(crate) use mere::model::{
     PersistedEdge, PersistedEdgeFamily, PersistedResourceFacet, PersistedResourceRecord,
     PersistedSemanticEdgeData, PersistedSemanticStatement, PersistedSemanticSubKind,
     PersistedTraversalEdgeData,

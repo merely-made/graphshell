@@ -108,7 +108,7 @@ fn v1_and_v2_digests_are_identical_at_every_prefix() {
     }
     // Control: the digest sees a change of author.
     let mut moved = converted[0].clone();
-    moved.author = kernel::graph::Author::person("someone-else");
+    moved.author = mere::model::author::Author::person("someone-else");
     assert_ne!(
         DigestChain::new().push(&moved).unwrap(),
         DigestChain::new().push(&converted[0]).unwrap()
@@ -150,7 +150,7 @@ fn a_positional_journal_does_not_read_as_the_envelope() {
     serde::Deserialize,
 )]
 struct PreSplitEntry {
-    author: kernel::graph::Author,
+    author: mere::model::author::Author,
     delta: CapturedDelta,
 }
 
@@ -201,7 +201,7 @@ fn the_alias_entry_encodes_as_the_pre_split_entry() {
     );
     // Control: one changed delta changes every encoding.
     let mut moved = kernel.clone();
-    moved[0].author = kernel::graph::Author::person("someone-else");
+    moved[0].author = mere::model::author::Author::person("someone-else");
     assert_ne!(serde_json::to_vec(&moved).unwrap(), read("journal.json"));
     assert_ne!(
         rkyv::to_bytes::<rkyv::rancor::Error>(&moved)
@@ -252,7 +252,7 @@ fn the_alias_journal_digests_as_the_pre_split_journal_at_every_prefix() {
     let mut tampered = kernel::graph::GraphJournal::new();
     for (i, entry) in kernel.iter().enumerate() {
         let author = if i == 5 {
-            kernel::graph::Author::person("tamper")
+            mere::model::author::Author::person("tamper")
         } else {
             entry.author.clone()
         };

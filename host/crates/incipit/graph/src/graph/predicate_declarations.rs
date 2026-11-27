@@ -8,10 +8,13 @@
 use super::{CapturedDelta, Graph, GraphStratum, ResourceNode, built_in_predicate_stratum};
 use crate::persistence::{PersistedResourceFacet, PersistedResourceRecord};
 use crate::types::mint_local_statement_id;
-pub use mere::model::predicate_declarations::{
+pub(crate) use mere::model::predicate_declarations::{
     PREDICATE_DECLARATIONS_FACET, PredicateDeclaration, PredicateDeclarationError,
-    PredicateDeclarations, merge_predicate_declarations, parse_predicate_declarations,
-    predicate_declarations_from_record,
+    PredicateDeclarations, predicate_declarations_from_record,
+};
+#[cfg(test)]
+pub(crate) use mere::model::predicate_declarations::{
+    merge_predicate_declarations, parse_predicate_declarations,
 };
 
 pub(crate) use mere::model::predicate_declarations::invalid;

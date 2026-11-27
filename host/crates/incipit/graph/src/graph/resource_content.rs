@@ -8,10 +8,10 @@
 use super::{CapturedDelta, Graph, NodeKey};
 use crate::persistence::{PersistedResourceFacet, PersistedResourceRecord};
 use crate::types::{ClassificationScheme, ClassificationStatus, NodeClassification, NodeProperty};
-pub use mere::model::resource_content::{
+pub(crate) use mere::model::resource_content::{
     RESOURCE_CLASSIFICATIONS, RESOURCE_PROPERTIES, TAG_CONCEPT,
 };
-pub use mere::model::resource_rules::ContentError;
+pub(crate) use mere::model::resource_rules::ContentError;
 pub(crate) use mere::model::resource_rules::validate_content_record;
 use petgraph::visit::{EdgeRef, IntoEdgeReferences};
 use serde::{Deserialize, Serialize, de::DeserializeOwned};

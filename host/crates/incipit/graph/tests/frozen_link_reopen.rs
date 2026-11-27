@@ -9,11 +9,11 @@
 mod graph_file;
 
 use kernel::graph::apply::add_node;
-use kernel::graph::{
-    FrozenLinkSource, FrozenSourceRevision, Graph, GraphStratum, SemanticStatementSpec,
-};
-use kernel::types::GraphScope;
+use kernel::graph::Graph;
 use mere::model::FrozenSourceBinding;
+use mere::model::GraphScope;
+use mere::model::frozen::{FrozenLinkSource, FrozenSourceRevision};
+use mere::model::{GraphStratum, SemanticStatementSpec};
 use std::path::Path;
 use std::process::Command;
 use uuid::Uuid;
@@ -113,7 +113,7 @@ fn write(directory: &Path) {
         Some(20),
         Some("urn:p7:person".into())
     ));
-    let property = kernel::types::NodeProperty::new(
+    let property = mere::model::NodeProperty::new(
         "https://mere.computer/ns/rel#reviewComment".into(),
         "A frozen review comment".into(),
     )

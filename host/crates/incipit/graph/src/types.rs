@@ -18,7 +18,7 @@ use crate::graph::ProvenanceSubKind;
 // The assertion model's leaf types moved to `mere::model::types` (engine split
 // P5 L3). Names other repositories use stay public here; the rest are for the
 // kernel only.
-pub use mere::model::{
+pub(crate) use mere::model::{
     AssertionBasis, AssertionMethod, AssertionWithdrawal, GraphScope, NodeProperty,
 };
 #[allow(unused_imports)]

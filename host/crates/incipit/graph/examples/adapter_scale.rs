@@ -30,10 +30,11 @@
 
 use kernel::graph::fixtures::GraphFixtures;
 use kernel::graph::apply::{GraphDelta, apply_graph_delta};
-use kernel::graph::{CapturedDelta, Graph, NodeKey, SemanticStatementSpec};
+use kernel::graph::{CapturedDelta, Graph, NodeKey};
 use kernel::rdf::touched_sources;
-use kernel::types::NodeProperty;
 use mere::dataset::Refresh;
+use mere::model::NodeProperty;
+use mere::model::SemanticStatementSpec;
 use mere::query::{IndexedDataset, View, sparql, sparql_on};
 use spareval::{QueryEvaluator, QueryResults};
 use spargebra::SparqlParser;

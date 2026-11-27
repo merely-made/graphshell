@@ -12,7 +12,7 @@ use mere::model::ResourceDelta;
 use uuid::Uuid;
 
 pub use super::resource_pair_bounds::ResourceEdgesBoundError;
-pub use mere::model::resource::{ResourceNode, TAGGED_WITH_IRI};
+pub(crate) use mere::model::resource::{ResourceNode, TAGGED_WITH_IRI};
 
 impl Graph {
     /// Read a resource by its stable identity.

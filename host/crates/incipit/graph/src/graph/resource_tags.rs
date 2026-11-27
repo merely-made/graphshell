@@ -10,7 +10,7 @@ use super::resource_content::{ContentError, TAG_CONCEPT};
 use super::{CapturedDelta, EdgePayload, Graph, NodeKey, ResourceNode, SemanticStatement};
 use crate::persistence::PersistedResourceRecord;
 use crate::types::GraphScope;
-pub use mere::model::resource_content::{TagConcept, tag_concept_iri};
+pub(crate) use mere::model::resource_content::{TagConcept, tag_concept_iri};
 pub(crate) use mere::model::resource_rules::validate_tag_concept;
 use petgraph::Direction;
 use petgraph::visit::EdgeRef;

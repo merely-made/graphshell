@@ -35,7 +35,9 @@ use muniment::Seq;
 use super::Graph;
 use super::capture::{CapturedDelta, DeltaRecorder};
 use super::source_time::{SourceExtent, SourceTime};
-pub use mere::model::author::{Author, AuthorKind, USER_AUTHOR};
+pub(crate) use mere::model::author::Author;
+#[cfg(test)]
+pub(crate) use mere::model::author::AuthorKind;
 
 /// One journal entry: a captured delta in the attribution envelope — the
 /// participant-gate plan's B1 adoption of chartulary's `Batch { author, edits }`
