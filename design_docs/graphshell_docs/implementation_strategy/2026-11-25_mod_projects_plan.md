@@ -2,7 +2,7 @@
 
 **Status:** 2026-11-26: in progress; MP0 to MP8 and MP7b met; MP7c remains. Cut from GB6 P2 to P5
 and their tails in `2026-10-28_graph_behaviors_plan.md`; P1 landed as
-`2026-11-24_command_packs_plan.md`. D1 to D59 settle building, admission, reload, `.cwasm`, the
+`2026-11-24_command_packs_plan.md`. D1 to D63 settle building, admission, reload, `.cwasm`, the
 first host, fixtures, signing, network, the authoring loop, the parser and viewer worlds, the
 browser table, grants, pins on reload, live pages and traps. MP5, MP5b (live pages), MP6 (the
 authoring loop), MP7 (parser and viewer mods), MP8 (the browser table) and MP7b (the Mod viewer pane) are met;
@@ -693,6 +693,44 @@ stated reason (D11).
 
   Links: area The stack · plans mod-projects MP7b · summary Turnstone patches totp-rs to master and skips constant_time_eq 0.4 until the forks land, as Graphshell does.
 
+- **D60. Pane kinds can be defined at runtime, in a table beside the built-ins (Mark,
+  2026-11-26):** Evidence (Findings 20): `BUILTIN_PANES` is a static slice and `pane_definition`
+  returns `&'static PaneDefinition` to 11 call sites; no pane kind is runtime-contributed today,
+  and the provider registry has no unregister. Offered: a runtime definition table with owned
+  definitions and an unregister, every consumer staying generic (recommended); a `mod:` prefix
+  family answered by one shared provider. Answer: "Runtime definition table (Recommended)".
+  Outcome: refines D45.
+
+  Links: area The stack · amends mod-projects D45 · plans mod-projects MP7c · summary A runtime table holds pane kinds added after startup, so each viewer is a pane kind like any built-in.
+
+- **D61. Uninstalling a mod forgets it and keeps its files (Mark, 2026-11-26):** Evidence
+  (Findings 20): projects open or are created into the list and `installed`; nothing removes one.
+  Offered: forget, taking the project off the list and dropping its install record, grants and
+  claims, with the folder and last-good build left on disk (recommended); forget and delete the
+  folder. Answer: "Forget: off the list, files stay (Recommended)". What follows: an Uninstall
+  button and a `mod-uninstall <id>` verb for every kind; a parser's claimed types return to the
+  built-in engines; opening the folder again reinstalls it. Outcome: new.
+
+  Links: area The stack · plans mod-projects MP7c · summary Uninstall takes a mod off the list and out of every route, and leaves its folder to be opened again.
+
+- **D62. A pane whose viewer is gone stays as a placeholder naming the mod (Mark,
+  2026-11-26):** Evidence (Findings 20): restore keeps an unknown kind and draws a placeholder
+  labelled from a hard-coded list of three kinds. Offered: keep the pane, reading that the viewer
+  mod is not installed, and revive it on reinstall, pruning nothing (recommended); close such
+  panes and prune saved layouts. Answer: "Placeholder naming the mod (Recommended)". Outcome: new.
+
+  Links: area The stack · plans mod-projects MP7c · summary An uninstalled viewer's panes stay in place and say so, and come back when it is installed again.
+
+- **D63. MP7c's smaller choices take the recommendations (Mark, 2026-11-26):** Evidence
+  (Findings 20). Answer, from D52: "yep, i'll accept the recommendations unless there are
+  significant forks". Taken: a viewer's kind id is `mod:<id>`, as its engine id is; its palette
+  label is the viewer's title as its project lists it; runtime definitions are owned, not leaked;
+  the table follows the mod project listing the shell already publishes, so a change reaches it
+  on the next frame; the palette's dynamic rows join `pack_rows` inside `command_catalog`'s row
+  count; the MP7b feed, re-run gate, painter and session are reused unchanged. Outcome: new.
+
+  Links: area The stack · plans mod-projects MP7c · summary Each viewer's pane kind is mod:<id>, titled as its project is, and follows the project list frame by frame.
+
 ## Open questions
 
 None open.
@@ -947,6 +985,18 @@ None open.
    beside 0.6.2 (D56 to D59). In the settings section the row's buttons and the theme radios draw
    wider than the pane's header.
 
+20. MP7c survey, 2026-11-26 (Turnstone `f4445991`): `PaneDefinition` (`src/panes/registry.rs`)
+   is `Copy` with `&'static str` fields; `pane_definition` scans `BUILTIN_PANES` and returns
+   `&'static` to 11 call sites (palette, toolbar and a11y rows, the chrome tools strip, labels,
+   summon, the contributed-pane route). `SurfaceProviderRegistry` is a `Vec` keyed by pane kind
+   and by provider and surface id, with no unregister. Every contributed kind (personae, sky,
+   distillery, the invited graph) is a compile-time row; command packs' `pack_rows` are the one
+   runtime palette rows, and `command_catalog` counts them. A restored pane of an unknown kind
+   survives and renders a placeholder labelled from three hard-coded kinds. Mod projects have no
+   uninstall; the shell's `publish_pack_listings` polls `mods.listing()` each frame. The Mod
+   viewer's feed, gate, painter and session are kind-agnostic; its consts, provider ids and two
+   tests assume one kind.
+
 ## Progress
 
 - 2026-11-25: cut from GB6 P2 to P5 and their tails; D1 to D11 ruled.
@@ -972,3 +1022,4 @@ None open.
 - 2026-11-26: Graphshell `90412d1d` (`encode_graph_feed` in authority-host, the constant_time_eq skip) pushed; D58 ruled.
 - 2026-11-26: D59 ruled (Turnstone carries the same stopgaps).
 - 2026-11-26: MP7b met (Findings 19, Turnstone `f4445991`). MP7c is next.
+- 2026-11-26: MP7c surveyed (Findings 20); D60 to D63 ruled.

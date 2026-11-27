@@ -1113,6 +1113,35 @@ area = "The stack"
 summary = "Turnstone patches totp-rs to master and skips constant_time_eq 0.4 until the forks land, as Graphshell does."
 plans = ["mod-projects"]
 
+[decisions."mod-projects D60"]
+title = "Pane kinds can be defined at runtime, in a table beside the built-ins (Mark, 2026-11-26)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "A runtime table holds pane kinds added after startup, so each viewer is a pane kind like any built-in."
+amends = ["mod-projects D45"]
+plans = ["mod-projects"]
+
+[decisions."mod-projects D61"]
+title = "Uninstalling a mod forgets it and keeps its files (Mark, 2026-11-26)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "Uninstall takes a mod off the list and out of every route, and leaves its folder to be opened again."
+plans = ["mod-projects"]
+
+[decisions."mod-projects D62"]
+title = "A pane whose viewer is gone stays as a placeholder naming the mod (Mark, 2026-11-26)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "An uninstalled viewer's panes stay in place and say so, and come back when it is installed again."
+plans = ["mod-projects"]
+
+[decisions."mod-projects D63"]
+title = "MP7c's smaller choices take the recommendations (Mark, 2026-11-26)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "Each viewer's pane kind is mod:<id>, titled as its project is, and follows the project list frame by frame."
+plans = ["mod-projects"]
+
 [decisions."primitive-representations D1"]
 title = "The brief's scope (Mark, 2026-11-13)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
