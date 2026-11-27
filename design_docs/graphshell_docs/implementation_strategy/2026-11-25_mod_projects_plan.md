@@ -2,7 +2,7 @@
 
 **Status:** 2026-11-26: in progress; MP0 to MP8 met; MP7b and MP7c remain. Cut from GB6 P2 to P5
 and their tails in `2026-10-28_graph_behaviors_plan.md`; P1 landed as
-`2026-11-24_command_packs_plan.md`. D1 to D58 settle building, admission, reload, `.cwasm`, the
+`2026-11-24_command_packs_plan.md`. D1 to D59 settle building, admission, reload, `.cwasm`, the
 first host, fixtures, signing, network, the authoring loop, the parser and viewer worlds, the
 browser table, grants, pins on reload, live pages and traps. MP5, MP5b (live pages), MP6 (the
 authoring loop), MP7 (parser and viewer mods) and MP8 (the browser table) are met; MP7b and MP7c
@@ -683,6 +683,16 @@ stated reason (D11).
 
   Links: area The stack · plans mod-projects MP7b · summary Graphshell's host carries a constant_time_eq 0.4 skip as a stopgap until blake2_simd and iroh-blobs are forked onto 0.6.
 
+- **D59. Turnstone carries the same stopgaps as Graphshell (Mark, 2026-11-26):** Evidence: with
+  dramatis `2e1c1a5` and blake3 1.8.8, Turnstone's root graph held constant_time_eq 0.6.2 beside
+  0.4.2 from blake2b_simd and blake2s_simd 1.0.5, iroh-blobs 0.103.1 and totp-rs 6.0.0; dramatis's
+  totp-rs patch row does not reach a consumer. Offered: the totp-rs patch row (D57) and a
+  constant_time_eq skip (D58) in Turnstone (recommended); the patch row only, the commit waiting
+  for the forks. Answer: "Same as Graphshell (Recommended)". Both rows leave with the forks and a
+  totp-rs release. Outcome: applies D57 and D58.
+
+  Links: area The stack · plans mod-projects MP7b · summary Turnstone patches totp-rs to master and skips constant_time_eq 0.4 until the forks land, as Graphshell does.
+
 ## Open questions
 
 None open.
@@ -938,3 +948,4 @@ None open.
 - 2026-11-26: MP7b surveyed (Findings 18); D50 to D52 ruled.
 - 2026-11-26: Graphshell `ae2e7c62` (sheet-leaf, trap causes, fixture viewer titles) pushed; dramatis `2e1c1a5` (one constant_time_eq) pushed; D53 to D57 ruled.
 - 2026-11-26: Graphshell `90412d1d` (`encode_graph_feed` in authority-host, the constant_time_eq skip) pushed; D58 ruled.
+- 2026-11-26: D59 ruled (Turnstone carries the same stopgaps).

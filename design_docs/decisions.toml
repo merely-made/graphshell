@@ -1106,6 +1106,13 @@ area = "The stack"
 summary = "Graphshell's host carries a constant_time_eq 0.4 skip as a stopgap until blake2_simd and iroh-blobs are forked onto 0.6."
 plans = ["mod-projects"]
 
+[decisions."mod-projects D59"]
+title = "Turnstone carries the same stopgaps as Graphshell (Mark, 2026-11-26)"
+source = "design_docs/graphshell_docs/implementation_strategy/2026-11-25_mod_projects_plan.md"
+area = "The stack"
+summary = "Turnstone patches totp-rs to master and skips constant_time_eq 0.4 until the forks land, as Graphshell does."
+plans = ["mod-projects"]
+
 [decisions."primitive-representations D1"]
 title = "The brief's scope (Mark, 2026-11-13)"
 source = "design_docs/graphshell_docs/implementation_strategy/2026-11-14_primitive_representations_plan.md"
