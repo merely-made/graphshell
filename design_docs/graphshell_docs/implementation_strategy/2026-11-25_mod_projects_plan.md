@@ -1,12 +1,12 @@
 # Mod projects plan
 
-**Status:** 2026-11-26: in progress; MP0 to MP8 met; MP7b and MP7c remain. Cut from GB6 P2 to P5
+**Status:** 2026-11-26: in progress; MP0 to MP8 and MP7b met; MP7c remains. Cut from GB6 P2 to P5
 and their tails in `2026-10-28_graph_behaviors_plan.md`; P1 landed as
 `2026-11-24_command_packs_plan.md`. D1 to D59 settle building, admission, reload, `.cwasm`, the
 first host, fixtures, signing, network, the authoring loop, the parser and viewer worlds, the
 browser table, grants, pins on reload, live pages and traps. MP5, MP5b (live pages), MP6 (the
-authoring loop), MP7 (parser and viewer mods) and MP8 (the browser table) are met; MP7b and MP7c
-(viewer panes) are next.
+authoring loop), MP7 (parser and viewer mods), MP8 (the browser table) and MP7b (the Mod viewer pane) are met;
+MP7c (a pane kind per viewer) is next.
 
 **For:** Wasm component mods a person (or any agent working in the same folder) can create, check,
 build, attach to a document, exercise against fixtures and reload without a restart, holding no
@@ -925,6 +925,28 @@ None open.
    static registry row. A viewer's trap reaches the row as mod-host's `first_line`, the backtrace
    header; a refusal reaches it not at all.
 
+19. MP7b, 2026-11-26 (Graphshell `ae2e7c62` and `90412d1d`, dramatis `2e1c1a5`, Turnstone
+   `f4445991`): Graphshell's `host/crates/cambium/sheet-leaf` is the one `VectorSheet` painter,
+   depending on sprigging and vector-sheet only, with its own `SheetTheme` (D50, D53); Turnstone's
+   block pane, web tree and blocks example use it, and `ports/graphshell/src/sheet_theme.rs` is
+   the one adapter from the surface theme, with the two contrast tests. authority-host's
+   `encode_graph_feed` writes the feed beside `GRAPH_SNAPSHOT_AND_FACETS` and mere-resident calls
+   it (D54). The Mod viewer is a contributed `SurfaceProvider`, kind `turnstone.mod-viewer`, source
+   `{"mod": id}`, opened by the row's View button or `mod-view <id>`; it re-runs on `(revision,
+   content_revision)` and whole-pixel width (D55), paints the sheet through the leaf with text as
+   spans, and shows the viewer's title and region labels. A trap or refusal shows its cause in the
+   pane and in the row's last trap and last failure (mod-host's `first_line` now names the cause,
+   "wasm trap: wasm `unreachable` instruction executed"); success clears the failure. The headed
+   receipt (`scenarios/mod_projects_mp7b.scn`, 8 frames in
+   `Code/testing/turnstone/mod-projects-viewers/`) draws the live graph's titles, re-runs on an
+   added node, traps on a node titled TRAP in pane and row, and recovers on a retitle. No block
+   pane frame was taken: the block scenarios need Woodshed's block pack; the
+   `a_guest_view_decodes_into_regions_and_a_painted_sheet` test paints a guest view through the
+   moved crate. The wasm32 web build stops in `cubecl-runtime` 0.12.0-pre.2 (mere's upstream ledger
+   item 15) before reaching this code. Fresh resolves failed bans on `constant_time_eq` 0.4.2
+   beside 0.6.2 (D56 to D59). In the settings section the row's buttons and the theme radios draw
+   wider than the pane's header.
+
 ## Progress
 
 - 2026-11-25: cut from GB6 P2 to P5 and their tails; D1 to D11 ruled.
@@ -949,3 +971,4 @@ None open.
 - 2026-11-26: Graphshell `ae2e7c62` (sheet-leaf, trap causes, fixture viewer titles) pushed; dramatis `2e1c1a5` (one constant_time_eq) pushed; D53 to D57 ruled.
 - 2026-11-26: Graphshell `90412d1d` (`encode_graph_feed` in authority-host, the constant_time_eq skip) pushed; D58 ruled.
 - 2026-11-26: D59 ruled (Turnstone carries the same stopgaps).
+- 2026-11-26: MP7b met (Findings 19, Turnstone `f4445991`). MP7c is next.
