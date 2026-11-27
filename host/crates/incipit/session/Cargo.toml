@@ -44,9 +44,9 @@ uuid = { version = "1", features = ["serde", "v4"] }
 
 [dev-dependencies]
 kernel = { package = "incipit-graph", version = "0.1.0", path = "../graph", features = ["fixtures"] }
-# The cross-read tests write with mere-kernel's path and read with incipit's.
-mere_kernel = { package = "mere-kernel", version = ">=0.0.3", git = "https://github.com/merely-made/mere.git", branch = "main" }
 euclid = "0.22"
+# The stores mere-kernel wrote, frozen when Mere retired it (tests/fixtures/kernel_written).
+postcard = { version = "1", features = ["alloc"] }
 pollster = "1"
 tempfile = "3"
 

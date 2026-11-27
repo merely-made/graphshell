@@ -1,0 +1,213 @@
+incipit-session.kernel-store-fixture/v1
+;sessions/b5f98581-9e60-4def-839e-6e59569c5c7b/baseline.json©%{
+  "graph": {
+    "nodes": [
+      {
+        "node_id": "00000000-0000-0000-0000-000000005b01",
+        "address": {
+          "Http": "https://sync.test/1"
+        },
+        "url": "https://sync.test/1",
+        "cached_host": null,
+        "title": "One",
+        "tags": [
+          "kept"
+        ],
+        "tag_presentation": {
+          "ordered_tags": [],
+          "icon_overrides": {}
+        },
+        "import_provenance": [],
+        "is_pinned": false,
+        "session_state": {
+          "scroll_x": null,
+          "scroll_y": null,
+          "form_draft": null,
+          "last_visited_ms": null
+        },
+        "mime_hint": null,
+        "classifications": [],
+        "frame_layout_hints": [],
+        "frame_split_offer_suppressed": false,
+        "properties": [],
+        "derivations": [],
+        "body": null,
+        "last_session_visited": 0,
+        "nested": null
+      },
+      {
+        "node_id": "00000000-0000-0000-0000-000000005b02",
+        "address": {
+          "Http": "https://sync.test/2"
+        },
+        "url": "https://sync.test/2",
+        "cached_host": null,
+        "title": "Two",
+        "tags": [],
+        "tag_presentation": {
+          "ordered_tags": [],
+          "icon_overrides": {}
+        },
+        "import_provenance": [],
+        "is_pinned": false,
+        "session_state": {
+          "scroll_x": null,
+          "scroll_y": null,
+          "form_draft": null,
+          "last_visited_ms": null
+        },
+        "mime_hint": null,
+        "classifications": [],
+        "frame_layout_hints": [],
+        "frame_split_offer_suppressed": false,
+        "properties": [],
+        "derivations": [],
+        "body": null,
+        "last_session_visited": 0,
+        "nested": null
+      }
+    ],
+    "edges": [],
+    "import_records": [],
+    "timestamp_secs": 1795766263,
+    "fields": [],
+    "couplings": [],
+    "navigation": {
+      "snapshot": {
+        "entries": [],
+        "visits": [],
+        "owners": []
+      }
+    },
+    "resources": [
+      {
+        "canonical_iri": "https://sync.test/1",
+        "facets": []
+      },
+      {
+        "canonical_iri": "https://sync.test/2",
+        "facets": []
+      },
+      {
+        "canonical_iri": "https://sync.test/3",
+        "facets": []
+      }
+    ],
+    "resource_edges": [
+      {
+        "from_node_id": "44d78a40-9994-522a-9111-d9b56db9ffbb",
+        "to_node_id": "2a4c5b41-f2ff-5f89-bd63-6f99e4d74098",
+        "families": [
+          "Semantic"
+        ],
+        "semantic": null,
+        "traversal": null,
+        "containment": null,
+        "arrangement": null,
+        "imported": null,
+        "provenance": null,
+        "assertions": [
+          {
+            "statement_id": "01a21c029f48-8542b95f6a2b8b46-0000000000000031",
+            "predicate": "https://mere.computer/ns/rel#cites",
+            "recognized_sub_kind": "Cites",
+            "provenance_iri": "https://mere.computer/ns/agent#person/5e449ad6fa4b2d65746e8cd4f968e38c5a9679f8495db114ee06317f72f717db",
+            "asserted_at_ms": 1795766263624,
+            "first_asserted_ms": 1795766263624
+          }
+        ]
+      }
+    ],
+    "shown_resources": [
+      {
+        "surface_id": "00000000-0000-0000-0000-000000005b01",
+        "resource_id": "44d78a40-9994-522a-9111-d9b56db9ffbb"
+      },
+      {
+        "surface_id": "00000000-0000-0000-0000-000000005b02",
+        "resource_id": "2a4c5b41-f2ff-5f89-bd63-6f99e4d74098"
+      }
+    ],
+    "assertion_schema": 1
+  },
+  "facets": {
+    "nodes": {
+      "00000000-0000-0000-0000-000000005b01": {
+        "graphshell.access-history/v1": {
+          "records": [
+            {
+              "action": "open",
+              "address": "https://sync.test/1",
+              "application": "graphshell",
+              "at_ms": 5,
+              "capture_source": "cross.read",
+              "container_id": "00000000-0000-0000-0000-000000005b01",
+              "device": "cross",
+              "handler": "graphshell.open",
+              "persona": "personae://profile/cross",
+              "privacy": "TrustedPeersOnly",
+              "record_id": "00000000-0000-0000-0000-000000000acc",
+              "transition": "unknown"
+            }
+          ]
+        },
+        "presentation.tags": {
+          "icon_overrides": {},
+          "ordered_tags": [
+            "kept"
+          ]
+        },
+        "visit.history": {
+          "last_session_visited": 0,
+          "last_visited_ms": 1795766263859
+        }
+      },
+      "00000000-0000-0000-0000-000000005b02": {
+        "presentation.tags": {
+          "icon_overrides": {},
+          "ordered_tags": []
+        },
+        "visit.history": {
+          "last_session_visited": 0,
+          "last_visited_ms": 1795766263859
+        }
+      }
+    }
+  }
+}Lsessions/b5f98581-9e60-4def-839e-6e59569c5c7b/changes.jsonl/0000000000000000ˆ{"entry":{"author":{"kind":"person","id":"cross-read","version":null,"via":"graphshell"},"kind":"minted","first":0,"end":0},"causes":[]}Lsessions/b5f98581-9e60-4def-839e-6e59569c5c7b/changes.jsonl/0000000000000001†{"entry":{"author":{"kind":"person","id":"cross-read","version":null,"via":"graphshell"},"kind":"edit","first":0,"end":1},"causes":[]}Lsessions/b5f98581-9e60-4def-839e-6e59569c5c7b/journal.jsonl/0000000000000000Ë{"entry":{"author":{"kind":"person","id":"cross-read","version":null,"via":"graphshell"},"delta":{"ReplaySetNodeTitleById":{"node_id":"00000000-0000-0000-0000-000000005b01","title":"Once"}}},"causes":[]};sessions/b5f98581-9e60-4def-839e-6e59569c5c7b/manifest.json¿{
+  "schema_version": 1,
+  "session_id": "b5f98581-9e60-4def-839e-6e59569c5c7b",
+  "root_graph_id": "89bac0ae-acdd-44f1-b78d-6b70b312adaa",
+  "sub_graph_refs": [],
+  "display_name": null,
+  "persona_id": "00000000-0000-0000-0000-000000000001",
+  "created_at": {
+    "secs_since_epoch": 1795766263,
+    "nanos_since_epoch": 931959700
+  },
+  "updated_at": {
+    "secs_since_epoch": 1795766263,
+    "nanos_since_epoch": 932568400
+  },
+  "parent_session": null,
+  "consolidated_codicils": [],
+  "last_consolidated_at": null,
+  "storage_path": null,
+  "forked_at": null,
+  "trashed": null,
+  "source_codicil": null,
+  "codicil_read_only": false,
+  "picked_from": null,
+  "lineage": "fork",
+  "merged": null
+}@sessions/b5f98581-9e60-4def-839e-6e59569c5c7b/pending-links.jsonV{
+  "version": 1,
+  "state": {
+    "retention": "SessionOnly",
+    "entries": []
+  }
+}<sessions/b5f98581-9e60-4def-839e-6e59569c5c7b/placement.jsonW{
+  "baseline": "recorded-strata-v1",
+  "legacy_journal_until": null,
+  "origins": []
+}

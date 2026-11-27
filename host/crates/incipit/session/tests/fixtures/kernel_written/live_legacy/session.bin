@@ -1,0 +1,342 @@
+incipit-session.kernel-store-fixture/v1
+	;sessions/0e04f1b1-0a5e-49c2-a710-269ef627f8fe/baseline.json¡{
+  "graph": {
+    "nodes": [
+      {
+        "node_id": "00000000-0000-0000-0000-000000000ce4",
+        "address": {
+          "Http": "https://legacy.test/"
+        },
+        "url": "https://legacy.test/",
+        "cached_host": null,
+        "title": "https://legacy.test/",
+        "tags": [],
+        "tag_presentation": {
+          "ordered_tags": [],
+          "icon_overrides": {}
+        },
+        "import_provenance": [],
+        "is_pinned": false,
+        "session_state": {
+          "scroll_x": null,
+          "scroll_y": null,
+          "form_draft": null,
+          "last_visited_ms": null
+        },
+        "mime_hint": null,
+        "classifications": [],
+        "frame_layout_hints": [],
+        "frame_split_offer_suppressed": false,
+        "properties": [],
+        "derivations": [],
+        "body": null,
+        "last_session_visited": 0,
+        "nested": null
+      }
+    ],
+    "edges": [],
+    "import_records": [],
+    "timestamp_secs": 1795766263,
+    "fields": [],
+    "couplings": [],
+    "navigation": {
+      "snapshot": {
+        "entries": [],
+        "visits": [],
+        "owners": []
+      }
+    },
+    "resources": [
+      {
+        "canonical_iri": "https://legacy.test",
+        "facets": []
+      }
+    ],
+    "resource_edges": [],
+    "shown_resources": [
+      {
+        "surface_id": "00000000-0000-0000-0000-000000000ce4",
+        "resource_id": "569fc0b8-cb1c-5521-ac6e-b77f3ad0c720"
+      }
+    ],
+    "assertion_schema": 1
+  },
+  "facets": {
+    "nodes": {
+      "00000000-0000-0000-0000-000000000ce4": {
+        "visit.history": {
+          "last_session_visited": 0,
+          "last_visited_ms": 1795766263972
+        }
+      }
+    }
+  }
+}Lsessions/0e04f1b1-0a5e-49c2-a710-269ef627f8fe/changes.jsonl/0000000000000000z{"entry":{"author":{"kind":"person","id":"user","version":null,"via":null},"kind":"minted","first":0,"end":0},"causes":[]}=sessions/0e04f1b1-0a5e-49c2-a710-269ef627f8fe/checkpoint.jsonÄ{
+  "cursor": 0,
+  "translated_receipt_digest": "131b808250cd20e9cd762841ed780a549b54ec7e296e911b09d23ba719db3cea",
+  "journal_digest": "d07475b941dddc278b6ac72a34c7156ca231d4c923ece239da1c8b0926c22f84",
+  "journal_digest_version": 2,
+  "contents_digest": "9e30359998a6dd7baae5f7fc49bc66285dd78db71334b5b6cea27cc83a0e158d"
+}9sessions/0e04f1b1-0a5e-49c2-a710-269ef627f8fe/facets.jsonµ{
+  "nodes": {
+    "00000000-0000-0000-0000-000000000ce4": {
+      "visit.history": {
+        "last_session_visited": 0,
+        "last_visited_ms": 1795766263972
+      }
+    }
+  }
+}8sessions/0e04f1b1-0a5e-49c2-a710-269ef627f8fe/graph.jsonÅ
+{
+  "nodes": [
+    {
+      "node_id": "00000000-0000-0000-0000-000000000ce4",
+      "address": {
+        "Http": "https://legacy.test/"
+      },
+      "url": "https://legacy.test/",
+      "cached_host": null,
+      "title": "https://legacy.test/",
+      "tags": [],
+      "tag_presentation": {
+        "ordered_tags": [],
+        "icon_overrides": {}
+      },
+      "import_provenance": [],
+      "is_pinned": false,
+      "session_state": {
+        "scroll_x": null,
+        "scroll_y": null,
+        "form_draft": null,
+        "last_visited_ms": null
+      },
+      "mime_hint": null,
+      "classifications": [],
+      "frame_layout_hints": [],
+      "frame_split_offer_suppressed": false,
+      "properties": [],
+      "derivations": [],
+      "body": null,
+      "last_session_visited": 0,
+      "nested": null
+    }
+  ],
+  "edges": [],
+  "import_records": [],
+  "timestamp_secs": 1795766263,
+  "fields": [],
+  "couplings": [],
+  "navigation": {
+    "snapshot": {
+      "entries": [],
+      "visits": [],
+      "owners": []
+    }
+  },
+  "resources": [
+    {
+      "canonical_iri": "https://legacy.test",
+      "facets": []
+    }
+  ],
+  "resource_edges": [],
+  "shown_resources": [
+    {
+      "surface_id": "00000000-0000-0000-0000-000000000ce4",
+      "resource_id": "569fc0b8-cb1c-5521-ac6e-b77f3ad0c720"
+    }
+  ],
+  "assertion_schema": 1
+}Esessions/0e04f1b1-0a5e-49c2-a710-269ef627f8fe/legacy-translation.jsonÎ{
+  "version": 1,
+  "source_digest": "fa336e22059bf39e450e6008cc4910a1083b9a97a685ab3ec0350fe9dd3c9d07",
+  "translation_digest": "131b808250cd20e9cd762841ed780a549b54ec7e296e911b09d23ba719db3cea",
+  "placement": {
+    "baseline": "legacy-surface-v1",
+    "legacy_journal_until": 0,
+    "origins": []
+  },
+  "baseline": {
+    "graph": {
+      "nodes": [
+        {
+          "node_id": "00000000-0000-0000-0000-000000000ce4",
+          "address": {
+            "Http": "https://legacy.test/"
+          },
+          "url": "https://legacy.test/",
+          "cached_host": null,
+          "title": "https://legacy.test/",
+          "tags": [],
+          "tag_presentation": {
+            "ordered_tags": [],
+            "icon_overrides": {}
+          },
+          "import_provenance": [],
+          "is_pinned": false,
+          "session_state": {
+            "scroll_x": null,
+            "scroll_y": null,
+            "form_draft": null,
+            "last_visited_ms": null
+          },
+          "mime_hint": null,
+          "classifications": [],
+          "frame_layout_hints": [],
+          "frame_split_offer_suppressed": false,
+          "properties": [],
+          "derivations": [],
+          "body": null,
+          "last_session_visited": 0,
+          "nested": null
+        }
+      ],
+      "edges": [],
+      "import_records": [],
+      "timestamp_secs": 1795766263,
+      "fields": [],
+      "couplings": [],
+      "navigation": {
+        "snapshot": {
+          "entries": [],
+          "visits": [],
+          "owners": []
+        }
+      },
+      "resources": [
+        {
+          "canonical_iri": "https://legacy.test",
+          "facets": []
+        }
+      ],
+      "resource_edges": [],
+      "shown_resources": [
+        {
+          "surface_id": "00000000-0000-0000-0000-000000000ce4",
+          "resource_id": "569fc0b8-cb1c-5521-ac6e-b77f3ad0c720"
+        }
+      ],
+      "assertion_schema": 1
+    },
+    "facets": {
+      "nodes": {
+        "00000000-0000-0000-0000-000000000ce4": {
+          "visit.history": {
+            "last_session_visited": 0,
+            "last_visited_ms": 1795766263972
+          }
+        }
+      }
+    }
+  },
+  "entry_effects": [],
+  "legacy_final": {
+    "graph": {
+      "nodes": [
+        {
+          "node_id": "00000000-0000-0000-0000-000000000ce4",
+          "address": {
+            "Http": "https://legacy.test/"
+          },
+          "url": "https://legacy.test/",
+          "cached_host": null,
+          "title": "https://legacy.test/",
+          "tags": [],
+          "tag_presentation": {
+            "ordered_tags": [],
+            "icon_overrides": {}
+          },
+          "import_provenance": [],
+          "is_pinned": false,
+          "session_state": {
+            "scroll_x": null,
+            "scroll_y": null,
+            "form_draft": null,
+            "last_visited_ms": null
+          },
+          "mime_hint": null,
+          "classifications": [],
+          "frame_layout_hints": [],
+          "frame_split_offer_suppressed": false,
+          "properties": [],
+          "derivations": [],
+          "body": null,
+          "last_session_visited": 0,
+          "nested": null
+        }
+      ],
+      "edges": [],
+      "import_records": [],
+      "timestamp_secs": 1795766263,
+      "fields": [],
+      "couplings": [],
+      "navigation": {
+        "snapshot": {
+          "entries": [],
+          "visits": [],
+          "owners": []
+        }
+      },
+      "resources": [
+        {
+          "canonical_iri": "https://legacy.test",
+          "facets": []
+        }
+      ],
+      "resource_edges": [],
+      "shown_resources": [
+        {
+          "surface_id": "00000000-0000-0000-0000-000000000ce4",
+          "resource_id": "569fc0b8-cb1c-5521-ac6e-b77f3ad0c720"
+        }
+      ],
+      "assertion_schema": 1
+    },
+    "facets": {
+      "nodes": {
+        "00000000-0000-0000-0000-000000000ce4": {
+          "visit.history": {
+            "last_session_visited": 0,
+            "last_visited_ms": 1795766263972
+          }
+        }
+      }
+    }
+  }
+};sessions/0e04f1b1-0a5e-49c2-a710-269ef627f8fe/manifest.json®{
+  "schema_version": 1,
+  "session_id": "0e04f1b1-0a5e-49c2-a710-269ef627f8fe",
+  "root_graph_id": "be8842c9-9020-4c0e-a694-f7ad30ff258c",
+  "sub_graph_refs": [],
+  "display_name": null,
+  "persona_id": "00000000-0000-0000-0000-000000000001",
+  "created_at": {
+    "secs_since_epoch": 1795766263,
+    "nanos_since_epoch": 972130800
+  },
+  "updated_at": {
+    "secs_since_epoch": 0,
+    "nanos_since_epoch": 0
+  },
+  "parent_session": null,
+  "consolidated_codicils": [],
+  "last_consolidated_at": null,
+  "storage_path": null,
+  "forked_at": null,
+  "trashed": null,
+  "source_codicil": null,
+  "codicil_read_only": false,
+  "picked_from": null,
+  "lineage": "fork",
+  "merged": null
+}@sessions/0e04f1b1-0a5e-49c2-a710-269ef627f8fe/pending-links.jsonV{
+  "version": 1,
+  "state": {
+    "retention": "SessionOnly",
+    "entries": []
+  }
+}<sessions/0e04f1b1-0a5e-49c2-a710-269ef627f8fe/placement.jsonS{
+  "baseline": "legacy-surface-v1",
+  "legacy_journal_until": 0,
+  "origins": []
+}

@@ -1,0 +1,632 @@
+incipit-session.kernel-store-fixture/v1
+;sessions/3369722b-a81a-4ccc-9ac0-03b9412109cf/baseline.json£{
+  "graph": {
+    "nodes": [
+      {
+        "node_id": "00000000-0000-0000-0000-000000005b01",
+        "address": {
+          "Http": "https://legacy.test/1"
+        },
+        "url": "https://legacy.test/1",
+        "cached_host": null,
+        "title": "https://legacy.test/1",
+        "tags": [],
+        "tag_presentation": {
+          "ordered_tags": [],
+          "icon_overrides": {}
+        },
+        "import_provenance": [],
+        "is_pinned": false,
+        "session_state": {
+          "scroll_x": null,
+          "scroll_y": null,
+          "form_draft": null,
+          "last_visited_ms": null
+        },
+        "mime_hint": null,
+        "classifications": [],
+        "frame_layout_hints": [],
+        "frame_split_offer_suppressed": false,
+        "properties": [],
+        "derivations": [],
+        "body": null,
+        "last_session_visited": 0,
+        "nested": null
+      },
+      {
+        "node_id": "00000000-0000-0000-0000-000000005b02",
+        "address": {
+          "Http": "https://legacy.test/2"
+        },
+        "url": "https://legacy.test/2",
+        "cached_host": null,
+        "title": "https://legacy.test/2",
+        "tags": [],
+        "tag_presentation": {
+          "ordered_tags": [],
+          "icon_overrides": {}
+        },
+        "import_provenance": [],
+        "is_pinned": false,
+        "session_state": {
+          "scroll_x": null,
+          "scroll_y": null,
+          "form_draft": null,
+          "last_visited_ms": null
+        },
+        "mime_hint": null,
+        "classifications": [],
+        "frame_layout_hints": [],
+        "frame_split_offer_suppressed": false,
+        "properties": [],
+        "derivations": [],
+        "body": null,
+        "last_session_visited": 0,
+        "nested": null
+      }
+    ],
+    "edges": [],
+    "import_records": [],
+    "timestamp_secs": 1795766263,
+    "fields": [],
+    "couplings": [],
+    "navigation": {
+      "snapshot": {
+        "entries": [],
+        "visits": [],
+        "owners": []
+      }
+    },
+    "resources": [
+      {
+        "canonical_iri": "https://legacy.test/1",
+        "facets": []
+      },
+      {
+        "canonical_iri": "https://legacy.test/2",
+        "facets": []
+      }
+    ],
+    "resource_edges": [],
+    "shown_resources": [
+      {
+        "surface_id": "00000000-0000-0000-0000-000000005b01",
+        "resource_id": "52949b2f-c03e-5cd6-a9aa-fc1d35e40480"
+      },
+      {
+        "surface_id": "00000000-0000-0000-0000-000000005b02",
+        "resource_id": "635457c8-9e00-5a57-b017-85f698af1f64"
+      }
+    ],
+    "assertion_schema": 1
+  },
+  "facets": {
+    "nodes": {
+      "00000000-0000-0000-0000-000000005b01": {
+        "visit.history": {
+          "last_session_visited": 0,
+          "last_visited_ms": 1795766263948
+        }
+      },
+      "00000000-0000-0000-0000-000000005b02": {
+        "visit.history": {
+          "last_session_visited": 0,
+          "last_visited_ms": 1795766263948
+        }
+      }
+    }
+  }
+}Lsessions/3369722b-a81a-4ccc-9ac0-03b9412109cf/changes.jsonl/0000000000000000ˆ{"entry":{"author":{"kind":"person","id":"cross-read","version":null,"via":"graphshell"},"kind":"minted","first":0,"end":0},"causes":[]}Lsessions/3369722b-a81a-4ccc-9ac0-03b9412109cf/changes.jsonl/0000000000000001†{"entry":{"author":{"kind":"person","id":"cross-read","version":null,"via":"graphshell"},"kind":"edit","first":0,"end":1},"causes":[]}=sessions/3369722b-a81a-4ccc-9ac0-03b9412109cf/checkpoint.jsonÄ{
+  "cursor": 1,
+  "translated_receipt_digest": "4494b93d8479808ce7b2aedefa9ee4342222a55c40fd904f5c96b90f66c8b5f9",
+  "journal_digest": "9fbf754d0a0f88b54daa1a332e51250c57997d5b1900b0b1951a46a428ed42db",
+  "journal_digest_version": 2,
+  "contents_digest": "b0f371579ceb9f4559193d2562284267c09a1acdf49ac48d74f624da3eb5d5b3"
+}9sessions/3369722b-a81a-4ccc-9ac0-03b9412109cf/facets.json×{
+  "nodes": {
+    "00000000-0000-0000-0000-000000005b01": {
+      "visit.history": {
+        "last_session_visited": 0,
+        "last_visited_ms": 1795766263948
+      }
+    },
+    "00000000-0000-0000-0000-000000005b02": {
+      "visit.history": {
+        "last_session_visited": 0,
+        "last_visited_ms": 1795766263948
+      }
+    }
+  }
+}8sessions/3369722b-a81a-4ccc-9ac0-03b9412109cf/graph.json±{
+  "nodes": [
+    {
+      "node_id": "00000000-0000-0000-0000-000000005b01",
+      "address": {
+        "Http": "https://legacy.test/1"
+      },
+      "url": "https://legacy.test/1",
+      "cached_host": null,
+      "title": "Legacy",
+      "tags": [],
+      "tag_presentation": {
+        "ordered_tags": [],
+        "icon_overrides": {}
+      },
+      "import_provenance": [],
+      "is_pinned": false,
+      "session_state": {
+        "scroll_x": null,
+        "scroll_y": null,
+        "form_draft": null,
+        "last_visited_ms": null
+      },
+      "mime_hint": null,
+      "classifications": [],
+      "frame_layout_hints": [],
+      "frame_split_offer_suppressed": false,
+      "properties": [],
+      "derivations": [],
+      "body": null,
+      "last_session_visited": 0,
+      "nested": null
+    },
+    {
+      "node_id": "00000000-0000-0000-0000-000000005b02",
+      "address": {
+        "Http": "https://legacy.test/2"
+      },
+      "url": "https://legacy.test/2",
+      "cached_host": null,
+      "title": "https://legacy.test/2",
+      "tags": [],
+      "tag_presentation": {
+        "ordered_tags": [],
+        "icon_overrides": {}
+      },
+      "import_provenance": [],
+      "is_pinned": false,
+      "session_state": {
+        "scroll_x": null,
+        "scroll_y": null,
+        "form_draft": null,
+        "last_visited_ms": null
+      },
+      "mime_hint": null,
+      "classifications": [],
+      "frame_layout_hints": [],
+      "frame_split_offer_suppressed": false,
+      "properties": [],
+      "derivations": [],
+      "body": null,
+      "last_session_visited": 0,
+      "nested": null
+    }
+  ],
+  "edges": [],
+  "import_records": [],
+  "timestamp_secs": 1795766263,
+  "fields": [],
+  "couplings": [],
+  "navigation": {
+    "snapshot": {
+      "entries": [],
+      "visits": [],
+      "owners": []
+    }
+  },
+  "resources": [
+    {
+      "canonical_iri": "https://legacy.test/1",
+      "facets": []
+    },
+    {
+      "canonical_iri": "https://legacy.test/2",
+      "facets": [
+        {
+          "facet": "semantic.legacy-resource-migration/v1",
+          "value_json": "[{\"from_resource_id\":\"635457c8-9e00-5a57-b017-85f698af1f64\",\"from_surface_id\":\"00000000-0000-0000-0000-000000005b02\",\"from_url\":\"https://legacy.test/2\",\"statement\":{\"basis\":{\"evidence\":[],\"method\":{\"iri\":\"urn:mere:method:derived-containment\",\"version\":\"1\"},\"note\":null},\"predicate\":\"https://mere.computer/ns/rel#containment.domain\",\"provenance_iri\":\"urn:mere:rule:derived-containment:v1\",\"statement_id\":\"urn:uuid:269ded0b-3e57-5d9c-bf30-42e41333df3f\"},\"to_resource_id\":\"52949b2f-c03e-5cd6-a9aa-fc1d35e40480\",\"to_surface_id\":\"00000000-0000-0000-0000-000000005b01\",\"to_url\":\"https://legacy.test/1\",\"uncertainty\":\"baseline_current_resources_without_mint_event\"}]"
+        }
+      ]
+    }
+  ],
+  "resource_edges": [
+    {
+      "from_node_id": "635457c8-9e00-5a57-b017-85f698af1f64",
+      "to_node_id": "52949b2f-c03e-5cd6-a9aa-fc1d35e40480",
+      "families": [
+        "Containment"
+      ],
+      "semantic": null,
+      "traversal": null,
+      "containment": null,
+      "arrangement": null,
+      "imported": null,
+      "provenance": null,
+      "assertions": [
+        {
+          "statement_id": "urn:uuid:269ded0b-3e57-5d9c-bf30-42e41333df3f",
+          "predicate": "https://mere.computer/ns/rel#containment.domain",
+          "provenance_iri": "urn:mere:rule:derived-containment:v1",
+          "basis": {
+            "note": null,
+            "method": {
+              "iri": "urn:mere:method:derived-containment",
+              "version": "1"
+            },
+            "evidence": []
+          }
+        }
+      ]
+    }
+  ],
+  "shown_resources": [
+    {
+      "surface_id": "00000000-0000-0000-0000-000000005b01",
+      "resource_id": "52949b2f-c03e-5cd6-a9aa-fc1d35e40480"
+    },
+    {
+      "surface_id": "00000000-0000-0000-0000-000000005b02",
+      "resource_id": "635457c8-9e00-5a57-b017-85f698af1f64"
+    }
+  ],
+  "assertion_schema": 1
+}Lsessions/3369722b-a81a-4ccc-9ac0-03b9412109cf/journal.jsonl/0000000000000000Í{"entry":{"author":{"kind":"person","id":"cross-read","version":null,"via":"graphshell"},"delta":{"ReplaySetNodeTitleById":{"node_id":"00000000-0000-0000-0000-000000005b01","title":"Legacy"}}},"causes":[]}Esessions/3369722b-a81a-4ccc-9ac0-03b9412109cf/legacy-translation.json—R{
+  "version": 1,
+  "source_digest": "1ac86e89c449c03fb5332157a1df3ff3fadd94ed4249a6dc1ea9097d64adca7d",
+  "translation_digest": "4494b93d8479808ce7b2aedefa9ee4342222a55c40fd904f5c96b90f66c8b5f9",
+  "placement": {
+    "baseline": "legacy-surface-v1",
+    "legacy_journal_until": 1,
+    "origins": []
+  },
+  "baseline": {
+    "graph": {
+      "nodes": [
+        {
+          "node_id": "00000000-0000-0000-0000-000000005b01",
+          "address": {
+            "Http": "https://legacy.test/1"
+          },
+          "url": "https://legacy.test/1",
+          "cached_host": null,
+          "title": "https://legacy.test/1",
+          "tags": [],
+          "tag_presentation": {
+            "ordered_tags": [],
+            "icon_overrides": {}
+          },
+          "import_provenance": [],
+          "is_pinned": false,
+          "session_state": {
+            "scroll_x": null,
+            "scroll_y": null,
+            "form_draft": null,
+            "last_visited_ms": null
+          },
+          "mime_hint": null,
+          "classifications": [],
+          "frame_layout_hints": [],
+          "frame_split_offer_suppressed": false,
+          "properties": [],
+          "derivations": [],
+          "body": null,
+          "last_session_visited": 0,
+          "nested": null
+        },
+        {
+          "node_id": "00000000-0000-0000-0000-000000005b02",
+          "address": {
+            "Http": "https://legacy.test/2"
+          },
+          "url": "https://legacy.test/2",
+          "cached_host": null,
+          "title": "https://legacy.test/2",
+          "tags": [],
+          "tag_presentation": {
+            "ordered_tags": [],
+            "icon_overrides": {}
+          },
+          "import_provenance": [],
+          "is_pinned": false,
+          "session_state": {
+            "scroll_x": null,
+            "scroll_y": null,
+            "form_draft": null,
+            "last_visited_ms": null
+          },
+          "mime_hint": null,
+          "classifications": [],
+          "frame_layout_hints": [],
+          "frame_split_offer_suppressed": false,
+          "properties": [],
+          "derivations": [],
+          "body": null,
+          "last_session_visited": 0,
+          "nested": null
+        }
+      ],
+      "edges": [],
+      "import_records": [],
+      "timestamp_secs": 1795766263,
+      "fields": [],
+      "couplings": [],
+      "navigation": {
+        "snapshot": {
+          "entries": [],
+          "visits": [],
+          "owners": []
+        }
+      },
+      "resources": [
+        {
+          "canonical_iri": "https://legacy.test/1",
+          "facets": []
+        },
+        {
+          "canonical_iri": "https://legacy.test/2",
+          "facets": [
+            {
+              "facet": "semantic.legacy-resource-migration/v1",
+              "value_json": "[{\"from_resource_id\":\"635457c8-9e00-5a57-b017-85f698af1f64\",\"from_surface_id\":\"00000000-0000-0000-0000-000000005b02\",\"from_url\":\"https://legacy.test/2\",\"statement\":{\"basis\":{\"evidence\":[],\"method\":{\"iri\":\"urn:mere:method:derived-containment\",\"version\":\"1\"},\"note\":null},\"predicate\":\"https://mere.computer/ns/rel#containment.domain\",\"provenance_iri\":\"urn:mere:rule:derived-containment:v1\",\"statement_id\":\"urn:uuid:269ded0b-3e57-5d9c-bf30-42e41333df3f\"},\"to_resource_id\":\"52949b2f-c03e-5cd6-a9aa-fc1d35e40480\",\"to_surface_id\":\"00000000-0000-0000-0000-000000005b01\",\"to_url\":\"https://legacy.test/1\",\"uncertainty\":\"baseline_current_resources_without_mint_event\"}]"
+            }
+          ]
+        }
+      ],
+      "resource_edges": [
+        {
+          "from_node_id": "635457c8-9e00-5a57-b017-85f698af1f64",
+          "to_node_id": "52949b2f-c03e-5cd6-a9aa-fc1d35e40480",
+          "families": [
+            "Containment"
+          ],
+          "semantic": null,
+          "traversal": null,
+          "containment": null,
+          "arrangement": null,
+          "imported": null,
+          "provenance": null,
+          "assertions": [
+            {
+              "statement_id": "urn:uuid:269ded0b-3e57-5d9c-bf30-42e41333df3f",
+              "predicate": "https://mere.computer/ns/rel#containment.domain",
+              "provenance_iri": "urn:mere:rule:derived-containment:v1",
+              "basis": {
+                "note": null,
+                "method": {
+                  "iri": "urn:mere:method:derived-containment",
+                  "version": "1"
+                },
+                "evidence": []
+              }
+            }
+          ]
+        }
+      ],
+      "shown_resources": [
+        {
+          "surface_id": "00000000-0000-0000-0000-000000005b01",
+          "resource_id": "52949b2f-c03e-5cd6-a9aa-fc1d35e40480"
+        },
+        {
+          "surface_id": "00000000-0000-0000-0000-000000005b02",
+          "resource_id": "635457c8-9e00-5a57-b017-85f698af1f64"
+        }
+      ],
+      "assertion_schema": 1
+    },
+    "facets": {
+      "nodes": {
+        "00000000-0000-0000-0000-000000005b01": {
+          "visit.history": {
+            "last_session_visited": 0,
+            "last_visited_ms": 1795766263948
+          }
+        },
+        "00000000-0000-0000-0000-000000005b02": {
+          "visit.history": {
+            "last_session_visited": 0,
+            "last_visited_ms": 1795766263948
+          }
+        }
+      }
+    }
+  },
+  "entry_effects": [
+    [
+      {
+        "ReplaySetNodeTitleById": {
+          "node_id": "00000000-0000-0000-0000-000000005b01",
+          "title": "Legacy"
+        }
+      }
+    ]
+  ],
+  "legacy_final": {
+    "graph": {
+      "nodes": [
+        {
+          "node_id": "00000000-0000-0000-0000-000000005b01",
+          "address": {
+            "Http": "https://legacy.test/1"
+          },
+          "url": "https://legacy.test/1",
+          "cached_host": null,
+          "title": "Legacy",
+          "tags": [],
+          "tag_presentation": {
+            "ordered_tags": [],
+            "icon_overrides": {}
+          },
+          "import_provenance": [],
+          "is_pinned": false,
+          "session_state": {
+            "scroll_x": null,
+            "scroll_y": null,
+            "form_draft": null,
+            "last_visited_ms": null
+          },
+          "mime_hint": null,
+          "classifications": [],
+          "frame_layout_hints": [],
+          "frame_split_offer_suppressed": false,
+          "properties": [],
+          "derivations": [],
+          "body": null,
+          "last_session_visited": 0,
+          "nested": null
+        },
+        {
+          "node_id": "00000000-0000-0000-0000-000000005b02",
+          "address": {
+            "Http": "https://legacy.test/2"
+          },
+          "url": "https://legacy.test/2",
+          "cached_host": null,
+          "title": "https://legacy.test/2",
+          "tags": [],
+          "tag_presentation": {
+            "ordered_tags": [],
+            "icon_overrides": {}
+          },
+          "import_provenance": [],
+          "is_pinned": false,
+          "session_state": {
+            "scroll_x": null,
+            "scroll_y": null,
+            "form_draft": null,
+            "last_visited_ms": null
+          },
+          "mime_hint": null,
+          "classifications": [],
+          "frame_layout_hints": [],
+          "frame_split_offer_suppressed": false,
+          "properties": [],
+          "derivations": [],
+          "body": null,
+          "last_session_visited": 0,
+          "nested": null
+        }
+      ],
+      "edges": [],
+      "import_records": [],
+      "timestamp_secs": 1795766263,
+      "fields": [],
+      "couplings": [],
+      "navigation": {
+        "snapshot": {
+          "entries": [],
+          "visits": [],
+          "owners": []
+        }
+      },
+      "resources": [
+        {
+          "canonical_iri": "https://legacy.test/1",
+          "facets": []
+        },
+        {
+          "canonical_iri": "https://legacy.test/2",
+          "facets": [
+            {
+              "facet": "semantic.legacy-resource-migration/v1",
+              "value_json": "[{\"from_resource_id\":\"635457c8-9e00-5a57-b017-85f698af1f64\",\"from_surface_id\":\"00000000-0000-0000-0000-000000005b02\",\"from_url\":\"https://legacy.test/2\",\"statement\":{\"basis\":{\"evidence\":[],\"method\":{\"iri\":\"urn:mere:method:derived-containment\",\"version\":\"1\"},\"note\":null},\"predicate\":\"https://mere.computer/ns/rel#containment.domain\",\"provenance_iri\":\"urn:mere:rule:derived-containment:v1\",\"statement_id\":\"urn:uuid:269ded0b-3e57-5d9c-bf30-42e41333df3f\"},\"to_resource_id\":\"52949b2f-c03e-5cd6-a9aa-fc1d35e40480\",\"to_surface_id\":\"00000000-0000-0000-0000-000000005b01\",\"to_url\":\"https://legacy.test/1\",\"uncertainty\":\"baseline_current_resources_without_mint_event\"}]"
+            }
+          ]
+        }
+      ],
+      "resource_edges": [
+        {
+          "from_node_id": "635457c8-9e00-5a57-b017-85f698af1f64",
+          "to_node_id": "52949b2f-c03e-5cd6-a9aa-fc1d35e40480",
+          "families": [
+            "Containment"
+          ],
+          "semantic": null,
+          "traversal": null,
+          "containment": null,
+          "arrangement": null,
+          "imported": null,
+          "provenance": null,
+          "assertions": [
+            {
+              "statement_id": "urn:uuid:269ded0b-3e57-5d9c-bf30-42e41333df3f",
+              "predicate": "https://mere.computer/ns/rel#containment.domain",
+              "provenance_iri": "urn:mere:rule:derived-containment:v1",
+              "basis": {
+                "note": null,
+                "method": {
+                  "iri": "urn:mere:method:derived-containment",
+                  "version": "1"
+                },
+                "evidence": []
+              }
+            }
+          ]
+        }
+      ],
+      "shown_resources": [
+        {
+          "surface_id": "00000000-0000-0000-0000-000000005b01",
+          "resource_id": "52949b2f-c03e-5cd6-a9aa-fc1d35e40480"
+        },
+        {
+          "surface_id": "00000000-0000-0000-0000-000000005b02",
+          "resource_id": "635457c8-9e00-5a57-b017-85f698af1f64"
+        }
+      ],
+      "assertion_schema": 1
+    },
+    "facets": {
+      "nodes": {
+        "00000000-0000-0000-0000-000000005b01": {
+          "visit.history": {
+            "last_session_visited": 0,
+            "last_visited_ms": 1795766263948
+          }
+        },
+        "00000000-0000-0000-0000-000000005b02": {
+          "visit.history": {
+            "last_session_visited": 0,
+            "last_visited_ms": 1795766263948
+          }
+        }
+      }
+    }
+  }
+};sessions/3369722b-a81a-4ccc-9ac0-03b9412109cf/manifest.json¿{
+  "schema_version": 1,
+  "session_id": "3369722b-a81a-4ccc-9ac0-03b9412109cf",
+  "root_graph_id": "afb862ad-e8ad-407d-99c2-9ca7636bb198",
+  "sub_graph_refs": [],
+  "display_name": null,
+  "persona_id": "00000000-0000-0000-0000-000000000001",
+  "created_at": {
+    "secs_since_epoch": 1795766263,
+    "nanos_since_epoch": 948680600
+  },
+  "updated_at": {
+    "secs_since_epoch": 1795766263,
+    "nanos_since_epoch": 949078900
+  },
+  "parent_session": null,
+  "consolidated_codicils": [],
+  "last_consolidated_at": null,
+  "storage_path": null,
+  "forked_at": null,
+  "trashed": null,
+  "source_codicil": null,
+  "codicil_read_only": false,
+  "picked_from": null,
+  "lineage": "fork",
+  "merged": null
+}@sessions/3369722b-a81a-4ccc-9ac0-03b9412109cf/pending-links.jsonV{
+  "version": 1,
+  "state": {
+    "retention": "SessionOnly",
+    "entries": []
+  }
+}<sessions/3369722b-a81a-4ccc-9ac0-03b9412109cf/placement.jsonS{
+  "baseline": "legacy-surface-v1",
+  "legacy_journal_until": 1,
+  "origins": []
+}

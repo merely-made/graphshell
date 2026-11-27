@@ -10,6 +10,8 @@ use incipit_session::{
 use kernel::graph::{Graph, apply::add_node};
 use mere::model::author::Author;
 use muniment::MemoryBackend;
+#[path = "common/kernel_written.rs"]
+mod kernel_written;
 type MereSessions<B> = pandect::MereSessions<B, kernel::graph::Graph>;
 type GraphSession<B> = pandect::GraphSession<B, kernel::graph::Graph>;
 use uuid::Uuid;
@@ -929,27 +931,14 @@ fn placement_readonly_and_validator_refusals_do_not_leak_capture() {
 #[test]
 fn qualified_legacy_session_accepts_live_edit_reopen_and_undo() {
     pollster::block_on(async {
-        let backend = MemoryBackend::new();
-        // Only mere-kernel's sessions qualify a legacy session (its legacy
-        // translation is kernel-only), so the session is written by that path,
-        // as stored sessions are today, and continues over incipit-graph.
+        // Only mere-kernel's sessions qualified a legacy session (its legacy
+        // translation was kernel-only, D269), so the session is one the kernel
+        // wrote: one node, qualified at cursor 0, frozen when Mere retired it.
+        let backend = kernel_written::store("live_legacy/session.bin").await;
         let id = Uuid::from_u128(3300);
-        let stored = {
-            let kernel_sessions = pandect::MereSessions::new(backend.clone());
-            let mut graph = mere_kernel::graph::Graph::new();
-            mere_kernel::graph::apply::add_node(
-                &mut graph,
-                Some(id),
-                "https://legacy.test/".into(),
-                Default::default(),
-            );
-            let mut session = kernel_sessions.begin(Author::user(), Some(graph));
-            session.flush(std::time::UNIX_EPOCH).await.unwrap();
-            let mut session = kernel_sessions.open(session.id()).await.unwrap();
-            session.qualify_legacy(Seq(0), vec![]).await.unwrap();
-            session.flush(std::time::UNIX_EPOCH).await.unwrap();
-            session.id()
-        };
+        let stored = SessionId::from_uuid(kernel_written::uuid_of(
+            &kernel_written::expected("live_legacy")["session"],
+        ));
         let sessions = MereSessions::new(backend);
         let mut session = sessions.open(stored).await.unwrap();
         let before = whole(session.graph());

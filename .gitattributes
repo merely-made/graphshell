@@ -19,3 +19,6 @@ host/crates/graphshell/graphshell-host/tests/fixtures/pre_c7_live_view.json -tex
 # The kernel's wire fixtures (now incipit-graph's) are byte-compared; never
 # convert them (carried over from Mere's rule for crates/graph/graph-kernel).
 host/crates/incipit/graph/tests/fixtures/wire/** -text
+# The stores mere-kernel wrote, frozen as postcard (engine split lane 4): every
+# byte is compared, so neither the stores nor their expectations are rewritten.
+host/crates/incipit/session/tests/fixtures/kernel_written/** -text

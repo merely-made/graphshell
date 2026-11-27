@@ -4,11 +4,13 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 // SPDX-License-Identifier: MPL-2.0
 
-//! What pandect writes today over mere-kernel opens through incipit-session
-//! over incipit-graph, unchanged (engine split D256, step 2b). Each case
-//! writes with the kernel's path and reads with incipit's, compares the
-//! digest or the snapshot and, where there is one, the bytes a re-save
-//! writes, and carries a control the comparison must refuse.
+//! What pandect wrote over mere-kernel opens through incipit-session over
+//! incipit-graph, unchanged (engine split D256, step 2b). Since Mere retired
+//! the kernel (lane 4), each case reads stores the kernel wrote, frozen in
+//! `tests/fixtures/kernel_written`, compares the digest or the snapshot with
+//! what the kernel read back and, where there is one, the bytes a re-save
+//! writes with the bytes the kernel's re-save wrote, and carries a control
+//! the comparison must refuse.
 
 use std::collections::BTreeMap;
 use std::time::SystemTime;
@@ -16,20 +18,20 @@ use std::time::SystemTime;
 use eidetic::Timestamp;
 use incipit_session::addressable_graph::{AddressableGraphStore, ResidencyRoots};
 use incipit_session::{IncipitSession, IncipitSessions};
-use kernel::graph::NodeHistoryTransitionKind;
 use mere::model::author::Author;
-use mere::model::{EdgeAssertion, SemanticSubKind};
 use muniment::{Backend, MemoryBackend, WriteOp};
-use pandect::graph_codicil::{GraphCodicil, ProfiledGraphCodicil, RedactionPolicy};
+use pandect::graph_codicil::RedactionPolicy;
 use pandect::graph_placement::PlacementProfile;
 use pandect::{SessionError, SessionId};
 use serde::Serialize;
 use serde_json::{Value, json};
 use uuid::Uuid;
 
-type KernelGraph = mere_kernel::graph::Graph;
+#[path = "../common/kernel_written.rs"]
+mod kernel_written;
+use kernel_written::{expected, held, store, uuid_of};
+
 type Graph = kernel::graph::Graph;
-type KernelSessions = pandect::MereSessions<MemoryBackend>;
 type Sessions = pandect::MereSessions<MemoryBackend, Graph>;
 
 const AT: SystemTime = SystemTime::UNIX_EPOCH;
@@ -42,13 +44,13 @@ fn id(n: u128) -> Uuid {
     Uuid::from_u128(0x5b00 + n)
 }
 
+fn session_id(value: &Value) -> SessionId {
+    SessionId::from_uuid(uuid_of(value))
+}
+
 /// A graph's snapshot and facets as JSON: what two kernels' graphs compare by.
 fn whole(snapshot: &impl Serialize, facets: &impl Serialize) -> Value {
     json!({"snapshot": snapshot, "facets": facets})
-}
-
-fn kernel_whole(graph: &KernelGraph) -> Value {
-    whole(&graph.to_snapshot_at(0), graph.facets())
 }
 
 fn incipit_whole(graph: &Graph) -> Value {
@@ -71,6 +73,16 @@ fn unclocked(mut value: Value) -> Value {
         }
     }
     value
+}
+
+/// `ours` with the snapshot date at `pointer` set to the kernel's. A re-save
+/// dates its snapshot by the wall clock (`Graph::to_snapshot`), so it can
+/// match the kernel's frozen re-save only once both carry one date.
+fn dated_as_kernel(mut ours: Value, kernel: &Value, pointer: &str) -> Value {
+    let date = kernel.pointer(pointer).expect("the kernel's snapshot date");
+    assert!(date.is_u64(), "{pointer} is a date: {date}");
+    *ours.pointer_mut(pointer).expect("a snapshot date") = date.clone();
+    ours
 }
 
 /// Every key and value the store holds.
@@ -114,116 +126,6 @@ fn live_digest<B: Backend, G: mere::session::SessionGraph>(
         .unwrap()
         .digest()
         .to_owned()
-}
-
-/// A kernel session holding a varied graph, published through mere-kernel's
-/// addressable store: titled, tagged and pinned nodes, a facet, an access
-/// record, a semantic relation, a visit and a removal. Its id, its container
-/// and the generation it published.
-async fn kernel_written(backend: &MemoryBackend) -> (SessionId, Uuid, String) {
-    use mere_kernel::graph::CapturedDelta;
-    use mere_kernel::graph::apply::GraphDelta;
-    let sessions = KernelSessions::new(backend.clone());
-    let mut session = sessions.begin_recorded(author(), None);
-    session.flush(AT).await.unwrap();
-    let adds = (1..=4)
-        .map(|n| {
-            CapturedDelta::ReplayAddNodeWithIdIfMissing {
-                id: id(n).to_string(),
-                url: format!("https://cross.test/{n}"),
-                position: [n as f32, 0.0],
-            }
-            .replay_as(&author())
-            .into_write()
-            .unwrap()
-        })
-        .collect();
-    session
-        .transact_deltas_published(author(), adds, AT)
-        .await
-        .unwrap();
-    let edits = vec![
-        GraphDelta::ReplaySetNodeTitleById {
-            node_id: id(1),
-            title: "One".into(),
-        },
-        GraphDelta::ReplayInsertNodeTagById {
-            node_id: id(1),
-            tag: "kept".into(),
-        },
-        GraphDelta::ReplaySetNodeFacetById {
-            node_id: id(2),
-            facet: "cross.note".into(),
-            value: json!({"n": 2}),
-        },
-        GraphDelta::ReplayAssertRelationByIds {
-            from_id: id(1),
-            to_id: id(2),
-            assertion: EdgeAssertion::Semantic {
-                sub_kind: SemanticSubKind::Cites,
-                label: None,
-            },
-            asserter_iri: author().asserter_iri(),
-        },
-        GraphDelta::ReplayNavigateNodeById {
-            node_id: id(3),
-            url: "https://cross.test/3/visited".into(),
-            transition: NodeHistoryTransitionKind::UrlTyped,
-            timestamp_ms: 10,
-            last_session_visited: 0,
-        },
-        GraphDelta::ReplayRemoveNodeById { node_id: id(4) },
-    ];
-    session
-        .transact_deltas_published(author(), edits, AT)
-        .await
-        .unwrap();
-    let key = session.graph().get_node_key_by_id(id(2)).unwrap();
-    let pin = vec![GraphDelta::SetNodePinned {
-        key,
-        is_pinned: true,
-    }];
-    session
-        .transact_deltas_published(author(), pin, AT)
-        .await
-        .unwrap();
-    // An access record rides as a node facet, written by pandect's kernel
-    // access writer through the session's edit path.
-    let key = session.graph().get_node_key_by_id(id(1)).unwrap();
-    session
-        .edit_now(author(), |graph| {
-            pandect::access::record_observation(graph, key, &observation()).unwrap()
-        })
-        .unwrap();
-    let (_, generation) = session
-        .transact_deltas_published(author(), Vec::new(), AT)
-        .await
-        .unwrap();
-    (
-        session.id(),
-        *session.manifest().root_graph_id.as_uuid(),
-        generation,
-    )
-}
-
-fn observation() -> pandect::access::AccessObservation {
-    use pandect::access::{AccessAction, AccessTransition};
-    pandect::access::AccessObservation {
-        record_id: Uuid::from_u128(0xacc),
-        action: AccessAction::Open,
-        persona: "personae://profile/cross".into(),
-        device: "cross".into(),
-        application: "graphshell".into(),
-        handler: "graphshell.open".into(),
-        at_ms: 5,
-        dwell_ms: None,
-        referring_container_id: None,
-        referring_address: None,
-        transition: AccessTransition::Unknown,
-        capture_source: "cross.read".into(),
-        source_event_id: None,
-        privacy: eidetic::PrivacyClass::LocalOnly,
-    }
 }
 
 mod codicil;

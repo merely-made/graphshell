@@ -1,0 +1,823 @@
+incipit-session.kernel-store-fixture/v1
+;sessions/7a31c239-4860-4c59-9788-ad28740e7e4e/baseline.jsonÌ {
+  "graph": {
+    "nodes": [
+      {
+        "node_id": "00000000-0000-0000-0000-000000000001",
+        "address": {
+          "Http": "https://1.test/"
+        },
+        "url": "https://1.test/",
+        "cached_host": null,
+        "title": "One",
+        "tags": [],
+        "tag_presentation": {
+          "ordered_tags": [],
+          "icon_overrides": {}
+        },
+        "import_provenance": [],
+        "is_pinned": false,
+        "session_state": {
+          "scroll_x": null,
+          "scroll_y": null,
+          "form_draft": null,
+          "last_visited_ms": null
+        },
+        "mime_hint": null,
+        "classifications": [],
+        "frame_layout_hints": [],
+        "frame_split_offer_suppressed": false,
+        "properties": [],
+        "derivations": [],
+        "body": null,
+        "last_session_visited": 0,
+        "nested": null
+      },
+      {
+        "node_id": "00000000-0000-0000-0000-000000000002",
+        "address": {
+          "Http": "https://2.test/"
+        },
+        "url": "https://2.test/",
+        "cached_host": null,
+        "title": "Two",
+        "tags": [],
+        "tag_presentation": {
+          "ordered_tags": [],
+          "icon_overrides": {}
+        },
+        "import_provenance": [],
+        "is_pinned": false,
+        "session_state": {
+          "scroll_x": null,
+          "scroll_y": null,
+          "form_draft": null,
+          "last_visited_ms": null
+        },
+        "mime_hint": null,
+        "classifications": [],
+        "frame_layout_hints": [],
+        "frame_split_offer_suppressed": false,
+        "properties": [],
+        "derivations": [],
+        "body": null,
+        "last_session_visited": 0,
+        "nested": null
+      },
+      {
+        "node_id": "00000000-0000-0000-0000-000000000003",
+        "address": {
+          "Http": "https://3.test/"
+        },
+        "url": "https://3.test/",
+        "cached_host": null,
+        "title": "https://3.test/",
+        "tags": [],
+        "tag_presentation": {
+          "ordered_tags": [],
+          "icon_overrides": {}
+        },
+        "import_provenance": [],
+        "is_pinned": false,
+        "session_state": {
+          "scroll_x": null,
+          "scroll_y": null,
+          "form_draft": null,
+          "last_visited_ms": null
+        },
+        "mime_hint": null,
+        "classifications": [],
+        "frame_layout_hints": [],
+        "frame_split_offer_suppressed": false,
+        "properties": [],
+        "derivations": [],
+        "body": null,
+        "last_session_visited": 0,
+        "nested": null
+      }
+    ],
+    "edges": [
+      {
+        "from_node_id": "00000000-0000-0000-0000-000000000001",
+        "to_node_id": "00000000-0000-0000-0000-000000000002",
+        "families": [
+          "Semantic"
+        ],
+        "semantic": null,
+        "traversal": null,
+        "containment": null,
+        "arrangement": null,
+        "imported": null,
+        "provenance": null,
+        "assertions": [
+          {
+            "statement_id": "01a21c2ff624-7a4e8c0d77c50005-0000000000000001",
+            "predicate": "https://mere.computer/ns/rel#cites",
+            "recognized_sub_kind": "Cites",
+            "provenance_iri": "https://mere.computer/ns/agent#person/persona-a"
+          }
+        ]
+      }
+    ],
+    "import_records": [],
+    "timestamp_secs": 1795769234,
+    "fields": [],
+    "couplings": [],
+    "navigation": {
+      "snapshot": {
+        "entries": [],
+        "visits": [],
+        "owners": []
+      }
+    },
+    "resources": [],
+    "resource_edges": [],
+    "shown_resources": [],
+    "assertion_schema": 1
+  },
+  "facets": {
+    "nodes": {
+      "00000000-0000-0000-0000-000000000001": {
+        "visit.history": {
+          "last_session_visited": 0,
+          "last_visited_ms": 1795769234980
+        }
+      },
+      "00000000-0000-0000-0000-000000000002": {
+        "visit.history": {
+          "last_session_visited": 0,
+          "last_visited_ms": 1795769234980
+        }
+      },
+      "00000000-0000-0000-0000-000000000003": {
+        "visit.history": {
+          "last_session_visited": 0,
+          "last_visited_ms": 1795769234980
+        }
+      }
+    }
+  }
+}Lsessions/7a31c239-4860-4c59-9788-ad28740e7e4e/changes.jsonl/0000000000000000Á{"entry":{"author":{"kind":"person","id":"persona-a","version":null,"via":"turnstone"},"kind":{"branched":{"from":"ca238a49-d23f-4bf8-9826-42c6ba8ab040","at":9}},"first":0,"end":0},"causes":[]}Lsessions/7a31c239-4860-4c59-9788-ad28740e7e4e/changes.jsonl/0000000000000001†{"entry":{"author":{"kind":"person","id":"persona-b","version":null,"via":"knot-editor"},"kind":"edit","first":0,"end":1},"causes":[]}=sessions/7a31c239-4860-4c59-9788-ad28740e7e4e/checkpoint.jsonÄ{
+  "cursor": 1,
+  "translated_receipt_digest": "f9c7180d30027441ba11874b945463b01bd539cf9b08662ef3dfd82a87b1e4e7",
+  "journal_digest": "5e76398003065aa9b20c7c5cddd1cf93f90c8f29d12ea9e29f2fd1e71fe860ad",
+  "journal_digest_version": 2,
+  "contents_digest": "87111bfc0d1fddea3bf560d3e00b4b30a1a87e5e72f9f6b120e5338496f25cb6"
+}9sessions/7a31c239-4860-4c59-9788-ad28740e7e4e/facets.jsonù{
+  "nodes": {
+    "00000000-0000-0000-0000-000000000001": {
+      "visit.history": {
+        "last_session_visited": 0,
+        "last_visited_ms": 1795769234980
+      }
+    },
+    "00000000-0000-0000-0000-000000000002": {
+      "visit.history": {
+        "last_session_visited": 0,
+        "last_visited_ms": 1795769234980
+      }
+    },
+    "00000000-0000-0000-0000-000000000003": {
+      "visit.history": {
+        "last_session_visited": 0,
+        "last_visited_ms": 1795769234980
+      }
+    }
+  }
+}8sessions/7a31c239-4860-4c59-9788-ad28740e7e4e/graph.jsonÌ${
+  "nodes": [
+    {
+      "node_id": "00000000-0000-0000-0000-000000000001",
+      "address": {
+        "Http": "https://1.test/"
+      },
+      "url": "https://1.test/",
+      "cached_host": null,
+      "title": "Branch",
+      "tags": [],
+      "tag_presentation": {
+        "ordered_tags": [],
+        "icon_overrides": {}
+      },
+      "import_provenance": [],
+      "is_pinned": false,
+      "session_state": {
+        "scroll_x": null,
+        "scroll_y": null,
+        "form_draft": null,
+        "last_visited_ms": null
+      },
+      "mime_hint": null,
+      "classifications": [],
+      "frame_layout_hints": [],
+      "frame_split_offer_suppressed": false,
+      "properties": [],
+      "derivations": [],
+      "body": null,
+      "last_session_visited": 0,
+      "nested": null
+    },
+    {
+      "node_id": "00000000-0000-0000-0000-000000000002",
+      "address": {
+        "Http": "https://2.test/"
+      },
+      "url": "https://2.test/",
+      "cached_host": null,
+      "title": "Two",
+      "tags": [],
+      "tag_presentation": {
+        "ordered_tags": [],
+        "icon_overrides": {}
+      },
+      "import_provenance": [],
+      "is_pinned": false,
+      "session_state": {
+        "scroll_x": null,
+        "scroll_y": null,
+        "form_draft": null,
+        "last_visited_ms": null
+      },
+      "mime_hint": null,
+      "classifications": [],
+      "frame_layout_hints": [],
+      "frame_split_offer_suppressed": false,
+      "properties": [],
+      "derivations": [],
+      "body": null,
+      "last_session_visited": 0,
+      "nested": null
+    },
+    {
+      "node_id": "00000000-0000-0000-0000-000000000003",
+      "address": {
+        "Http": "https://3.test/"
+      },
+      "url": "https://3.test/",
+      "cached_host": null,
+      "title": "https://3.test/",
+      "tags": [],
+      "tag_presentation": {
+        "ordered_tags": [],
+        "icon_overrides": {}
+      },
+      "import_provenance": [],
+      "is_pinned": false,
+      "session_state": {
+        "scroll_x": null,
+        "scroll_y": null,
+        "form_draft": null,
+        "last_visited_ms": null
+      },
+      "mime_hint": null,
+      "classifications": [],
+      "frame_layout_hints": [],
+      "frame_split_offer_suppressed": false,
+      "properties": [],
+      "derivations": [],
+      "body": null,
+      "last_session_visited": 0,
+      "nested": null
+    }
+  ],
+  "edges": [],
+  "import_records": [],
+  "timestamp_secs": 1795769234,
+  "fields": [],
+  "couplings": [],
+  "navigation": {
+    "snapshot": {
+      "entries": [],
+      "visits": [],
+      "owners": []
+    }
+  },
+  "resources": [
+    {
+      "canonical_iri": "https://1.test",
+      "facets": [
+        {
+          "facet": "semantic.legacy-resource-migration/v1",
+          "value_json": "[{\"from_resource_id\":\"b4c91ac1-1175-52a0-8baf-01206ab2abd5\",\"from_surface_id\":\"00000000-0000-0000-0000-000000000001\",\"from_url\":\"https://1.test/\",\"statement\":{\"predicate\":\"https://mere.computer/ns/rel#cites\",\"provenance_iri\":\"https://mere.computer/ns/agent#person/persona-a\",\"recognized_sub_kind\":\"Cites\",\"statement_id\":\"01a21c2ff624-7a4e8c0d77c50005-0000000000000001\"},\"to_resource_id\":\"43409c76-54b2-5f12-be24-9a67d87071c0\",\"to_surface_id\":\"00000000-0000-0000-0000-000000000002\",\"to_url\":\"https://2.test/\",\"uncertainty\":\"baseline_current_resources_without_mint_event\"}]"
+        }
+      ]
+    },
+    {
+      "canonical_iri": "https://2.test",
+      "facets": []
+    },
+    {
+      "canonical_iri": "https://3.test",
+      "facets": []
+    }
+  ],
+  "resource_edges": [
+    {
+      "from_node_id": "b4c91ac1-1175-52a0-8baf-01206ab2abd5",
+      "to_node_id": "43409c76-54b2-5f12-be24-9a67d87071c0",
+      "families": [
+        "Semantic"
+      ],
+      "semantic": null,
+      "traversal": null,
+      "containment": null,
+      "arrangement": null,
+      "imported": null,
+      "provenance": null,
+      "assertions": [
+        {
+          "statement_id": "01a21c2ff624-7a4e8c0d77c50005-0000000000000001",
+          "predicate": "https://mere.computer/ns/rel#cites",
+          "recognized_sub_kind": "Cites",
+          "provenance_iri": "https://mere.computer/ns/agent#person/persona-a"
+        }
+      ]
+    }
+  ],
+  "shown_resources": [
+    {
+      "surface_id": "00000000-0000-0000-0000-000000000001",
+      "resource_id": "b4c91ac1-1175-52a0-8baf-01206ab2abd5"
+    },
+    {
+      "surface_id": "00000000-0000-0000-0000-000000000002",
+      "resource_id": "43409c76-54b2-5f12-be24-9a67d87071c0"
+    },
+    {
+      "surface_id": "00000000-0000-0000-0000-000000000003",
+      "resource_id": "8a2d0f51-4b19-5c94-aff4-5ae38915e55b"
+    }
+  ],
+  "assertion_schema": 1
+}Lsessions/7a31c239-4860-4c59-9788-ad28740e7e4e/journal.jsonl/0000000000000000Í{"entry":{"author":{"kind":"person","id":"persona-b","version":null,"via":"knot-editor"},"delta":{"ReplaySetNodeTitleById":{"node_id":"00000000-0000-0000-0000-000000000001","title":"Branch"}}},"causes":[]}Esessions/7a31c239-4860-4c59-9788-ad28740e7e4e/legacy-translation.json¯a{
+  "version": 1,
+  "source_digest": "287babb9f7069a522d325505cbfd75f66b0d4625c17b0796e8411edb4353cacc",
+  "translation_digest": "f9c7180d30027441ba11874b945463b01bd539cf9b08662ef3dfd82a87b1e4e7",
+  "placement": {
+    "baseline": "legacy-surface-v1",
+    "legacy_journal_until": 1,
+    "origins": []
+  },
+  "baseline": {
+    "graph": {
+      "nodes": [
+        {
+          "node_id": "00000000-0000-0000-0000-000000000001",
+          "address": {
+            "Http": "https://1.test/"
+          },
+          "url": "https://1.test/",
+          "cached_host": null,
+          "title": "One",
+          "tags": [],
+          "tag_presentation": {
+            "ordered_tags": [],
+            "icon_overrides": {}
+          },
+          "import_provenance": [],
+          "is_pinned": false,
+          "session_state": {
+            "scroll_x": null,
+            "scroll_y": null,
+            "form_draft": null,
+            "last_visited_ms": null
+          },
+          "mime_hint": null,
+          "classifications": [],
+          "frame_layout_hints": [],
+          "frame_split_offer_suppressed": false,
+          "properties": [],
+          "derivations": [],
+          "body": null,
+          "last_session_visited": 0,
+          "nested": null
+        },
+        {
+          "node_id": "00000000-0000-0000-0000-000000000002",
+          "address": {
+            "Http": "https://2.test/"
+          },
+          "url": "https://2.test/",
+          "cached_host": null,
+          "title": "Two",
+          "tags": [],
+          "tag_presentation": {
+            "ordered_tags": [],
+            "icon_overrides": {}
+          },
+          "import_provenance": [],
+          "is_pinned": false,
+          "session_state": {
+            "scroll_x": null,
+            "scroll_y": null,
+            "form_draft": null,
+            "last_visited_ms": null
+          },
+          "mime_hint": null,
+          "classifications": [],
+          "frame_layout_hints": [],
+          "frame_split_offer_suppressed": false,
+          "properties": [],
+          "derivations": [],
+          "body": null,
+          "last_session_visited": 0,
+          "nested": null
+        },
+        {
+          "node_id": "00000000-0000-0000-0000-000000000003",
+          "address": {
+            "Http": "https://3.test/"
+          },
+          "url": "https://3.test/",
+          "cached_host": null,
+          "title": "https://3.test/",
+          "tags": [],
+          "tag_presentation": {
+            "ordered_tags": [],
+            "icon_overrides": {}
+          },
+          "import_provenance": [],
+          "is_pinned": false,
+          "session_state": {
+            "scroll_x": null,
+            "scroll_y": null,
+            "form_draft": null,
+            "last_visited_ms": null
+          },
+          "mime_hint": null,
+          "classifications": [],
+          "frame_layout_hints": [],
+          "frame_split_offer_suppressed": false,
+          "properties": [],
+          "derivations": [],
+          "body": null,
+          "last_session_visited": 0,
+          "nested": null
+        }
+      ],
+      "edges": [],
+      "import_records": [],
+      "timestamp_secs": 1795769234,
+      "fields": [],
+      "couplings": [],
+      "navigation": {
+        "snapshot": {
+          "entries": [],
+          "visits": [],
+          "owners": []
+        }
+      },
+      "resources": [
+        {
+          "canonical_iri": "https://1.test",
+          "facets": [
+            {
+              "facet": "semantic.legacy-resource-migration/v1",
+              "value_json": "[{\"from_resource_id\":\"b4c91ac1-1175-52a0-8baf-01206ab2abd5\",\"from_surface_id\":\"00000000-0000-0000-0000-000000000001\",\"from_url\":\"https://1.test/\",\"statement\":{\"predicate\":\"https://mere.computer/ns/rel#cites\",\"provenance_iri\":\"https://mere.computer/ns/agent#person/persona-a\",\"recognized_sub_kind\":\"Cites\",\"statement_id\":\"01a21c2ff624-7a4e8c0d77c50005-0000000000000001\"},\"to_resource_id\":\"43409c76-54b2-5f12-be24-9a67d87071c0\",\"to_surface_id\":\"00000000-0000-0000-0000-000000000002\",\"to_url\":\"https://2.test/\",\"uncertainty\":\"baseline_current_resources_without_mint_event\"}]"
+            }
+          ]
+        },
+        {
+          "canonical_iri": "https://2.test",
+          "facets": []
+        },
+        {
+          "canonical_iri": "https://3.test",
+          "facets": []
+        }
+      ],
+      "resource_edges": [
+        {
+          "from_node_id": "b4c91ac1-1175-52a0-8baf-01206ab2abd5",
+          "to_node_id": "43409c76-54b2-5f12-be24-9a67d87071c0",
+          "families": [
+            "Semantic"
+          ],
+          "semantic": null,
+          "traversal": null,
+          "containment": null,
+          "arrangement": null,
+          "imported": null,
+          "provenance": null,
+          "assertions": [
+            {
+              "statement_id": "01a21c2ff624-7a4e8c0d77c50005-0000000000000001",
+              "predicate": "https://mere.computer/ns/rel#cites",
+              "recognized_sub_kind": "Cites",
+              "provenance_iri": "https://mere.computer/ns/agent#person/persona-a"
+            }
+          ]
+        }
+      ],
+      "shown_resources": [
+        {
+          "surface_id": "00000000-0000-0000-0000-000000000001",
+          "resource_id": "b4c91ac1-1175-52a0-8baf-01206ab2abd5"
+        },
+        {
+          "surface_id": "00000000-0000-0000-0000-000000000002",
+          "resource_id": "43409c76-54b2-5f12-be24-9a67d87071c0"
+        },
+        {
+          "surface_id": "00000000-0000-0000-0000-000000000003",
+          "resource_id": "8a2d0f51-4b19-5c94-aff4-5ae38915e55b"
+        }
+      ],
+      "assertion_schema": 1
+    },
+    "facets": {
+      "nodes": {
+        "00000000-0000-0000-0000-000000000001": {
+          "visit.history": {
+            "last_session_visited": 0,
+            "last_visited_ms": 1795769234980
+          }
+        },
+        "00000000-0000-0000-0000-000000000002": {
+          "visit.history": {
+            "last_session_visited": 0,
+            "last_visited_ms": 1795769234980
+          }
+        },
+        "00000000-0000-0000-0000-000000000003": {
+          "visit.history": {
+            "last_session_visited": 0,
+            "last_visited_ms": 1795769234980
+          }
+        }
+      }
+    }
+  },
+  "entry_effects": [
+    [
+      {
+        "ReplaySetNodeTitleById": {
+          "node_id": "00000000-0000-0000-0000-000000000001",
+          "title": "Branch"
+        }
+      }
+    ]
+  ],
+  "legacy_final": {
+    "graph": {
+      "nodes": [
+        {
+          "node_id": "00000000-0000-0000-0000-000000000001",
+          "address": {
+            "Http": "https://1.test/"
+          },
+          "url": "https://1.test/",
+          "cached_host": null,
+          "title": "Branch",
+          "tags": [],
+          "tag_presentation": {
+            "ordered_tags": [],
+            "icon_overrides": {}
+          },
+          "import_provenance": [],
+          "is_pinned": false,
+          "session_state": {
+            "scroll_x": null,
+            "scroll_y": null,
+            "form_draft": null,
+            "last_visited_ms": null
+          },
+          "mime_hint": null,
+          "classifications": [],
+          "frame_layout_hints": [],
+          "frame_split_offer_suppressed": false,
+          "properties": [],
+          "derivations": [],
+          "body": null,
+          "last_session_visited": 0,
+          "nested": null
+        },
+        {
+          "node_id": "00000000-0000-0000-0000-000000000002",
+          "address": {
+            "Http": "https://2.test/"
+          },
+          "url": "https://2.test/",
+          "cached_host": null,
+          "title": "Two",
+          "tags": [],
+          "tag_presentation": {
+            "ordered_tags": [],
+            "icon_overrides": {}
+          },
+          "import_provenance": [],
+          "is_pinned": false,
+          "session_state": {
+            "scroll_x": null,
+            "scroll_y": null,
+            "form_draft": null,
+            "last_visited_ms": null
+          },
+          "mime_hint": null,
+          "classifications": [],
+          "frame_layout_hints": [],
+          "frame_split_offer_suppressed": false,
+          "properties": [],
+          "derivations": [],
+          "body": null,
+          "last_session_visited": 0,
+          "nested": null
+        },
+        {
+          "node_id": "00000000-0000-0000-0000-000000000003",
+          "address": {
+            "Http": "https://3.test/"
+          },
+          "url": "https://3.test/",
+          "cached_host": null,
+          "title": "https://3.test/",
+          "tags": [],
+          "tag_presentation": {
+            "ordered_tags": [],
+            "icon_overrides": {}
+          },
+          "import_provenance": [],
+          "is_pinned": false,
+          "session_state": {
+            "scroll_x": null,
+            "scroll_y": null,
+            "form_draft": null,
+            "last_visited_ms": null
+          },
+          "mime_hint": null,
+          "classifications": [],
+          "frame_layout_hints": [],
+          "frame_split_offer_suppressed": false,
+          "properties": [],
+          "derivations": [],
+          "body": null,
+          "last_session_visited": 0,
+          "nested": null
+        }
+      ],
+      "edges": [],
+      "import_records": [],
+      "timestamp_secs": 1795769234,
+      "fields": [],
+      "couplings": [],
+      "navigation": {
+        "snapshot": {
+          "entries": [],
+          "visits": [],
+          "owners": []
+        }
+      },
+      "resources": [
+        {
+          "canonical_iri": "https://1.test",
+          "facets": [
+            {
+              "facet": "semantic.legacy-resource-migration/v1",
+              "value_json": "[{\"from_resource_id\":\"b4c91ac1-1175-52a0-8baf-01206ab2abd5\",\"from_surface_id\":\"00000000-0000-0000-0000-000000000001\",\"from_url\":\"https://1.test/\",\"statement\":{\"predicate\":\"https://mere.computer/ns/rel#cites\",\"provenance_iri\":\"https://mere.computer/ns/agent#person/persona-a\",\"recognized_sub_kind\":\"Cites\",\"statement_id\":\"01a21c2ff624-7a4e8c0d77c50005-0000000000000001\"},\"to_resource_id\":\"43409c76-54b2-5f12-be24-9a67d87071c0\",\"to_surface_id\":\"00000000-0000-0000-0000-000000000002\",\"to_url\":\"https://2.test/\",\"uncertainty\":\"baseline_current_resources_without_mint_event\"}]"
+            }
+          ]
+        },
+        {
+          "canonical_iri": "https://2.test",
+          "facets": []
+        },
+        {
+          "canonical_iri": "https://3.test",
+          "facets": []
+        }
+      ],
+      "resource_edges": [
+        {
+          "from_node_id": "b4c91ac1-1175-52a0-8baf-01206ab2abd5",
+          "to_node_id": "43409c76-54b2-5f12-be24-9a67d87071c0",
+          "families": [
+            "Semantic"
+          ],
+          "semantic": null,
+          "traversal": null,
+          "containment": null,
+          "arrangement": null,
+          "imported": null,
+          "provenance": null,
+          "assertions": [
+            {
+              "statement_id": "01a21c2ff624-7a4e8c0d77c50005-0000000000000001",
+              "predicate": "https://mere.computer/ns/rel#cites",
+              "recognized_sub_kind": "Cites",
+              "provenance_iri": "https://mere.computer/ns/agent#person/persona-a"
+            }
+          ]
+        }
+      ],
+      "shown_resources": [
+        {
+          "surface_id": "00000000-0000-0000-0000-000000000001",
+          "resource_id": "b4c91ac1-1175-52a0-8baf-01206ab2abd5"
+        },
+        {
+          "surface_id": "00000000-0000-0000-0000-000000000002",
+          "resource_id": "43409c76-54b2-5f12-be24-9a67d87071c0"
+        },
+        {
+          "surface_id": "00000000-0000-0000-0000-000000000003",
+          "resource_id": "8a2d0f51-4b19-5c94-aff4-5ae38915e55b"
+        }
+      ],
+      "assertion_schema": 1
+    },
+    "facets": {
+      "nodes": {
+        "00000000-0000-0000-0000-000000000001": {
+          "visit.history": {
+            "last_session_visited": 0,
+            "last_visited_ms": 1795769234980
+          }
+        },
+        "00000000-0000-0000-0000-000000000002": {
+          "visit.history": {
+            "last_session_visited": 0,
+            "last_visited_ms": 1795769234980
+          }
+        },
+        "00000000-0000-0000-0000-000000000003": {
+          "visit.history": {
+            "last_session_visited": 0,
+            "last_visited_ms": 1795769234980
+          }
+        }
+      }
+    }
+  }
+};sessions/7a31c239-4860-4c59-9788-ad28740e7e4e/manifest.jsonù{
+  "schema_version": 1,
+  "session_id": "7a31c239-4860-4c59-9788-ad28740e7e4e",
+  "root_graph_id": "6402bc13-1d7e-4f25-a4d6-6ef986fefe9f",
+  "sub_graph_refs": [],
+  "display_name": "Reading (branch of Reading)",
+  "persona_id": "00000000-0000-0000-0000-000000000001",
+  "created_at": {
+    "secs_since_epoch": 1795769234,
+    "nanos_since_epoch": 981885800
+  },
+  "updated_at": {
+    "secs_since_epoch": 1795769234,
+    "nanos_since_epoch": 983453400
+  },
+  "parent_session": "ca238a49-d23f-4bf8-9826-42c6ba8ab040",
+  "consolidated_codicils": [],
+  "last_consolidated_at": null,
+  "storage_path": null,
+  "forked_at": 9,
+  "trashed": null,
+  "source_codicil": null,
+  "codicil_read_only": false,
+  "picked_from": null,
+  "lineage": "branch",
+  "merged": null
+}@sessions/7a31c239-4860-4c59-9788-ad28740e7e4e/pending-links.jsonV{
+  "version": 1,
+  "state": {
+    "retention": "SessionOnly",
+    "entries": []
+  }
+}<sessions/7a31c239-4860-4c59-9788-ad28740e7e4e/placement.jsonS{
+  "baseline": "legacy-surface-v1",
+  "legacy_journal_until": 1,
+  "origins": []
+}Lsessions/ca238a49-d23f-4bf8-9826-42c6ba8ab040/changes.jsonl/0000000000000000†{"entry":{"author":{"kind":"person","id":"persona-a","version":null,"via":"turnstone"},"kind":"minted","first":0,"end":0},"causes":[]}Lsessions/ca238a49-d23f-4bf8-9826-42c6ba8ab040/changes.jsonl/0000000000000001„{"entry":{"author":{"kind":"person","id":"persona-a","version":null,"via":"turnstone"},"kind":"edit","first":0,"end":9},"causes":[]}Lsessions/ca238a49-d23f-4bf8-9826-42c6ba8ab040/journal.jsonl/0000000000000000è{"entry":{"author":{"kind":"person","id":"persona-a","version":null,"via":"turnstone"},"delta":{"ReplayAddNodeWithIdIfMissing":{"id":"00000000-0000-0000-0000-000000000001","url":"https://1.test/","position":[0.0,0.0]}}},"causes":[]}Lsessions/ca238a49-d23f-4bf8-9826-42c6ba8ab040/journal.jsonl/0000000000000001ß{"entry":{"author":{"kind":"person","id":"persona-a","version":null,"via":"turnstone"},"delta":{"ReplayTouchNodeLastVisitedById":{"node_id":"00000000-0000-0000-0000-000000000001","timestamp_ms":1795769234980}}},"causes":[]}Lsessions/ca238a49-d23f-4bf8-9826-42c6ba8ab040/journal.jsonl/0000000000000002è{"entry":{"author":{"kind":"person","id":"persona-a","version":null,"via":"turnstone"},"delta":{"ReplayAddNodeWithIdIfMissing":{"id":"00000000-0000-0000-0000-000000000002","url":"https://2.test/","position":[0.0,0.0]}}},"causes":[]}Lsessions/ca238a49-d23f-4bf8-9826-42c6ba8ab040/journal.jsonl/0000000000000003ß{"entry":{"author":{"kind":"person","id":"persona-a","version":null,"via":"turnstone"},"delta":{"ReplayTouchNodeLastVisitedById":{"node_id":"00000000-0000-0000-0000-000000000002","timestamp_ms":1795769234980}}},"causes":[]}Lsessions/ca238a49-d23f-4bf8-9826-42c6ba8ab040/journal.jsonl/0000000000000004è{"entry":{"author":{"kind":"person","id":"persona-a","version":null,"via":"turnstone"},"delta":{"ReplayAddNodeWithIdIfMissing":{"id":"00000000-0000-0000-0000-000000000003","url":"https://3.test/","position":[0.0,0.0]}}},"causes":[]}Lsessions/ca238a49-d23f-4bf8-9826-42c6ba8ab040/journal.jsonl/0000000000000005ß{"entry":{"author":{"kind":"person","id":"persona-a","version":null,"via":"turnstone"},"delta":{"ReplayTouchNodeLastVisitedById":{"node_id":"00000000-0000-0000-0000-000000000003","timestamp_ms":1795769234980}}},"causes":[]}Lsessions/ca238a49-d23f-4bf8-9826-42c6ba8ab040/journal.jsonl/0000000000000006È{"entry":{"author":{"kind":"person","id":"persona-a","version":null,"via":"turnstone"},"delta":{"ReplaySetNodeTitleById":{"node_id":"00000000-0000-0000-0000-000000000001","title":"One"}}},"causes":[]}Lsessions/ca238a49-d23f-4bf8-9826-42c6ba8ab040/journal.jsonl/0000000000000007È{"entry":{"author":{"kind":"person","id":"persona-a","version":null,"via":"turnstone"},"delta":{"ReplaySetNodeTitleById":{"node_id":"00000000-0000-0000-0000-000000000002","title":"Two"}}},"causes":[]}Lsessions/ca238a49-d23f-4bf8-9826-42c6ba8ab040/journal.jsonl/0000000000000008À{"entry":{"author":{"kind":"person","id":"persona-a","version":null,"via":"turnstone"},"delta":{"ReplaySetEdgesByIds":{"from_id":"00000000-0000-0000-0000-000000000001","to_id":"00000000-0000-0000-0000-000000000002","edges":[{"from_node_id":"00000000-0000-0000-0000-000000000001","to_node_id":"00000000-0000-0000-0000-000000000002","families":["Semantic"],"semantic":null,"traversal":null,"containment":null,"arrangement":null,"imported":null,"provenance":null,"assertions":[{"statement_id":"01a21c2ff624-7a4e8c0d77c50005-0000000000000001","predicate":"https://mere.computer/ns/rel#cites","recognized_sub_kind":"Cites","provenance_iri":"https://mere.computer/ns/agent#person/persona-a"}]}]}}},"causes":[]};sessions/ca238a49-d23f-4bf8-9826-42c6ba8ab040/manifest.jsonÄ{
+  "schema_version": 1,
+  "session_id": "ca238a49-d23f-4bf8-9826-42c6ba8ab040",
+  "root_graph_id": "d1b0cbf9-c292-4b29-85ac-fc031a3be33a",
+  "sub_graph_refs": [],
+  "display_name": "Reading",
+  "persona_id": "00000000-0000-0000-0000-000000000001",
+  "created_at": {
+    "secs_since_epoch": 1795769234,
+    "nanos_since_epoch": 978191000
+  },
+  "updated_at": {
+    "secs_since_epoch": 1795769234,
+    "nanos_since_epoch": 981451900
+  },
+  "parent_session": null,
+  "consolidated_codicils": [],
+  "last_consolidated_at": null,
+  "storage_path": null,
+  "forked_at": null,
+  "trashed": null,
+  "source_codicil": null,
+  "codicil_read_only": false,
+  "picked_from": null,
+  "lineage": "fork",
+  "merged": null
+}@sessions/ca238a49-d23f-4bf8-9826-42c6ba8ab040/pending-links.jsonV{
+  "version": 1,
+  "state": {
+    "retention": "SessionOnly",
+    "entries": []
+  }
+}<sessions/ca238a49-d23f-4bf8-9826-42c6ba8ab040/placement.jsonW{
+  "baseline": "recorded-strata-v1",
+  "legacy_journal_until": null,
+  "origins": []
+}

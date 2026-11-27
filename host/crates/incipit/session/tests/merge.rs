@@ -34,6 +34,8 @@ use mere::model::ProvenanceSubKind;
 use mere::model::resource_content::RESOURCE_PROPERTIES;
 use mere::model::{PersistedResourceFacet, PersistedResourceRecord};
 use muniment::MemoryBackend;
+#[path = "common/kernel_written.rs"]
+mod kernel_written;
 
 fn person() -> Author {
     Author::person("persona-a").via("turnstone")
@@ -842,29 +844,20 @@ fn redoing_an_undone_merge_marks_the_source_again() {
 #[test]
 fn source_transaction_refuses_after_another_handle_redoes_merge() {
     pollster::block_on(async {
-        let store = MemoryBackend::new();
+        // `branch_at` creates an unqualified copy regardless of its parent's
+        // placement, so the source was qualified through its full journal by
+        // mere-kernel's sessions, which alone qualified a legacy journal
+        // (engine split D269), and frozen when Mere retired the kernel: the
+        // target as `parent` builds it, its branch and the branch's retitle.
+        // incipit reads the receipt through its legacy hook, and the
+        // operation revision prepares the publication.
+        let store = kernel_written::store("merge_source/session.bin").await;
+        let ids = kernel_written::expected("merge_source");
+        let session = |key: &str| SessionId::from_uuid(kernel_written::uuid_of(&ids[key]));
         let mere = MereSessions::new(store.clone());
-        let mut target = parent(&mere).await;
-        let mut branch = branch_of(&mere, &target).await;
-        branch
-            .apply(other(), vec![retitle(id(1), "Branch")])
-            .await
-            .unwrap();
-        // `branch_at` currently creates an unqualified copy regardless of
-        // its parent's placement. Reopen the durable source, qualify its full
-        // journal through the supported legacy receipt path, and prove the
-        // fixture can prepare an addressable publication before merging it.
-        // Only mere-kernel's sessions qualify a legacy journal, so the
-        // receipt is written by that path and read back through incipit's
-        // legacy hook; the operation revision prepares the publication.
-        {
-            let kernel = pandect::MereSessions::new(store.clone());
-            let mut branch = kernel.open(branch.id()).await.unwrap();
-            let cutoff = branch.journal().live_cursor();
-            branch.qualify_legacy(cutoff, vec![]).await.unwrap();
-            branch.flush(wall_clock_now()).await.unwrap();
-        }
-        let mut branch = mere.open(branch.id()).await.unwrap();
+        let mut target = mere.open(session("target")).await.unwrap();
+        let mut branch = mere.open(session("branch")).await.unwrap();
+        assert_eq!(title(branch.graph(), id(1)).as_deref(), Some("Branch"));
         assert!(branch.operation_revision().is_ok());
         let plan = mere.merge_in(&target, &branch).await.unwrap();
         mere.apply_merge(&mut target, &mut branch, plan, &BTreeMap::new(), person())
