@@ -131,7 +131,7 @@ impl<B: pandect::graph_session::LegacyTransactionBackend + Clone> MereHost<B> {
 #[cfg(all(test, not(target_arch = "wasm32"), feature = "native"))]
 mod tests {
     use incipit_session::IncipitSessions;
-use super::*;
+    use super::*;
     use muniment::{MemoryBackend, StoreError, TransactFn, WriteOp};
     use std::sync::{
         Arc,

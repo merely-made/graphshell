@@ -4202,18 +4202,50 @@ mod tests {
             personal_facts::births(&data).unwrap(),
             vec![expected.clone()]
         );
-        let before = serde_json::to_value(disclosed_graph(&mut second, &shared)).unwrap();
-        let id = kernel::graph::Graph::node_namespace_id(&expected.resource.id);
         let mut changed = facts;
         changed.date.day = 2;
-        assert!(matches!(
+        let altered = serde_json::to_string(&changed).unwrap();
+        // A forged birth facet on the node a record once placed: records place
+        // no surface node now (D246, D247), so it replays as a no-op and
+        // leaves the records as they were.
+        let id = kernel::graph::Graph::node_namespace_id(&expected.resource.id);
+        assert_eq!(
             second
                 .invoke(apply(
                     &shared,
                     vec![kernel::graph::CapturedDelta::ReplaySetNodeFacetById {
                         node_id: id.to_string(),
                         facet: personal_facts::BIRTH_FACET.into(),
-                        value_json: serde_json::to_string(&changed).unwrap()
+                        value_json: altered.clone(),
+                    }]
+                ))
+                .unwrap(),
+            IntentResult::Accepted
+        );
+        let shared = graph(&mut second);
+        let data = disclosed_graph(&mut second, &shared).into_graph().unwrap();
+        assert_eq!(
+            personal_facts::births(&data).unwrap(),
+            vec![expected.clone()]
+        );
+        // The record itself forged: the birth resource carrying altered facts,
+        // which no longer match the revision its address names, so `validate`
+        // refuses it (D248) and the shared graph is unchanged.
+        let before = serde_json::to_value(disclosed_graph(&mut second, &shared)).unwrap();
+        let resource = mere::model::resource::ResourceNode::for_term(&expected.resource.id);
+        assert!(matches!(
+            second
+                .invoke(apply(
+                    &shared,
+                    vec![kernel::graph::CapturedDelta::ReplaySetResourceRecordById {
+                        resource_id: resource.id().to_string(),
+                        record: Some(mere::model::PersistedResourceRecord {
+                            canonical_iri: expected.resource.id.clone(),
+                            facets: vec![mere::model::PersistedResourceFacet {
+                                facet: personal_facts::BIRTH_FACET.into(),
+                                value_json: altered,
+                            }],
+                        }),
                     }]
                 ))
                 .unwrap(),
