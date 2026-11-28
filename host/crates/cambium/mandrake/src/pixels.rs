@@ -264,7 +264,10 @@ fn read_png(path: &Path) -> Result<Frame, String> {
     let mut reader = png::Decoder::new(file)
         .read_info()
         .map_err(|e| e.to_string())?;
-    let mut rgba = vec![0; reader.output_buffer_size()];
+    let size = reader
+        .output_buffer_size()
+        .ok_or("capture is too large to decode")?;
+    let mut rgba = vec![0; size];
     let info = reader.next_frame(&mut rgba).map_err(|e| e.to_string())?;
     if info.color_type != png::ColorType::Rgba || info.bit_depth != png::BitDepth::Eight {
         return Err("capture is not RGBA8".into());

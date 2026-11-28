@@ -35,7 +35,7 @@ apparatus-core = { workspace = true, features = ["serde"] }
 paint_list_api = { workspace = true }
 postcard = { version = "1", default-features = false, features = ["alloc"] }
 # The capture encoder and the decoder the pixel checks read back through.
-png = "0.17"
+png = ">=0.18.1"
 
 [dev-dependencies]
 sprigging = { workspace = true }

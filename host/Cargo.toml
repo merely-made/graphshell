@@ -542,6 +542,9 @@ spartan-protocol = { git = "https://github.com/merely-made/errand.git", branch =
 # this swaps in mere's own, so the graph holds one muniment and castellan's
 # stores and gaz's agree on its types.
 muniment = { git = "https://github.com/merely-made/eidetic.git", branch = "main" }
+# totp-rs master takes constant_time_eq 0.6 (PR #92, unreleased after 6.0.0), as dramatis
+# patches it, but its patch does not reach consumers. Remove when totp-rs releases it.
+totp-rs = { git = "https://github.com/constantoine/totp-rs", branch = "master" }
 # cubek-matmul 0.3.1: retain packed Q4 execution on 48-KiB workgroup devices
 # by reducing unit stage partitions after register partitions reach one.
 # Remove when upstream selection admits the same bounded packed-weight rows.
